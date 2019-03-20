@@ -20,11 +20,9 @@ class ODB(object):
             print(er.message)
         else:
             self.cur = self.conn.cursor()
-
     def __del__(self):
         if self.conn:
             self.conn.close()
-
     def execute(self, sql, result_type='list'):
         """
         execute sql and return results in a list or a dictionary
@@ -49,17 +47,20 @@ class ODB(object):
                     for row in self.cur.fetchall()
                 ]
             return rows
-
-    def get_parameter_raw_values(self,name):
-        sql='select raw from parameter where name="{}" order by ID asc'.format(name)
+    def get_parameter_raw_values(self,name, timestamps=False):
+        if timestamps:
+            sql=('select parameter.raw, header.header_time from '
+                'parameter join header on header.ID=parameter.packet_id and '
+                'name="{}" order by header.ID asc').format(name)
+        else:
+            sql='select raw from parameter where name="{}" order by ID asc'.format(name)
         return self.execute(sql)
 
     def get_packet_spid(self):
         sql='select header_time, SPID  from header order by ID asc'
         return self.execute(sql)
     def get_operation_modes(self):
-        sql='select header.header_time, parameter.raw from \
-                parameter join header on header.ID=parameter.packet_id and name="NIXD0023"' 
+        sql='select header.header_time, parameter.raw from parameter join header on header.ID=parameter.packet_id and name="NIXD0023"' 
         return self.execute(sql)
     def get_headers(self):
         sql='select header_time,SPID from header'

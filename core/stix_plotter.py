@@ -9,9 +9,6 @@ from __future__ import (absolute_import, unicode_literals)
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-from core import idb
-
-STIX_IDB = idb.STIX_IDB
 
 def discrete_cmap(N, base_cmap=None):
     """Create an N-bin discrete colormap from the specified input map
@@ -30,43 +27,34 @@ def plot_xy(x,y,xlabel='x',ylabel='y',opt='b-'):
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     return fig
+def plot_parameter_vs_time(timestamps, values, ytitle='y', opt='', reset_t0=True, title='',  pdf=None):
+    fig= plt.figure(figsize=(12,8))
+    plt.title(title)
+    x=[]
+    xlabel='Time (s)'
+    if not reset_t0:
+        x=timestamps
+    else:
+        x=[t-timestamps[0] for x in timestamps]
+        duration=timestamps[-1]-timestamps[0]
+        plt.xlim([0,duration])
+        xlabel='Time-T0 (s) - T0:{} '.format(timestamps[0])
+    plt.plot(x,values, opt)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    if not pdf:
+        plt.show()
+    else:
+        pdf.savefig()
+        plt.close()
 
-def get_packet_type_stat_text(spid_list):
-    counter = [{
-        'spid': x,
-        'counts': spid_list.count(x)
-    } for x in set(spid_list)]
-    print(
-        '#    * SPID  * Service Type * Service SubType *Number of packets*  Description'
-    )
-    sorted_counter= sorted(counter, key=lambda k: k['spid']) 
-    descr=dict()
-
-    for i,item in enumerate(sorted_counter):
-        spid = item['spid']
-        counts = item['counts']
-        desc = ''
-        pid_type = 0
-        pid_stype = 0
-        try:
-            row = STIX_IDB.get_spid_info(spid)
-            pid_type = row[0][1]
-            pid_stype = row[0][2]
-            desc = str(row[0][0])
-            descr[spid]=desc
-        except:
-            pass
-        print('{:<3}  * {:<6} *  {:<10} * {:<14}  *  {:<16}  *  {:<32}'.format(i,
-            spid, pid_type, pid_stype, counts, str(desc)))
-    print('-----------------------------------------------------------------')
-    return text
 
 
 
 
 def plot_packet_header_timeline(timestamps,spids,pdf=None):
     fig= plt.figure(figsize=(12,8))
-    plt.subplot(211)
+    #plt.subplot(211)
     plt.title('header')
     duration=timestamps[-1]-timestamps[0]
     plt.xlim([0,duration])
@@ -87,7 +75,14 @@ def plot_packet_header_timeline(timestamps,spids,pdf=None):
     plt.xlabel('Time -T0 (s)')
     plt.yticks(np.arange(0,ymax),ytick_text,rotation=20)
     plt.ylabel('SPID')
-    plt.subplot(212)
+    if not pdf:
+        plt.show()
+    else:
+        print('writing to pdf')
+        pdf.savefig()
+        plt.close()
+    fig= plt.figure(figsize=(12,8)) 
+    #plt.subplot(212)
     plt.plot(timestamps)
     plt.xlabel('Packet #')
     plt.ylabel('Time (s)')

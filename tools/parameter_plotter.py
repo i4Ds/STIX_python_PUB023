@@ -7,8 +7,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 from tools import packet_stat
 
-class Report:
-
+class ParmeterPlotter:
     def __init__(self,filename, output_pdf=None):
         self.filename=filename
         self.odb=odb.ODB(filename)
@@ -66,17 +65,54 @@ class Report:
             page.text(0.1,0.1,text, transform=page.transFigure)
             self.pdf.savefig()
             plt.close() 
+    def plot_temperatures(self):
+        temperature_sensors={
+                "NIXD0024":		"PSU temperature",
+                "NIXD0025":		"IDPU temperature 1",
+                "NIXD0026":		"IDPU temperature 2",
+                "NIXD0040":		"Aspect temperature 1",
+                "NIXD0041":		"Aspect temperature 2",
+                "NIXD0042":		"Aspect temperature 3",
+                "NIXD0043":		"Aspect temperature 4",
+                "NIXD0044":		"Aspect temperature 5",
+                "NIXD0045":		"Aspect temperature 6",
+                "NIXD0046":		"Aspect temperature 7",
+                "NIXD0047":		"Aspect temperature 8",
+                "NIXD0051":		"Attenuator temperature",
+                "NIXD0054":		"Detectors temperature Q1",
+                "NIXD0055":		"Detectors temperature Q2",
+                "NIXD0056":		"Detectors temperature Q3",
+                "NIXD0057":		"Detectors temperature Q4",
+                "NIXG0251":		"IDPU temperature",
+                "NIXG0256":		"Aspect temperature",
+                "NIXG0260":		"Detectors temperature"
+                }
+        for key, value in temperature_sensors.items():
+            self.plot_parameter(key, value, value, self.pdf)
+
+    def plot_parameter(self,name, title='', ytitle='y', pdf=None):
+        if self.odb:
+            data=self.odb.get_parameter_raw_values(name,timestamps=True)
+            print data
+            x=[ float(t[0]) for t in data]
+            y=[ t[1] for t in data]
+            stix_plotter.plot_parameter_vs_time(x,y,title=title, ytitle=ytitle, pdf=pdf)
 
 
 
 
 
-    def run(self):
+
+    def make_pdf(self):
         if self.pdf:
             self.create_title_page()
             self.create_packet_stat_page()
+        print('plotting header info')
         self.plot_headers()
+        print('plotting operation mode')
         self.plot_operation_modes()
+        print('plotting temperature sensors')
+        self.plot_temperatures()
         self.done()
 
 
@@ -85,10 +121,10 @@ class Report:
 if __name__=='__main__':
     pdf_filename=None
     if len(sys.argv)!=3 and len(sys.argv)!=2:
-        print('plot_operation_mode  <input> [pdf file]')
+        print('make_report <input> <parameter name>')
     if len(sys.argv)==3:
         pdf_filename=sys.argv[2]
 
-    process=Report(sys.argv[1],pdf_filename)
-    process.run()
+    process=ParmeterPlotter(sys.argv[1],pdf_filename)
+    process.make_pdf()
 

@@ -14,7 +14,7 @@ from stix_io import stix_logger
 LOGGER = stix_logger.LOGGER
 
 class IDB(object):
-    def __init__(self, filename='idb/idb.sqlite'):
+    def __init__(self, filename='idb/idb_2_26_14.sqlite'):
         self.filename = filename
         self.conn = None
         self.parameter_structures=dict()
