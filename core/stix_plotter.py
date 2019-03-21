@@ -27,7 +27,7 @@ def plot_xy(x,y,xlabel='x',ylabel='y',opt='b-'):
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     return fig
-def plot_parameter_vs_time(timestamps, values, ytitle='y', opt='', reset_t0=True, title='',  pdf=None):
+def plot_parameter_vs_time(timestamps, values, ylabel='y', opt='', reset_t0=True, title='',  pdf=None):
     fig= plt.figure(figsize=(12,8))
     plt.title(title)
     x=[]
@@ -35,10 +35,10 @@ def plot_parameter_vs_time(timestamps, values, ytitle='y', opt='', reset_t0=True
     if not reset_t0:
         x=timestamps
     else:
-        x=[t-timestamps[0] for x in timestamps]
+        x=[t-timestamps[0] for t in timestamps]
         duration=timestamps[-1]-timestamps[0]
         plt.xlim([0,duration])
-        xlabel='Time-T0 (s) - T0:{} '.format(timestamps[0])
+        xlabel='Time-T0 (s) [T0:{}] '.format(timestamps[0])
     plt.plot(x,values, opt)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)

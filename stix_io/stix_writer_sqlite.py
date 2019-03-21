@@ -35,7 +35,7 @@ CREATE_TABLE_PARAMETER_SQL = """CREATE TABLE parameter (
             name TEXT,
             descr	TEXT,
             raw	TEXT,
-            phys_value	TEXT
+            eng_value	TEXT
             );"""
 
 
@@ -98,7 +98,7 @@ class stix_writer:
     def insert_parameters(self, parlist):
         if self.cur and parlist:
             self.cur.executemany(
-                'insert into parameter (packet_id, name,descr,raw,phys_value) values(?,?,?,?,?)',
+                'insert into parameter (packet_id, name,descr,raw,eng_value) values(?,?,?,?,?)',
                 parlist)
 
 

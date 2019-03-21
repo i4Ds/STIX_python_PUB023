@@ -47,14 +47,19 @@ class ODB(object):
                     for row in self.cur.fetchall()
                 ]
             return rows
-    def get_parameter_raw_values(self,name, timestamps=False):
+    def get_parameter_values(self,name, value_type='raw',timestamps=False):
+        
+        col = 'parameter.raw'
+        if value_type != 'raw':
+            col = 'parameter.eng_value'
         if timestamps:
-            sql=('select parameter.raw, header.header_time from '
+            sql=('select {}, header.header_time from '
                 'parameter join header on header.ID=parameter.packet_id and '
-                'name="{}" order by header.ID asc').format(name)
+                'name="{}" order by header.ID asc').format(col, name)
         else:
-            sql='select raw from parameter where name="{}" order by ID asc'.format(name)
+            sql='select {} from parameter where name="{}" order by ID asc'.format(col,name)
         return self.execute(sql)
+
 
     def get_packet_spid(self):
         sql='select header_time, SPID  from header order by ID asc'

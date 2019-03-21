@@ -88,18 +88,18 @@ class ParmeterPlotter:
                 "NIXG0260":		"Detectors temperature"
                 }
         for key, value in temperature_sensors.items():
-            self.plot_parameter(key, value, value, self.pdf)
+            
+            self.plot_parameter_raw_phys(key, value, value, self.pdf)
 
-    def plot_parameter(self,name, title='', ytitle='y', pdf=None):
+    def plot_parameter_raw_phys(self,name, title='', ylabel='y', pdf=None):
         if self.odb:
-            data=self.odb.get_parameter_raw_values(name,timestamps=True)
-            print data
-            x=[ float(t[0]) for t in data]
-            y=[ t[1] for t in data]
-            stix_plotter.plot_parameter_vs_time(x,y,title=title, ytitle=ytitle, pdf=pdf)
-
-
-
+            data=self.odb.get_parameter_values(name,value_type='eng', timestamps=True)
+            try:
+                x=[ float(t[2]) for t in data]
+                y=[float(eval(t[0])[0]) for t in data]
+                stix_plotter.plot_parameter_vs_time(x,y,title=title, ylabel=ylabel, pdf=self.pdf)
+            except:
+                print('parameter {} not plotted'.format(name))
 
 
 
@@ -108,9 +108,9 @@ class ParmeterPlotter:
             self.create_title_page()
             self.create_packet_stat_page()
         print('plotting header info')
-        self.plot_headers()
+        #self.plot_headers()
         print('plotting operation mode')
-        self.plot_operation_modes()
+        #self.plot_operation_modes()
         print('plotting temperature sensors')
         self.plot_temperatures()
         self.done()
