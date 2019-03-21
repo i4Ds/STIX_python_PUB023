@@ -73,6 +73,8 @@ def parse_stix_raw_file(in_filename, out_filename=None, selected_spid=0):
                     LOGGER.info("Packet length invalid, data length: {}, processed: {}".format(application_data_raw_length,
                         processed_data_length))
                 num_variable_packets += 1
+            #pprint.pprint(header)
+            #pprint.pprint(parameters)
             st_writer.write_parameters(parameters)
 
         LOGGER.info('{} packets found in the file: {}'.format(total_packets,in_filename))

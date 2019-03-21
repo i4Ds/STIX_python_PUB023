@@ -1,5 +1,6 @@
 import sys
 from datetime import datetime
+import numpy as np
 from core import idb
 from stix_io import odb
 from core  import stix_plotter
@@ -32,12 +33,11 @@ class ParmeterPlotter:
     def done(self):
         if self.pdf:
             self.pdf.close()
-
     def plot_operation_modes(self):
         print('plotting operation modes...')
         t0=float(self.operation_modes[0][0])
-        timestamp=[float(e[0])-t0  for e in self.operation_modes]
-        mode=[eval(e[1])[0]  for e in self.operation_modes]
+        timestamp=np.array([float(e[0])-t0  for e in self.operation_modes])
+        mode=np.array([eval(e[1])[0]  for e in self.operation_modes])
         stix_plotter.plot_operation_mode_timeline(timestamp,mode,self.pdf)
     def plot_headers(self):
         print('plotting header information ...')
@@ -88,16 +88,40 @@ class ParmeterPlotter:
                 "NIXG0260":		"Detectors temperature"
                 }
         for key, value in temperature_sensors.items():
-            
-            self.plot_parameter_raw_phys(key, value, value, self.pdf)
+            self.plot_parameter(key, value, value, self.pdf)
 
-    def plot_parameter_raw_phys(self,name, title='', ylabel='y', pdf=None):
+    def plot_all_parameters_of_spid(self, spid):
         if self.odb:
-            data=self.odb.get_parameter_values(name,value_type='eng', timestamps=True)
+            parameters=self.odb.get_parameter_names_of_spid(spid)
+            for par in parameters:
+                name=par[0]
+                self.plot_parameter(name, pdf=self.pdf)
+
+
+    def plot_parameter(self,name, pdf=None):
+        if self.odb:
+            data=self.odb.get_parameter_values(name)
+            descr=data[0]['descr']
+            eng_value_type=data[0]['eng_value_type']
+            is_string=False
             try:
-                x=[ float(t[2]) for t in data]
-                y=[float(eval(t[0])[0]) for t in data]
-                stix_plotter.plot_parameter_vs_time(x,y,title=title, ylabel=ylabel, pdf=self.pdf)
+                x=np.array([float(t['header_time']) for t in data if t['raw']])
+                title=descr+' ('+eng_value_type+')'
+                print('plotting:{}'.format(title))
+                y=np.array([])
+                if eng_value_type == 'I':
+                    y=np.array([float(eval(t['raw'])[0]) for t in data if t['raw']])
+                elif eng_value_type =='F':
+                    y=np.array([t['eng_value'] for t in data if t['raw']])
+                elif eng_value_type == 'S':
+                    y=np.array([t['eng_value'] for t in data if t['raw']])
+                    is_string=True
+
+                if y.size > 0 and not is_string:
+                    stix_plotter.plot_parameter_timeline(x,y,title=title, ylabel=descr, pdf=self.pdf)
+                if y.size >0 and is_string:
+                    stix_plotter.plot_text_timeline(x,y,title=title, ylabel=descr, reset_t0=True, pdf=self.pdf)
+            #else:
             except:
                 print('parameter {} not plotted'.format(name))
 
@@ -108,11 +132,13 @@ class ParmeterPlotter:
             self.create_title_page()
             self.create_packet_stat_page()
         print('plotting header info')
-        #self.plot_headers()
+        self.plot_headers()
         print('plotting operation mode')
-        #self.plot_operation_modes()
-        print('plotting temperature sensors')
+        self.plot_operation_modes()
         self.plot_temperatures()
+        print('plotting temperature sensors')
+        self.plot_all_parameters_of_spid(54101)
+        self.plot_all_parameters_of_spid(54102)
         self.done()
 
 

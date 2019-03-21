@@ -128,18 +128,18 @@ def get_parameter_physical_value(pcf_curtx, para_type, raw_values):
         raw_values:  raw value of the parameter,it is a tuple
         para_type:  parameter type
     Returns:
-        physical values
+        physical values,eng_type (Float, Integral, String)
     """
     if not raw_values:
-        return None
+        return None,None
 
     if not pcf_curtx:
         if para_type == 'T':
             # timestamp
             return float(
-                raw_values[0]) + float(raw_values[1]) / 65536.
+                raw_values[0]) + float(raw_values[1]) / 65536.,'F'
         else:
-            return raw_values
+            return raw_values,'I'
         # no need to interpret
     raw_value=raw_values[0]
     prefix = re.split('\d+', pcf_curtx)[0]
@@ -151,7 +151,7 @@ def get_parameter_physical_value(pcf_curtx, para_type, raw_values):
             pcf_curtx, raw_value, raw_value)
         rows = STIX_IDB.execute(sql)
         if rows:
-            return rows[0][0]
+            return rows[0][0],'S'
     elif prefix == 'CIXP':
         sql = (
             'select cap_xvals, cap_yvals from cap '
@@ -164,24 +164,23 @@ def get_parameter_physical_value(pcf_curtx, para_type, raw_values):
             y_points = [float(row[1]) for row in rows]
             tck = interpolate.splrep(x_points, y_points)
             # interpolate value using the calibration curve in CAP
-            return interpolate.splev(raw_value, tck)
+            return interpolate.splev(raw_value, tck), 'F'
     elif prefix == 'NIX':
         # temperature
         # query PDI
         LOGGER.warning('{} not interpreted'.format(pcf_curtx))
-        return None
+        return None,None
     elif prefix == 'CIX':
         # Polynomial
-        # query mcf
         sql = ('select MCF_POL1, MCF_POL2, MCF_POL3, MCF_POL4, MCF_POL5 '
                'from MCF where MCF_IDENT="{}" limit 1').format(pcf_curtx)
         rows = STIX_IDB.execute(sql)
-        # request coefficients
         if rows:
             pol_coeff = np.array([float(x) for x in rows[0]])
             x_points = np.array([math.pow(raw_value, i) for i in range(0, 5)])
-            return np.dot(pol_coeff, x_points)
-        return None
+            return np.dot(pol_coeff, x_points),'F'
+        return None,None
+    return None,None
 
 def interpret_telemetry_parameter(application_raw_data, par, parameter_interpret=True):
     name = par['PCF_NAME']
@@ -202,26 +201,29 @@ def interpret_telemetry_parameter(application_raw_data, par, parameter_interpret
                                   offset_bit, pcf_width)
 
     if not parameter_interpret:
-        return {'name': name,'raw': raw_values}
-    else:
-        # inter
-        physical_values = get_parameter_physical_value(
-            pcf_curtx, para_type, raw_values)
-        # print name, physical_values
-        if physical_values == None:
-            LOGGER.warning(
-                'Parameter {} is not converted to physical value'.format(name))
-        return {
-            'name': name,
-            'descr': desc,
-            #'sw_desc': sw_desc,
-            'raw': raw_values,
-            #'pos': offset,
-            #'offbit': offset_bit,
-            #'width': pcf_width,
-            #'unit': unit,
-            'value': physical_values
-        }
+        return {'name': name,
+                'raw': raw_values,
+                'descr':desc,
+                'value':None,
+                'eng_value_type':None}
+
+    physical_values, phys_value_type = get_parameter_physical_value(
+        pcf_curtx, para_type, raw_values)
+    if not physical_values:
+        LOGGER.warning(
+            'Parameter {} is not converted to physical value'.format(name))
+    return {
+        'name': name,
+        'descr': desc,
+        #'sw_desc': sw_desc,
+        'raw': raw_values,
+        #'pos': offset,
+        #'offbit': offset_bit,
+        #'width': pcf_width,
+        #'unit': unit,
+        'eng_value_type': phys_value_type,
+        'value': physical_values
+    }
 
 
 def parse_telemetry_header(packet):

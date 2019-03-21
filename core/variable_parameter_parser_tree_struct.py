@@ -142,6 +142,7 @@ class variable_parameter_parser:
                     'name': node['name'],
                     'raw': result['raw'],
                     'value': result['value'],
+                    'eng_value_type': result['eng_value_type'],
                     'descr': result['descr'],
                     'child': []
                 }

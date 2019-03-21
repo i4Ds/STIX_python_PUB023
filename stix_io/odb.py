@@ -47,18 +47,11 @@ class ODB(object):
                     for row in self.cur.fetchall()
                 ]
             return rows
-    def get_parameter_values(self,name, value_type='raw',timestamps=False):
-        
-        col = 'parameter.raw'
-        if value_type != 'raw':
-            col = 'parameter.eng_value'
-        if timestamps:
-            sql=('select {}, header.header_time from '
-                'parameter join header on header.ID=parameter.packet_id and '
-                'name="{}" order by header.ID asc').format(col, name)
-        else:
-            sql='select {} from parameter where name="{}" order by ID asc'.format(col,name)
-        return self.execute(sql)
+    def get_parameter_values(self,name):
+        sql=('select header.header_time, parameter.raw, parameter.eng_value,header.ID, parameter.descr, parameter.eng_value_type from '
+            'parameter join header on header.ID=parameter.packet_id and '
+            'name="{}" order by header.ID asc').format(name)
+        return self.execute(sql, 'dict')
 
 
     def get_packet_spid(self):
@@ -70,6 +63,11 @@ class ODB(object):
     def get_headers(self):
         sql='select header_time,SPID from header'
         return self.execute(sql)
+    def get_parameter_names_of_spid(self,spid):
+        sql='select distinct parameter.name,parameter.descr,parameter.eng_value_type from \
+                parameter join header on header.ID=parameter.packet_id and header.SPID={}'.format(spid)
+        return self.execute(sql)
+
     def get_parameter_of_spid(self,spid):
         sql='select parameter.* from \
                 parameter join header on header.ID=parameter.packet_id and header.SPID={}'.format(spid)

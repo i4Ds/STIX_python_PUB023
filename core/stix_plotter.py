@@ -8,6 +8,7 @@
 from __future__ import (absolute_import, unicode_literals)
 import matplotlib
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import numpy as np
 
 def discrete_cmap(N, base_cmap=None):
@@ -27,21 +28,33 @@ def plot_xy(x,y,xlabel='x',ylabel='y',opt='b-'):
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     return fig
-def plot_parameter_vs_time(timestamps, values, ylabel='y', opt='', reset_t0=True, title='',  pdf=None):
+def plot_text_timeline(timestamps, y, title, ylabel,reset_t0=True, pdf=None):
     fig= plt.figure(figsize=(12,8))
     plt.title(title)
-    x=[]
-    xlabel='Time (s)'
-    if not reset_t0:
-        x=timestamps
-    else:
-        x=[t-timestamps[0] for t in timestamps]
-        duration=timestamps[-1]-timestamps[0]
-        plt.xlim([0,duration])
+    x=np.array([])
+    xtitle='Time (s)'
+    if reset_t0:
+        x=np.array([t-timestamps[0] for t in timestamps])
         xlabel='Time-T0 (s) [T0:{}] '.format(timestamps[0])
-    plt.plot(x,values, opt)
+    else:
+        x=timestamps
+    yset=set(y)
+    yset_len=len(yset)
+    ymap=dict()
+    plt.ylim([-0.5,yset_len+1])
+    ytext=[]
+    colors= discrete_cmap(yset_len,'hsv')
+    for i,value in enumerate(yset):
+        ymap[value]=i
+        ytext.append(value)
+    new_y=[ymap[i] for i in y]
+
+    for xx,yy  in zip(x,new_y):
+        plt.plot((xx,xx),(yy-0.5,yy+0.5),linewidth=1,color=colors[yy])
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
+    plt.yticks(np.arange(0,yset_len),ytext,rotation=20)
+    plt.subplots_adjust(left=0.15, right=0.95, top=0.95, bottom=0.1)
     if not pdf:
         plt.show()
     else:
@@ -49,6 +62,28 @@ def plot_parameter_vs_time(timestamps, values, ylabel='y', opt='', reset_t0=True
         plt.close()
 
 
+def plot_parameter_timeline(timestamps, values, ylabel='y', opt='', reset_t0=True, title='', pdf=None):
+    fig= plt.figure(figsize=(12,8))
+    plt.title(title)
+    x=[]
+    xlabel='Time (s)'
+    if not reset_t0:
+        x=timestamps
+    else:
+        x=np.array([t-timestamps[0] for t in timestamps])
+        duration=timestamps[-1]-timestamps[0]
+        plt.xlim([0,duration])
+        xlabel='Time-T0 (s) [T0:{}] '.format(timestamps[0])
+    plt.plot(x,values, opt)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.gca().yaxis.set_major_formatter(ticker.FormatStrFormatter('%.1f'))
+    plt.subplots_adjust(left=0.15, right=0.95, top=0.95, bottom=0.1)
+    if not pdf:
+        plt.show()
+    else:
+        pdf.savefig()
+        plt.close()
 
 
 
