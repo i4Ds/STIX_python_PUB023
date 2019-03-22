@@ -16,6 +16,7 @@ class ParmeterPlotter:
         self.operation_modes=None
         self.headers=None
         self.db_queries()
+        self.parameter_numer=0
         if output_pdf:
             try:
                 self.pdf=PdfPages(output_pdf)
@@ -88,17 +89,36 @@ class ParmeterPlotter:
                 "NIXG0260":		"Detectors temperature"
                 }
         for key, value in temperature_sensors.items():
-            self.plot_parameter(key, value, value, self.pdf)
+            self.plot_parameter(key)
 
     def plot_all_parameters_of_spid(self, spid):
         if self.odb:
             parameters=self.odb.get_parameter_names_of_spid(spid)
+            self.plot_parameter_list(parameters)
+
+    def plot_all_parameters_of_service(self, service):
+        if self.odb:
+            parameters=self.odb.get_parameter_names_of_service(service)
+            #print parameters
+            self.plot_parameter_list(parameters)
+
+
+    def plot_parameter_list(self,parameters):
+            fig=None
             for par in parameters:
                 name=par[0]
-                self.plot_parameter(name, pdf=self.pdf)
+                if self.parameter_numer %4 ==0:
+                    if fig:
+                        self.pdf.savefig()
+                        print('saving pdf: {}'.format(name))
+                        plt.close()
+                    fig= plt.figure(figsize=(12,8))
+                plt.subplot(2,2,self.parameter_numer%4+1)
+                self.plot_parameter(name)
+                self.parameter_numer += 1
 
 
-    def plot_parameter(self,name, pdf=None):
+    def plot_parameter(self,name):
         if self.odb:
             data=self.odb.get_parameter_values(name)
             descr=data[0]['descr']
@@ -118,9 +138,9 @@ class ParmeterPlotter:
                     is_string=True
 
                 if y.size > 0 and not is_string:
-                    stix_plotter.plot_parameter_timeline(x,y,title=title, ylabel=descr, pdf=self.pdf)
+                    stix_plotter.plot_parameter_timeline(x,y,title=title, ylabel=descr)
                 if y.size >0 and is_string:
-                    stix_plotter.plot_text_timeline(x,y,title=title, ylabel=descr, reset_t0=True, pdf=self.pdf)
+                    stix_plotter.plot_text_timeline(x,y,title=title, ylabel=descr, reset_t0=True)
             #else:
             except:
                 print('parameter {} not plotted'.format(name))
@@ -136,9 +156,9 @@ class ParmeterPlotter:
         print('plotting operation mode')
         self.plot_operation_modes()
         self.plot_temperatures()
-        print('plotting temperature sensors')
-        self.plot_all_parameters_of_spid(54101)
-        self.plot_all_parameters_of_spid(54102)
+        self.plot_all_parameters_of_service(1)
+        self.plot_all_parameters_of_service(3)
+        self.plot_all_parameters_of_service(5)
         self.done()
 
 
@@ -152,5 +172,7 @@ if __name__=='__main__':
         pdf_filename=sys.argv[2]
 
     process=ParmeterPlotter(sys.argv[1],pdf_filename)
-    process.make_pdf()
-
+    try:
+        process.make_pdf()
+    except  KeyboardInterrupt:
+        process.done()

@@ -28,8 +28,7 @@ def plot_xy(x,y,xlabel='x',ylabel='y',opt='b-'):
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     return fig
-def plot_text_timeline(timestamps, y, title, ylabel,reset_t0=True, pdf=None):
-    fig= plt.figure(figsize=(12,8))
+def plot_text_timeline(timestamps, y, title, ylabel,reset_t0=True):
     plt.title(title)
     x=np.array([])
     xtitle='Time (s)'
@@ -52,18 +51,12 @@ def plot_text_timeline(timestamps, y, title, ylabel,reset_t0=True, pdf=None):
     for xx,yy  in zip(x,new_y):
         plt.plot((xx,xx),(yy-0.5,yy+0.5),linewidth=1,color=colors[yy])
     plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
+    # plt.ylabel(ylabel)
     plt.yticks(np.arange(0,yset_len),ytext,rotation=20)
     plt.subplots_adjust(left=0.15, right=0.95, top=0.95, bottom=0.1)
-    if not pdf:
-        plt.show()
-    else:
-        pdf.savefig()
-        plt.close()
 
 
-def plot_parameter_timeline(timestamps, values, ylabel='y', opt='', reset_t0=True, title='', pdf=None):
-    fig= plt.figure(figsize=(12,8))
+def plot_parameter_timeline(timestamps, values, ylabel='y', opt='', reset_t0=True, title=''):
     plt.title(title)
     x=[]
     xlabel='Time (s)'
@@ -79,11 +72,6 @@ def plot_parameter_timeline(timestamps, values, ylabel='y', opt='', reset_t0=Tru
     plt.ylabel(ylabel)
     plt.gca().yaxis.set_major_formatter(ticker.FormatStrFormatter('%.1f'))
     plt.subplots_adjust(left=0.15, right=0.95, top=0.95, bottom=0.1)
-    if not pdf:
-        plt.show()
-    else:
-        pdf.savefig()
-        plt.close()
 
 
 

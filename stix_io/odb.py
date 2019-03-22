@@ -67,6 +67,10 @@ class ODB(object):
         sql='select distinct parameter.name,parameter.descr,parameter.eng_value_type from \
                 parameter join header on header.ID=parameter.packet_id and header.SPID={}'.format(spid)
         return self.execute(sql)
+    def get_parameter_names_of_service(self,service):
+        sql='select parameter.name from \
+                parameter join header on header.ID=parameter.packet_id and header.service_type={}'.format(service)
+        return self.execute(sql)
 
     def get_parameter_of_spid(self,spid):
         sql='select parameter.* from \
