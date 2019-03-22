@@ -93,13 +93,30 @@ class ParmeterPlotter:
 
     def plot_all_parameters_of_spid(self, spid):
         if self.odb:
-            parameters=self.odb.get_parameter_names_of_spid(spid)
+            spids=[]
+            if type(spid) is list:
+                spids=spid
+            else:
+                spids=[spid]
+            parameter_list=[]
+            for i in spids:
+                param=self.odb.get_parameter_names_of_spid(i)
+                parameter_list.append(param)
+            parameters=set(parameter_list)
             self.plot_parameter_list(parameters)
 
-    def plot_all_parameters_of_service(self, service):
+    def plot_parameters_of_services(self, service):
         if self.odb:
-            parameters=self.odb.get_parameter_names_of_service(service)
-            #print parameters
+            services=[]
+            if type(service) is list:
+                services=service
+            else:
+                services=[service]
+            parameter_list=[]
+            for i in services:
+                param=self.odb.get_parameter_names_of_service(i)
+                parameter_list.append(param)
+            parameters=set(parameter_list)
             self.plot_parameter_list(parameters)
 
 
@@ -155,10 +172,8 @@ class ParmeterPlotter:
         self.plot_headers()
         print('plotting operation mode')
         self.plot_operation_modes()
-        self.plot_temperatures()
-        self.plot_all_parameters_of_service(1)
-        self.plot_all_parameters_of_service(3)
-        self.plot_all_parameters_of_service(5)
+        #self.plot_temperatures()
+        self.plot_parameters_of_services([1,3,5])
         self.done()
 
 
@@ -170,7 +185,6 @@ if __name__=='__main__':
         print('make_report <input> <parameter name>')
     if len(sys.argv)==3:
         pdf_filename=sys.argv[2]
-
     process=ParmeterPlotter(sys.argv[1],pdf_filename)
     try:
         process.make_pdf()
