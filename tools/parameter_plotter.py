@@ -101,7 +101,7 @@ class ParmeterPlotter:
             parameter_list=[]
             for i in spids:
                 param=self.odb.get_parameter_names_of_spid(i)
-                parameter_list.append(param)
+                parameter_list.extend(param)
             parameters=set(parameter_list)
             self.plot_parameter_list(parameters)
 
@@ -115,7 +115,7 @@ class ParmeterPlotter:
             parameter_list=[]
             for i in services:
                 param=self.odb.get_parameter_names_of_service(i)
-                parameter_list.append(param)
+                parameter_list.extend(param)
             parameters=set(parameter_list)
             self.plot_parameter_list(parameters)
 
@@ -169,9 +169,9 @@ class ParmeterPlotter:
             self.create_title_page()
             self.create_packet_stat_page()
         print('plotting header info')
-        self.plot_headers()
-        print('plotting operation mode')
-        self.plot_operation_modes()
+        #self.plot_headers()
+        #print('plotting operation mode')
+        #self.plot_operation_modes()
         #self.plot_temperatures()
         self.plot_parameters_of_services([1,3,5])
         self.done()
