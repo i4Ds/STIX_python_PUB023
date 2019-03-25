@@ -87,7 +87,7 @@ def parse_stix_raw_file(in_filename, out_filename=None, selected_spid=0):
 
 def main():
     in_filename = 'test/stix.dat'
-    out_filename = 'stix_out.pkl'
+    out_filename = 'stix_out.db'
     sel_spid = 0
     ap = argparse.ArgumentParser()
     ap.add_argument("-i", "--in", required=True, help="input file")
