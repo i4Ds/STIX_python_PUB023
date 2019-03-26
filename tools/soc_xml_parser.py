@@ -38,7 +38,7 @@ def parse_esa_xml_file(in_filename, out_filename=None, selected_spid=0):
         doc = xmltodict.parse(fd.read())
         for e in doc['ns2:ResponsePart']['Response']['PktRawResponse']['PktRawResponseElement']:
             packet={'id':e['@packetID'],
-                    'raw':e['Packet'][60:]}
+                    'raw':e['Packet']}
             packets.append(packet)
 
         num_packets = 0
@@ -47,13 +47,11 @@ def parse_esa_xml_file(in_filename, out_filename=None, selected_spid=0):
         num_bytes_read = 0
         st_writer = stw.stix_writer(out_filename)
         st_writer.register_run(in_filename)
-
         total_packets=0
         for packet in packets:
             data_hex=packet['raw']
             data_binary= binascii.unhexlify(data_hex)
-            in_file=StringIO(data_binary)
-
+            in_file=StringIO(data_binary[76:])
             status, header, header_raw, application_data_raw, num_bytes_read = stix_parser.read_one_packet_from_binary_file(
                 in_file, LOGGER)
             total_packets += 1
@@ -115,7 +113,7 @@ def main():
     in_filename = args['in']
     LOGGER.info('Input file', in_filename)
     LOGGER.info('Output file', out_filename)
-    parse_stix_raw_file(in_filename, out_filename, sel_spid)
+    parse_esa_xml_file(in_filename, out_filename, sel_spid)
 
 
 if __name__ == '__main__':
