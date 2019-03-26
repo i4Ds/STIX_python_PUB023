@@ -3,12 +3,15 @@
 # @title        : parser.py
 # @description  : STIX TM packet parser 
 # @author       : Hualin Xiao
-# @date         : Feb. 11, 2019
+# @date         : March. 28, 2019
 #
 
 from __future__ import (absolute_import, unicode_literals)
 import argparse
 import pprint
+import binascii
+from cStringIO import StringIO
+import xmltodict
 from core import idb
 from core import stix_global
 #from core import variable_parameter_parser as vp
@@ -21,17 +24,23 @@ from core import stix_parser
 LOGGER = stix_logger.LOGGER
 
 
-def parse_stix_raw_file(in_filename, out_filename=None, selected_spid=0):
+def parse_esa_xml_file(in_filename, out_filename=None, selected_spid=0):
     """
-    Parse STIX raw TM packets 
+    Parse STIX raw TM packets  
     Args:
      in_filename: input filename
      out_filename: output filename
      selected_spid: filter data packets by  SPID. 0  means to select all packets
     Returns:
-
     """
-    with open(in_filename, 'rb') as in_file:
+    packets=[]
+    with open(in_filename) as fd:
+        doc = xmltodict.parse(fd.read())
+        for e in doc['ns2:ResponsePart']['Response']['PktRawResponse']['PktRawResponseElement']:
+            packet={'id':e['@packetID'],
+                    'raw':e['Packet'][60:]}
+            packets.append(packet)
+
         num_packets = 0
         num_fix_packets=0
         num_variable_packets=0
@@ -40,7 +49,11 @@ def parse_stix_raw_file(in_filename, out_filename=None, selected_spid=0):
         st_writer.register_run(in_filename)
 
         total_packets=0
-        while True:
+        for packet in packets:
+            data_hex=packet['raw']
+            data_binary= binascii.unhexlify(data_hex)
+            in_file=StringIO(data_binary)
+
             status, header, header_raw, application_data_raw, num_bytes_read = stix_parser.read_one_packet_from_binary_file(
                 in_file, LOGGER)
             total_packets += 1
@@ -52,8 +65,6 @@ def parse_stix_raw_file(in_filename, out_filename=None, selected_spid=0):
             tpsd = header['TPSD']
             if selected_spid > 0 and spid != selected_spid:
                 continue
-
-            
             st_writer.write_header(header)
 
             parameters = None
@@ -73,8 +84,9 @@ def parse_stix_raw_file(in_filename, out_filename=None, selected_spid=0):
                     LOGGER.info("Packet length invalid, data length: {}, processed: {}".format(application_data_raw_length,
                         processed_data_length))
                 num_variable_packets += 1
-            pprint.pprint(header)
-            pprint.pprint(parameters)
+            
+            msg_dict={'packet_id':packet['id'],'header':header,'parameter':parameters}
+            pprint.pprint(msg_dict)
             st_writer.write_parameters(parameters)
 
         LOGGER.info('{} packets found in the file: {}'.format(total_packets,in_filename))
@@ -86,7 +98,7 @@ def parse_stix_raw_file(in_filename, out_filename=None, selected_spid=0):
 
 
 def main():
-    in_filename = 'test/stix.dat'
+    in_filename = 'test/stix.xml'
     out_filename = 'stix_out.db'
     sel_spid = 0
     ap = argparse.ArgumentParser()

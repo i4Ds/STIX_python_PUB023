@@ -171,16 +171,10 @@ STIX_IDB = IDB()
 def test():
     """ test  the database interfaces"""
     print(STIX_IDB.get_s2k_parameter_types(3, 16))
-    #print(STIX_IDB.get_packet_type_offset(5, 1))
-    #result_dict = STIX_IDB.execute('select * from VPD where VPD_FIXREP =0',
-    #                              'dict')
-    #pprint.pprint(result_dict)
-
-    #print(STIX_IDB.get_parameter_physical_value('CIXT0014TM', 53248))
     #print(STIX_IDB.get_parameter_physical_value('CIXP0024TM', 2405))
     #print(STIX_IDB.get_parameter_physical_value('CIX00036TM', 20))
-    for i in range(100000):
-        a=STIX_IDB.get_s2k_parameter_types(3, 16)
+    #for i in range(100000):
+    #    a=STIX_IDB.get_s2k_parameter_types(3, 16)
 
 
 

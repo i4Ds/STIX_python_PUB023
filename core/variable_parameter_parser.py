@@ -196,14 +196,10 @@ class variable_parameter_parser:
         #print('###{},{}, {},{}'.format(par['PCF_NAME'],self.last_offset,self.current_offset_bit,width))
         return stix_parser.interpret_telemetry_parameter(
             self.source_data, par, parameter_interpret=False )
-
-
 def test():
     t = variable_parameter_parser('', 54121)
     t.build_tree()
     pprint(t.nodes)
     #t.walk(t.nodes[0])
-
-
 if __name__ == '__main__':
     test()

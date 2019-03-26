@@ -169,6 +169,11 @@ def get_parameter_physical_value(pcf_curtx, para_type, raw_values):
         # temperature
         # query PDI
         LOGGER.warning('{} not interpreted'.format(pcf_curtx))
+        if pcf_curtx == 'NIX00101':
+            #see SO-STIX-DS-30001_IDeF-X HD datasheet page 29
+            pass
+
+
         return None,None
     elif prefix == 'CIX':
         # Polynomial
@@ -330,7 +335,7 @@ def get_fixed_packet_parameters(application_raw_data, parameter_structure_list):
     return parameters
 
 
-def read_one_packet(in_file, logger):
+def read_one_packet_from_binary_file(in_file, logger):
     """
     Read one telemetry packet and parse the header
     Args:

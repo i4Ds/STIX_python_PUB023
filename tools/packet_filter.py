@@ -33,7 +33,7 @@ def packet_filter(in_filename, out_filename, selected_spid):
         num_selected_packets = 0
         num_total_packets = 0
         while True:
-            status, header, header_raw, application_data_raw, num_bytes_read = stix_parser.read_one_packet(
+            status, header, header_raw, application_data_raw, num_bytes_read = stix_parser.read_one_packet_from_binary_file(
                 fin, LOGGER)
             if status == stix_global.NEXT_PACKET:
                 continue

@@ -71,7 +71,7 @@ def analyze_stix_raw_file(in_filename,noplot=False):
         num_bytes_read = 0
         timestamps=[]
         while True:
-            status, header, header_raw, application_data_raw, bytes_read = stix_parser.read_one_packet(
+            status, header, header_raw, application_data_raw, bytes_read = stix_parser.read_one_packet_from_binary_file(
                 in_file, LOGGER)
             num_bytes_read += bytes_read
             if status == stix_global.NEXT_PACKET:
