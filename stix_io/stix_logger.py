@@ -31,6 +31,17 @@ class stix_logger:
             print('[INFO   ] {0}: {1}'.format(msg, description))
         else:
             print('[INFO   ] : {}'.format(msg))
+    def pprint_parameters(self,parameters):
+        for par in parameters:
+            if par:
+                value=''
+                if par['value']!=par['raw']:
+                    value=par['value']
+                print('{:<10} {:<30} {:<15} {:15}'.format(par['name'],par['descr'],par['raw'],value))
+                if par['child']:
+                    self.pprint_parameters(par['child'])
+
+
     def pprint(self,header, parameters):
         print('*'*80)
         print('packet id      : {}'.format(header['packet_id']))
@@ -45,12 +56,7 @@ class stix_logger:
         print('-'*70)
         print('{:<10} {:<30} {:<15} {:15}'.format('name','descr','raw','eng_value'))
         print('-'*70)
-        for par in parameters:
-            if par:
-                value=''
-                if par['value']!=par['raw']:
-                    value=par['value']
-                print('{:<10} {:<30} {:<15} {:15}'.format(par['name'],par['descr'],par['raw'],value))
+        self.pprint_parameters(parameters)
         print('*'*80)
 
 

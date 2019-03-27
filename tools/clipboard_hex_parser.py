@@ -8,17 +8,22 @@ import binascii
 import Tkinter as tk
 import re
 from tools import parser
+from cStringIO import StringIO
+from stix_io import stix_logger
 LOGGER = stix_logger.LOGGER
 def parser_clipboard_data():
     root = tk.Tk()
     root.withdraw()
     raw_hex=root.clipboard_get()
     data_hex= re.sub(r"\s+", "", raw_hex)
-    print('header:%s'%data_hex[:10])
-    data_binary = binascii.unhexlify(data_hex)
-    in_file=StringIO(data_binary)
-    status, header, parameters, param_type, num_bytes_read = parser.parse_one_packet(
-        in_file, LOGGER)
-    LOGGER.pprint(header,parameters)
+    if len(data_hex) < 14:
+        print('header:%s'%data_hex[:10])
+        print('data invalid')
+    else:
+        data_binary = binascii.unhexlify(data_hex)
+        in_file=StringIO(data_binary)
+        status, header, parameters, param_type, num_bytes_read = parser.parse_one_packet(
+            in_file, LOGGER)
+        LOGGER.pprint(header,parameters)
 if __name__ == '__main__':
     parser_clipboard_data()
