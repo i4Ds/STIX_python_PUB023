@@ -38,8 +38,9 @@ class stix_logger:
                 if par['value']!=par['raw']:
                     value=par['value']
                 print('{:<10} {:<30} {:<15} {:15}'.format(par['name'],par['descr'],par['raw'],value))
-                if par['child']:
-                    self.pprint_parameters(par['child'])
+                if 'child' in par:
+                    if par['child']:
+                        self.pprint_parameters(par['child'])
 
 
     def pprint(self,header, parameters):
