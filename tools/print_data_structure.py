@@ -12,16 +12,16 @@ import sys
 if len(sys.argv) == 1:
     print('Print the description of a parameter')
     print('Usage:')
-    print('parameter_description  <parameter name>')
+    print('parameter_description  <name>')
 else:
-    spid=sys.argv[1]
+    spid=int(sys.argv[1])
     app = QApplication(sys.argv)
     db = QSqlDatabase.addDatabase("QSQLITE")
     db.setDatabaseName("idb/idb.sqlite")
     db.open()
 
     projectModel = QSqlQueryModel()
-    projectModel.setQuery('select * from PCF',db)
+    projectModel.setQuery('select PLF.*,PCF.* from PCF join PLF on PCF.PCF_NAME=PLF.PLF_NAME and PLF.SPID=%d'%spid,db)
     projectView = QTableView()
     projectView.setModel(projectModel)
     projectView.show()

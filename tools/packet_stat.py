@@ -48,7 +48,7 @@ def get_packet_type_stat_text(spid_list):
             pass
         text += ('{:<3}  * {:<6} *  {:<10} * {:<14}  *  {:<16}  *  {:<32}\n'.format(i,
             spid, pid_type, pid_stype, counts, str(desc)))
-    text+='-----------------------------------------------------------------'
+    text+='-'*70
     return text
 
 
@@ -84,7 +84,7 @@ def analyze_stix_raw_file(in_filename,noplot=False):
             timestamps.append(header['time'])
 
 
-        print('-----------------------------------------------------------------')
+        print('-'*70)
         print('Data file       : {}'.format(in_filename))
         print('Total bytes read: {} kB'.format(num_bytes_read/1024))
         print('Total packets   : {}'.format(len(spid_list)))
