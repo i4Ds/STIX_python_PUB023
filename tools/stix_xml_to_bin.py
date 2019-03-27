@@ -8,7 +8,7 @@ import sys
 import binascii
 from cStringIO import StringIO
 import xmltodict
-def parse_esa_xml_file(in_filename, out_filename):
+def convert_stix_xml_to_bin(in_filename, out_filename):
     with open(in_filename) as fin, \
             open(out_filename,'wb') as fout :
         doc = xmltodict.parse(fin.read())
@@ -24,6 +24,6 @@ def main():
     if len(sys.argv) != 3:
         print('stix_xml_to_bin  <INPUT> <OUTPUT>')
     else:
-        parse_esa_xml_file(sys.argv[1], sys.argv[2])
+        convert_stix_xml_to_bin(sys.argv[1], sys.argv[2])
 if __name__ == '__main__':
     main()
