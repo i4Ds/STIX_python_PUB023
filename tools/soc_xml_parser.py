@@ -14,12 +14,9 @@ from cStringIO import StringIO
 import xmltodict
 from core import idb
 from core import stix_global
-#from core import variable_parameter_parser as vp
-from core import variable_parameter_parser_tree_struct as vp
-#from stix_io import stix_writer
 from stix_io import stix_writer_sqlite as stw
 from stix_io import stix_logger
-from core import stix_parser
+from tools import parser
 
 LOGGER = stix_logger.LOGGER
 
@@ -32,7 +29,6 @@ def parse_esa_xml_file(in_filename, out_filename=None, selected_spid=0):
             packet={'id':e['@packetID'],
                     'raw':e['Packet']}
             packets.append(packet)
-
         num_packets = 0
         num_fix_packets=0
         num_variable_packets=0
@@ -44,40 +40,16 @@ def parse_esa_xml_file(in_filename, out_filename=None, selected_spid=0):
             data_hex=packet['raw']
             data_binary= binascii.unhexlify(data_hex)
             in_file=StringIO(data_binary[76:])
-            status, header, header_raw, application_data_raw, num_bytes_read = stix_parser.read_one_packet_from_binary_file(
+            status, header, parameters, param_type, num_bytes_read = parser.parse_one_packet(
                 in_file, LOGGER)
             total_packets += 1
-            if status == stix_global.NEXT_PACKET:
-                continue
-            if status == stix_global.EOF:
-                break
-            spid = header['SPID']
-            tpsd = header['TPSD']
-            if selected_spid > 0 and spid != selected_spid:
-                continue
-            st_writer.write_header(header)
-
-            parameters = None
-            application_data_raw_length = len(application_data_raw)
-            num_packets += 1
-            if tpsd == -1:
-                # see SCOS ICD page 28
-                parameters = stix_parser.parse_fixed_packet(
-                    application_data_raw, spid)
+            LOGGER.pprint(header, parameters)
+            if param_type ==1:
                 num_fix_packets += 1
-
-            else:
-                vpd_parser = vp.variable_parameter_parser(
-                    application_data_raw, spid)
-                processed_data_length, parameters = vpd_parser.get_parameters()
-                if processed_data_length != application_data_raw_length:
-                    LOGGER.info("Packet length invalid, data length: {}, processed: {}".format(application_data_raw_length,
-                        processed_data_length))
+            elif param_type == 2: 
                 num_variable_packets += 1
-            
-            msg_dict={'packet_id':packet['id'],'header':header,'parameter':parameters}
-            pprint.pprint(msg_dict)
-            st_writer.write_parameters(parameters)
+            if header and parameters:
+                st_writer.write_parameters(parameters)
 
         LOGGER.info('{} packets found in the file: {}'.format(total_packets,in_filename))
         LOGGER.info('{} ({} fixed and {} variable) packets processed.'.format(num_packets,\

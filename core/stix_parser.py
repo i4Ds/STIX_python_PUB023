@@ -17,7 +17,6 @@ import re
 from scipy import interpolate
 import numpy as np
 import struct as st
-import pprint
 from core import idb
 from core import stix_global
 from core import header as stix_header
@@ -25,6 +24,7 @@ from stix_io import stix_writer
 from stix_io import stix_logger
 LOGGER = stix_logger.LOGGER
 STIX_IDB = idb.STIX_IDB
+
 UNSIGNED_UNPACK_STRING = ['B', '>H', 'BBB', '>I', 'BBBBB', '>IH']
 SIGNED_UNPACK_STRING = ['b', '>h', 'bbb', '>i', 'bbbbb', '>ih']
 
@@ -383,3 +383,4 @@ def read_one_packet_from_binary_file(in_file, logger):
                                 application_raw_data_length)
     return stix_global.OK, header, header_raw, application_raw_data, \
         in_file.tell() - file_start_pos
+
