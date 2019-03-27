@@ -25,14 +25,6 @@ LOGGER = stix_logger.LOGGER
 
 
 def parse_esa_xml_file(in_filename, out_filename=None, selected_spid=0):
-    """
-    Parse STIX raw TM packets  
-    Args:
-     in_filename: input filename
-     out_filename: output filename
-     selected_spid: filter data packets by  SPID. 0  means to select all packets
-    Returns:
-    """
     packets=[]
     with open(in_filename) as fd:
         doc = xmltodict.parse(fd.read())
