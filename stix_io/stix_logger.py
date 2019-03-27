@@ -31,6 +31,27 @@ class stix_logger:
             print('[INFO   ] {0}: {1}'.format(msg, description))
         else:
             print('[INFO   ] : {}'.format(msg))
+    def pprint(self,header, parameters):
+        print('*'*80)
+        print('packet id      : {}'.format(header['packet_id']))
+        print('Description    : {}'.format(header['DESCR']))
+        print('Timestamp      : {}'.format(header['time']))
+        print('SPID           : {}'.format(header['SPID']))
+        print('segmentation   : {}'.format(header['segmentation']))
+        print('service type   : {}'.format(header['service_type']))
+        print('service subtype: {}'.format(header['service_subtype']))
+        print('data length    : {}'.format(header['data_length']))
+        print('APID           : {}'.format(header['APID']))
+        print('-'*70)
+        print('{:<10} {:<30} {:<15} {:15}'.format('name','descr','raw','eng_value'))
+        print('-'*70)
+        for par in parameters:
+            if par:
+                value=''
+                if par['value']!=par['raw']:
+                    value=par['value']
+                print('{:<10} {:<30} {:<15} {:15}'.format(par['name'],par['descr'],par['raw'],value))
+        print('*'*80)
 
 
     def debug(self, msg):
