@@ -1,17 +1,13 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 # @title        : stix_xml_to_bin.py
-# @description  : read packets from an ESA xml file and convert them to stix binary data
+# @description  : read packets from an ESA xml file and write them to STIX raw data format
 # @date         : March. 28, 2019
-#
-
 from __future__ import (absolute_import, unicode_literals)
 import sys
 import binascii
 from cStringIO import StringIO
 import xmltodict
-
-
 def parse_esa_xml_file(in_filename, out_filename):
     with open(in_filename) as fin, \
             open(out_filename,'wb') as fout :
@@ -23,16 +19,11 @@ def parse_esa_xml_file(in_filename, out_filename):
             data_binary = binascii.unhexlify(data_hex)
             fout.write(data_binary[76:])
             num_packet += 1
-        print(
-            ' %d packets have been written to %s' % (num_packet, out_filename))
-
-
+        print(' %d packets have been written to %s' % (num_packet, out_filename))
 def main():
     if len(sys.argv) != 3:
         print('stix_xml_to_bin  <INPUT> <OUTPUT>')
     else:
         parse_esa_xml_file(sys.argv[1], sys.argv[2])
-
-
 if __name__ == '__main__':
     main()
