@@ -20,10 +20,13 @@ def parser_clipboard_data():
         print('header:%s'%data_hex[:10])
         print('data invalid')
     else:
-        data_binary = binascii.unhexlify(data_hex)
-        in_file=StringIO(data_binary)
-        status, header, parameters, param_type, num_bytes_read = parser.parse_one_packet(
-            in_file, LOGGER)
-        LOGGER.pprint(header,parameters)
+        try:
+            data_binary = binascii.unhexlify(data_hex)
+            in_file=StringIO(data_binary)
+            status, header, parameters, param_type, num_bytes_read = parser.parse_one_packet(
+                in_file, LOGGER)
+            LOGGER.pprint(header,parameters)
+        except TypeError:
+            print('Non hexadecimal digit found in the clipboard')
 if __name__ == '__main__':
     parser_clipboard_data()
