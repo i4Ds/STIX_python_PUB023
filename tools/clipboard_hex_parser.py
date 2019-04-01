@@ -16,12 +16,17 @@ def parser_clipboard_data():
     root.withdraw()
     raw_hex=root.clipboard_get()
     data_hex= re.sub(r"\s+", "", raw_hex)
+    print(data_hex)
     try:
         data_binary = binascii.unhexlify(data_hex)
         in_file=StringIO(data_binary)
         status, header, parameters, param_type, num_bytes_read = parser.parse_one_packet(
             in_file, LOGGER)
-        LOGGER.pprint(header,parameters)
+        if header and parameters:
+            LOGGER.pprint(header,parameters)
+        else:
+            print('header:%s'%str(header))
+            print('parameters:%s'%str(parameters))
     except TypeError:
         print('Non hexadecimal digit found in the clipboard')
 if __name__ == '__main__':
