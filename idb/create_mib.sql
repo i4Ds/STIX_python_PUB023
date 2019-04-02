@@ -24,7 +24,6 @@ DROP TABLE IF EXISTS GRPK;
 DROP TABLE IF EXISTS LGF;
 DROP TABLE IF EXISTS MCF;
 DROP TABLE IF EXISTS Name;
-DROP TABLE IF EXISTS AutoCorrect;
 DROP TABLE IF EXISTS Save;
 DROP TABLE IF EXISTS Failures;
 DROP TABLE IF EXISTS OCP;
@@ -486,13 +485,6 @@ CREATE TABLE `MCF`
 	`Originator`			varchar (20)
 );
 
-CREATE TABLE `Name AutoCorrect Save Failures`
- (
-	`Object Name`			varchar (510), 
-	`Object Type`			varchar (510), 
-	`Failure Reason`			varchar (510), 
-	`Time`			datetime
-);
 
 CREATE TABLE `OCP`
  (
@@ -522,7 +514,7 @@ CREATE TABLE `PAS`
 	`PAS_NUMBR`			varchar (20) NOT NULL, 
 	`PAS_ALTXT`			varchar (32) NOT NULL, 
 	`PAS_ALVAL`			varchar (34) NOT NULL, 
-	`SDB_IMPORTED`			char NOT NULL, 
+	`SDB_IMPORTED`			char NOT NULL,
 	`Originator`			varchar (20)
 );
 
@@ -1372,15 +1364,6 @@ CREATE TABLE `OCF`
 	`Originator`			varchar (20)
 );
 
-CREATE TABLE `Paste Errors`
- (
-	`PIC_TYPE`			text (255), 
-	`PIC_STYPE`			text (255), 
-	`PIC_PI1_OFF`			text (255), 
-	`PIC_PI1_WID`			text (255), 
-	`PIC_PI2_OFF`			text (255), 
-	`PIC_PI2_WID`			text (255)
-);
 
 CREATE TABLE `PID`
  (
