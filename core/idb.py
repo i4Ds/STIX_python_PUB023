@@ -3,8 +3,6 @@
 #
 # @title        : IDB.py
 # @description  : stix idb python interface
-#                 Note that modifications of the code are needed to prevent SQL injections 
-#                 if one uses it for web applications.
 # @author       : Hualin Xiao
 # @date         : Feb. 15, 2019
 from __future__ import (absolute_import, unicode_literals)
@@ -14,9 +12,10 @@ import sqlite3
 from stix_io import stix_logger
 
 LOGGER = stix_logger.LOGGER
+STIX_IDB_FILENAME='idb/idb.sqlite'
 
 class IDB(object):
-    def __init__(self, filename='idb/idb_2_26_14.sqlite'):
+    def __init__(self, filename=STIX_IDB_FILENAME):
         self.filename = filename
         self.conn = None
         self.parameter_structures=dict()
@@ -26,6 +25,7 @@ class IDB(object):
             self.conn = sqlite3.connect(self.filename)
         except sqlite3.Error as er:
             LOGGER.error(er.message)
+            raise Exception('Failed to connect to IDB !')
         else:
             self.cur = self.conn.cursor()
 
@@ -44,7 +44,7 @@ class IDB(object):
         N
         """
         if not self.cur:
-            return None
+            raise Exception('IDB is not initialized!')
         else:
             rows = None
             if arguments:
