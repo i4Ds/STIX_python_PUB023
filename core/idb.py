@@ -3,6 +3,8 @@
 #
 # @title        : IDB.py
 # @description  : stix idb python interface
+#                 Note that modifications of the code are needed to prevent SQL injections 
+#                 if one uses it for web applications.
 # @author       : Hualin Xiao
 # @date         : Feb. 15, 2019
 from __future__ import (absolute_import, unicode_literals)
@@ -31,7 +33,7 @@ class IDB(object):
         if self.conn:
             self.conn.close()
 
-    def execute(self, sql, result_type='list'):
+    def execute(self, sql,arguments, result_type='list'):
         """
         execute sql and return results in a list or a dictionary
         Args:
@@ -39,12 +41,17 @@ class IDB(object):
             result_type: type of results. It can be list or dict
         return:
             database query result
+        N
         """
         if not self.cur:
             return None
         else:
             rows = None
-            self.cur.execute(sql)
+            if arguments:
+                self.cur.execute(sql,arguments)
+            else:
+                self.cur.execute(sql)
+
             if result_type == 'list':
                 rows = self.cur.fetchall()
             else:
@@ -58,8 +65,8 @@ class IDB(object):
 
     def get_spid_info(self, spid):
         """ get SPID description """
-        sql='select PID_DESCR,PID_TYPE,PID_STYPE from PID where PID_SPID={} limit 1'.format(spid)
-        return self.execute(sql)
+        sql='select PID_DESCR,PID_TYPE,PID_STYPE from PID where PID_SPID=? limit 1'
+        return self.execute(sql,(spid,))
     
     def get_scos_description(self, name):
         """ get scos long description """
@@ -67,7 +74,7 @@ class IDB(object):
             return self.soc_descriptions[name]
         else:
             rows = self.execute(
-                'select SW_DESCR from sw_para where scos_name="{}"'.format(name))
+                'select SW_DESCR from sw_para where scos_name=? ',(name,))
             if rows:
                 res=rows[0][0]
                 self.soc_descriptions[name]=res
@@ -78,37 +85,39 @@ class IDB(object):
         """get telemetry data information """
         sql=('select sw_para.SW_DESCR, tpcf.tpcf_name  '
             ' from sw_para join tpcf '
-            'on tpcf.tpcf_name=sw_para.scos_name and tpcf.tpcf_spid={}').format(
-                spid)
-        return self.execute(sql)
+            'on tpcf.tpcf_name=sw_para.scos_name and tpcf.tpcf_spid= ?')
+        return self.execute(sql,(spid,))
 
     def get_packet_type_offset(self, packet_type, packet_subtype):
         sql = ('select PIC_PI1_OFF, PIC_PI1_WID from PIC '
-               'where PIC_TYPE={} and PIC_STYPE={} limit 1').format(
-                   packet_type, packet_subtype)
-        rows = self.execute(sql)
+               'where PIC_TYPE=? and PIC_STYPE=? limit 1')
+        args=(packet_type, packet_subtype)
+        rows = self.execute(sql,args)
         if rows:
             return rows[0]
         return 0
     def get_PCF_description(self,name):
-        sql=('select PCF_DESCR from PCF where PCF_NAME="{}"'.format(name))
-        return self.execute(sql)
+        sql=('select PCF_DESCR from PCF where PCF_NAME=?')
+
+        return self.execute(sql,(name,))
 
 
     def get_packet_type_info(self, packet_type, packet_subtype, pi1_val=-1):
         """
         Identify packet type using service, service subtype and information in IDB table PID
         """
+        args=None
         if pi1_val == -1:
             sql = ('select PID_SPID, PID_DESCR, PID_TPSD from PID '
-                   'where PID_TYPE={} and PID_STYPE={} limit 1').format(
-                       packet_type, packet_subtype)
+                   'where PID_TYPE=? and PID_STYPE=? limit 1')
+            args=(packet_type, packet_subtype)
         else:
             sql = (
                 'select PID_SPID, PID_DESCR, PID_TPSD from PID '
-                'where PID_TYPE={} and PID_STYPE={} and PID_PI1_VAL={} limit 1'
-            ).format(packet_type, packet_subtype, pi1_val)
-        rows = self.execute(sql, 'dict')
+                'where PID_TYPE=? and PID_STYPE=? and PID_PI1_VAL=? limit 1'
+            )
+            args=(packet_type, packet_subtype, pi1_val)
+        rows = self.execute(sql, args, 'dict')
         return rows[0]
 
     def get_s2k_parameter_types(self, ptc, pfc):
@@ -117,18 +126,19 @@ class IDB(object):
             return self.s2k_table_contents[(ptc,pfc)]
         else:
             sql = ('select S2K_TYPE, LENGTH, S2K_TYPE_Description from '
-                   ' tblConfigS2KParameterTypes where PTC = {} '
-                   ' and {} >= PFC_LB and  PFC_UB >= {} limit 1').format(
-                       ptc, pfc, pfc)
-            rows = self.execute(sql, 'dict')
+                   ' tblConfigS2KParameterTypes where PTC = ? '
+                   ' and ? >= PFC_LB and  PFC_UB >= ? limit 1')
+            args=(ptc, pfc, pfc)
+            rows = self.execute(sql, args, 'dict')
             self.s2k_table_contents[(ptc,pfc)]=rows[0]
             return rows[0]
 
     def convert_NIXG_NIXD(self, name):
         sql = (
-            'select PDI_GLOBAL, PDI_DETAIL, PDI_OFFSET from PDI where PDI_GLOBAL="{}" '
-        ).format(name)
-        rows = self.execute(sql, 'dict')
+            'select PDI_GLOBAL, PDI_DETAIL, PDI_OFFSET from PDI where PDI_GLOBAL=? '
+        )
+        args=(name,)
+        rows = self.execute(sql, args, 'dict')
         return rows
 
     def get_fixed_packet_structure(self, spid):
@@ -146,8 +156,9 @@ class IDB(object):
         else:
             sql = ('select PLF.*, PCF.* '
                    ' from PLF   inner join PCF  on PLF.PLF_NAME = PCF.PCF_NAME '
-                   ' and PLF.PLF_SPID={} order by PLF.PLF_OFFBY asc').format(spid)
-            res=self.execute(sql, 'dict')
+                   ' and PLF.PLF_SPID=? order by PLF.PLF_OFFBY asc')
+            args=(spid,)
+            res=self.execute(sql, args, 'dict')
             self.parameter_structures[spid]=res
             return res
 
@@ -158,9 +169,10 @@ class IDB(object):
         else:
             sql = (
                 'select VPD.*, PCF.*'
-                ' from VPD inner join PCF on  VPD.VPD_NAME=PCF.PCF_NAME and VPD.VPD_TPSD={} order by '
-                ' VPD.VPD_POS asc').format(spid)
-            res=self.execute(sql, 'dict')
+                ' from VPD inner join PCF on  VPD.VPD_NAME=PCF.PCF_NAME and VPD.VPD_TPSD=? order by '
+                ' VPD.VPD_POS asc')
+            args=(spid,)
+            res=self.execute(sql, args, 'dict')
             self.parameter_structures[spid]=res
             return res
 

@@ -1,9 +1,13 @@
+"""  A script to export mib to a sqlite3 database. 
+"""
+
 import sqlite3
 import glob
 import os
 MIB_FOLDER='./mib'
+OUTPUT='mib.sqlite'
 
-def start(folder=MIB_FOLDER, output='mib.sqlite'):
+def start(folder=MIB_FOLDER, output=OUTPUT):
     pattern=folder+'/*.dat'
 
     file_list=(glob.glob(pattern))
@@ -22,19 +26,15 @@ def start(folder=MIB_FOLDER, output='mib.sqlite'):
         
         f=open(fname, 'r')
         try:
-            cursor = cur.execute('select * from %s limit 1'%name)
+            cursor = cur.execute('select * from ? limit 1',(name,))
         except:
-            print('not imported: %s'%name)
+            print('Error: %s is not imported'%name)
             continue
-
         names = list(map(lambda x: x[0], cursor.description))
         num=len(names)
         for line in f:
             qmark='?'
             cols=[e.strip() for e in line.split("\t")]
-            
-            #print num,len(cols)
-            #print names[len(cols):]
             if num>len(cols):
                 cols.extend(['NULL']*(num-len(cols)))
 

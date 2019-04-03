@@ -23,7 +23,7 @@ class ODB(object):
     def __del__(self):
         if self.conn:
             self.conn.close()
-    def execute(self, sql, result_type='list'):
+    def execute(self, sql, args, result_type='list'):
         """
         execute sql and return results in a list or a dictionary
         Args:
@@ -36,7 +36,11 @@ class ODB(object):
             return None
         else:
             rows = None
-            self.cur.execute(sql)
+            if args:
+                self.cur.execute(sql,args)
+            else:
+                self.cur.execute(sql)
+
             if result_type == 'list':
                 rows = self.cur.fetchall()
             else:
@@ -50,30 +54,34 @@ class ODB(object):
     def get_parameter_values(self,name):
         sql=('select header.header_time, parameter.raw, parameter.eng_value,header.ID, parameter.descr, parameter.eng_value_type from '
             'parameter join header on header.ID=parameter.packet_id and '
-            'name="{}" order by header.ID asc').format(name)
-        return self.execute(sql, 'dict')
+            'name=? order by header.ID asc')
+        args=(name,)
+        return self.execute(sql, args, 'dict')
 
 
     def get_packet_spid(self):
         sql='select header_time, SPID  from header order by ID asc'
-        return self.execute(sql)
+        return self.execute(sql,None)
     def get_operation_modes(self):
         sql='select header.header_time, parameter.raw from parameter join header on header.ID=parameter.packet_id and name="NIXD0023"' 
-        return self.execute(sql)
+        return self.execute(sql,None)
     def get_headers(self):
         sql='select header_time,SPID from header'
-        return self.execute(sql)
+        return self.execute(sql,None)
     def get_parameter_names_of_spid(self,spid):
-        sql='select distinct parameter.name,parameter.descr,parameter.eng_value_type from \
-                parameter join header on header.ID=parameter.packet_id and header.SPID={}'.format(spid)
+        sql=('select distinct parameter.name,parameter.descr,parameter.eng_value_type from ' 
+                'parameter join header on header.ID=parameter.packet_id and header.SPID=?')
+        args=(spid,)
         return self.execute(sql)
     def get_parameter_names_of_service(self,service):
         sql='select parameter.name from \
-                parameter join header on header.ID=parameter.packet_id and header.service_type={}'.format(service)
-        return self.execute(sql)
+                parameter join header on header.ID=parameter.packet_id and header.service_type=?'
+        args=(service,)
+        return self.execute(sql,args)
 
     def get_parameter_of_spid(self,spid):
         sql='select parameter.* from \
-                parameter join header on header.ID=parameter.packet_id and header.SPID={}'.format(spid)
-        return self.execute(sql,'dict')
+                parameter join header on header.ID=parameter.packet_id and header.SPID=?'
+        args=(spid,)
+        return self.execute(sql,args,'dict')
     

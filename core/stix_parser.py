@@ -146,19 +146,20 @@ def get_parameter_physical_value(pcf_curtx, para_type, raw_values):
     if prefix in ['CIXTS', 'CAAT', 'CIXT']:
         # textual interpret
         sql = (
-            'select TXP_ALTXT from TXP where  TXP_NUMBR="{}" and {}>=TXP_FROM '
-            ' and TXP_TO>={} limit 1').format(
-            pcf_curtx, raw_value, raw_value)
-        rows = STIX_IDB.execute(sql)
+            'select TXP_ALTXT from TXP where  TXP_NUMBR=? and ?>=TXP_FROM '
+            ' and TXP_TO>=? limit 1')
+        args=(pcf_curtx, raw_value, raw_value)
+        rows = STIX_IDB.execute(sql,args)
         if rows:
             return rows[0][0],'S'
     elif prefix == 'CIXP':
         sql = (
             'select cap_xvals, cap_yvals from cap '
-            ' where cap_numbr="{}" order by cast(CAP_XVALS as double) asc'
-        ).format(pcf_curtx)
+            ' where cap_numbr=? order by cast(CAP_XVALS as double) asc'
+        )
+        args=(pcf_curtx,)
         # calibration curve defined in CAP database
-        rows = STIX_IDB.execute(sql)
+        rows = STIX_IDB.execute(sql,args)
         if rows:
             x_points = [float(row[0]) for row in rows]
             y_points = [float(row[1]) for row in rows]
@@ -178,8 +179,9 @@ def get_parameter_physical_value(pcf_curtx, para_type, raw_values):
     elif prefix == 'CIX':
         # Polynomial
         sql = ('select MCF_POL1, MCF_POL2, MCF_POL3, MCF_POL4, MCF_POL5 '
-               'from MCF where MCF_IDENT="{}" limit 1').format(pcf_curtx)
-        rows = STIX_IDB.execute(sql)
+               'from MCF where MCF_IDENT=? limit 1')
+        args=(pcf_curtx)
+        rows = STIX_IDB.execute(sql,args)
         if rows:
             pol_coeff = np.array([float(x) for x in rows[0]])
             x_points = np.array([math.pow(raw_value, i) for i in range(0, 5)])
