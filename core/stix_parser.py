@@ -232,6 +232,24 @@ def interpret_telemetry_parameter(application_raw_data, par, parameter_interpret
         'value': physical_values
     }
 
+def parse_telecommand_header(packet):
+    # see STIX ICD-0812-ESC  (Page
+    # 56)
+    if ord(packet[0]) != 0x1D:
+        return stix_global.HEADER_FIRST_BYTE_INVALID, None
+    header_raw = st.unpack('>HHHBBBB', packet[0:10])
+    header = {}
+    for h, s in zip(header_raw, stix_header.telecommand_raw_structure):
+        header.update(unpack_integer(h, s))
+    status= check_header(header,'tc')
+    if status == stix_global.OK:
+        try:
+            header.update({'ACK_DESC':header.ack_request[header['ACK']]})
+        except KeyError:
+            status=stix_global.HEADER_KEY_ERROR
+    return status, header
+
+
 
 def parse_telemetry_header(packet):
     # see STIX ICD-0812-ESC  (Page
@@ -240,9 +258,9 @@ def parse_telemetry_header(packet):
         return stix_global.HEADER_FIRST_BYTE_INVALID, None
     header_raw = st.unpack('>HHHBBBBIH', packet[0:16])
     header = {}
-    for h, s in zip(header_raw, stix_header.raw_structure):
+    for h, s in zip(header_raw, stix_header.telemetry_raw_structure):
         header.update(unpack_integer(h, s))
-    status= check_header(header)
+    status= check_header(header,'tm')
     if status == stix_global.OK:
         header.update({'segmentation': stix_header.packet_seg[header['seg_flag']]})
         header.update(
@@ -250,9 +268,14 @@ def parse_telemetry_header(packet):
     return status, header
 
 
-def check_header(header):
+def check_header(header,tmtc='tm'):
     # header validate
-    for name, lim in stix_header.header_constraints.items():
+    constrains=None
+    if tmtc=='tm':
+        constrains=stix_header.telemetry_header_constraints
+    else:
+        constrains=stix_header.telecommand_header_constraints
+    for name, lim in constrains.items():
         if header[name] not in lim:
             return stix_global.HEADER_INVALID
     return stix_global.OK

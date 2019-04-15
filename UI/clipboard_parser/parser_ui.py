@@ -124,6 +124,8 @@ class Ui_mainWindow(object):
         self.textEdit.paste()
     def parseHex(self):
         self.status.setText('Parsing...')
+        self.tableWidget.setRowCount(0)
+        #clear table
         raw_hex=str(self.textEdit.toPlainText())
         data_hex= re.sub(r"\s+", "", raw_hex)
         if not data_hex:
