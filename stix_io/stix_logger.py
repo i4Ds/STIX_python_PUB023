@@ -32,6 +32,8 @@ class stix_logger:
         else:
             print('[INFO   ] : {}'.format(msg))
     def pprint_parameters(self,parameters):
+        if not parameters:
+            return 
         for par in parameters:
             if par:
                 value=''
