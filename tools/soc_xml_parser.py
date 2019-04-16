@@ -16,7 +16,7 @@ from core import idb
 from core import stix_global
 from stix_io import stix_writer_sqlite as stw
 from stix_io import stix_logger
-from tools import parser
+from core import stix_telemetry_parser as tm_parser
 
 LOGGER = stix_logger.LOGGER
 
@@ -40,7 +40,7 @@ def parse_esa_xml_file(in_filename, out_filename=None, selected_spid=0):
             data_hex=packet['raw']
             data_binary= binascii.unhexlify(data_hex)
             in_file=StringIO(data_binary[76:])
-            status, header, parameters, param_type, num_bytes_read = parser.parse_one_packet(
+            status, header, parameters, param_type, num_bytes_read = tm_parser.parse_one_packet(
                 in_file, LOGGER)
             total_packets += 1
             LOGGER.pprint(header, parameters)

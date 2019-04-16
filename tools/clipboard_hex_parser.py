@@ -7,7 +7,7 @@ import sys
 import binascii
 import Tkinter as tk
 import re
-from tools import parser
+from core import stix_telemetry_parser as parser
 from cStringIO import StringIO
 from stix_io import stix_logger
 LOGGER = stix_logger.LOGGER

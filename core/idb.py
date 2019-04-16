@@ -162,6 +162,13 @@ class IDB(object):
             self.parameter_structures[spid]=res
             return res
 
+    def get_telecommand_characteristics(self, service_type, service_subtype, source_id=-1):
+        sql=('select * from CCF where CCF_TYPE=? and CCF_STYPE =?')
+        args=(service_type,service_subtype)
+        res=self.execute(sql, args, 'dict')
+        return res
+
+
 
     def get_variable_packet_structure(self, spid):
         if spid in self.parameter_structures:
@@ -182,11 +189,12 @@ STIX_IDB = IDB()
 
 def test():
     """ test  the database interfaces"""
-    print(STIX_IDB.get_s2k_parameter_types(3, 16))
+    #print(STIX_IDB.get_s2k_parameter_types(3, 16))
     #print(STIX_IDB.get_parameter_physical_value('CIXP0024TM', 2405))
     #print(STIX_IDB.get_parameter_physical_value('CIX00036TM', 20))
     #for i in range(100000):
     #    a=STIX_IDB.get_s2k_parameter_types(3, 16)
+    pprint.pprint(STIX_IDB.get_telecommand_characteristics(236, 17))
 
 
 

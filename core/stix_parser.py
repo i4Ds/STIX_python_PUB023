@@ -17,6 +17,7 @@ import re
 from scipy import interpolate
 import numpy as np
 import struct as st
+import pprint
 from core import idb
 from core import stix_global
 from core import header as stix_header
@@ -232,23 +233,6 @@ def interpret_telemetry_parameter(application_raw_data, par, parameter_interpret
         'value': physical_values
     }
 
-def parse_telecommand_header(packet):
-    # see STIX ICD-0812-ESC  (Page
-    # 56)
-    if ord(packet[0]) != 0x1D:
-        return stix_global.HEADER_FIRST_BYTE_INVALID, None
-    header_raw = st.unpack('>HHHBBBB', packet[0:10])
-    header = {}
-    for h, s in zip(header_raw, stix_header.telecommand_raw_structure):
-        header.update(unpack_integer(h, s))
-    status= check_header(header,'tc')
-    if status == stix_global.OK:
-        try:
-            header.update({'ACK_DESC':header.ack_request[header['ACK']]})
-        except KeyError:
-            status=stix_global.HEADER_KEY_ERROR
-    return status, header
-
 
 
 def parse_telemetry_header(packet):
@@ -360,6 +344,8 @@ def get_fixed_packet_parameters(application_raw_data, parameter_structure_list):
     return parameters
 
 
+
+
 def read_one_packet_from_binary_file(in_file, logger):
     """
     Read one telemetry packet and parse the header
@@ -409,3 +395,32 @@ def read_one_packet_from_binary_file(in_file, logger):
     return stix_global.OK, header, header_raw, application_raw_data, \
         in_file.tell() - file_start_pos
 
+def parse_telecommand_header(packet):
+    # see STIX ICD-0812-ESC  (Page
+    # 56)
+    if ord(packet[0]) != 0x1D:
+        return stix_global.HEADER_FIRST_BYTE_INVALID, None
+    header_raw = st.unpack('>HHHBBBB', packet[0:10])
+    header = {}
+    for h, s in zip(header_raw, stix_header.telecommand_raw_structure):
+        header.update(unpack_integer(h, s))
+    status= check_header(header,'tc')
+    if status == stix_global.OK:
+        try:
+            header.update({'ACK_DESC':header.ack_request[header['ACK']]})
+        except KeyError:
+            status=stix_global.HEADER_KEY_ERROR
+    return status, header
+
+def parse_telecommand_parameter(header,packet):
+    pass
+
+
+def parse_telecommand_packet(buf, logger):
+    status,header=parse_telecommand_header(buf)
+    if header_status != stix_global.OK:
+        if logger:
+            logger.warning('Bad telecommand header ')
+    else:
+        pprint.pprint(header)
+    

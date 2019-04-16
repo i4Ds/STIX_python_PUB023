@@ -17,8 +17,9 @@ from core import idb
 from core import stix_global
 from stix_io import stix_writer_sqlite as stw
 from stix_io import stix_logger
-from tools import parser
+from core import stix_telemetry_parser as tm_parser
 from datetime import datetime
+import stix_parser
 import xlwt
 
 LOGGER = stix_logger.LOGGER
@@ -53,28 +54,27 @@ def parse_soc_ascii_file(in_filename, out_filename=None, selected_spid=0):
         for line  in fd:
             [utc_timestamp,data_hex]=line.strip().split()
             data_binary= binascii.unhexlify(data_hex)
-            in_file=StringIO(data_binary)
-            status, header, parameters, param_type, num_bytes_read = parser.parse_one_packet(
-                in_file, LOGGER)
-            total_packets += 1
+            header=None
+            parameters=None
+            if data_hex[0:2]=='0D':
+                in_file=StringIO(data_binary)
+                status, header, parameters, param_type, num_bytes_read = tm_parser.parse_one_packet(
+                    in_file, LOGGER)
+            elif data_hex[0:2]=='1D':
+                header,parameter=stix_parser.parse_telecommand_packet(data_binary)
+
+
             if header:
                 header['time']=utc_timestamp
                 header['packet_id']=total_packets-1
             else:
                 LOGGER.warning('The header is none')
-            if param_type ==1:
-                num_fix_packets += 1
-            elif param_type == 2: 
-                num_variable_packets += 1
-            write_xls(sheet, total_packets-1, total_packets-1, utc_timestamp,data_hex, header, parameters)
+
+            write_xls(sheet, total_packets, total_packets, utc_timestamp,data_hex, header, parameters)
+            total_packets += 1
 
 
-        LOGGER.info('{} packets found in the file: {}'.format(total_packets,in_filename))
-        LOGGER.info('{} ({} fixed and {} variable) packets processed.'.format(num_packets,\
-                num_fix_packets,num_variable_packets))
         book.save(out_filename)
-        LOGGER.info('Writing parameters to file {} ...'.format(out_filename))
-
         LOGGER.info('Done.')
 
 
