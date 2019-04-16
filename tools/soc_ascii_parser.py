@@ -19,20 +19,27 @@ from stix_io import stix_writer_sqlite as stw
 from stix_io import stix_logger
 from core import stix_telemetry_parser as tm_parser
 from datetime import datetime
-import stix_parser
+from core import stix_parser
 import xlwt
 
 LOGGER = stix_logger.LOGGER
-
-def write_xls(sheet, row, packet_id, utc_timestamp,data_hex, header, parameters):
+def write_xls(sheet, tctm, row,  packet_id, utc_timestamp,data_hex, header, parameters):
     sheet.write(row, 0, packet_id)
     sheet.write(row, 1, utc_timestamp)
     sheet.write(row, 2, data_hex)
+
     if header:
-        headerstr='TM(%s,%s)'%(header['service_type'],header['service_subtype'])
-        sheet.write(row, 3, headerstr)
-        sheet.write(row, 4, header['SPID'])
         sheet.write(row, 5, header['DESCR'])
+        if tctm=='tm':
+            sheet.write(row, 4, header['SPID'])
+            headerstr='TM(%s,%s)'%(header['service_type'],header['service_subtype'])
+        else:
+            sheet.write(row, 4, header['name'])
+            sheet.write(row, 6, header['ACK_DESC'])
+            headerstr='TC(%s,%s)'%(header['service_type'],header['service_subtype'])
+        sheet.write(row, 3, headerstr)
+
+
     else:
         sheet.write(row, 3, 'invalid STIX TM packet')
 
@@ -56,21 +63,21 @@ def parse_soc_ascii_file(in_filename, out_filename=None, selected_spid=0):
             data_binary= binascii.unhexlify(data_hex)
             header=None
             parameters=None
+            tctm='tm'
             if data_hex[0:2]=='0D':
                 in_file=StringIO(data_binary)
                 status, header, parameters, param_type, num_bytes_read = tm_parser.parse_one_packet(
                     in_file, LOGGER)
             elif data_hex[0:2]=='1D':
-                header,parameter=stix_parser.parse_telecommand_packet(data_binary)
-
-
+                tctm='tc'
+                header,parameter=stix_parser.parse_telecommand_packet(data_binary,LOGGER)
             if header:
                 header['time']=utc_timestamp
                 header['packet_id']=total_packets-1
             else:
                 LOGGER.warning('The header is none')
 
-            write_xls(sheet, total_packets, total_packets, utc_timestamp,data_hex, header, parameters)
+            write_xls(sheet, tctm, total_packets, total_packets, utc_timestamp,data_hex, header, parameters)
             total_packets += 1
 
 

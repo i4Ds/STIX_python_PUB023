@@ -163,12 +163,20 @@ class IDB(object):
             return res
 
     def get_telecommand_characteristics(self, service_type, service_subtype, source_id=-1):
-        sql=('select * from CCF where CCF_TYPE=? and CCF_STYPE =?')
+        sql=('select * from CCF where CCF_TYPE=? and CCF_STYPE =? order by CCF_CNAME asc')
         args=(service_type,service_subtype)
         res=self.execute(sql, args, 'dict')
+        if source_id >=0 and len(res)>1:
+            #for TC(237,7) , ZIX37701 -- ZIX37724
+            #source_id in the header is needed to identify the packet type
+            return res[source_id-1]
+        else:
+            return res[0]
+    def get_telecommand_parameters(self,name):
+        sql='select * from CDF where CDF_CNAME=?'
+        args=(name,)
+        res=self.execute(sql, args, 'dict')
         return res
-
-
 
     def get_variable_packet_structure(self, spid):
         if spid in self.parameter_structures:
@@ -194,7 +202,8 @@ def test():
     #print(STIX_IDB.get_parameter_physical_value('CIX00036TM', 20))
     #for i in range(100000):
     #    a=STIX_IDB.get_s2k_parameter_types(3, 16)
-    pprint.pprint(STIX_IDB.get_telecommand_characteristics(236, 17))
+    pprint.pprint(STIX_IDB.get_telecommand_characteristics(237, 7,1))
+    pprint.pprint(STIX_IDB.get_telecommand_characteristics(237, 7,2))
 
 
 

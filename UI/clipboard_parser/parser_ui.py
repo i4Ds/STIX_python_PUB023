@@ -10,9 +10,10 @@ from PyQt4 import QtCore, QtGui
 import sys
 import binascii
 import re
-from tools import parser
+from core import stix_telemetry_parser as parser
 from cStringIO import StringIO
 from stix_io import stix_logger
+LOGGER = stix_logger.LOGGER
 
 
 
@@ -135,7 +136,7 @@ class Ui_mainWindow(object):
             data_binary = binascii.unhexlify(data_hex)
             in_file=StringIO(data_binary)
             status, header, parameters, param_type, num_bytes_read = parser.parse_one_packet(
-                in_file, None)
+                in_file, LOGGER)
         except TypeError:
             self.status.setText('Failed to parse the packet')
         msg=''

@@ -12,8 +12,7 @@ import pprint
 from core import idb
 from core import stix_global
 #from core import variable_parameter_parser as vp
-from core import variable_parameter_parser_tree_struct as vp
-#from stix_io import stix_writer
+from core import variable_parameter_parser_tree_struct as vp #from stix_io import stix_writer
 from stix_io import stix_writer_sqlite as stw
 from core import stix_parser
 

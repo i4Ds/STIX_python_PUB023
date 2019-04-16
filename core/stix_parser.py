@@ -405,9 +405,14 @@ def parse_telecommand_header(packet):
     for h, s in zip(header_raw, stix_header.telecommand_raw_structure):
         header.update(unpack_integer(h, s))
     status= check_header(header,'tc')
+    info=STIX_IDB.get_telecommand_characteristics(header['service_type'],
+            header['service_subtype'], header['source_id'])
+    header['DESCR']=info['CCF_DESCR']+' - ' +info['CCF_DESCR2']
+    header['SPID']=''
+    header['name']=info['CCF_CNAME']
     if status == stix_global.OK:
         try:
-            header.update({'ACK_DESC':header.ack_request[header['ACK']]})
+            header['ACK_DESC']=stix_header.ACK_mapping[header['ACK']]
         except KeyError:
             status=stix_global.HEADER_KEY_ERROR
     return status, header
@@ -417,10 +422,12 @@ def parse_telecommand_parameter(header,packet):
 
 
 def parse_telecommand_packet(buf, logger):
-    status,header=parse_telecommand_header(buf)
+    header_status,header=parse_telecommand_header(buf)
     if header_status != stix_global.OK:
-        if logger:
-            logger.warning('Bad telecommand header ')
+        logger.warning('Bad telecommand header ')
     else:
         pprint.pprint(header)
+
+    return header,None
+
     

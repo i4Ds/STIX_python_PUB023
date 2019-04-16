@@ -58,7 +58,7 @@ packet_seg = [
     'continuation packet', 'first packet', 'last packet',
     'stand-alone packet'
 ]
-ack_request={
+ACK_mapping={
         0:'no response',
         9:'ACC_ACK EXE_ACK',
         1:'ACC_ACK',
