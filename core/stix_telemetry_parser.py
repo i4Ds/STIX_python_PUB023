@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-# @title        : parser.py
-# @description  : STIX TM packet parser 
+# @title        : stix_telemetry_parser.py
+# @description  : STIX TM packet parser  wrapper
 # @author       : Hualin Xiao
 # @date         : Feb. 11, 2019
 #
@@ -16,9 +16,26 @@ from core import variable_parameter_parser_tree_struct as vp #from stix_io impor
 from stix_io import stix_writer_sqlite as stw
 from core import stix_parser
 
+def parse_telemetry_packet(buf):
+    if len(buf)<=16:
+        return stix_global.BAD_PACKET, None, None
+    header_raw=buf[0:16]
+    header_status, header = stix_parser.parse_telemetry_header(header_raw)
+    app_length = header['length']-9
+    app_raw=buf[17:]
+    parse_app_header(header, app_raw, app_length)
+    tpsd = header['TPSD']
+    spid= header['SPID']
+    if tpsd == -1:
+        parameters = stix_parser.parse_fixed_packet(app_raw, spid)
+    else:
+        vpd_parser = vp.variable_parameter_parser(app_raw, spid)
+        bytes_parsed, parameters = vpd_parser.get_parameters()
+    return stix_global.OK, header, parameters
+
 
 def parse_one_packet(in_file,logger,selected_spid=0):
-    status, header, header_raw, app_raw, num_read = stix_parser.read_one_packet_from_binary_file(
+    status, header, header_raw, app_raw, num_read = stix_parser.read_one_packet(
                 in_file, logger)
     parameters = None
     param_type=-1

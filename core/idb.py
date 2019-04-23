@@ -162,14 +162,16 @@ class IDB(object):
             self.parameter_structures[spid]=res
             return res
 
-    def get_telecommand_characteristics(self, service_type, service_subtype, source_id=-1):
+    def get_telecommand_characteristics(self, service_type, service_subtype, command_subtype=-1):
+        """
+          command subtype is only used for 237, 7
+        """
         sql=('select * from CCF where CCF_TYPE=? and CCF_STYPE =? order by CCF_CNAME asc')
-        args=(service_type,service_subtype)
-        res=self.execute(sql, args, 'dict')
-        if source_id >=0 and len(res)>1:
+        res=self.execute(sql, (service_type,service_subtype) , 'dict')
+        if command_subtype>=0 and len(res)>1:
             #for TC(237,7) , ZIX37701 -- ZIX37724
             #source_id in the header is needed to identify the packet type
-            return res[source_id-1]
+            return res[command_subtype-1]
         else:
             return res[0]
     def get_telecommand_parameters(self,name):
@@ -186,8 +188,7 @@ class IDB(object):
                 'select VPD.*, PCF.*'
                 ' from VPD inner join PCF on  VPD.VPD_NAME=PCF.PCF_NAME and VPD.VPD_TPSD=? order by '
                 ' VPD.VPD_POS asc')
-            args=(spid,)
-            res=self.execute(sql, args, 'dict')
+            res=self.execute(sql, (spid,), 'dict')
             self.parameter_structures[spid]=res
             return res
 

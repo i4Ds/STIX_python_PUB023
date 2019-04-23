@@ -190,7 +190,7 @@ def get_parameter_physical_value(pcf_curtx, para_type, raw_values):
         return None,None
     return None,None
 
-def interpret_telemetry_parameter(application_raw_data, par, parameter_interpret=True):
+def interpret_telemetry_parameter(app_data, par, parameter_interpret=True):
     name = par['PCF_NAME']
     if name == 'NIX00299':
         return None
@@ -205,7 +205,7 @@ def interpret_telemetry_parameter(application_raw_data, par, parameter_interpret
     unit = par['PCF_UNIT']
     s2k_table = STIX_IDB.get_s2k_parameter_types(ptc, pfc)
     para_type = s2k_table['S2K_TYPE']
-    raw_values = unpack_parameter(application_raw_data, para_type, offset,
+    raw_values = unpack_parameter(app_data, para_type, offset,
                                   offset_bit, pcf_width)
 
     if not parameter_interpret:
@@ -265,7 +265,7 @@ def check_header(header,tmtc='tm'):
     return stix_global.OK
 
 
-def interpret_data_field_header(header, data, data_length):
+def parse_app_header(header, data, data_length):
     """
     Decode the data field header  and
     identify package types using
@@ -308,18 +308,18 @@ def interpret_data_field_header(header, data, data_length):
     for e in info:
         header.update(e)
 
-def parse_fixed_packet(application_raw_data,spid):
+def parse_fixed_packet(app_data,spid):
     parameter_structures = STIX_IDB.get_fixed_packet_structure(spid)
-    return get_fixed_packet_parameters(application_raw_data, parameter_structures)
+    return get_fixed_packet_parameters(app_data, parameter_structures)
 
 
-def get_fixed_packet_parameters(application_raw_data, parameter_structure_list):
+def get_fixed_packet_parameters(app_data, parameter_structure_list):
     """
     Extract parameters from a fixed data packet
     Structures of parameters are defined in the database PLF
     see Solar orbit IDB ICD section 3.3.2.5.1
     Args:
-        application_raw_data: application data
+        app_data: application data
         parameter_structures :  [
                 [PLF_NAME, PLF_OFFBY, PLF_OFFBI, PLF_NBOCC, PLF_LGOCC,'
                 PLF_TIME, PLF_TDOCC, SDB_IMPORTED],
@@ -339,21 +339,20 @@ def get_fixed_packet_parameters(application_raw_data, parameter_structure_list):
         # offset is known from the PLF table
         par['offset_bit'] = int(par['PLF_OFFBI'])
         par['type'] = 'fixed'
-        parameter = interpret_telemetry_parameter(application_raw_data, par,True)
+        parameter = interpret_telemetry_parameter(app_data, par,True)
         parameters.append(parameter)
     return parameters
 
 
 
-
-def read_one_packet_from_binary_file(in_file, logger):
+def read_one_packet(in_file, logger):
     """
     Read one telemetry packet and parse the header
     Args:
        in_file: a python file object 
        logger:  STIX logger
     Returns:
-       (status, header, header_raw, application_raw_data, number_of_processed_bytes)
+       (status, header, header_raw, app_data, number_of_processed_bytes)
 
     """
     file_start_pos = in_file.tell()
@@ -364,35 +363,35 @@ def read_one_packet_from_binary_file(in_file, logger):
     if header_status != stix_global.OK:
         if logger:
             logger.warning('Bad header around {}, error code: '.format(in_file.tell()), header_status)
+
         is_found, bytes_skipped, bad_block = find_next_header(in_file)
         if logger:
             logger.warning('Unexpected block around {}:'.format(in_file.tell()), bad_block)
-        file_current_pos = in_file.tell()
+
+        cur_pos = in_file.tell()
         if is_found and logger:
-            logger.info('New header at ', file_current_pos)
+            logger.info('New header at ', cur_pos)
             logger.info('Bytes skipped ', bytes_skipped)
             return stix_global.NEXT_PACKET, None, header_raw,\
-                None, file_current_pos - file_start_pos
+                None, cur_pos - file_start_pos
         else:
             return stix_global.EOF, None, header_raw,\
-                None, file_current_pos - file_start_pos
+                None, cur_pos - file_start_pos
     data_length = header['length']
-    application_raw_data_length = (data_length + 1) - 10
+    app_length = (data_length + 1) - 10
 
-    if application_raw_data_length <= 0:  # wrong packet length
+    if app_length <= 0:  # wrong packet length
         logger.warning('Source data length 0')
         return stix_global.NEXT_PACKET, None, header_raw,None,\
                 in_file.tell() - file_start_pos
-    application_raw_data = in_file.read(application_raw_data_length)
-    if len(application_raw_data) != application_raw_data_length:
+    app_data = in_file.read(app_length)
+    if len(app_data) != app_length:
         if logger:
             logger.error("No enough data was read")
         return stix_global.EOF, None, header_raw,\
             None, in_file.tell() - file_start_pos
-
-    interpret_data_field_header(header, application_raw_data,
-                                application_raw_data_length)
-    return stix_global.OK, header, header_raw, application_raw_data, \
+    parse_app_header(header, app_data,app_length)
+    return stix_global.OK, header, header_raw, app_data, \
         in_file.tell() - file_start_pos
 
 def parse_telecommand_header(packet):
@@ -430,4 +429,22 @@ def parse_telecommand_packet(buf, logger):
 
     return header,None
 
-    
+def parse_telemetry_packet(buf):
+    if len(buf)<=16:
+        return stix_global.BAD_PACKET, None, None
+    header_raw=buf[0:16]
+    header_status, header = parse_telemetry_header(header_raw)
+    app_length = header['length']-9
+    app_raw=buf[17:]
+    parse_app_header(header, app_raw, app_length)
+    tpsd = header['TPSD']
+    spid= header['SPID']
+    if tpsd == -1:
+        parameters = parse_fixed_packet(app_raw, spid)
+    else:
+        vpd_parser = vp.variable_parameter_parser(app_raw, spid)
+        bytes_parsed, parameters = vpd_parser.get_parameters()
+    return stix_global.OK, header, parameters
+
+
+ 

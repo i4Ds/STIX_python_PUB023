@@ -103,13 +103,25 @@ class variable_parameter_parser:
             self.length_min += width / 8
         mother['child'].append(node)
         return node
+    def pprint_par(self,st):
+        print('%s %s  %s %s %s %s %s %s\n'%(str(st['VPD_POS']), st['VPD_NAME'], st['VPD_GRPSIZE'], 
+            st['VPD_OFFSET'],  str(st['PCF_WIDTH']),str(st['offset']),str(st['offset_bit']), st['PCF_DESCR']))
+
+    def pprint_structure(self,structures):
+        pprint(structures)
+        for st in structures:
+            print('%s %s  %s %s %s %s\n'%(str(st['VPD_POS']), st['VPD_NAME'], st['VPD_GRPSIZE'], 
+                st['VPD_OFFSET'],  str(st['PCF_WIDTH']), st['PCF_DESCR']))
 
     def preprocess(self):
         self.reset()
         self.structures = STIX_IDB.get_variable_packet_structure(self.spid)
+        #structure defined in idb
+
         mother = self.nodes[0]
         repeater = [{'node': mother, 'counter': stix_global.MAX_PARAMETERS}]
         #counter:  number of repeated times
+        #a list to store all mother nodes
 
         for par in self.structures:
             if repeater:
@@ -117,7 +129,9 @@ class variable_parameter_parser:
                     e['counter'] -= 1
                     if e['counter'] < 0:
                         repeater.pop()
+                        #its mother changed
             mother = repeater[-1]['node']
+            #its mother is always the first element in the stack
             node = self.register_parameter(
                 mother, par['PCF_NAME'], par['VPD_POS'], par['PCF_WIDTH'],
                 par['VPD_OFFSET'], par['VPD_GRPSIZE'], par, 0,
@@ -174,6 +188,11 @@ class variable_parameter_parser:
 
         par['offset'] = self.last_offset
         par['offset_bit'] = self.current_offset_bit
+
+        self.pprint_par(par)
+
+        #debug
+
         #print('###{},{}, {},{}'.format(par['PCF_NAME'],self.last_offset,self.current_offset_bit,width))
         parameter = stix_parser.interpret_telemetry_parameter(
             self.source_data, par)
