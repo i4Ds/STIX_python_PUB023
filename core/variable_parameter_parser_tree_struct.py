@@ -50,7 +50,7 @@ class variable_parameter_parser:
         self.length_min = 0
 
     def get_parameters(self):
-        self.preprocess()
+        self.build_tree()
         packet_length = len(self.source_data)
 
         if self.length_min > packet_length:
@@ -116,7 +116,7 @@ class variable_parameter_parser:
                 print('%s %s  %s %s %s %s\n'%(str(st['VPD_POS']), st['VPD_NAME'], st['VPD_GRPSIZE'], 
                     st['VPD_OFFSET'],  str(st['PCF_WIDTH']), st['PCF_DESCR']))
 
-    def preprocess(self):
+    def build_tree(self):
         self.reset()
         self.structures = STIX_IDB.get_variable_packet_structure(self.spid)
         #structure defined in idb

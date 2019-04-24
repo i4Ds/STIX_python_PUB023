@@ -22,6 +22,10 @@ class stix_writer:
         if filename:
             self.fout=open(filename,'w')
 
+    def register_run(self,filename):
+        #not used
+        pass
+
     def write_header(self, header):
 
         """

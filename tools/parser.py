@@ -18,20 +18,28 @@ def main():
     out_filename = 'stix_out.db'
     sel_spid = 0
     ap = argparse.ArgumentParser()
+    output_param_type='tree'
     ap.add_argument("-i", "--in", required=True, help="input file")
     ap.add_argument("-o", "--out", required=False, help="output file")
     ap.add_argument(
         "-s", "--sel", required=False, help="only select packets of the given SPID")
+    ap.add_argument(
+        "-t", "--type", required=False, help="output parameter type. Can be tree or array")
 
     args = vars(ap.parse_args())
     if args['out'] is not None:
         out_filename = args['out']
     if args['sel'] is not None:
         sel_spid = int(args['sel'])
+
+    if args['type'] is not None:
+        output_param_type= args['type']
+
     in_filename = args['in']
     LOGGER.info('Input file', in_filename)
     LOGGER.info('Output file', out_filename)
-    stix_telemetry_parser.parse_stix_raw_file(in_filename,LOGGER, out_filename, sel_spid)
+
+    stix_telemetry_parser.parse_stix_raw_file(in_filename,LOGGER, out_filename, sel_spid, output_param_type=output_param_type)
 
 
 if __name__ == '__main__':

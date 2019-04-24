@@ -9,8 +9,11 @@ from pprint import pprint
 import xlwt
 
 class stix_logger:
-    def __init__(self, path=None):
+    def __init__(self, path=None, level=10):
         self.path = path
+        self.level=level
+    def set_level(level):
+        self.level=level
 
 
     def error(self,  msg, description=''):
@@ -21,31 +24,44 @@ class stix_logger:
 
 
     def warning(self, msg, description=''):
+        if self.level < 1:
+            return 
         if description:
             print('[WARNING] {0}: {1}'.format(msg, description))
         else:
             print('[WARNING] : {}'.format(msg))
 
     def info(self,  msg, description=''):
+        if self.level < 2:
+            return 
+
         if description:
             print('[INFO   ] {0}: {1}'.format(msg, description))
         else:
             print('[INFO   ] : {}'.format(msg))
     def pprint_parameters(self,parameters):
-        if not parameters:
-            return 
+        if self.level< 3 or not parameters:
+            return
+
         for par in parameters:
             if par:
-                value=''
-                if par['value']!=par['raw']:
-                    value=par['value']
-                print('{:<10} {:<30} {:<15} {:15}'.format(par['name'],par['descr'],par['raw'],value))
-                if 'child' in par:
-                    if par['child']:
-                        self.pprint_parameters(par['child'])
+                try:
+                    #for tree-like structure 
+                    value=''
+                    if par['value']!=par['raw']:
+                        value=par['value']
+                    print('{:<10} {:<30} {:<15} {:15}'.format(par['name'],par['descr'],par['raw'],value))
+                    if 'child' in par:
+                        if par['child']:
+                            self.pprint_parameters(par['child'])
+                except:
+                    print(par)
+
 
 
     def pprint(self,header, parameters):
+        if self.level<3:
+            return 
         print('*'*80)
         print('packet id      : {}'.format(header['packet_id']))
         print('Description    : {}'.format(header['DESCR']))
@@ -65,6 +81,8 @@ class stix_logger:
 
 
     def debug(self, msg):
+        if self.level <4 :
+            return 
         pprint(msg)
 
 LOGGER = stix_logger()

@@ -101,6 +101,9 @@ class stix_writer:
             self.cur.executemany(
                 'insert into parameter (packet_id, name,descr,raw,eng_value, eng_value_type) values(?,?,?,?,?,?)',
                 parlist)
+    def write(self, header, parameters):
+        self.write_header(header)
+        self.write_parameters(parameters)
 
 
 def test():

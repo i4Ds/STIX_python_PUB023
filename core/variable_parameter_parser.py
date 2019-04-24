@@ -14,6 +14,7 @@ from core import stix_parser
 from core import stix_global
 from core import idb
 from stix_io import stix_logger
+import numpy as np
 
 STIX_IDB = idb.STIX_IDB
 LOGGER = stix_logger.LOGGER
@@ -21,7 +22,7 @@ class variable_parameter_parser:
     """
     Variable parameter parser
     """
-    def __init__(self, data, spid):
+    def __init__(self, data, spid,output_type='tree'):
         """
         Args:
             data         :  binary data stream to be decoded
@@ -41,6 +42,7 @@ class variable_parameter_parser:
         self.last_offset = 0
         self.current_offset_bit = 0
         self.length_min = 0
+        self.output_type =output_type
     def reset(self):
         self.nodes[0]['child']=[]
         self.results[:]=[]
@@ -59,7 +61,11 @@ class variable_parameter_parser:
                 .format(packet_length, self.length_min))
             LOGGER.error('Data Field not parsed!')
             return 0, None
-        self.results=self.walk(self.nodes[0])
+        if self.output_type=='tree':
+            self.walk_to_tree(self.nodes[0], self.results)
+        else:
+            self.walk_to_array(self.nodes[0])
+
         return self.current_offset, self.results
 
     def create_node(self,
@@ -104,13 +110,6 @@ class variable_parameter_parser:
             self.length_min += width / 8
         mother['child'].append(node)
         return node
-    def merge_child_values(self,child_values,mother_values):
-        for key,value in child_values.items():
-            if key in mother_values: 
-                value2=mother_values[key]
-                mother_values[key]=[value2,value]
-            else:
-                mother_values[key]=value
     def build_tree(self):
         """
         To build a parameter tree 
@@ -138,7 +137,22 @@ class variable_parameter_parser:
                 mother = node
                 repeater.append({'node': node, 'counter': rpsize})
 
-    def walk(self, mother):
+
+
+
+    def pprint_par(self,st):
+        if debug:
+            print('%s %s  %s %s %s %s %s %s\n'%(str(st['VPD_POS']), st['VPD_NAME'], st['VPD_GRPSIZE'], 
+                st['VPD_OFFSET'],  str(st['PCF_WIDTH']),str(st['offset']),str(st['offset_bit']), st['PCF_DESCR']))
+
+    def pprint_structure(self,structures):
+        if debug:
+            pprint(structures)
+            for st in structures:
+                print('%s %s  %s %s %s %s\n'%(str(st['VPD_POS']), st['VPD_NAME'], st['VPD_GRPSIZE'], 
+                    st['VPD_OFFSET'],  str(st['PCF_WIDTH']), st['PCF_DESCR']))
+
+    def walk_to_array(self, mother):
         """
         Parameter tree traversal
         """
@@ -154,19 +168,41 @@ class variable_parameter_parser:
                 result = self.parse_parameter(node)
                 value=result['raw'][0]
                 name=node['name']
-                #print name, value
-                if name in parameter_values:
-                    parameter_values[name].append(value)
+                #append parameter to the output list
+                dic = [i for i in self.results if name in i ]
+                if dic:
+                   dic[0][name].append(value)
                 else:
-                    parameter_values[name]=[value]
+                    parameter_values={name:[value]}
+                    self.results.append(parameter_values)
+                if node['child']:
+                    node['counter'] = value
+                    #number of repeated times
+                    self.walk_to_array(node)
 
-                child_values=None
+    def walk_to_tree(self, mother, para):
+        if not mother:
+            return
+        result_node = None
+        counter = mother['counter']
+        for i in range(0, counter):
+            for node in mother['child']:
+                if not node or self.current_offset > len(self.source_data):
+                    return
+                result = self.parse_parameter(node)
+                result_node = {
+                    'name': node['name'],
+                    'raw': result['raw'],
+                    'value': result['value'],
+                    'eng_value_type': result['eng_value_type'],
+                    'descr': result['descr'],
+                    'child': []
+                }
                 if node['child']:
                     node['counter'] = result['raw'][0]
-                    child_values=self.walk(node)
-                if child_values:
-                    self.merge_child_values(child_values,parameter_values)
-        return parameter_values
+                    self.walk_to_tree(node, result_node['child'])
+                para.append(result_node)
+   
 
 
     def parse_parameter(self, node):
@@ -194,8 +230,14 @@ class variable_parameter_parser:
         par['offset_bit'] = self.current_offset_bit
 
         #print('###{},{}, {},{}'.format(par['PCF_NAME'],self.last_offset,self.current_offset_bit,width))
+
+        parameter_interpret=False
+        if self.output_type == 'tree':
+            parameter_interpret=True
+            #not to interpret a raw value to physical value
+
         return stix_parser.interpret_telemetry_parameter(
-            self.source_data, par, parameter_interpret=False )
+            self.source_data, par, parameter_interpret)
 def test():
     t = variable_parameter_parser('', 54121)
     t.build_tree()
