@@ -10,6 +10,7 @@
 import pprint
 #import pymongo
 import pickle
+import gzip
 
 
 class stix_writer:
@@ -19,8 +20,7 @@ class stix_writer:
         self.fout=None
         self.packets=[]
 
-        if filename:
-            self.fout=open(filename,'w')
+        self.fout=gzip.open(filename,'wb')
 
     def register_run(self,filename):
         #not used
@@ -38,16 +38,16 @@ class stix_writer:
         ]
         line=(','.join(map(str, msg)))
         self.packet_counter += 1
-        if self.fout:
-            pp = pprint.PrettyPrinter(indent=4, stream=self.fout)
-            pp.pprint(line)
-    def __del__(self):
-        if self.fout:
-            self.fout.close()
+        #if self.fout:
+        #    pp = pprint.PrettyPrinter(indent=4, stream=self.fout)
+        #    pp.pprint(line)
     def write(self,header, parameters):
         packet={'header':header, 'parameter':parameters}
         self.packets.append(packet)
     def done(self):
         pickle.dump(self.packets,self.fout)
+        self.fout.close()
+
+
     def write_parameters(self, parameters,spid=0):
         pprint.pprint(parameters)
