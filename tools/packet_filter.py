@@ -33,7 +33,7 @@ def packet_filter(in_filename, out_filename, selected_spid):
         num_selected_packets = 0
         num_total_packets = 0
         while True:
-            status, header, header_raw, application_data_raw, num_bytes_read = stix_parser.read_one(
+            status, header, header_raw, app_raw, num_bytes_read = stix_parser.read_one_packet(
                 fin, LOGGER)
             if status == stix_global.NEXT_PACKET:
                 continue
@@ -44,7 +44,7 @@ def packet_filter(in_filename, out_filename, selected_spid):
             if spid == selected_spid:
                 num_selected_packets += 1
                 fout.write(header_raw)
-                fout.write(application_data_raw)
+                fout.write(app_raw)
 
         LOGGER.info('Done')
         LOGGER.info('{}/{} packets have been written to {}'.format(

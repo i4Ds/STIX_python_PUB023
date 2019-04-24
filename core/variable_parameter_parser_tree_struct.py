@@ -17,6 +17,7 @@ from stix_io import stix_logger
 
 STIX_IDB = idb.STIX_IDB
 LOGGER = stix_logger.LOGGER
+debug=False
 class variable_parameter_parser:
     """
     Variable parameter parser
@@ -104,14 +105,16 @@ class variable_parameter_parser:
         mother['child'].append(node)
         return node
     def pprint_par(self,st):
-        print('%s %s  %s %s %s %s %s %s\n'%(str(st['VPD_POS']), st['VPD_NAME'], st['VPD_GRPSIZE'], 
-            st['VPD_OFFSET'],  str(st['PCF_WIDTH']),str(st['offset']),str(st['offset_bit']), st['PCF_DESCR']))
+        if debug:
+            print('%s %s  %s %s %s %s %s %s\n'%(str(st['VPD_POS']), st['VPD_NAME'], st['VPD_GRPSIZE'], 
+                st['VPD_OFFSET'],  str(st['PCF_WIDTH']),str(st['offset']),str(st['offset_bit']), st['PCF_DESCR']))
 
     def pprint_structure(self,structures):
-        pprint(structures)
-        for st in structures:
-            print('%s %s  %s %s %s %s\n'%(str(st['VPD_POS']), st['VPD_NAME'], st['VPD_GRPSIZE'], 
-                st['VPD_OFFSET'],  str(st['PCF_WIDTH']), st['PCF_DESCR']))
+        if debug:
+            pprint(structures)
+            for st in structures:
+                print('%s %s  %s %s %s %s\n'%(str(st['VPD_POS']), st['VPD_NAME'], st['VPD_GRPSIZE'], 
+                    st['VPD_OFFSET'],  str(st['PCF_WIDTH']), st['PCF_DESCR']))
 
     def preprocess(self):
         self.reset()
