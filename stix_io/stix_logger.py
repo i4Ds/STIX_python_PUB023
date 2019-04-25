@@ -57,11 +57,11 @@ class stix_logger:
                         print(par)
         elif type(parameters) is dict:
             for key, val in parameters.items():
-                if len(val) <10:
+                if len(val) <50:
                     print('%s : %s'%(key, str(val)))
                 else:
                     print(key)
-                    print(val)
+                    print(val[0:50])
 
         else:
             pprint(par)
