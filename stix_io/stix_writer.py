@@ -11,6 +11,7 @@ import pprint
 #import pymongo
 import pickle
 import gzip
+import datetime
 
 
 class stix_writer:
@@ -22,9 +23,15 @@ class stix_writer:
 
         self.fout=gzip.open(filename,'wb')
 
-    def register_run(self,filename):
+    def register_run(self,in_filename):
         #not used
-        pass
+        run_info={'Run':
+                    {'Input':in_filename,
+                     'Output':,self.filename,
+                     'date': datetime.datetime.now().isoformat()}
+                }
+        
+        pickle.dump(run_info,self.fout)
 
     def write_header(self, header):
 
