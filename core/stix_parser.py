@@ -53,8 +53,6 @@ def unpack_integer(raw, structure):
 
 
 def unpack_parameter(in_data, parameter_type, offset, offset_bit, data_length):
-    print("Extact:")
-    print(parameter_type, offset, offset_bit,data_length)
     """
     unpack a 'fixed'  parameter from a binary stream
     Args:
@@ -96,11 +94,14 @@ def unpack_parameter(in_data, parameter_type, offset, offset_bit, data_length):
         return None
     unpacked_values = st.unpack(data_type, raw_data)
 
+    print('data type:'+data_type)
+    print(parameter_type, offset, offset_bit,data_length)
+
     if data_type == 'BBB':  # 24-bit integer
         value = (unpacked_values[0] << 16)| (unpacked_values[1] << 8)| unpacked_values[2]
-        import binascii
-        print("HEX:")
-        binascii.hexlify(value)
+        if data_length < 16 and data_length % 8 != 0:
+            start_bit = nbytes * 8 - (offset_bit + data_length)
+            value= slice_bits(value, start_bit, data_length)
         results = (value, )
     elif data_length < 16 and data_length % 8 != 0:
         # bit-offset only for 8bits or 16 bits integer
