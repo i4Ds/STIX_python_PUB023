@@ -94,8 +94,8 @@ def unpack_parameter(in_data, parameter_type, offset, offset_bit, data_length):
         return None
     unpacked_values = st.unpack(data_type, raw_data)
 
-    print('data type:'+data_type)
-    print(parameter_type, offset, offset_bit,data_length)
+    #print('data type:'+data_type)
+    #print(parameter_type, offset, offset_bit,data_length)
 
     if data_type == 'BBB':  # 24-bit integer
         value = (unpacked_values[0] << 16)| (unpacked_values[1] << 8)| unpacked_values[2]
