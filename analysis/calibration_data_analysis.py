@@ -41,6 +41,8 @@ def graph(y, title, xlabel, ylabel):
 def analysis(file_in, file_out):
     alog=open(ana_log,'a+')
     alog.write('-'*20+'\n')
+    now=datetime.datetime.now()
+    alog.write(str(now)+'\n')
     alog.write(file_in+'\n')
 
     f=gzip.open(file_in,'rb')

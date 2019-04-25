@@ -82,18 +82,21 @@ def unpack_parameter(in_data, parameter_type, offset, offset_bit, data_length):
         data_type = str(nbytes) + 's'
     else:
         data_type = str(nbytes) + 's'
+    
     results = ()
     raw_data = in_data[offset:offset + nbytes]
+
+
     if nbytes != len(raw_data):
         LOGGER.error(
             'Invalid data length, expect {}, but real length is: {}'.format(
                 nbytes, len(raw_data)))
         return None
     unpacked_values = st.unpack(data_type, raw_data)
+
     if data_type == 'BBB':  # 24-bit integer
-        value = unpacked_values[0] << 16
-        value += unpacked_values[1] << 8
-        value += unpacked_values[2]
+        #there is a bug here 
+        value = (unpacked_values[0] << 16)| (unpacked_values[1] << 8)| unpacked_values[2]
         results = (value, )
     elif data_length < 16 and data_length % 8 != 0:
         # bit-offset only for 8bits or 16 bits integer

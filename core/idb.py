@@ -203,9 +203,9 @@ def test():
     #print(STIX_IDB.get_parameter_physical_value('CIX00036TM', 20))
     #for i in range(100000):
     #    a=STIX_IDB.get_s2k_parameter_types(3, 16)
-    pprint.pprint(STIX_IDB.get_telecommand_characteristics(237, 7,1))
-    pprint.pprint(STIX_IDB.get_telecommand_characteristics(237, 7,2))
-
+    #pprint.pprint(STIX_IDB.get_telecommand_characteristics(237, 7,1))
+    #pprint.pprint(STIX_IDB.get_telecommand_characteristics(237, 7,2))
+    pprint.pprint(STIX_IDB.get_variable_packet_structure(54137))
 
 
 if __name__ == '__main__':
