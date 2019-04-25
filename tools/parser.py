@@ -29,21 +29,23 @@ def main():
     args = vars(ap.parse_args())
     if args['out'] is not None:
         out_filename = args['out']
+    elif output_param_type != 'tree':
+        out_filename = 'stix_out.pklz'
+
     if args['sel'] is not None:
         sel_spid = int(args['sel'])
 
     if args['type'] is not None:
         output_param_type= args['type']
 
-    if output_param_type != 'tree':
-        out_filename = 'stix_out.pklz'
 
 
     in_filename = args['in']
     LOGGER.info('Input file', in_filename)
     LOGGER.info('Output file', out_filename)
 
-    stix_telemetry_parser.parse_stix_raw_file(in_filename,LOGGER, out_filename, sel_spid, output_param_type=output_param_type)
+    stix_telemetry_parser.parse_stix_raw_file(in_filename,LOGGER, 
+            out_filename, sel_spid, output_param_type=output_param_type)
 
 
 if __name__ == '__main__':

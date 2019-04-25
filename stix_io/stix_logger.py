@@ -12,7 +12,7 @@ class stix_logger:
     def __init__(self, path=None, level=10):
         self.path = path
         self.level=level
-    def set_level(level):
+    def set_level(self,level):
         self.level=level
 
 

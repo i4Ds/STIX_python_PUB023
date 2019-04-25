@@ -24,14 +24,10 @@ class stix_writer:
         self.fout=gzip.open(filename,'wb')
 
     def register_run(self,in_filename):
-        #not used
-        run_info={'Run':
-                    {'Input':in_filename,
-                     'Output':,self.filename,
-                     'date': datetime.datetime.now().isoformat()}
-                }
-        
-        pickle.dump(run_info,self.fout)
+        self.run={'Input':in_filename,
+                     'Output':self.filename,
+                     'Date': datetime.datetime.now().isoformat()
+                     }
 
     def write_header(self, header):
 
@@ -53,7 +49,8 @@ class stix_writer:
                 'parameter_desc':parameter_desc}
         self.packets.append(packet)
     def done(self):
-        pickle.dump(self.packets,self.fout)
+        data={'run':self.run, 'packet':self.packets}
+        pickle.dump(data,self.fout)
         self.fout.close()
 
 
