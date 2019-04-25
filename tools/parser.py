@@ -35,7 +35,7 @@ def main():
     if args['type'] is not None:
         output_param_type= args['type']
 
-    if output_param_type == 'tree':
+    if output_param_type != 'tree':
         out_filename = 'stix_out.pklz'
 
 

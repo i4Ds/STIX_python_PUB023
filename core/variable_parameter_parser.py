@@ -33,7 +33,7 @@ class variable_parameter_parser:
         self.spid = spid
 
         self.nodes = []
-        self.results = []
+        self.results_tree = []
         self.num_nodes = 0
         self.nodes.append(
             self.create_node('top', 0, 0, 0, stix_global.MAX_PARAMETERS, None,
@@ -43,18 +43,22 @@ class variable_parameter_parser:
         self.current_offset_bit = 0
         self.length_min = 0
         self.output_type =output_type
+        self.results_dict={}
+        self.parameter_desc={}
     def reset(self):
         self.nodes[0]['child']=[]
-        self.results[:]=[]
+        self.results_tree[:]=[]
+        self.results_dict.clear()
+        self.parameter_desc.clear()
         self.current_offset = 0
         self.last_offset = 0
         self.current_offset_bit = 0
         self.length_min = 0
+        
 
     def get_parameters(self):
         self.build_tree()
         packet_length = len(self.source_data)
-
         if self.length_min > packet_length:
             LOGGER.error(
                 'The packet length ({}) is less than the required minimal length {}'
@@ -62,11 +66,12 @@ class variable_parameter_parser:
             LOGGER.error('Data Field not parsed!')
             return 0, None
         if self.output_type=='tree':
-            self.walk_to_tree(self.nodes[0], self.results)
+            self.walk_to_tree(self.nodes[0], self.results_tree)
+            return self.current_offset, self.results_tree
         else:
             self.walk_to_array(self.nodes[0])
+            return self.current_offset, self.results_dict
 
-        return self.current_offset, self.results
 
     def create_node(self,
                     name,
@@ -92,7 +97,8 @@ class variable_parameter_parser:
         }
         self.num_nodes += 1
         return node
-
+    def get_parameter_description(self):
+        return self.parameter_desc
     def register_parameter(self,
                            mother,
                            name,
@@ -116,11 +122,13 @@ class variable_parameter_parser:
         """
         self.reset()
         self.structures = STIX_IDB.get_variable_packet_structure(self.spid)
+
         mother = self.nodes[0]
         repeater = [{'node': mother, 'counter': stix_global.MAX_PARAMETERS}]
         #counter:  number of repeated times
 
         for par in self.structures:
+            self.parameter_desc[par['PCF_NAME']]=par['PCF_DESCR']
             if repeater:
                 for e in reversed(repeater):
                     e['counter'] -= 1
@@ -131,6 +139,7 @@ class variable_parameter_parser:
                 mother, par['PCF_NAME'], par['VPD_POS'], par['PCF_WIDTH'],
                 par['VPD_OFFSET'], par['VPD_GRPSIZE'], par, 0,
                 par['PCF_DESCR'], [])
+            
 
             rpsize = par['VPD_GRPSIZE']
             if rpsize > 0:
@@ -169,12 +178,11 @@ class variable_parameter_parser:
                 value=result['raw'][0]
                 name=node['name']
                 #append parameter to the output list
-                dic = [i for i in self.results if name in i ]
-                if dic:
-                   dic[0][name].append(value)
+                if name in self.results_dict:
+                    self.results_dict[name].append(value)
                 else:
-                    parameter_values={name:[value]}
-                    self.results.append(parameter_values)
+                    self.results_dict[name]=[value]
+
                 if node['child']:
                     node['counter'] = value
                     #number of repeated times

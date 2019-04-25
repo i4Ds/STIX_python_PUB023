@@ -20,7 +20,7 @@ def parser_clipboard_data():
     try:
         data_binary = binascii.unhexlify(data_hex)
         in_file=StringIO(data_binary)
-        status, header, parameters, param_type, num_bytes_read = parser.parse_one_packet(
+        status, header, parameters, param_type, param_desc, num_bytes_read = parser.parse_one_packet(
             in_file, LOGGER)
         if header and parameters:
             LOGGER.pprint(header,parameters)

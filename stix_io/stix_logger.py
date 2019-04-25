@@ -22,7 +22,6 @@ class stix_logger:
         else:
             print('[ERROR  ] : {}'.format(msg))
 
-
     def warning(self, msg, description=''):
         if self.level < 1:
             return 
@@ -42,20 +41,30 @@ class stix_logger:
     def pprint_parameters(self,parameters):
         if self.level< 3 or not parameters:
             return
+        if type(parameters) is list:
+            for par in parameters:
+                if par:
+                    try:
+                        #for tree-like structure 
+                        value=''
+                        if par['value']!=par['raw']:
+                            value=par['value']
+                        print('{:<10} {:<30} {:<15} {:15}'.format(par['name'],par['descr'],par['raw'],value))
+                        if 'child' in par:
+                            if par['child']:
+                                self.pprint_parameters(par['child'])
+                    except:
+                        print(par)
+        elif type(parameters) is dict:
+            for key, val in parameters.items():
+                if len(val) <10:
+                    print('%s : %s'%(key, str(val)))
+                else:
+                    print(key)
+                    print(val)
 
-        for par in parameters:
-            if par:
-                try:
-                    #for tree-like structure 
-                    value=''
-                    if par['value']!=par['raw']:
-                        value=par['value']
-                    print('{:<10} {:<30} {:<15} {:15}'.format(par['name'],par['descr'],par['raw'],value))
-                    if 'child' in par:
-                        if par['child']:
-                            self.pprint_parameters(par['child'])
-                except:
-                    print(par)
+        else:
+            pprint(par)
 
 
 

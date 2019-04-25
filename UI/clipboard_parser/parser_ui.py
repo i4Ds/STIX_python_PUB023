@@ -73,9 +73,9 @@ class Ui_mainWindow(object):
         self.tableWidget = QtGui.QTableWidget(self.centralwidget)
         self.tableWidget.setObjectName(_fromUtf8("tableWidget"))
         self.tableWidget.setColumnCount(4)
-
         self.tableWidget.setHorizontalHeaderLabels(('Name','Description','Raw','Eng_Value'))
         self.tableWidget.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+
         self.gridLayout.addWidget(self.tableWidget, 5, 0, 1, 4)
         self.status = QtGui.QLabel(self.centralwidget)
         self.status.setMinimumSize(QtCore.QSize(200, 20))
@@ -135,7 +135,7 @@ class Ui_mainWindow(object):
         try:
             data_binary = binascii.unhexlify(data_hex)
             in_file=StringIO(data_binary)
-            status, header, parameters, param_type, num_bytes_read = parser.parse_one_packet(
+            status, header, parameters, param_type, param_desc, num_bytes_read = parser.parse_one_packet(
                 in_file, LOGGER)
         except TypeError:
             self.status.setText('Failed to parse the packet')

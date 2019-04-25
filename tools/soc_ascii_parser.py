@@ -66,7 +66,7 @@ def parse_soc_ascii_file(in_filename, out_filename=None, selected_spid=0):
             tctm='tm'
             if data_hex[0:2]=='0D':
                 in_file=StringIO(data_binary)
-                status, header, parameters, param_type, num_bytes_read = tm_parser.parse_one_packet(
+                status, header, parameters, param_type, param_desc, num_bytes_read = tm_parser.parse_one_packet(
                     in_file, LOGGER)
             elif data_hex[0:2]=='1D':
                 tctm='tc'

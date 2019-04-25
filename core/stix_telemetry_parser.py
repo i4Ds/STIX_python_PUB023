@@ -40,11 +40,13 @@ def parse_one_packet(in_file,logger,selected_spid=0, output_param_type='tree'):
                 in_file, logger)
     parameters = None
     param_type=-1
+    param_desc={}
     if status!= stix_global.NEXT_PACKET and status != stix_global.EOF and header:
         spid = header['SPID']
         tpsd = header['TPSD']
         if selected_spid == 0 or spid == selected_spid:
             app_raw_length = len(app_raw)
+
             if tpsd == -1:
                 parameters = stix_parser.parse_fixed_packet(
                     app_raw, spid)
@@ -53,11 +55,13 @@ def parse_one_packet(in_file,logger,selected_spid=0, output_param_type='tree'):
                 vpd_parser = vp.variable_parameter_parser(
                     app_raw, spid, output_param_type)
                 bytes_parsed, parameters = vpd_parser.get_parameters()
+                param_desc=vpd_parser.get_parameter_description()
+
                 if bytes_parsed!= app_raw_length:
                     logger.info("Packet length invalid, data length: {}, processed: {}".format(
                         app_raw_length, bytes_parsed))
                 param_type=2
-    return status, header, parameters, param_type, num_read
+    return status, header, parameters, param_type, param_desc, num_read
 
 
 def parse_stix_raw_file(in_filename, logger, out_filename=None, selected_spid=0, output_param_type='tree'):
@@ -82,7 +86,8 @@ def parse_stix_raw_file(in_filename, logger, out_filename=None, selected_spid=0,
 
         total_packets=0
         while True:
-            status, header, parameters, param_type, num_bytes_read = parse_one_packet(in_file, logger,selected_spid, output_param_type)
+            status, header, parameters, param_type, param_desc, num_bytes_read = parse_one_packet(in_file, 
+                    logger,selected_spid, output_param_type)
             total_packets += 1
             if status == stix_global.NEXT_PACKET:
                 continue
@@ -97,7 +102,7 @@ def parse_stix_raw_file(in_filename, logger, out_filename=None, selected_spid=0,
             if status and parameters:
                 #st_writer.write_header(header)
                 #st_writer.write_parameters(parameters)
-                st_writer.write(header,parameters)
+                st_writer.write(header,parameters,param_desc)
 
         logger.info('{} packets found in the file: {}'.format(total_packets,in_filename))
         logger.info('{} ({} fixed and {} variable) packets processed.'.format(num_packets,\

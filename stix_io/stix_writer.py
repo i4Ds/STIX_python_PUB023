@@ -41,8 +41,9 @@ class stix_writer:
         #if self.fout:
         #    pp = pprint.PrettyPrinter(indent=4, stream=self.fout)
         #    pp.pprint(line)
-    def write(self,header, parameters):
-        packet={'header':header, 'parameter':parameters}
+    def write(self,header, parameters, parameter_desc=dict()):
+        packet={'header':header, 'parameter':parameters, 
+                'parameter_desc':parameter_desc}
         self.packets.append(packet)
     def done(self):
         pickle.dump(self.packets,self.fout)
