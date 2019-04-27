@@ -7,8 +7,8 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
-import gzip
 import cPickle
+import gzip
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -65,10 +65,12 @@ class Ui_MainWindow(object):
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menu_File = QtGui.QMenu(self.menubar)
         self.menu_File.setObjectName(_fromUtf8("menu_File"))
-        self.menu_Help= QtGui.QMenu(self.menubar)
+        self.menu_Help = QtGui.QMenu(self.menubar)
         self.menu_Help.setObjectName(_fromUtf8("menu_Help"))
         self.menuAction = QtGui.QMenu(self.menubar)
         self.menuAction.setObjectName(_fromUtf8("menuAction"))
+        self.menuSetting = QtGui.QMenu(self.menubar)
+        self.menuSetting.setObjectName(_fromUtf8("menuSetting"))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(MainWindow)
         self.statusbar.setObjectName(_fromUtf8("statusbar"))
@@ -76,6 +78,18 @@ class Ui_MainWindow(object):
         self.toolBar = QtGui.QToolBar(MainWindow)
         self.toolBar.setObjectName(_fromUtf8("toolBar"))
         MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
+        self.dockWidget = QtGui.QDockWidget(MainWindow)
+        self.dockWidget.setObjectName(_fromUtf8("dockWidget"))
+        self.dockWidgetContents = QtGui.QWidget()
+        self.dockWidgetContents.setObjectName(_fromUtf8("dockWidgetContents"))
+        self.horizontalLayout = QtGui.QHBoxLayout(self.dockWidgetContents)
+        self.horizontalLayout.setMargin(0)
+        self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
+        self.listWidget = QtGui.QListWidget(self.dockWidgetContents)
+        self.listWidget.setObjectName(_fromUtf8("listWidget"))
+        self.horizontalLayout.addWidget(self.listWidget)
+        self.dockWidget.setWidget(self.dockWidgetContents)
+        MainWindow.addDockWidget(QtCore.Qt.DockWidgetArea(8), self.dockWidget)
         self.action_Open = QtGui.QAction(MainWindow)
         icon1 = QtGui.QIcon()
         icon1.addPixmap(QtGui.QPixmap(_fromUtf8(":/fileopen/images/fileopen.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -96,15 +110,26 @@ class Ui_MainWindow(object):
         icon3.addPixmap(QtGui.QPixmap(_fromUtf8(":/Right/images/Right.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionNext.setIcon(icon3)
         self.actionNext.setObjectName(_fromUtf8("actionNext"))
+        self.actionSet_IDB = QtGui.QAction(MainWindow)
+        self.actionSet_IDB.setObjectName(_fromUtf8("actionSet_IDB"))
+        self.actionSave = QtGui.QAction(MainWindow)
+        self.actionSave.setObjectName(_fromUtf8("actionSave"))
+        self.actionLog = QtGui.QAction(MainWindow)
+        self.actionLog.setObjectName(_fromUtf8("actionLog"))
         self.menu_File.addAction(self.action_Open)
+        self.menu_File.addAction(self.actionSave)
         self.menu_File.addAction(self.actionExit)
         self.menu_Help.addAction(self.actionAbout)
         self.menuAction.addAction(self.actionPrevious)
         self.menuAction.addAction(self.actionNext)
+        self.menuAction.addAction(self.actionLog)
+        self.menuSetting.addAction(self.actionSet_IDB)
         self.menubar.addAction(self.menu_File.menuAction())
         self.menubar.addAction(self.menuAction.menuAction())
+        self.menubar.addAction(self.menuSetting.menuAction())
         self.menubar.addAction(self.menu_Help.menuAction())
         self.toolBar.addAction(self.action_Open)
+        self.toolBar.addSeparator()
         self.toolBar.addAction(self.actionPrevious)
         self.toolBar.addAction(self.actionNext)
 
@@ -124,6 +149,8 @@ class Ui_MainWindow(object):
         self.actionNext.triggered.connect(self.next)
         self.actionPrevious.triggered.connect(self.previous)
         self.actionAbout.triggered.connect(self.about)
+
+        self.actionLog.triggered.connect(self.dockWidget.show)
     def about(self):
         msgBox = QtGui.QMessageBox()
         msgBox.setIcon(QtGui.QMessageBox.Information)
@@ -143,12 +170,15 @@ class Ui_MainWindow(object):
     def openFile(self):
         filename = QtGui.QFileDialog.getOpenFileName(None,'Select file', '/home', 'pkl files (*.pkl *.pklz)')
         self.readData(filename)
+    def addLogEntry(self,msg):
+        self.listWidget.addItem(msg)
     def readData(self,filename):
         self.statusbar.showMessage('Opening file %s'%filename)
+        self.addLogEntry('Opening file %s'%filename)
         f=gzip.open(filename,'rb')
-        self.statusbar.showMessage('File uncompressed ...')
+        self.addLogEntry('File uncompressed ...')
         self.data=cPickle.load(f)['packet']
-        self.statusbar.showMessage('Data loaded ...')
+        self.addLogEntry('Data loaded')
         f.close()
         self.model = QtGui.QStandardItemModel()
         for p in self.data:
@@ -159,6 +189,7 @@ class Ui_MainWindow(object):
         self.listView.setModel(self.model)
         self.total_packets=len(self.data)
         self.statusbar.showMessage('%d packets loaded'%(self.total_packets))
+        self.addLogEntry('%d packets loaded'%(self.total_packets))
         self.listView.selectionModel().currentChanged.connect(self.packetSelected)
         self.tableWidget.setRowCount(0)
         self.showHeader(0)
@@ -197,24 +228,34 @@ class Ui_MainWindow(object):
     def showParameterTree(self, params, parent):
         for p in  params:
             root=QtGui.QTreeWidgetItem(parent)
-            root.setText(0,p['name'])
-            root.setText(1,p['descr'])
-            root.setText(2,str(p['raw']))
-            root.setText(3,str(p['value']))
-            if 'child' in p:
-                if p['child']:
-                    self.showParameterTree(p['child'],root)
+            try:
+                root.setText(0,p['name'])
+                root.setText(1,p['descr'])
+                root.setText(2,str(p['raw']))
+                root.setText(3,str(p['value']))
+                if 'child' in p:
+                    if p['child']:
+                        self.showParameterTree(p['child'],root)
+            except KeyError:
+                self.addLogEntry('Error: keyError adding parameter')
+                
+
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(_translate("MainWindow", "STIX PKLZ viewer", None))
+        MainWindow.setWindowTitle(_translate("MainWindow", "STIX data parser and viewer", None))
         self.menu_File.setTitle(_translate("MainWindow", "&File", None))
         self.menu_Help.setTitle(_translate("MainWindow", "&Help", None))
-        self.menuAction.setTitle(_translate("MainWindow", "Action", None))
+        self.menuAction.setTitle(_translate("MainWindow", "&View", None))
+        self.menuSetting.setTitle(_translate("MainWindow", "&Setting", None))
         self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar", None))
+        self.dockWidget.setWindowTitle(_translate("MainWindow", "Log", None))
         self.action_Open.setText(_translate("MainWindow", "&Open", None))
         self.actionExit.setText(_translate("MainWindow", "&Exit", None))
-        self.actionAbout.setText(_translate("MainWindow", "&About", None))
+        self.actionAbout.setText(_translate("MainWindow", "About", None))
         self.actionPrevious.setText(_translate("MainWindow", "Previous", None))
         self.actionNext.setText(_translate("MainWindow", "Next", None))
+        self.actionSet_IDB.setText(_translate("MainWindow", "Set &IDB", None))
+        self.actionSave.setText(_translate("MainWindow", "Sa&ve", None))
+        self.actionLog.setText(_translate("MainWindow", "Show Log", None))
 
 import viewer_rc

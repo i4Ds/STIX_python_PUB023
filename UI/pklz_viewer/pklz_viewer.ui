@@ -20,7 +20,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>STIX PKLZ viewer</string>
+   <string>STIX data parser and viewer</string>
   </property>
   <property name="windowIcon">
    <iconset resource="viewer.qrc">
@@ -87,24 +87,33 @@
      <string>&amp;File</string>
     </property>
     <addaction name="action_Open"/>
+    <addaction name="actionSave"/>
     <addaction name="actionExit"/>
    </widget>
-   <widget class="QMenu" name="menu_About">
+   <widget class="QMenu" name="menu_Help">
     <property name="title">
-     <string>&amp;About</string>
+     <string>&amp;Help</string>
     </property>
     <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menuAction">
     <property name="title">
-     <string>Action</string>
+     <string>&amp;View</string>
     </property>
     <addaction name="actionPrevious"/>
     <addaction name="actionNext"/>
+    <addaction name="actionLog"/>
+   </widget>
+   <widget class="QMenu" name="menuSetting">
+    <property name="title">
+     <string>&amp;Setting</string>
+    </property>
+    <addaction name="actionSet_IDB"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menuAction"/>
-   <addaction name="menu_About"/>
+   <addaction name="menuSetting"/>
+   <addaction name="menu_Help"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolBar">
@@ -118,8 +127,24 @@
     <bool>false</bool>
    </attribute>
    <addaction name="action_Open"/>
+   <addaction name="separator"/>
    <addaction name="actionPrevious"/>
    <addaction name="actionNext"/>
+  </widget>
+  <widget class="QDockWidget" name="dockWidget">
+   <property name="windowTitle">
+    <string>Log</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>8</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QListWidget" name="listWidget"/>
+     </item>
+    </layout>
+   </widget>
   </widget>
   <action name="action_Open">
    <property name="icon">
@@ -132,7 +157,7 @@
   </action>
   <action name="actionExit">
    <property name="text">
-    <string>Exit</string>
+    <string>&amp;Exit</string>
    </property>
   </action>
   <action name="actionAbout">
@@ -159,6 +184,21 @@
    </property>
    <property name="text">
     <string>Next</string>
+   </property>
+  </action>
+  <action name="actionSet_IDB">
+   <property name="text">
+    <string>Set &amp;IDB</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>Sa&amp;ve</string>
+   </property>
+  </action>
+  <action name="actionLog">
+   <property name="text">
+    <string>Show Log</string>
    </property>
   </action>
  </widget>
