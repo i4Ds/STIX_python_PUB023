@@ -65,8 +65,8 @@ class Ui_MainWindow(object):
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menu_File = QtGui.QMenu(self.menubar)
         self.menu_File.setObjectName(_fromUtf8("menu_File"))
-        self.menu_About = QtGui.QMenu(self.menubar)
-        self.menu_About.setObjectName(_fromUtf8("menu_About"))
+        self.menu_Help= QtGui.QMenu(self.menubar)
+        self.menu_Help.setObjectName(_fromUtf8("menu_Help"))
         self.menuAction = QtGui.QMenu(self.menubar)
         self.menuAction.setObjectName(_fromUtf8("menuAction"))
         MainWindow.setMenuBar(self.menubar)
@@ -98,20 +98,21 @@ class Ui_MainWindow(object):
         self.actionNext.setObjectName(_fromUtf8("actionNext"))
         self.menu_File.addAction(self.action_Open)
         self.menu_File.addAction(self.actionExit)
-        self.menu_About.addAction(self.actionAbout)
+        self.menu_Help.addAction(self.actionAbout)
         self.menuAction.addAction(self.actionPrevious)
         self.menuAction.addAction(self.actionNext)
         self.menubar.addAction(self.menu_File.menuAction())
         self.menubar.addAction(self.menuAction.menuAction())
-        self.menubar.addAction(self.menu_About.menuAction())
+        self.menubar.addAction(self.menu_Help.menuAction())
         self.toolBar.addAction(self.action_Open)
         self.toolBar.addAction(self.actionPrevious)
         self.toolBar.addAction(self.actionNext)
 
         self.retranslateUi(MainWindow)
-        QtCore.QObject.connect(self.action_Open, QtCore.SIGNAL(_fromUtf8("triggered()")), MainWindow.update)
-        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        #QtCore.QObject.connect(self.action_Open, QtCore.SIGNAL(_fromUtf8("triggered()")), MainWindow.update)
+        #QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
+        self.actionExit.triggered.connect(MainWindow.close)
 
         self.action_Open.triggered.connect(self.openFile)
         self.tableWidget.setColumnCount(2)
@@ -122,6 +123,15 @@ class Ui_MainWindow(object):
         self.treeWidget.setHeaderItem(self.tree_header)
         self.actionNext.triggered.connect(self.next)
         self.actionPrevious.triggered.connect(self.previous)
+        self.actionAbout.triggered.connect(self.about)
+    def about(self):
+        msgBox = QtGui.QMessageBox()
+        msgBox.setIcon(QtGui.QMessageBox.Information)
+        msgBox.setText("STIX PKLZ file viewer, hualin.xiao@fhnw.ch")
+        msgBox.setWindowTitle("Stix PKLZ file viewer")
+        msgBox.setStandardButtons(QtGui.QMessageBox.Ok)
+        msgBox.exec_()
+
 
     def next(self):
         self.current_row+=1
@@ -198,12 +208,12 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(_translate("MainWindow", "STIX PKLZ viewer", None))
         self.menu_File.setTitle(_translate("MainWindow", "&File", None))
-        self.menu_About.setTitle(_translate("MainWindow", "&About", None))
+        self.menu_Help.setTitle(_translate("MainWindow", "&Help", None))
         self.menuAction.setTitle(_translate("MainWindow", "Action", None))
         self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar", None))
         self.action_Open.setText(_translate("MainWindow", "&Open", None))
-        self.actionExit.setText(_translate("MainWindow", "Exit", None))
-        self.actionAbout.setText(_translate("MainWindow", "About", None))
+        self.actionExit.setText(_translate("MainWindow", "&Exit", None))
+        self.actionAbout.setText(_translate("MainWindow", "&About", None))
         self.actionPrevious.setText(_translate("MainWindow", "Previous", None))
         self.actionNext.setText(_translate("MainWindow", "Next", None))
 
