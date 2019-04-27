@@ -142,13 +142,13 @@ class Ui_MainWindow(object):
 
     def openFile(self):
         filename = QtGui.QFileDialog.getOpenFileName(None,'Select file', '/home', 'pkl files (*.pkl *.pklz)')
-        self.statusbar.showMessage('File %s'%filename)
-        
         self.readData(filename)
     def readData(self,filename):
+        self.statusbar.showMessage('Opening file %s'%filename)
         f=gzip.open(filename,'rb')
+        self.statusbar.showMessage('File uncompressed ...')
         self.data=cPickle.load(f)['packet']
-
+        self.statusbar.showMessage('Data loaded ...')
         f.close()
         self.model = QtGui.QStandardItemModel()
         for p in self.data:

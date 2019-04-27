@@ -17,9 +17,15 @@ class MainWindow(QtGui.QMainWindow):
 
 
 if __name__=='__main__':
+    filename=None
+    if len(sys.argv)>=2:
+        filename=sys.argv[1]
+
     app = QtGui.QApplication(sys.argv)
     mw=Ui_MainWindow()  
     window = MainWindow(mw)
+    if filename:
+        mw.readData(filename)
     window.show()
     sys.exit(app.exec_())
 
