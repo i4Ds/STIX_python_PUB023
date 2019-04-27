@@ -11,7 +11,6 @@ import argparse
 import pprint
 from core import stix_telemetry_parser
 from stix_io import stix_logger
-
 LOGGER = stix_logger.LOGGER
 def main():
     in_filename = 'test/stix.dat'

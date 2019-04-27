@@ -52,6 +52,10 @@ class stix_writer:
         data={'run':self.run, 'packet':self.packets}
         cPickle.dump(data,self.fout)
         self.fout.close()
+    def write_all(self, data):
+        for p in data:
+            #print p['header'],p['parameter']
+            self.write(p['header'],p['parameter'])
 
 
     def write_parameters(self, parameters,spid=0):

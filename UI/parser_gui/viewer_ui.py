@@ -9,6 +9,11 @@
 from PyQt4 import QtCore, QtGui
 import cPickle
 import gzip
+from core import stix_telemetry_parser 
+from core import stix_global
+#from stix_io import stix_logger
+from stix_io import stix_writer
+
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -24,7 +29,7 @@ except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
 
-class Ui_MainWindow(object):
+class Ui_MainWindow(QtGui.QMainWindow):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
         MainWindow.setWindowModality(QtCore.Qt.WindowModal)
@@ -44,7 +49,7 @@ class Ui_MainWindow(object):
         self.splitter_2.setOrientation(QtCore.Qt.Horizontal)
         self.splitter_2.setObjectName(_fromUtf8("splitter_2"))
         self.listView = QtGui.QListView(self.splitter_2)
-        self.listView.setMaximumSize(QtCore.QSize(400, 16777215))
+        self.listView.setMaximumSize(QtCore.QSize(500, 16777215))
         self.listView.setObjectName(_fromUtf8("listView"))
         self.splitter = QtGui.QSplitter(self.splitter_3)
         self.splitter.setOrientation(QtCore.Qt.Vertical)
@@ -91,29 +96,28 @@ class Ui_MainWindow(object):
         self.dockWidget.setWidget(self.dockWidgetContents)
         MainWindow.addDockWidget(QtCore.Qt.DockWidgetArea(8), self.dockWidget)
         self.action_Open = QtGui.QAction(MainWindow)
-        icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(_fromUtf8(":/fileopen/images/fileopen.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.action_Open.setIcon(icon1)
-        self.action_Open.setObjectName(_fromUtf8("action_Open"))
+
         self.actionExit = QtGui.QAction(MainWindow)
         self.actionExit.setObjectName(_fromUtf8("actionExit"))
         self.actionAbout = QtGui.QAction(MainWindow)
         self.actionAbout.setObjectName(_fromUtf8("actionAbout"))
         self.actionPrevious = QtGui.QAction(MainWindow)
-        icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap(_fromUtf8(":/Left/images/Left.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.actionPrevious.setIcon(icon2)
+
+
         self.actionPrevious.setMenuRole(QtGui.QAction.AboutQtRole)
         self.actionPrevious.setObjectName(_fromUtf8("actionPrevious"))
         self.actionNext = QtGui.QAction(MainWindow)
-        icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap(_fromUtf8(":/Right/images/Right.png")), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.actionNext.setIcon(icon3)
+
         self.actionNext.setObjectName(_fromUtf8("actionNext"))
+
         self.actionSet_IDB = QtGui.QAction(MainWindow)
         self.actionSet_IDB.setObjectName(_fromUtf8("actionSet_IDB"))
         self.actionSave = QtGui.QAction(MainWindow)
         self.actionSave.setObjectName(_fromUtf8("actionSave"))
+        self.action_Open.setObjectName(_fromUtf8("action_Open"))
+        
+
+
         self.actionLog = QtGui.QAction(MainWindow)
         self.actionLog.setObjectName(_fromUtf8("actionLog"))
         self.menu_File.addAction(self.action_Open)
@@ -129,17 +133,31 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuSetting.menuAction())
         self.menubar.addAction(self.menu_Help.menuAction())
         self.toolBar.addAction(self.action_Open)
+        self.toolBar.addAction(self.actionSave)
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.actionPrevious)
         self.toolBar.addAction(self.actionNext)
 
         self.retranslateUi(MainWindow)
-        #QtCore.QObject.connect(self.action_Open, QtCore.SIGNAL(_fromUtf8("triggered()")), MainWindow.update)
-        #QtCore.QMetaObject.connectSlotsByName(MainWindow)
-
         self.actionExit.triggered.connect(MainWindow.close)
 
-        self.action_Open.triggered.connect(self.openFile)
+
+        self.initialize()
+
+
+    def initialize(self):
+
+
+
+        self.actionNext.setIcon(self.style().standardIcon(QtGui.QStyle.SP_ArrowForward))
+        self.actionPrevious.setIcon(self.style().standardIcon(QtGui.QStyle.SP_ArrowBack))
+        self.action_Open.setIcon(self.style().standardIcon(QtGui.QStyle.SP_DialogOpenButton))
+        self.actionSave.setIcon(self.style().standardIcon(QtGui.QStyle.SP_DriveFDIcon))
+
+        self.actionSave.triggered.connect(self.save)
+
+
+        self.action_Open.triggered.connect(self.getOpenFilename)
         self.tableWidget.setColumnCount(2)
         self.tableWidget.setHorizontalHeaderLabels(('Name','Description'))
         self.tableWidget.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
@@ -149,37 +167,107 @@ class Ui_MainWindow(object):
         self.actionNext.triggered.connect(self.next)
         self.actionPrevious.triggered.connect(self.previous)
         self.actionAbout.triggered.connect(self.about)
-
+        
+        self.actionPrevious.setEnabled(False)
+        self.actionNext.setEnabled(False)
+        self.actionSave.setEnabled(False)
         self.actionLog.triggered.connect(self.dockWidget.show)
+
+    def save(self):
+        self.output_filename = str(QtGui.QFileDialog.getSaveFileName(self, "Save file", "", ".pklz"))
+        
+        if not self.output_filename:
+            return
+
+        self.statusbar.showMessage('writing to file %s'%self.output_filename)
+        stw=stix_writer.stix_writer(self.output_filename)
+        stw.register_run(str(self.input_filename))
+        stw.write_all(self.data)
+        stw.done()
+        self.statusbar.showMessage('data has written to %s' %self.output_filename)
+        
+    def setListViewSelected(self,row):
+        #index = self.model.createIndex(row, 0);
+        #if index.isValid():
+        #    self.model.selectionModel().select( index, QtGui.QItemSelectionModel.Select) 
+        pass
+
     def about(self):
         msgBox = QtGui.QMessageBox()
         msgBox.setIcon(QtGui.QMessageBox.Information)
-        msgBox.setText("STIX PKLZ file viewer, hualin.xiao@fhnw.ch")
-        msgBox.setWindowTitle("Stix PKLZ file viewer")
+        msgBox.setText("STIX STIX data viewer, hualin.xiao@fhnw.ch")
+        msgBox.setWindowTitle("Stix data viewer")
         msgBox.setStandardButtons(QtGui.QMessageBox.Ok)
         msgBox.exec_()
 
+    def addLogEntry(self,msg):
+        self.listWidget.addItem(msg)
 
     def next(self):
         self.current_row+=1
         self.showPacket(self.current_row)
+        self.setListViewSelected(self.current_row)
     def previous(self):
         self.current_row-=1
         self.showPacket(self.current_row)
+        self.setListViewSelected(self.current_row)
 
-    def openFile(self):
-        filename = QtGui.QFileDialog.getOpenFileName(None,'Select file', '/home', 'pkl files (*.pkl *.pklz)')
-        self.readData(filename)
-    def addLogEntry(self,msg):
-        self.listWidget.addItem(msg)
-    def readData(self,filename):
+    def getOpenFilename(self):
+        self.input_filename = QtGui.QFileDialog.getOpenFileName(None,'Select file', '', 'STIX data file (*.dat *.pkl *.pklz)')
+        self.openFile(self.input_filename)
+
+    def openFile(self,filename):
+        self.data=[]
         self.statusbar.showMessage('Opening file %s'%filename)
         self.addLogEntry('Opening file %s'%filename)
-        f=gzip.open(filename,'rb')
-        self.addLogEntry('File uncompressed ...')
-        self.data=cPickle.load(f)['packet']
-        self.addLogEntry('Data loaded')
-        f.close()
+        if '.pkl' in filename or '.pklz' in filename:
+            f=gzip.open(filename,'rb')
+            self.addLogEntry('File uncompressed ...')
+            self.data=cPickle.load(f)['packet']
+            self.addLogEntry('Data loaded')
+            f.close()
+            self.displayPackets()
+        elif '.dat' in filename:
+            self.parseRawFile(filename)
+
+        if self.data:
+            self.actionPrevious.setEnabled(True)
+            self.actionNext.setEnabled(True)
+            self.actionSave.setEnabled(True)
+
+    def parseRawFile(self,filename):
+        self.addLogEntry('Parsing file %s'%filename)
+        with open(filename, 'rb') as in_file:
+            num_packets = 0
+            num_fix_packets=0
+            num_variable_packets=0
+            num_bytes_read = 0
+            stix_writer=None
+            #st_writer.register_run(in_filename)
+            total_packets=0
+            self.data=[]
+            selected_spid=0
+
+            while True:
+                status, header, parameters, param_type, param_desc, num_bytes_read = stix_telemetry_parser.parse_one_packet(in_file, 
+                        self,selected_spid, output_param_type='tree')
+                total_packets += 1
+                if status == stix_global.NEXT_PACKET:
+                    continue
+                if status == stix_global.EOF:
+                    break
+
+                self.data.append({'header':header,'parameter':parameters})
+
+            self.addLogEntry('%d packets loaded'%total_packets)
+
+        self.displayPackets()
+
+
+
+
+
+    def displayPackets(self):
         self.model = QtGui.QStandardItemModel()
         for p in self.data:
             header=p['header']
@@ -237,8 +325,25 @@ class Ui_MainWindow(object):
                     if p['child']:
                         self.showParameterTree(p['child'],root)
             except KeyError:
-                self.addLogEntry('Error: keyError adding parameter')
-                
+                self.addLogEntry('[Error  ]: keyError adding parameter')
+
+    def error(self,  msg, description=''):
+        if description:
+            self.addLogEntry('[ERROR  ] {0}: {1}'.format(msg, description))
+        else:
+            self.addLogEntry('[ERROR  ] : {}'.format(msg))
+
+    def warning(self, msg, description=''):
+        if description:
+            self.addLogEntry('[WARNING] {0}: {1}'.format(msg, description))
+        else:
+            self.addLogEntry('[WARNING] : {}'.format(msg))
+
+    def info(self,  msg, description=''):
+        if description:
+            self.addLogEntry('[INFO   ] {0}: {1}'.format(msg, description))
+        else:
+            self.addLogEntry('[INFO   ] : {}'.format(msg))                
 
 
     def retranslateUi(self, MainWindow):
@@ -258,4 +363,3 @@ class Ui_MainWindow(object):
         self.actionSave.setText(_translate("MainWindow", "Sa&ve", None))
         self.actionLog.setText(_translate("MainWindow", "Show Log", None))
 
-import viewer_rc

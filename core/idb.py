@@ -21,8 +21,11 @@ class IDB(object):
         self.parameter_structures=dict()
         self.soc_descriptions=dict()
         self.s2k_table_contents=dict()
+        self.connect_database(filename)
+
+    def connect_database(self,filename):
         try:
-            self.conn = sqlite3.connect(self.filename)
+            self.conn = sqlite3.connect(filename)
         except sqlite3.Error as er:
             LOGGER.error(er.message)
             raise Exception('Failed to connect to IDB !')

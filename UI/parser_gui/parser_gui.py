@@ -25,7 +25,7 @@ if __name__=='__main__':
     mw=Ui_MainWindow()  
     window = MainWindow(mw)
     if filename:
-        mw.readData(filename)
+        mw.openFile(filename)
     window.show()
     sys.exit(app.exec_())
 
