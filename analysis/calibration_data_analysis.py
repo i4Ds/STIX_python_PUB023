@@ -1,4 +1,4 @@
-import pickle, gzip
+import cPickle, gzip
 import numpy as np
 import math
 import os
@@ -8,6 +8,7 @@ from ROOT import TGraph, TFile,TCanvas
 from array import array 
 from core import stix_telemetry_parser
 from stix_io import stix_logger
+import datetime
 LOGGER = stix_logger.LOGGER
 LOGGER.set_level(1)
 
@@ -46,7 +47,7 @@ def analysis(file_in, file_out):
     alog.write(file_in+'\n')
 
     f=gzip.open(file_in,'rb')
-    data=pickle.load(f)['packet']
+    data=cPickle.load(f)['packet']
     detector_id=[]
     triggers=[]
     print('Number of packets:')

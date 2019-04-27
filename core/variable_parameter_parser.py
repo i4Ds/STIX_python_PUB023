@@ -237,7 +237,7 @@ class variable_parameter_parser:
         par['offset'] = self.last_offset
         par['offset_bit'] = self.current_offset_bit
 
-        print('###{},{}, {},{}'.format(par['PCF_NAME'],self.last_offset,self.current_offset_bit,width))
+        #print('###{},{}, {},{}'.format(par['PCF_NAME'],self.last_offset,self.current_offset_bit,width))
 
         parameter_interpret=False
         if self.output_type == 'tree':
