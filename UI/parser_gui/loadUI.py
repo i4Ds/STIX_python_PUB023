@@ -244,12 +244,13 @@ class Ui(QtWidgets.QMainWindow):
     def showParameterTree(self, params, parent):
         for p in  params:
             root=QtWidgets.QTreeWidgetItem(parent)
+            if not p:
+                continue
             try:
                 root.setText(0,p['name'])
                 root.setText(1,p['descr'])
                 root.setText(2,str(p['raw']))
                 root.setText(3,str(p['value']))
-
 
                 if 'child' in p:
                     if p['child']:
@@ -305,7 +306,7 @@ class Ui(QtWidgets.QMainWindow):
         elif y:
             style=self.styleEdit.text()
             if not style:
-                style='-'
+                style='o-'
 
             if xaxis ==0:
                 ax.plot(y,style)
@@ -324,7 +325,7 @@ class Ui(QtWidgets.QMainWindow):
             ax.set_title(title)
 
             self.canvas.draw()
-            self.statusbar.showMessage('Plot updated')
+            self.statusbar.showMessage('The graph updated!')
             
 
 
