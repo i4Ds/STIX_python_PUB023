@@ -7,6 +7,10 @@ from core import stix_global
 from stix_io import stix_writer
 import os
 import viewer_rc5
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
+from matplotlib.figure import Figure
+
 
 
 class Ui(QtWidgets.QMainWindow):
@@ -14,14 +18,15 @@ class Ui(QtWidgets.QMainWindow):
         super(Ui, self).__init__()
         uic.loadUi('UI/parser_gui/viewer.ui', self)
 
-        self.actionExit.triggered.connect(self.close)
-        #self.initialize()
-        self.action_Plot.setEnabled(False)
 
         self.initialize()
 
 
     def initialize(self):
+        self.tabWidget.setCurrentIndex(0)
+        self.actionExit.triggered.connect(self.close)
+        self.action_Plot.setEnabled(False)
+
         self.actionNext.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_ArrowForward))
         self.actionPrevious.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_ArrowBack))
         self.action_Open.setIcon(self.style().standardIcon(QtWidgets.QStyle.SP_DialogOpenButton))
@@ -45,8 +50,39 @@ class Ui(QtWidgets.QMainWindow):
         self.actionNext.setEnabled(False)
         self.actionSave.setEnabled(False)
         self.action_Plot.setEnabled(False)
-        self.actionLog.triggered.connect(self.dockWidget.show)
+        self.actionLog.triggered.connect(self.dockWidget_2.show)
         self.actionSet_IDB.triggered.connect(self.onSetIDBClicked)
+
+        self.plotButton.clicked.connect(self.onPlotButtonClicked)
+        self.action_Plot.triggered.connect(self.onPlotActionClicked)
+
+        self.current_row=0
+
+        self.figure = Figure()
+        self.canvas = FigureCanvas(self.figure)
+        self.gridLayout.addWidget(self.canvas, 1, 0, 1, 12)
+        self.savePlotButton.clicked.connect(self.savePlot)
+        
+    def savePlot(self):
+        if self.figure.get_axes():
+            filename= str(QtWidgets.QFileDialog.getSaveFileName(self, "Save file", "", "*.pdf *.png *.svg *.jpg")[0])
+            if filename:
+                self.figure.savefig(filename)
+                self.statusbar.showMessage('Saved to %s.'%filename)
+        
+
+        else:
+            msgBox = QtWidgets.QMessageBox()
+            msgBox.setIcon(QtWidgets.QMessageBox.Information)
+            msgBox.setText('The canvas is empty!')
+            msgBox.setWindowTitle("STIX DATA VIEWER")
+            msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            msgBox.exec_()
+
+
+
+
+
     def onSetIDBClicked(self):
         msgBox = QtWidgets.QMessageBox()
         msgBox.setIcon(QtWidgets.QMessageBox.Information)
@@ -58,7 +94,7 @@ class Ui(QtWidgets.QMainWindow):
 
 
     def save(self):
-        self.output_filename = str(QtWidgets.QFileDialog.getSaveFileName(self, "Save file", "", ".pklz"))[0]
+        self.output_filename = str(QtWidgets.QFileDialog.getSaveFileName(self, "Save file", "", ".pklz")[0])
         
         if not self.output_filename:
             return
@@ -85,7 +121,7 @@ class Ui(QtWidgets.QMainWindow):
         msgBox.exec_()
 
     def addLogEntry(self,msg):
-        self.listWidget.addItem(msg)
+        self.listWidget_2.addItem(msg)
 
     def next(self):
         self.current_row+=1
@@ -98,22 +134,29 @@ class Ui(QtWidgets.QMainWindow):
 
     def getOpenFilename(self):
         self.input_filename = QtWidgets.QFileDialog.getOpenFileName(None,'Select file', '.', 'STIX data file (*.dat *.pkl *.pklz)')[0]
+        if not self.input_filename:
+            return
         self.openFile(self.input_filename)
 
     def openFile(self,filename):
-        self.data=[]
-        print(filename)
         self.statusbar.showMessage('Opening file %s'%filename)
         self.addLogEntry('Opening file %s'%filename)
+        #thread=threading.Thread(target=self.openFileThread,args=(filename,))
+        #thread.start()
+        self.openFileThread(filename)
+
+    def openFileThread(self,filename):
+        self.data=[]
+        #print(filename)
         if '.pkl' in filename or '.pklz' in filename:
+            self.statusbar.showMessage('Loading data from %s ...'%filename)
             f=gzip.open(filename,'rb')
-            self.addLogEntry('File uncompressed ...')
             self.data=cPickle.load(f)['packet']
-            self.addLogEntry('Data loaded')
             f.close()
             self.displayPackets()
         elif '.dat' in filename:
             self.parseRawFile(filename)
+        self.statusbar.showMessage('Data loaded')
 
         if self.data:
             self.actionPrevious.setEnabled(True)
@@ -122,7 +165,7 @@ class Ui(QtWidgets.QMainWindow):
             self.action_Plot.setEnabled(True)
 
     def parseRawFile(self,filename):
-        self.addLogEntry('Parsing file %s'%filename)
+        self.statusbar.showMessage('Parsing raw data file ...')
         with open(filename, 'rb') as in_file:
             num_packets = 0
             num_fix_packets=0
@@ -206,6 +249,8 @@ class Ui(QtWidgets.QMainWindow):
                 root.setText(1,p['descr'])
                 root.setText(2,str(p['raw']))
                 root.setText(3,str(p['value']))
+
+
                 if 'child' in p:
                     if p['child']:
                         self.showParameterTree(p['child'],root)
@@ -213,8 +258,94 @@ class Ui(QtWidgets.QMainWindow):
                 self.addLogEntry('[Error  ]: keyError adding parameter')
         self.treeWidget.itemDoubleClicked.connect(self.onTreeItemClicked)
 
+    def walk_tree(self,name, packet, ret_x, ret_y,xaxis=0):
+        if not tree:
+            return
+        for pack in  packet:
+            p=pack['parameter']
+            h=pack['header']
+            if not p:
+                continue
+            if name == p['name']:
+                try:
+                    ret_y.append(float(p['raw'][0]))
+                    if axis == 1:
+                        ret_y.append(h['time'])
+
+                except:
+                    self.addLogEntry('Parameter %s ignored'%str(p))
+            if 'child' in p:
+                if p['child']:
+                    self.walk_tree(name, p['child'],ret_x, ret_y, xaxis)
+
+
+
+    def onPlotButtonClicked(self):
+        if not self.data:
+            return 
+        name=self.paramNameEdit.text()
+        packet_id=self.current_row
+        packet_selection=self.comboBox.currentIndex()
+        xaxis=self.xaxisComboBox.currentIndex()
+        #print name, packet_id,packet_selection
+        style=self.styleEdit.text()
+        if not style:
+            style='-'
+
+        
+        timestamp=[]
+        y=[]
+        current_packet=self.data[packet_id]
+        if packet_selection==0:
+            self.walk_tree(name, current_packet,timestamp,y, xaxis)
+        elif packet_selection==1:
+            for packet in self.data:
+                self.walk_tree(name, packet,timestamp,y,xaxis)
+
+        ax=self.figure.add_subplot(111)
+        ax.clear()
+        if not y:
+            self.statusbar.showMessage('No data points')
+        elif y:
+            if xaxis ==0:
+                ax.plot(y,style)
+                ax.set_xlabel("Packet #")
+            else:
+                x=[t-timestamp[0] for t in timestamp]
+                ax.plot(x,y,style)
+                ax.set_xlabel("Time - T0 (s)")
+
+
+            ax.set_ylabel("Raw value")
+            title='%s'%str(name)
+            desc=self.descLabel.text()
+            if desc:
+                title += '- %s'%desc
+            ax.set_title(title)
+
+            self.canvas.draw()
+            self.statusbar.showMessage('Plot updated')
+            
+
+
+
+
+    def plotParameter(self,name=None, desc=None):
+        self.tabWidget.setCurrentIndex(1)
+        if name:
+            self.paramNameEdit.setText(name)
+        if desc:
+            self.descLabel.setText(desc)
+
+    def onPlotActionClicked(self):
+        self.tabWidget.setCurrentIndex(1)
+        self.plotParameter()
+
+
     def onTreeItemClicked(self, it, col):
-        print(it, col, it.text(0))
+        #print(it, col, it.text(0))
+        self.plotParameter(it.text(0),it.text(1))
+
 
 
     def error(self,  msg, description=''):
@@ -240,7 +371,13 @@ class Ui(QtWidgets.QMainWindow):
 
 
 if __name__ == '__main__':
+    filename=None
+    if len(sys.argv)>=2:
+        filename=sys.argv[1]
+
     app = QtWidgets.QApplication(sys.argv)
     window = Ui()
     window.show()
+    if filename:
+        window.openFile(filename)
     sys.exit(app.exec_())
