@@ -1,14 +1,7 @@
 <RCC>
-  <qresource prefix="Left">
-    <file>images/Left.png</file>
-  </qresource>
-  <qresource prefix="main">
-    <file>extrude.png</file>
-  </qresource>
-  <qresource prefix="Right">
-    <file>images/Right.png</file>
-  </qresource>
-  <qresource prefix="fileopen">
-    <file>images/fileopen.png</file>
-  </qresource>
+    <qresource prefix="/Icons">
+        <file>images/fileopen.png</file>
+        <file>images/graph.svg</file>
+        <file>images/app.svg</file>
+    </qresource>
 </RCC>
