@@ -258,25 +258,23 @@ class Ui(QtWidgets.QMainWindow):
                 self.addLogEntry('[Error  ]: keyError adding parameter')
         self.treeWidget.itemDoubleClicked.connect(self.onTreeItemClicked)
 
-    def walk_tree(self,name, packet, ret_x, ret_y,xaxis=0):
-        if not tree:
+    def walk_tree(self,name, params, header, ret_x, ret_y,xaxis=0):
+        if not params:
             return
-        for pack in  packet:
-            p=pack['parameter']
-            h=pack['header']
+        timestamp=header['time']
+        for p in  params:
             if not p:
                 continue
             if name == p['name']:
                 try:
                     ret_y.append(float(p['raw'][0]))
-                    if axis == 1:
-                        ret_y.append(h['time'])
-
+                    if xaxis==1:
+                        ret_x.append(timestamp)
                 except:
                     self.addLogEntry('Parameter %s ignored'%str(p))
             if 'child' in p:
                 if p['child']:
-                    self.walk_tree(name, p['child'],ret_x, ret_y, xaxis)
+                    self.walk_tree(name, p['child'], header, ret_x, ret_y, xaxis)
 
 
 
@@ -284,29 +282,31 @@ class Ui(QtWidgets.QMainWindow):
         if not self.data:
             return 
         name=self.paramNameEdit.text()
-        packet_id=self.current_row
         packet_selection=self.comboBox.currentIndex()
         xaxis=self.xaxisComboBox.currentIndex()
-        #print name, packet_id,packet_selection
-        style=self.styleEdit.text()
-        if not style:
-            style='-'
 
-        
         timestamp=[]
         y=[]
-        current_packet=self.data[packet_id]
         if packet_selection==0:
-            self.walk_tree(name, current_packet,timestamp,y, xaxis)
+            packet_id=self.current_row
+            params=self.data[packet_id]['parameter']
+            header=self.data[packet_id]['header']
+            self.walk_tree(name, params,header,timestamp,y, xaxis)
         elif packet_selection==1:
             for packet in self.data:
-                self.walk_tree(name, packet,timestamp,y,xaxis)
+                params=packet['parameter']
+                header=packet['header']
+                self.walk_tree(name, params,header,timestamp,y,xaxis)
 
         ax=self.figure.add_subplot(111)
         ax.clear()
         if not y:
             self.statusbar.showMessage('No data points')
         elif y:
+            style=self.styleEdit.text()
+            if not style:
+                style='-'
+
             if xaxis ==0:
                 ax.plot(y,style)
                 ax.set_xlabel("Packet #")
