@@ -114,13 +114,6 @@
          <string>Plot</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout">
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_4">
-           <property name="text">
-            <string>X axis:</string>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="1">
           <widget class="QComboBox" name="xaxisComboBox">
            <item>
@@ -135,27 +128,10 @@
            </item>
           </widget>
          </item>
-         <item row="0" column="2">
-          <widget class="QLabel" name="label">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_4">
            <property name="text">
-            <string> Y axis: </string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="3">
-          <widget class="QLineEdit" name="paramNameEdit">
-           <property name="maximumSize">
-            <size>
-             <width>150</width>
-             <height>16777215</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="4">
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string>In</string>
+            <string>X axis:</string>
            </property>
           </widget>
          </item>
@@ -188,11 +164,54 @@
            </item>
           </widget>
          </item>
+         <item row="0" column="4">
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>In</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="3">
+          <widget class="QLineEdit" name="paramNameEdit">
+           <property name="maximumSize">
+            <size>
+             <width>150</width>
+             <height>16777215</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="10">
+          <widget class="QPushButton" name="plotButton">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Plot</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="11">
+          <widget class="QPushButton" name="savePlotButton">
+           <property name="maximumSize">
+            <size>
+             <width>100</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Save plot</string>
+           </property>
+          </widget>
+         </item>
          <item row="0" column="6">
           <widget class="QLabel" name="descLabel">
            <property name="minimumSize">
             <size>
-             <width>30</width>
+             <width>0</width>
              <height>0</height>
             </size>
            </property>
@@ -204,6 +223,13 @@
            </property>
            <property name="text">
             <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string> Y axis: </string>
            </property>
           </widget>
          </item>
@@ -228,18 +254,17 @@
           </widget>
          </item>
          <item row="0" column="9">
-          <widget class="QPushButton" name="plotButton">
-           <property name="text">
-            <string>Plot</string>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
            </property>
-          </widget>
-         </item>
-         <item row="0" column="10">
-          <widget class="QPushButton" name="savePlotButton">
-           <property name="text">
-            <string>Save plot</string>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
            </property>
-          </widget>
+          </spacer>
          </item>
         </layout>
        </widget>

@@ -60,7 +60,7 @@ class Ui(QtWidgets.QMainWindow):
 
         self.figure = Figure()
         self.canvas = FigureCanvas(self.figure)
-        self.gridLayout.addWidget(self.canvas, 1, 0, 1, 12)
+        self.gridLayout.addWidget(self.canvas, 1, 0, 1, 13)
         self.savePlotButton.clicked.connect(self.savePlot)
         
     def savePlot(self):
