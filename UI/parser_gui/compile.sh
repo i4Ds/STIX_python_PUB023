@@ -1,1 +1,1 @@
-nuitka --recurse-on viewer.py
+nuitka --recurse-on parser_gui.py

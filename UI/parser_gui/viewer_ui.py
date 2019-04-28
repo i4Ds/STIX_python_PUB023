@@ -13,6 +13,7 @@ from core import stix_telemetry_parser
 from core import stix_global
 #from stix_io import stix_logger
 from stix_io import stix_writer
+import os
 
 
 try:
@@ -49,7 +50,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.splitter_2.setOrientation(QtCore.Qt.Horizontal)
         self.splitter_2.setObjectName(_fromUtf8("splitter_2"))
         self.listView = QtGui.QListView(self.splitter_2)
-        self.listView.setMaximumSize(QtCore.QSize(500, 16777215))
+        self.listView.setMaximumSize(QtCore.QSize(450, 16777215))
         self.listView.setObjectName(_fromUtf8("listView"))
         self.splitter = QtGui.QSplitter(self.splitter_3)
         self.splitter.setOrientation(QtCore.Qt.Vertical)
@@ -112,6 +113,7 @@ class Ui_MainWindow(QtGui.QMainWindow):
 
         self.actionSet_IDB = QtGui.QAction(MainWindow)
         self.actionSet_IDB.setObjectName(_fromUtf8("actionSet_IDB"))
+
         self.actionSave = QtGui.QAction(MainWindow)
         self.actionSave.setObjectName(_fromUtf8("actionSave"))
         self.action_Open.setObjectName(_fromUtf8("action_Open"))
@@ -172,6 +174,16 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.actionNext.setEnabled(False)
         self.actionSave.setEnabled(False)
         self.actionLog.triggered.connect(self.dockWidget.show)
+        self.actionSet_IDB.triggered.connect(self.onSetIDBClicked)
+    def onSetIDBClicked(self):
+        msgBox = QtGui.QMessageBox()
+        msgBox.setIcon(QtGui.QMessageBox.Information)
+        path = os.path.dirname(os.path.realpath(__file__))
+        msgBox.setText("Please copy file idb.sqlite to the folder %s/idb/ to change IDB !"%path)
+        msgBox.setWindowTitle("STIX DATA VIEWER")
+        msgBox.setStandardButtons(QtGui.QMessageBox.Ok)
+        msgBox.exec_()
+
 
     def save(self):
         self.output_filename = str(QtGui.QFileDialog.getSaveFileName(self, "Save file", "", ".pklz"))
@@ -272,18 +284,17 @@ class Ui_MainWindow(QtGui.QMainWindow):
         for p in self.data:
             header=p['header']
             msg='TM(%d,%d) - %s'%(header['service_type'],header['service_subtype'],header['DESCR'])
-            #print msg
             self.model.appendRow(QtGui.QStandardItem(msg))
         self.listView.setModel(self.model)
         self.total_packets=len(self.data)
         self.statusbar.showMessage('%d packets loaded'%(self.total_packets))
         self.addLogEntry('%d packets loaded'%(self.total_packets))
-        self.listView.selectionModel().currentChanged.connect(self.packetSelected)
+        self.listView.selectionModel().currentChanged.connect(self.onPacketSelected)
         self.tableWidget.setRowCount(0)
         self.showHeader(0)
         self.showParameter(0)
     
-    def packetSelected(self, current, previous):
+    def onPacketSelected(self, current, previous):
         self.current_row=current.row()
         self.statusbar.showMessage('Packet %d selected' % self.current_row)
         self.showPacket(self.current_row)
@@ -326,6 +337,11 @@ class Ui_MainWindow(QtGui.QMainWindow):
                         self.showParameterTree(p['child'],root)
             except KeyError:
                 self.addLogEntry('[Error  ]: keyError adding parameter')
+        self.treeWidget.itemDoubleClicked.connect(self.onTreeItemClicked)
+
+    def onTreeItemClicked(self, it, col):
+        print(it, col, it.text(0))
+
 
     def error(self,  msg, description=''):
         if description:
@@ -363,3 +379,4 @@ class Ui_MainWindow(QtGui.QMainWindow):
         self.actionSave.setText(_translate("MainWindow", "Sa&ve", None))
         self.actionLog.setText(_translate("MainWindow", "Show Log", None))
 
+import viewer_rc
