@@ -10,6 +10,52 @@ import viewer_rc5
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
+from PyQt5.QtCore import QThread, pyqtSignal
+
+class StixDataReader(QThread):
+    """
+    thread
+    """
+    dataLoaded= pyqtSignal(list)
+    def __init__(self,filename):
+        super(StixDataReader,self).__init__()
+        self.filename=filename
+        self.data=[]
+
+    def run(self):
+        self.data=[]
+        filename=self.filename
+        if '.pkl' in filename or '.pklz' in filename:
+            f=gzip.open(filename,'rb')
+            self.data=cPickle.load(f)['packet']
+            f.close()
+        elif '.dat' in filename:
+            self.parseRawFile()
+        self.dataLoaded.emit(self.data)
+
+    def parseRawFile(self):
+        filename=self.filename
+        with open(filename, 'rb') as in_file:
+            num_packets = 0
+            num_fix_packets=0
+            num_variable_packets=0
+            num_bytes_read = 0
+            stix_writer=None
+            #st_writer.register_run(in_filename)
+            total_packets=0
+            self.data=[]
+            selected_spid=0
+            while True:
+                status, header, parameters, param_type, param_desc, num_bytes_read = stix_telemetry_parser.parse_one_packet(in_file, 
+                        self,selected_spid, output_param_type='tree')
+                total_packets += 1
+                if status == stix_global.NEXT_PACKET:
+                    continue
+                if status == stix_global.EOF:
+                    break
+                self.data.append({'header':header,'parameter':parameters})
+
+
 
 
 
@@ -140,57 +186,27 @@ class Ui(QtWidgets.QMainWindow):
 
     def openFile(self,filename):
         self.statusbar.showMessage('Opening file %s'%filename)
-        self.addLogEntry('Opening file %s'%filename)
-        #thread=threading.Thread(target=self.openFileThread,args=(filename,))
-        #thread.start()
-        self.openFileThread(filename)
+        self.addLogEntry('Loading file %s ...'%filename)
 
-    def openFileThread(self,filename):
-        self.data=[]
-        #print(filename)
-        if '.pkl' in filename or '.pklz' in filename:
-            self.statusbar.showMessage('Loading data from %s ...'%filename)
-            f=gzip.open(filename,'rb')
-            self.data=cPickle.load(f)['packet']
-            f.close()
-            self.displayPackets()
-        elif '.dat' in filename:
-            self.parseRawFile(filename)
-        self.statusbar.showMessage('Data loaded')
+        self.dataReader=StixDataReader(filename)
+        self.dataReader.dataLoaded.connect(self.onDataLoaded)
+        self.dataReader.start()
 
+
+    def onDataLoaded(self,data):
+        self.data=data
+        total_packets=len(self.data)
+        self.statusbar.showMessage('%d packets loaded'%total_packets)
+
+        self.displayPackets()
         if self.data:
             self.actionPrevious.setEnabled(True)
             self.actionNext.setEnabled(True)
             self.actionSave.setEnabled(True)
             self.action_Plot.setEnabled(True)
 
-    def parseRawFile(self,filename):
-        self.statusbar.showMessage('Parsing raw data file ...')
-        with open(filename, 'rb') as in_file:
-            num_packets = 0
-            num_fix_packets=0
-            num_variable_packets=0
-            num_bytes_read = 0
-            stix_writer=None
-            #st_writer.register_run(in_filename)
-            total_packets=0
-            self.data=[]
-            selected_spid=0
+        self.addLogEntry('%d packets loaded'%total_packets)
 
-            while True:
-                status, header, parameters, param_type, param_desc, num_bytes_read = stix_telemetry_parser.parse_one_packet(in_file, 
-                        self,selected_spid, output_param_type='tree')
-                total_packets += 1
-                if status == stix_global.NEXT_PACKET:
-                    continue
-                if status == stix_global.EOF:
-                    break
-
-                self.data.append({'header':header,'parameter':parameters})
-
-            self.addLogEntry('%d packets loaded'%total_packets)
-
-        self.displayPackets()
 
 
 
