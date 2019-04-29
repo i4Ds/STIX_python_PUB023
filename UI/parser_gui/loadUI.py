@@ -300,7 +300,10 @@ class Ui(QtWidgets.QMainWindow):
             return 
         name=self.paramNameEdit.text()
         packet_selection=self.comboBox.currentIndex()
-        xaxis=self.xaxisComboBox.currentIndex()
+        xaxis_type=self.xaxisComboBox.currentIndex()
+
+
+
 
         timestamp=[]
         y=[]
@@ -308,12 +311,12 @@ class Ui(QtWidgets.QMainWindow):
             packet_id=self.current_row
             params=self.data[packet_id]['parameter']
             header=self.data[packet_id]['header']
-            self.walk_tree(name, params,header,timestamp,y, xaxis)
+            self.walk_tree(name, params,header,timestamp,y, xaxis_type)
         elif packet_selection==1:
             for packet in self.data:
                 params=packet['parameter']
                 header=packet['header']
-                self.walk_tree(name, params,header,timestamp,y,xaxis)
+                self.walk_tree(name, params,header,timestamp,y,xaxis_type)
 
         ax=self.figure.add_subplot(111)
         ax.clear()
@@ -324,20 +327,29 @@ class Ui(QtWidgets.QMainWindow):
             if not style:
                 style='o-'
 
-            if xaxis ==0:
-                ax.plot(y,style)
-                ax.set_xlabel("Packet #")
-            else:
-                x=[t-timestamp[0] for t in timestamp]
-                ax.plot(x,y,style)
-                ax.set_xlabel("Time - T0 (s)")
-
-
-            ax.set_ylabel("Raw value")
             title='%s'%str(name)
             desc=self.descLabel.text()
             if desc:
                 title += '- %s'%desc
+
+            if xaxis_type ==0:
+                ax.plot(y,style)
+                ax.set_xlabel("Packet #")
+                ax.set_ylabel("Raw value")
+            elif xaxis_type==1:
+                x=[t-timestamp[0] for t in timestamp]
+                ax.plot(x,y,style)
+                ax.set_xlabel("Time - T0 (s)")
+                ax.set_ylabel("Raw value")
+            else:
+                #histogram
+                nbins=len(set(y))
+                ax.hist(y,nbins, density=True, facecolor='g', alpha=0.75)
+                ax.set_xlabel("%s"%title)
+                ax.set_ylabel("Counts")
+
+
+
             ax.set_title(title)
 
             self.canvas.draw()

@@ -35,7 +35,7 @@
       </property>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="tab">
         <attribute name="title">
@@ -118,12 +118,17 @@
           <widget class="QComboBox" name="xaxisComboBox">
            <item>
             <property name="text">
-             <string>Parameter order</string>
+             <string>Parameter order as X</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>Timestamp</string>
+             <string>Timestamp as X</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Histogram</string>
             </property>
            </item>
           </widget>
@@ -131,7 +136,7 @@
          <item row="0" column="0">
           <widget class="QLabel" name="label_4">
            <property name="text">
-            <string>X axis:</string>
+            <string>Type:</string>
            </property>
           </widget>
          </item>
@@ -203,7 +208,7 @@
             </size>
            </property>
            <property name="text">
-            <string>Save plot</string>
+            <string>Save</string>
            </property>
           </widget>
          </item>
@@ -229,7 +234,7 @@
          <item row="0" column="2">
           <widget class="QLabel" name="label">
            <property name="text">
-            <string> Y axis: </string>
+            <string>Data source:</string>
            </property>
           </widget>
          </item>
@@ -327,6 +332,7 @@
      <string>&amp;Tools</string>
     </property>
     <addaction name="action_Plot"/>
+    <addaction name="actionPaste"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menuAction"/>
@@ -352,6 +358,7 @@
    <addaction name="actionNext"/>
    <addaction name="separator"/>
    <addaction name="action_Plot"/>
+   <addaction name="actionPaste"/>
   </widget>
   <action name="action_Open">
    <property name="text">
@@ -403,6 +410,18 @@
    </property>
    <property name="text">
     <string>&amp;Plot</string>
+   </property>
+  </action>
+  <action name="actionPaste">
+   <property name="icon">
+    <iconset resource="viewer.qrc">
+     <normaloff>:/Icons/images/paste.svg</normaloff>:/Icons/images/paste.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Paste</string>
+   </property>
+   <property name="toolTip">
+    <string>Read raw data from the clipboard</string>
    </property>
   </action>
  </widget>
