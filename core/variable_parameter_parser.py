@@ -16,12 +16,11 @@ from core import idb
 from stix_io import stix_logger
 
 STIX_IDB = idb.STIX_IDB
-LOGGER = stix_logger.LOGGER
 class variable_parameter_parser:
     """
     Variable parameter parser
     """
-    def __init__(self, data, spid,output_type='tree'):
+    def __init__(self, data, spid,output_type='tree',logger=None):
         """
         Args:
             data         :  binary data stream to be decoded
@@ -30,6 +29,7 @@ class variable_parameter_parser:
         self.root = None
         self.source_data = data
         self.spid = spid
+        self.logger=logger
 
         self.nodes = []
         self.results_tree = []
@@ -59,10 +59,10 @@ class variable_parameter_parser:
         self.build_tree()
         packet_length = len(self.source_data)
         if self.length_min > packet_length:
-            LOGGER.error(
+            self.logger.error(
                 'The packet length ({}) is less than the required minimal length {}'
                 .format(packet_length, self.length_min))
-            LOGGER.error('Data Field not parsed!')
+            self.logger.error('Data Field not parsed!')
             return 0, None
         if self.output_type=='tree':
             self.walk_to_tree(self.nodes[0], self.results_tree)

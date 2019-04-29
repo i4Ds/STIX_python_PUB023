@@ -23,7 +23,6 @@ from core import stix_global
 from core import header as stix_header
 from stix_io import stix_writer
 from stix_io import stix_logger
-LOGGER = stix_logger.LOGGER
 STIX_IDB = idb.STIX_IDB
 
 UNSIGNED_UNPACK_STRING = ['B', '>H', 'BBB', '>I', 'BBBBB', '>IH']
@@ -329,20 +328,6 @@ def get_fixed_packet_parameters(app_data, parameter_structure_list,logger=None):
     Extract parameters from a fixed data packet
     Structures of parameters are defined in the database PLF
     see Solar orbit IDB ICD section 3.3.2.5.1
-    Args:
-        app_data: application data
-        parameter_structures :  [
-                [PLF_NAME, PLF_OFFBY, PLF_OFFBI, PLF_NBOCC, PLF_LGOCC,'
-                PLF_TIME, PLF_TDOCC, SDB_IMPORTED],
-                ...
-                ]
-    Returns:
-        A dictionary containing the extracted parameters, e.g.
-        {
-            para1: value1,
-            para2: value2,
-            ...
-        }
     """
     parameters = []
     for par in parameter_structure_list:
@@ -359,12 +344,6 @@ def get_fixed_packet_parameters(app_data, parameter_structure_list,logger=None):
 def read_one_packet(in_file, logger):
     """
     Read one telemetry packet and parse the header
-    Args:
-       in_file: a python file object 
-       logger:  STIX logger
-    Returns:
-       (status, header, header_raw, app_data, number_of_processed_bytes)
-
     """
     file_start_pos = in_file.tell()
     header_raw = in_file.read(16)
@@ -437,25 +416,24 @@ def parse_telecommand_packet(buf, logger=None):
         logger.warning('Bad telecommand header ')
     else:
         pprint.pprint(header)
-
     return header,None
 
-def parse_telemetry_packet(buf,logger=None):
-    if len(buf)<=16:
-        return stix_global.BAD_PACKET, None, None
-    header_raw=buf[0:16]
-    header_status, header = parse_telemetry_header(header_raw)
-    app_length = header['length']-9
-    app_raw=buf[17:]
-    parse_app_header(header, app_raw, app_length)
-    tpsd = header['TPSD']
-    spid= header['SPID']
-    if tpsd == -1:
-        parameters = parse_fixed_packet(app_raw, spid,logger)
-    else:
-        vpd_parser = vp.variable_parameter_parser(app_raw, spid)
-        bytes_parsed, parameters = vpd_parser.get_parameters()
-    return stix_global.OK, header, parameters
+#def parse_telemetry_packet(buf,logger=None):
+#    if len(buf)<=16:
+#        return stix_global.BAD_PACKET, None, None
+#    header_raw=buf[0:16]
+#    header_status, header = parse_telemetry_header(header_raw)
+#    app_length = header['length']-9
+#    app_raw=buf[17:]
+#    parse_app_header(header, app_raw, app_length)
+#    tpsd = header['TPSD']
+#    spid= header['SPID']
+#    if tpsd == -1:
+#        parameters = parse_fixed_packet(app_raw, spid,logger)
+#    else:
+#        vpd_parser = vp.variable_parameter_parser(app_raw, spid)
+#        bytes_parsed, parameters = vpd_parser.get_parameters()
+#    return stix_global.OK, header, parameters
 
 
  

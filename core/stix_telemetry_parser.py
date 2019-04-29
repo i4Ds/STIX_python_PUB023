@@ -17,7 +17,7 @@ from stix_io import stix_writer as stw_pkl
 from stix_io import stix_writer_sqlite as stw_db
 from core import stix_parser
 
-def parse_telemetry_packet(buf,output_param_type='tree'):
+def parse_telemetry_packet(buf,output_param_type='tree',logger=None):
     if len(buf)<=16:
         return stix_global.BAD_PACKET, None, None
     header_raw=buf[0:16]
@@ -30,7 +30,7 @@ def parse_telemetry_packet(buf,output_param_type='tree'):
     if tpsd == -1:
         parameters = stix_parser.parse_fixed_packet(app_raw, spid)
     else:
-        vpd_parser = vp.variable_parameter_parser(app_raw, spid, output_param_type)
+        vpd_parser = vp.variable_parameter_parser(app_raw, spid, output_param_type,logger)
         bytes_parsed, parameters = vpd_parser.get_parameters()
     return stix_global.OK, header, parameters
 
@@ -54,7 +54,7 @@ def parse_one_packet(in_file,logger,selected_spid=0, output_param_type='tree'):
                 param_type=1
             else:
                 vpd_parser = vp.variable_parameter_parser(
-                    app_raw, spid, output_param_type)
+                    app_raw, spid, output_param_type,logger)
                 bytes_parsed, parameters = vpd_parser.get_parameters()
                 param_desc=vpd_parser.get_parameter_description()
 
@@ -65,7 +65,8 @@ def parse_one_packet(in_file,logger,selected_spid=0, output_param_type='tree'):
     return status, header, parameters, param_type, param_desc, num_read
 
 
-def parse_stix_raw_file(in_filename, logger, out_filename=None, selected_spid=0, output_param_type='tree', output_file_type='pkl'):
+def parse_stix_raw_file(in_filename, logger, out_filename=None, selected_spid=0,
+        output_param_type='tree', output_file_type='pkl'):
     """
     Parse STIX raw TM packets 
     Args:
