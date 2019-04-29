@@ -5,8 +5,7 @@
 # @author       : Hualin Xiao
 # @date         : Feb. 27, 2019
 
-from pprint import pprint
-import xlwt
+import pprint
 
 class stix_logger:
     def __init__(self, path=None, level=10):
@@ -56,15 +55,8 @@ class stix_logger:
                     except:
                         print(par)
         elif type(parameters) is dict:
-            for key, val in list(parameters.items()):
-                if len(val) <50:
-                    print(('%s : %s'%(key, str(val))))
-                else:
-                    print(key)
-                    print((val[0:50]))
+            pprint.pprint(par)
 
-        else:
-            pprint(par)
 
 
 
@@ -92,6 +84,6 @@ class stix_logger:
     def debug(self, msg):
         if self.level <4 :
             return 
-        pprint(msg)
+        pprint.pprint(msg)
 
 LOGGER = stix_logger()

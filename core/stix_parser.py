@@ -121,11 +121,12 @@ def find_next_header(f):
         if not x:
             break
         pos = f.tell()
-        bad_block += ' ' + x.encode('hex')
+        bad_block += ' ' + x.hex()
         nbytes += 1
         if x == 0x0D:
             f.seek(pos - 1)
             return True, nbytes, bad_block
+
     return False, nbytes, bad_block
 
 def get_parameter_physical_value(pcf_curtx, para_type, raw_values, logger=None):
@@ -221,8 +222,9 @@ def interpret_telemetry_parameter(app_data, par, parameter_interpret=True, logge
         return {'name': name,
                 'raw': raw_values,
                 'descr':desc,
-                'value':None,
-                'eng_value_type':None}
+                'value':None
+                #'eng_value_type':None
+                }
 
     physical_values, phys_value_type = get_parameter_physical_value(
         pcf_curtx, para_type, raw_values,logger)
@@ -239,7 +241,7 @@ def interpret_telemetry_parameter(app_data, par, parameter_interpret=True, logge
         #'offbit': offset_bit,
         #'width': pcf_width,
         #'unit': unit,
-        'eng_value_type': phys_value_type,
+        #'eng_value_type': phys_value_type,
         'value': physical_values
     }
 
@@ -250,6 +252,11 @@ def parse_telemetry_header(packet):
     # 57)
     if packet[0] != 0x0D:
         return stix_global.HEADER_FIRST_BYTE_INVALID, None
+
+    #print('packet header {:02x}\n'.format(packet[0]))
+    #print('packet header {:02x}\n'.format(0x0D))
+
+
     header_raw = st.unpack('>HHHBBBBIH', packet[0:16])
     header = {}
     for h, s in zip(header_raw, stix_header.telemetry_raw_structure):

@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>956</width>
-    <height>763</height>
+    <width>1148</width>
+    <height>785</height>
    </rect>
   </property>
   <property name="maximumSize">
@@ -23,7 +23,7 @@
    <string>STIX data parser and viewer</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="viewer.qrc">
+   <iconset>
     <normaloff>:/Icons/images/app.svg</normaloff>:/Icons/images/app.svg</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -186,7 +186,7 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="10">
+         <item row="0" column="11">
           <widget class="QPushButton" name="plotButton">
            <property name="maximumSize">
             <size>
@@ -199,7 +199,7 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="11">
+         <item row="0" column="12">
           <widget class="QPushButton" name="savePlotButton">
            <property name="maximumSize">
             <size>
@@ -238,14 +238,14 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="7">
+         <item row="0" column="8">
           <widget class="QLabel" name="label_3">
            <property name="text">
             <string>Curve Style:</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="8">
+         <item row="0" column="9">
           <widget class="QLineEdit" name="styleEdit">
            <property name="maximumSize">
             <size>
@@ -258,7 +258,7 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="9">
+         <item row="0" column="10">
           <spacer name="horizontalSpacer">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
@@ -270,6 +270,20 @@
             </size>
            </property>
           </spacer>
+         </item>
+         <item row="0" column="7">
+          <widget class="QComboBox" name="dataTypeComboBox">
+           <item>
+            <property name="text">
+             <string>Raw values</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>Engineering values</string>
+            </property>
+           </item>
+          </widget>
          </item>
         </layout>
        </widget>
@@ -295,7 +309,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>956</width>
+     <width>1148</width>
      <height>22</height>
     </rect>
    </property>
@@ -405,7 +419,7 @@
   </action>
   <action name="action_Plot">
    <property name="icon">
-    <iconset resource="viewer.qrc">
+    <iconset>
      <normaloff>:/Icons/images/graph.svg</normaloff>:/Icons/images/graph.svg</iconset>
    </property>
    <property name="text">
@@ -414,7 +428,7 @@
   </action>
   <action name="actionPaste">
    <property name="icon">
-    <iconset resource="viewer.qrc">
+    <iconset>
      <normaloff>:/Icons/images/paste.svg</normaloff>:/Icons/images/paste.svg</iconset>
    </property>
    <property name="text">
@@ -425,8 +439,6 @@
    </property>
   </action>
  </widget>
- <resources>
-  <include location="viewer.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

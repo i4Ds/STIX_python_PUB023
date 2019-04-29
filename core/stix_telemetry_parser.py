@@ -107,7 +107,7 @@ def parse_stix_raw_file(in_filename, logger, out_filename=None, selected_spid=0,
             elif param_type == 2: 
                 num_variable_packets += 1
             
-            #logger.pprint(header,parameters)
+            logger.pprint(header,parameters)
             if status and parameters:
                 #st_writer.write_header(header)
                 #st_writer.write_parameters(parameters)
