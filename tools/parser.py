@@ -17,6 +17,7 @@ def main():
     out_filename = 'stix_out'
     sel_spid = 0
     output_file_type='pkl'
+    logger_level=10
     #pkl or db
     ap = argparse.ArgumentParser()
     output_param_type='tree'
@@ -30,15 +31,22 @@ def main():
     ap.add_argument(
         "-f", "--ftype", required=False, help="output file type. Can be db (sqlite database) or pkl (compressed python pickle file) ")
 
+    ap.add_argument(
+        "-l", "--level", required=False, help="Logger verbose level")
+
     args = vars(ap.parse_args())
 
     if args['sel'] is not None:
         sel_spid = int(args['sel'])
 
+    if args['level'] is not None:
+        logger_level= int(args['level'])
+
     if args['ptype'] is not None:
         output_param_type= args['ptype']
     if args['ftype'] is not None:
         output_file_type= args['ftype']
+
 
     if args['out'] is not None:
         out_filename = args['out']
@@ -50,6 +58,8 @@ def main():
 
 
     in_filename = args['in']
+
+    LOGGER.set_level(logger_level)
     LOGGER.info('Input file', in_filename)
     LOGGER.info('Output file', out_filename)
 
