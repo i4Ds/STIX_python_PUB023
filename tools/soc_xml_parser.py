@@ -1,10 +1,5 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-# @title        : parser.py
-# @description  : STIX TM packet parser 
-# @author       : Hualin Xiao
-# @date         : March. 28, 2019
-#
 
 from __future__ import (absolute_import, unicode_literals)
 import argparse

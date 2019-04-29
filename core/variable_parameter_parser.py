@@ -150,14 +150,14 @@ class variable_parameter_parser:
 
     def pprint_par(self,st):
         if debug:
-            print('%s %s  %s %s %s %s %s %s\n'%(str(st['VPD_POS']), st['VPD_NAME'], st['VPD_GRPSIZE'], 
+            print(('%s %s  %s %s %s %s %s %s\n')%(str(st['VPD_POS']), st['VPD_NAME'], st['VPD_GRPSIZE'], 
                 st['VPD_OFFSET'],  str(st['PCF_WIDTH']),str(st['offset']),str(st['offset_bit']), st['PCF_DESCR']))
 
     def pprint_structure(self,structures):
         if debug:
             pprint(structures)
             for st in structures:
-                print('%s %s  %s %s %s %s\n'%(str(st['VPD_POS']), st['VPD_NAME'], st['VPD_GRPSIZE'], 
+                print(('%s %s  %s %s %s %s\n')%(str(st['VPD_POS']), st['VPD_NAME'], st['VPD_GRPSIZE'], 
                     st['VPD_OFFSET'],  str(st['PCF_WIDTH']), st['PCF_DESCR']))
 
     def walk_to_array(self, mother):

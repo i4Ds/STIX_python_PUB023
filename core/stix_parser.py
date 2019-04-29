@@ -52,7 +52,7 @@ def unpack_integer(raw, structure):
     return result
 
 
-def unpack_parameter(in_data, parameter_type, offset, offset_bit, data_length):
+def unpack_parameter(in_data, parameter_type, offset, offset_bit, data_length, logger=None):
     """
     unpack a 'fixed'  parameter from a binary stream
     Args:
@@ -84,13 +84,14 @@ def unpack_parameter(in_data, parameter_type, offset, offset_bit, data_length):
         data_type = str(nbytes) + 's'
     
     results = ()
-    raw_data = in_data[offset:offset + nbytes]
+    raw_data = in_data[int(offset):int(offset + nbytes)]
 
 
     if nbytes != len(raw_data):
-        LOGGER.error(
-            'Invalid data length, expect {}, but real length is: {}'.format(
-                nbytes, len(raw_data)))
+        if logger:
+            logger.error(
+                'Invalid data length, expect {}, but real length is: {}'.format(
+                    nbytes, len(raw_data)))
         return None
     unpacked_values = st.unpack(data_type, raw_data)
 
@@ -123,12 +124,12 @@ def find_next_header(f):
         pos = f.tell()
         bad_block += ' ' + x.encode('hex')
         nbytes += 1
-        if ord(x) == 0x0D:
+        if x == 0x0D:
             f.seek(pos - 1)
             return True, nbytes, bad_block
     return False, nbytes, bad_block
 
-def get_parameter_physical_value(pcf_curtx, para_type, raw_values):
+def get_parameter_physical_value(pcf_curtx, para_type, raw_values, logger=None):
     """
     convert raw value  to physical value using the calibration factors in
     several IDB tables: txf, txp, pas, cap or mcf
@@ -178,7 +179,8 @@ def get_parameter_physical_value(pcf_curtx, para_type, raw_values):
     elif prefix == 'NIX':
         # temperature
         # query PDI
-        LOGGER.warning('{} not interpreted'.format(pcf_curtx))
+        if logger:
+            logger.warning('{} not interpreted'.format(pcf_curtx))
         if pcf_curtx == 'NIX00101':
             #see SO-STIX-DS-30001_IDeF-X HD datasheet page 29
             pass
@@ -198,7 +200,7 @@ def get_parameter_physical_value(pcf_curtx, para_type, raw_values):
         return None,None
     return None,None
 
-def interpret_telemetry_parameter(app_data, par, parameter_interpret=True):
+def interpret_telemetry_parameter(app_data, par, parameter_interpret=True, logger=None):
     name = par['PCF_NAME']
     if name == 'NIX00299':
         return None
@@ -214,7 +216,7 @@ def interpret_telemetry_parameter(app_data, par, parameter_interpret=True):
     s2k_table = STIX_IDB.get_s2k_parameter_types(ptc, pfc)
     para_type = s2k_table['S2K_TYPE']
     raw_values = unpack_parameter(app_data, para_type, offset,
-                                  offset_bit, pcf_width)
+                                  offset_bit, pcf_width,logger)
 
     if not parameter_interpret:
         return {'name': name,
@@ -224,10 +226,11 @@ def interpret_telemetry_parameter(app_data, par, parameter_interpret=True):
                 'eng_value_type':None}
 
     physical_values, phys_value_type = get_parameter_physical_value(
-        pcf_curtx, para_type, raw_values)
+        pcf_curtx, para_type, raw_values,logger)
     if not physical_values:
-        LOGGER.warning(
-            'Parameter {} is not converted to physical value'.format(name))
+        if logger:
+            logger.warning(
+                'Parameter {} is not converted to physical value'.format(name))
     return {
         'name': name,
         'descr': desc,
@@ -246,7 +249,7 @@ def interpret_telemetry_parameter(app_data, par, parameter_interpret=True):
 def parse_telemetry_header(packet):
     # see STIX ICD-0812-ESC  (Page
     # 57)
-    if ord(packet[0]) != 0x0D:
+    if packet[0] != 0x0D:
         return stix_global.HEADER_FIRST_BYTE_INVALID, None
     header_raw = st.unpack('>HHHBBBBIH', packet[0:16])
     header = {}
@@ -298,7 +301,7 @@ def parse_app_header(header, data, data_length):
         data_structure = '>B'
         if width == 16:
             data_structure = '>H'
-        res = st.unpack(data_structure, data[start:end])
+        res = st.unpack(data_structure, data[int(start):int(end)])
         pi1_val = res[0]
     type_info = STIX_IDB.get_packet_type_info(service_type, service_subtype,
                                               pi1_val)
@@ -316,12 +319,12 @@ def parse_app_header(header, data, data_length):
     for e in info:
         header.update(e)
 
-def parse_fixed_packet(app_data,spid):
+def parse_fixed_packet(app_data,spid,logger=None):
     parameter_structures = STIX_IDB.get_fixed_packet_structure(spid)
-    return get_fixed_packet_parameters(app_data, parameter_structures)
+    return get_fixed_packet_parameters(app_data, parameter_structures,logger)
 
 
-def get_fixed_packet_parameters(app_data, parameter_structure_list):
+def get_fixed_packet_parameters(app_data, parameter_structure_list,logger=None):
     """
     Extract parameters from a fixed data packet
     Structures of parameters are defined in the database PLF
@@ -347,7 +350,7 @@ def get_fixed_packet_parameters(app_data, parameter_structure_list):
         # offset is known from the PLF table
         par['offset_bit'] = int(par['PLF_OFFBI'])
         par['type'] = 'fixed'
-        parameter = interpret_telemetry_parameter(app_data, par,True)
+        parameter = interpret_telemetry_parameter(app_data, par,True, logger)
         parameters.append(parameter)
     return parameters
 
@@ -405,7 +408,7 @@ def read_one_packet(in_file, logger):
 def parse_telecommand_header(packet):
     # see STIX ICD-0812-ESC  (Page
     # 56)
-    if ord(packet[0]) != 0x1D:
+    if packet[0] != 0x1D:
         return stix_global.HEADER_FIRST_BYTE_INVALID, None
     header_raw = st.unpack('>HHHBBBB', packet[0:10])
     header = {}
@@ -428,16 +431,16 @@ def parse_telecommand_parameter(header,packet):
     pass
 
 
-def parse_telecommand_packet(buf, logger):
+def parse_telecommand_packet(buf, logger=None):
     header_status,header=parse_telecommand_header(buf)
-    if header_status != stix_global.OK:
+    if header_status != stix_global.OK and logger:
         logger.warning('Bad telecommand header ')
     else:
         pprint.pprint(header)
 
     return header,None
 
-def parse_telemetry_packet(buf):
+def parse_telemetry_packet(buf,logger=None):
     if len(buf)<=16:
         return stix_global.BAD_PACKET, None, None
     header_raw=buf[0:16]
@@ -448,7 +451,7 @@ def parse_telemetry_packet(buf):
     tpsd = header['TPSD']
     spid= header['SPID']
     if tpsd == -1:
-        parameters = parse_fixed_packet(app_raw, spid)
+        parameters = parse_fixed_packet(app_raw, spid,logger)
     else:
         vpd_parser = vp.variable_parameter_parser(app_raw, spid)
         bytes_parsed, parameters = vpd_parser.get_parameters()

@@ -9,7 +9,7 @@
 #import json
 import pprint
 #import pymongo
-import cPickle
+import pickle
 import gzip
 import datetime
 
@@ -50,7 +50,7 @@ class stix_writer:
         self.packets.append(packet)
     def done(self):
         data={'run':self.run, 'packet':self.packets}
-        cPickle.dump(data,self.fout)
+        pickle.dump(data,self.fout)
         self.fout.close()
     def write_all(self, data):
         for p in data:

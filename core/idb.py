@@ -15,19 +15,20 @@ LOGGER = stix_logger.LOGGER
 STIX_IDB_FILENAME='idb/idb.sqlite'
 
 class IDB(object):
-    def __init__(self, filename=STIX_IDB_FILENAME):
+    def __init__(self, filename=STIX_IDB_FILENAME, logger=LOGGER):
         self.filename = filename
         self.conn = None
         self.parameter_structures=dict()
         self.soc_descriptions=dict()
         self.s2k_table_contents=dict()
         self.connect_database(filename)
+        self.logger=logger
 
     def connect_database(self,filename):
         try:
             self.conn = sqlite3.connect(filename,check_same_thread=False)
         except sqlite3.Error as er:
-            LOGGER.error(er.message)
+            self.logger.error(er.message)
             raise Exception('Failed to connect to IDB !')
         else:
             self.cur = self.conn.cursor()
@@ -98,7 +99,7 @@ class IDB(object):
         rows = self.execute(sql,args)
         if rows:
             return rows[0]
-        return 0
+        return 0,0
     def get_PCF_description(self,name):
         sql=('select PCF_DESCR from PCF where PCF_NAME=?')
 

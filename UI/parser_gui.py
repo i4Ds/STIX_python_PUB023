@@ -1,19 +1,21 @@
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
 import sys
-import cPickle
+import pickle
 import gzip
 from core import stix_telemetry_parser 
 from core import stix_global
 from stix_io import stix_writer
 import os
-import mainwindow_rc5
+from UI import mainwindow_rc5
+from UI.mainwindow import Ui_MainWindow
+
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 from PyQt5.QtCore import QThread, pyqtSignal
 import re
 import binascii
-from cStringIO import StringIO
+from io import StringIO
 
 class StixDataReader(QThread):
     """
@@ -30,7 +32,7 @@ class StixDataReader(QThread):
         filename=self.filename
         if '.pkl' in filename or '.pklz' in filename:
             f=gzip.open(filename,'rb')
-            self.data=cPickle.load(f)['packet']
+            self.data=pickle.load(f)['packet']
             f.close()
         elif '.dat' in filename:
             self.parseRawFile()
@@ -50,7 +52,7 @@ class StixDataReader(QThread):
             selected_spid=0
             while True:
                 status, header, parameters, param_type, param_desc, num_bytes_read = stix_telemetry_parser.parse_one_packet(in_file, 
-                        self,selected_spid, output_param_type='tree')
+                        None,selected_spid, output_param_type='tree')
                 total_packets += 1
                 if status == stix_global.NEXT_PACKET:
                     continue
@@ -60,7 +62,6 @@ class StixDataReader(QThread):
 
 
 
-from mainwindow import Ui_MainWindow
 
 
 class Ui(QtWidgets.QMainWindow):
@@ -92,8 +93,8 @@ class Ui(QtWidgets.QMainWindow):
 
         self.tree_header=QtWidgets.QTreeWidgetItem(['Name','description','raw','Eng value'])
         self.treeWidget.setHeaderItem(self.tree_header)
-        self.actionNext.triggered.connect(self.next)
-        self.actionPrevious.triggered.connect(self.previous)
+        self.actionNext.triggered.connect(self.nextPacket)
+        self.actionPrevious.triggered.connect(self.previousPacket)
         self.actionAbout.triggered.connect(self.about)
         
         self.actionPrevious.setEnabled(False)
@@ -194,11 +195,11 @@ class Ui(QtWidgets.QMainWindow):
     def addLogEntry(self,msg):
         self.listWidget_2.addItem(msg)
 
-    def next(self):
+    def nextPacket(self):
         self.current_row+=1
         self.showPacket(self.current_row)
         self.setListViewSelected(self.current_row)
-    def previous(self):
+    def previousPacket(self):
         self.current_row-=1
         self.showPacket(self.current_row)
         self.setListViewSelected(self.current_row)
