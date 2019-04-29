@@ -139,7 +139,9 @@ class Ui_mainWindow(object):
                 in_file, LOGGER)
         except TypeError:
             self.status.setText('Failed to parse the packet')
+
         msg=''
+
         if header:
             self.serviceLabel.setText('TM(%s, %s)'%(header['service_type'],header['service_subtype']))
             self.SPIDLabel.setText(str(header['SPID']))

@@ -11,6 +11,9 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 from PyQt5.QtCore import QThread, pyqtSignal
+import re
+import binascii
+from cStringIO import StringIO
 
 class StixDataReader(QThread):
     """
@@ -108,6 +111,7 @@ class Ui(QtWidgets.QMainWindow):
         self.canvas = FigureCanvas(self.figure)
         self.gridLayout.addWidget(self.canvas, 1, 0, 1, 13)
         self.savePlotButton.clicked.connect(self.savePlot)
+        self.actionPaste.triggered.connect(self.paste)
         
     def savePlot(self):
         if self.figure.get_axes():
@@ -124,6 +128,26 @@ class Ui(QtWidgets.QMainWindow):
             msgBox.setWindowTitle("STIX DATA VIEWER")
             msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
             msgBox.exec_()
+
+
+
+    def paste(self):
+        raw_hex= QtWidgets.QApplication.clipboard().text()
+        data_hex= re.sub(r"\s+", "", raw_hex)
+        if not data_hex:
+            self.statusbar.showMessage('No data in the clipboard.')
+            return
+        try:
+            data_binary = binascii.unhexlify(data_hex)
+            in_file=StringIO(data_binary)
+            status, header, parameters, param_type, param_desc, num_bytes_read = stix_telemetry_parser.parse_one_packet(
+                in_file, self)
+            data=[{'header':header,'parameter':parameters}]
+            self.addLogEntry('%d bytes read from the clipboard'%num_bytes_read)
+            self.onDataLoaded(data)
+        except TypeError:
+            self.statusbar.showMessage('Failed to parse the packet')
+
 
 
 
