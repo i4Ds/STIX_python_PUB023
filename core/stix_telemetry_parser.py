@@ -24,7 +24,7 @@ def parse_telemetry_packet(buf,output_param_type='tree',logger=None):
     header_status, header = stix_parser.parse_telemetry_header(header_raw)
     app_length = header['length']-9
     app_raw=buf[17:]
-    parse_app_header(header, app_raw, app_length)
+    stix_parser.parse_app_header(header, app_raw, app_length)
     tpsd = header['TPSD']
     spid= header['SPID']
     if tpsd == -1:
