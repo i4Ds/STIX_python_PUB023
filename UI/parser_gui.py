@@ -319,7 +319,7 @@ class Ui(QtWidgets.QMainWindow):
                         if xaxis==1:
                             ret_x.append(timestamp)
                     else:
-                        self.showMessage((('Can not plot %s  ')%str(value)),1)
+                        self.showMessage((('Can not plot %s  ')%str(eng_value)),1)
                 except IndexError:
                     self.showMessage((('%s has empty values')%str(p)),1)
 
