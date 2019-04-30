@@ -16,6 +16,7 @@ from core import idb
 from stix_io import stix_logger
 
 STIX_IDB = idb.STIX_IDB
+
 class variable_parameter_parser:
     """
     Variable parameter parser
@@ -43,7 +44,10 @@ class variable_parameter_parser:
         self.length_min = 0
         self.output_type =output_type
         self.results_dict={}
+        self.debug=False
         self.parameter_desc={}
+    def debugEnabled(self):
+        self.debug=True
     def reset(self):
         self.nodes[0]['child']=[]
         self.results_tree[:]=[]
@@ -149,12 +153,12 @@ class variable_parameter_parser:
 
 
     def pprint_par(self,st):
-        if debug:
+        if self.debug:
             print(('%s %s  %s %s %s %s %s %s\n')%(str(st['VPD_POS']), st['VPD_NAME'], st['VPD_GRPSIZE'], 
                 st['VPD_OFFSET'],  str(st['PCF_WIDTH']),str(st['offset']),str(st['offset_bit']), st['PCF_DESCR']))
 
     def pprint_structure(self,structures):
-        if debug:
+        if self.debug:
             pprint(structures)
             for st in structures:
                 print(('%s %s  %s %s %s %s\n')%(str(st['VPD_POS']), st['VPD_NAME'], st['VPD_GRPSIZE'], 
