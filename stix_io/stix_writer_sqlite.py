@@ -97,7 +97,7 @@ class stix_writer:
     def insert_parameters(self, parlist):
         if self.cur and parlist:
             self.cur.executemany(
-                'insert into parameter (packet_id, name,descr,raw,eng_value ) values(?,?,?,?,?,?)',
+                'insert into parameter (packet_id, name,descr,raw,eng_value ) values(?,?,?,?,?)',
                 parlist)
     def write(self, header, parameters, parameter_desc):
         #parameters description not used

@@ -16,7 +16,6 @@ def main():
     in_filename = 'test/stix.dat'
     out_filename = 'stix_out'
     sel_spid = 0
-    output_file_type='pkl'
     logger_level=10
     #pkl or db
     ap = argparse.ArgumentParser()
@@ -44,16 +43,10 @@ def main():
 
     if args['ptype'] is not None:
         output_param_type= args['ptype']
-    if args['ftype'] is not None:
-        output_file_type= args['ftype']
 
 
     if args['out'] is not None:
         out_filename = args['out']
-    elif output_file_type == 'db':
-        out_filename = 'stix_out.db'
-    elif output_file_type == 'pkl':
-        out_filename = 'stix_out.pklz'
 
 
 
@@ -64,7 +57,7 @@ def main():
     LOGGER.info('Output file', out_filename)
 
     stix_telemetry_parser.parse_stix_raw_file(in_filename,LOGGER, 
-            out_filename, sel_spid, output_param_type=output_param_type,output_file_type=output_file_type)
+            out_filename, sel_spid, output_param_type=output_param_type)
 
 
 if __name__ == '__main__':

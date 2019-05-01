@@ -21,13 +21,16 @@ class stix_writer:
         self.fout=None
         self.packets=[]
 
-        self.fout=gzip.open(filename,'wb')
+        if 'pklz' in filename:
+            self.fout=gzip.open(filename,'wb')
+        else:
+            self.fout=open(filename,'wb')
 
     def register_run(self,in_filename):
         self.run={'Input':in_filename,
-                     'Output':self.filename,
-                     'Date': datetime.datetime.now().isoformat()
-                     }
+                   'Output':self.filename,
+                   'Date': datetime.datetime.now().isoformat()
+                  }
 
     def write_header(self, header):
 
@@ -41,9 +44,6 @@ class stix_writer:
         ]
         line=(','.join(map(str, msg)))
         self.packet_counter += 1
-        #if self.fout:
-        #    pp = pprint.PrettyPrinter(indent=4, stream=self.fout)
-        #    pp.pprint(line)
     def write(self,header, parameters, parameter_desc=dict()):
         packet={'header':header, 'parameter':parameters, 
                 'parameter_desc':parameter_desc}
@@ -54,7 +54,6 @@ class stix_writer:
         self.fout.close()
     def write_all(self, data):
         for p in data:
-            #print p['header'],p['parameter']
             self.write(p['header'],p['parameter'])
 
 

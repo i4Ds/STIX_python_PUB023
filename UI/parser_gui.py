@@ -31,16 +31,18 @@ class StixDataReader(QThread):
     def run(self):
         self.data=[]
         filename=self.filename
-        if '.pkl' in filename or '.pklz' in filename:
+        if '.pklz' in filename 
             f=gzip.open(filename,'rb')
+            self.data=pickle.load(f)['packet']
+            f.close()
+        elif '.pkl' in filename :
+            f=open(filename,'rb')
             self.data=pickle.load(f)['packet']
             f.close()
         elif '.dat' in filename:
             self.parseRawFile()
         elif '.xml' in filename:
             self.parseESOCXmlFile(filename)
-        #else:
-            #self.showMessage('Not supported data format',0)
 
         self.dataLoaded.emit(self.data)
 

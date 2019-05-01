@@ -66,7 +66,7 @@ def parse_one_packet(in_file,logger,selected_spid=0, output_param_type='tree'):
 
 
 def parse_stix_raw_file(in_filename, logger, out_filename=None, selected_spid=0,
-        output_param_type='tree', output_file_type='pkl'):
+        output_param_type='tree'):
     """
     Parse STIX raw TM packets 
     Args:
@@ -84,11 +84,9 @@ def parse_stix_raw_file(in_filename, logger, out_filename=None, selected_spid=0,
         num_variable_packets=0
         num_bytes_read = 0
         stix_writer=None
-        if output_file_type == 'pkl':
-            #write to pickle file
+        if  '.pkl' in out_filename or '.pklz' in out_filename :
             st_writer = stw_pkl.stix_writer(out_filename)
         else:
-            #write to sqlite database
             st_writer = stw_db.stix_writer(out_filename)
 
         st_writer.register_run(in_filename)
