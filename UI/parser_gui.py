@@ -31,7 +31,7 @@ class StixDataReader(QThread):
     def run(self):
         self.data=[]
         filename=self.filename
-        if '.pklz' in filename 
+        if '.pklz' in filename:
             f=gzip.open(filename,'rb')
             self.data=pickle.load(f)['packet']
             f.close()
