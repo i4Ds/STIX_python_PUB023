@@ -5,7 +5,7 @@ from __future__ import (absolute_import, unicode_literals)
 import argparse
 import pprint
 import binascii
-from cStringIO import StringIO
+from io import StringIO
 import xmltodict
 from core import idb
 from core import stix_global

@@ -35,7 +35,6 @@ CREATE_TABLE_PARAMETER_SQL = """CREATE TABLE parameter (
             name TEXT,
             descr	TEXT,
             raw	TEXT,
-            eng_value_type, TEXT,
             eng_value	TEXT
             );"""
 
@@ -92,14 +91,13 @@ class stix_writer:
             for par in parameters:
                 if par:
                     par_list.append((self.current_packet_id, par['name'],
-                                     par['descr'], str(par['raw']),
-                                     str(par['value']), par['eng_value_type']))
+                                     par['descr'], str(par['raw']),str(par['value'])))
         self.insert_parameters(par_list)
 
     def insert_parameters(self, parlist):
         if self.cur and parlist:
             self.cur.executemany(
-                'insert into parameter (packet_id, name,descr,raw,eng_value, eng_value_type) values(?,?,?,?,?,?)',
+                'insert into parameter (packet_id, name,descr,raw,eng_value ) values(?,?,?,?,?,?)',
                 parlist)
     def write(self, header, parameters, parameter_desc):
         #parameters description not used

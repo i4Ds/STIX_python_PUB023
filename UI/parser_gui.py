@@ -15,7 +15,8 @@ from matplotlib.figure import Figure
 from PyQt5.QtCore import QThread, pyqtSignal
 import re
 import binascii
-from io import StringIO
+import xmltodict
+from io import BytesIO
 
 class StixDataReader(QThread):
     """
@@ -36,7 +37,32 @@ class StixDataReader(QThread):
             f.close()
         elif '.dat' in filename:
             self.parseRawFile()
+        elif '.xml' in filename:
+            self.parseESOCXmlFile(filename)
+        #else:
+            #self.showMessage('Not supported data format',0)
+
         self.dataLoaded.emit(self.data)
+
+    def parseESOCXmlFile(self,in_filename):
+        packets=[]
+        with open(in_filename) as fd:
+            doc = xmltodict.parse(fd.read())
+            for e in doc['ns2:ResponsePart']['Response']['PktRawResponse']['PktRawResponseElement']:
+                packet={'id':e['@packetID'], 'raw':e['Packet']}
+                packets.append(packet)
+        
+        #self.showMessage('%d packets found in the xml file.',1)
+        for packet in packets:
+            data_hex=packet['raw']
+            data_binary= binascii.unhexlify(data_hex)
+            in_file=BytesIO(data_binary[76:])
+            status, header, parameters, param_type, param_desc, num_bytes_read = stix_telemetry_parser.parse_one_packet(
+                in_file, self)
+            self.data.append({'header':header,'parameter':parameters})
+        #self.showMessage('Packets loaded',1)
+
+
 
     def parseRawFile(self):
         filename=self.filename
@@ -207,7 +233,7 @@ class Ui(QtWidgets.QMainWindow):
 
     def getOpenFilename(self):
         self.input_filename = QtWidgets.QFileDialog.getOpenFileName(None,'Select file', '.', 
-                'STIX data file (*.dat *.pkl *.pklz)')[0]
+                'STIX data file (*.dat *.pkl *.pklz *xml)')[0]
         if not self.input_filename:
             return
         self.openFile(self.input_filename)
