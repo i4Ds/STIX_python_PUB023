@@ -9,7 +9,7 @@ from __future__ import (absolute_import, unicode_literals)
 
 import pprint
 import sqlite3
-from stix_io import stix_logger
+from core import stix_logger
 
 LOGGER = stix_logger.LOGGER
 STIX_IDB_FILENAME='idb/idb.sqlite'
