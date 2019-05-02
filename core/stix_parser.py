@@ -414,7 +414,6 @@ def parse_telecommand_header(packet):
 def parse_telecommand_parameter(header,packet):
     pass
 
-
 def parse_telecommand_packet(buf, logger=None):
     header_status,header=parse_telecommand_header(buf)
     if header_status != stix_global.OK and logger:
@@ -423,22 +422,3 @@ def parse_telecommand_packet(buf, logger=None):
         pprint.pprint(header)
     return header,None
 
-#def parse_telemetry_packet(buf,logger=None):
-#    if len(buf)<=16:
-#        return stix_global.BAD_PACKET, None, None
-#    header_raw=buf[0:16]
-#    header_status, header = parse_telemetry_header(header_raw)
-#    app_length = header['length']-9
-#    app_raw=buf[17:]
-#    parse_app_header(header, app_raw, app_length)
-#    tpsd = header['TPSD']
-#    spid= header['SPID']
-#    if tpsd == -1:
-#        parameters = parse_fixed_packet(app_raw, spid,logger)
-#    else:
-#        vpd_parser = vp.variable_parameter_parser(app_raw, spid)
-#        bytes_parsed, parameters = vpd_parser.get_parameters()
-#    return stix_global.OK, header, parameters
-
-
- 

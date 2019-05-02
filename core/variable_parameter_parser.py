@@ -45,7 +45,7 @@ class variable_parameter_parser:
         self.results_dict={}
         self.debug=False
         self.parameter_desc={}
-    def debugEnabled(self):
+    def debug_enabled(self):
         self.debug=True
     def reset(self):
         self.nodes[0]['child']=[]

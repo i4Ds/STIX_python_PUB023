@@ -1,5 +1,6 @@
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
 import sys
+import os
 import pickle
 import gzip
 from core import stix_telemetry_parser 
@@ -23,6 +24,8 @@ class StixDataReader(QThread):
     thread
     """
     dataLoaded= pyqtSignal(list)
+    error= pyqtSignal(str)
+    progress= pyqtSignal(str)
     def __init__(self,filename):
         super(StixDataReader,self).__init__()
         self.filename=filename
@@ -43,49 +46,70 @@ class StixDataReader(QThread):
             self.parseRawFile()
         elif '.xml' in filename:
             self.parseESOCXmlFile(filename)
-
         self.dataLoaded.emit(self.data)
 
     def parseESOCXmlFile(self,in_filename):
         packets=[]
-        with open(in_filename) as fd:
+        try:
+            fd=open(in_filename)
+        except Exception as e:
+            self.error.emit('Failed to open {}'.format(str(e)))
+        else:
+
             doc = xmltodict.parse(fd.read())
             for e in doc['ns2:ResponsePart']['Response']['PktRawResponse']['PktRawResponseElement']:
                 packet={'id':e['@packetID'], 'raw':e['Packet']}
                 packets.append(packet)
-        
-        #self.showMessage('%d packets found in the xml file.',1)
-        for packet in packets:
+        num=len(packets)
+        freq=1
+        if num > 100:
+            freq=num/100
+
+        for i,packet in enumerate(packets):
             data_hex=packet['raw']
             data_binary= binascii.unhexlify(data_hex)
             in_file=BytesIO(data_binary[76:])
             status, header, parameters, param_type, param_desc, num_bytes_read = stix_telemetry_parser.parse_one_packet(
                 in_file, self)
+            if i%freq==0:
+                self.progress.emit("{.0f}% loaded".format(100*i/num))
+
+
             self.data.append({'header':header,'parameter':parameters})
-        #self.showMessage('Packets loaded',1)
-
-
 
     def parseRawFile(self):
         filename=self.filename
-        with open(filename, 'rb') as in_file:
+
+        try:
+            in_file=open(filename, 'rb') 
+        except Exception as e:
+            self.error.emit('Failed to open {}'.format(str(e)))
+        else:
+            size=os.stat(filename).st_size
+            percent=int(size/100)
             num_packets = 0
-            num_fix_packets=0
-            num_variable_packets=0
-            num_bytes_read = 0
+            total_read= 0
             stix_writer=None
             #st_writer.register_run(in_filename)
             total_packets=0
             self.data=[]
             selected_spid=0
+            last_percent=0
             while True:
                 status, header, parameters, param_type, param_desc, num_bytes_read = stix_telemetry_parser.parse_one_packet(in_file, 
                         None,selected_spid, output_param_type='tree')
+                total_read+=num_bytes_read
                 total_packets += 1
                 if status == stix_global.NEXT_PACKET:
                     continue
                 if status == stix_global.EOF:
                     break
+
+                if int(total_read/percent) > int(last_percent):
+                    self.progress.emit("{:.0f}% loaded".format(100*total_read/size))
+                last_percent= total_read/percent
+
+                
                 self.data.append({'header':header,'parameter':parameters})
 
 
@@ -115,12 +139,16 @@ class Ui(QtWidgets.QMainWindow):
 
 
         self.action_Open.triggered.connect(self.getOpenFilename)
-        self.tableWidget.setColumnCount(2)
-        self.tableWidget.setHorizontalHeaderLabels(('Name','Description'))
-        #self.tableWidget.horizontalHeader().setResizeMode(QtWidgets.QHeaderView.Stretch)
 
-        self.tree_header=QtWidgets.QTreeWidgetItem(['Name','description','raw','Eng value'])
-        self.treeWidget.setHeaderItem(self.tree_header)
+
+        self.paramTreeWidget_header=QtWidgets.QTreeWidgetItem(['Name','description','raw','Eng value'])
+        self.paramTreeWidget.setHeaderItem(self.paramTreeWidget_header)
+
+        self.packetTreeWidget_header=QtWidgets.QTreeWidgetItem(['Timestamp','Description'])
+        self.packetTreeWidget.setHeaderItem(self.packetTreeWidget_header)
+
+
+
         self.actionNext.triggered.connect(self.nextPacket)
         self.actionPrevious.triggered.connect(self.previousPacket)
         self.actionAbout.triggered.connect(self.about)
@@ -246,14 +274,20 @@ class Ui(QtWidgets.QMainWindow):
 
         self.dataReader=StixDataReader(filename)
         self.dataReader.dataLoaded.connect(self.onDataLoaded)
+        self.dataReader.error.connect(self.onDataReaderError)
+        self.dataReader.progress.connect(self.onDataReaderProgress)
         self.dataReader.start()
+
+    def onDataReaderProgress(self,msg):
+        self.showMessage(msg,0)
+
+    def onDataReaderError(self,msg):
+        self.showMessage(msg,2)
 
 
     def onDataLoaded(self,data):
         self.data=data
         total_packets=len(self.data)
-        msg='%d packets loaded'%total_packets
-        self.showMessage(msg,1)
 
         self.displayPackets()
         if self.data:
@@ -269,20 +303,20 @@ class Ui(QtWidgets.QMainWindow):
 
 
     def displayPackets(self):
-        self.model = QtGui.QStandardItemModel()
         for p in self.data:
             header=p['header']
-            msg='TM(%d,%d) - %s'%(header['service_type'],header['service_subtype'],header['DESCR'])
-            self.model.appendRow(QtGui.QStandardItem(msg))
-        self.listView.setModel(self.model)
+            root=QtWidgets.QTreeWidgetItem(self.packetTreeWidget)
+            root.setText(0,'{:.2f}'.format(header['time']))
+            root.setText(1,('TM({},{}) - {}').format(header['service_type'],header['service_subtype'],header['DESCR']))
         self.total_packets=len(self.data)
         self.showMessage((('%d packets loaded')%(self.total_packets)), 1)
-        self.listView.selectionModel().currentChanged.connect(self.onPacketSelected)
-        self.tableWidget.setRowCount(0)
+        self.packetTreeWidget.currentItemChanged.connect(self.onPacketSelected)
+
+
         self.showPacket(0)
     
-    def onPacketSelected(self, current, previous):
-        self.current_row=current.row()
+    def onPacketSelected(self, cur, pre):
+        self.current_row=self.packetTreeWidget.currentIndex().row()
         self.showMessage((('Packet %d selected') % self.current_row),0)
         self.showPacket(self.current_row)
 
@@ -292,17 +326,24 @@ class Ui(QtWidgets.QMainWindow):
         header=self.data[row]['header']
         self.showMessage((('Packet %d / %d  %s ' )% (row, self.total_packets, header['DESCR'])),0)
 
+        self.paramTreeWidget.clear()
+        header_root=QtWidgets.QTreeWidgetItem(self.paramTreeWidget)
+        header_root.setText(0,"Header")
+
         rows=len(header)
-        self.tableWidget.setRowCount(rows)
-        i=0
         for key, val in header.items():
-            self.tableWidget.setItem(i,0,QtWidgets.QTableWidgetItem(key))
-            self.tableWidget.setItem(i,1,QtWidgets.QTableWidgetItem(str(val)))
-            i += 1
+            root=QtWidgets.QTreeWidgetItem(header_root)
+            root.setText(0,key)
+            root.setText(1,str(val))
 
         params=self.data[row]['parameter']
-        self.treeWidget.clear()
-        self.showParameterTree(params,self.treeWidget)
+
+
+        param_root=QtWidgets.QTreeWidgetItem(self.paramTreeWidget)
+        param_root.setText(0,"Parameters")
+        self.showParameterTree(params,param_root)
+        self.paramTreeWidget.expandItem(param_root)
+        self.paramTreeWidget.expandItem(header_root)
 
     def showParameterTree(self, params, parent):
         for p in  params:
@@ -314,13 +355,12 @@ class Ui(QtWidgets.QMainWindow):
                 root.setText(1,p['descr'])
                 root.setText(2,str(p['raw']))
                 root.setText(3,str(p['value']))
-
                 if 'child' in p:
                     if p['child']:
                         self.showParameterTree(p['child'],root)
             except KeyError:
                 self.showMessage(('[Error  ]: keyError occurred when adding parameter'),1)
-        self.treeWidget.itemDoubleClicked.connect(self.onTreeItemClicked)
+        self.paramTreeWidget.itemDoubleClicked.connect(self.onTreeItemClicked)
 
     def walk(self,name, params, header, ret_x, ret_y,xaxis=0,data_type=0):
         if not params:
