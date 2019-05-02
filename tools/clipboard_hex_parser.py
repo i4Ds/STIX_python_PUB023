@@ -9,7 +9,7 @@ import Tkinter as tk
 import re
 from core import stix_telemetry_parser as parser
 from cStringIO import StringIO
-from stix_io import stix_logger
+from core import stix_logger
 LOGGER = stix_logger.LOGGER
 def parser_clipboard_data():
     root = tk.Tk()

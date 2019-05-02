@@ -21,8 +21,6 @@ import pprint
 from core import idb
 from core import stix_global
 from core import header as stix_header
-from stix_io import stix_writer
-from stix_io import stix_logger
 STIX_IDB = idb.STIX_IDB
 
 UNSIGNED_UNPACK_STRING = ['B', '>H', 'BBB', '>I', 'BBBBB', '>IH']

@@ -6,7 +6,6 @@
 from __future__ import (absolute_import, unicode_literals)
 import sys
 import binascii
-from cStringIO import StringIO
 import xmltodict
 def convert_stix_xml_to_bin(in_filename, out_filename):
     with open(in_filename) as fin, \

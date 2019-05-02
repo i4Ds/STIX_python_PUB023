@@ -12,9 +12,8 @@ import pprint
 from core import idb
 from core import stix_global
 from core import variable_parameter_parser as vp
-#from core import variable_parameter_parser_tree_struct as vp #
-from stix_io import stix_writer as stw_pkl
-from stix_io import stix_writer_sqlite as stw_db
+from core import stix_writer as stw_pkl
+from core import stix_writer_sqlite as stw_db
 from core import stix_parser
 
 def parse_telemetry_packet(buf,output_param_type='tree',logger=None):

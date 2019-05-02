@@ -2,7 +2,7 @@ import sys
 from datetime import datetime
 import numpy as np
 from core import idb
-from stix_io import odb
+from core import odb
 from core  import stix_plotter
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt

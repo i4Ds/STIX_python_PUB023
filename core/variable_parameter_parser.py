@@ -13,7 +13,6 @@ import json
 from core import stix_parser
 from core import stix_global
 from core import idb
-from stix_io import stix_logger
 
 STIX_IDB = idb.STIX_IDB
 

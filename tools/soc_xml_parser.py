@@ -9,8 +9,8 @@ from io import StringIO
 import xmltodict
 from core import idb
 from core import stix_global
-from stix_io import stix_writer_sqlite as stw
-from stix_io import stix_logger
+from core import stix_writer_sqlite as stw
+from core import stix_logger
 from core import stix_telemetry_parser as tm_parser
 
 LOGGER = stix_logger.LOGGER
