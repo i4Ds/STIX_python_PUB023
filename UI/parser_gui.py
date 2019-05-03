@@ -25,7 +25,7 @@ class StixDataReader(QThread):
     """
     dataLoaded= pyqtSignal(list)
     error= pyqtSignal(str)
-    progress= pyqtSignal(str)
+    info= pyqtSignal(str)
     def __init__(self,filename):
         super(StixDataReader,self).__init__()
         self.filename=filename
@@ -35,11 +35,14 @@ class StixDataReader(QThread):
         self.data=[]
         filename=self.filename
         if '.pklz' in filename:
+            self.info.emit(('Decompressing {}').format(in_filename))
             f=gzip.open(filename,'rb')
+            self.info.emit(('Loading ...'))
             self.data=pickle.load(f)['packet']
             f.close()
         elif '.pkl' in filename :
             f=open(filename,'rb')
+            self.info.emit('Loading ...')
             self.data=pickle.load(f)['packet']
             f.close()
         elif '.dat' in filename:
@@ -56,6 +59,7 @@ class StixDataReader(QThread):
             self.error.emit('Failed to open {}'.format(str(e)))
         else:
 
+            self.info.emit(('Parsing {}').format(in_filename))
             doc = xmltodict.parse(fd.read())
             for e in doc['ns2:ResponsePart']['Response']['PktRawResponse']['PktRawResponseElement']:
                 packet={'id':e['@packetID'], 'raw':e['Packet']}
@@ -72,9 +76,7 @@ class StixDataReader(QThread):
             status, header, parameters, param_type, param_desc, num_bytes_read = stix_telemetry_parser.parse_one_packet(
                 in_file, self)
             if i%freq==0:
-                self.progress.emit("{.0f}% loaded".format(100*i/num))
-
-
+                self.info.emit("{.0f}% loaded".format(100*i/num))
             self.data.append({'header':header,'parameter':parameters})
 
     def parseRawFile(self):
@@ -106,7 +108,7 @@ class StixDataReader(QThread):
                     break
 
                 if int(total_read/percent) > int(last_percent):
-                    self.progress.emit("{:.0f}% loaded".format(100*total_read/size))
+                    self.info.emit("{:.0f}% loaded".format(100*total_read/size))
                 last_percent= total_read/percent
 
                 
@@ -191,10 +193,10 @@ class Ui(QtWidgets.QMainWindow):
 
     def paste(self):
         raw_hex= QtWidgets.QApplication.clipboard().text()
-        data_hex= re.sub(r"\s+", "", raw_hex)
-        if not data_hex:
+        if not raw_hex:
             self.showMessage('No data in the clipboard.',0)
-            return
+            return 
+        data_hex= re.sub(r"\s+", "", raw_hex)
         try:
             data_binary = binascii.unhexlify(data_hex)
             in_file=StringIO(data_binary)
@@ -275,10 +277,10 @@ class Ui(QtWidgets.QMainWindow):
         self.dataReader=StixDataReader(filename)
         self.dataReader.dataLoaded.connect(self.onDataLoaded)
         self.dataReader.error.connect(self.onDataReaderError)
-        self.dataReader.progress.connect(self.onDataReaderProgress)
+        self.dataReader.info.connect(self.onDataReaderInfo)
         self.dataReader.start()
 
-    def onDataReaderProgress(self,msg):
+    def onDataReaderInfo(self,msg):
         self.showMessage(msg,0)
 
     def onDataReaderError(self,msg):
@@ -289,6 +291,7 @@ class Ui(QtWidgets.QMainWindow):
         self.data=data
         total_packets=len(self.data)
 
+        self.packetTreeWidget.clear()
         self.displayPackets()
         if self.data:
             self.actionPrevious.setEnabled(True)
@@ -311,13 +314,11 @@ class Ui(QtWidgets.QMainWindow):
         self.total_packets=len(self.data)
         self.showMessage((('%d packets loaded')%(self.total_packets)), 1)
         self.packetTreeWidget.currentItemChanged.connect(self.onPacketSelected)
-
-
         self.showPacket(0)
     
     def onPacketSelected(self, cur, pre):
         self.current_row=self.packetTreeWidget.currentIndex().row()
-        self.showMessage((('Packet %d selected') % self.current_row),0)
+        self.showMessage((('Packet #%d selected') % self.current_row),0)
         self.showPacket(self.current_row)
 
     def showPacket(self,row):
@@ -325,11 +326,9 @@ class Ui(QtWidgets.QMainWindow):
             return
         header=self.data[row]['header']
         self.showMessage((('Packet %d / %d  %s ' )% (row, self.total_packets, header['DESCR'])),0)
-
         self.paramTreeWidget.clear()
         header_root=QtWidgets.QTreeWidgetItem(self.paramTreeWidget)
         header_root.setText(0,"Header")
-
         rows=len(header)
         for key, val in header.items():
             root=QtWidgets.QTreeWidgetItem(header_root)
@@ -337,8 +336,6 @@ class Ui(QtWidgets.QMainWindow):
             root.setText(1,str(val))
 
         params=self.data[row]['parameter']
-
-
         param_root=QtWidgets.QTreeWidgetItem(self.paramTreeWidget)
         param_root.setText(0,"Parameters")
         self.showParameterTree(params,param_root)
@@ -456,10 +453,6 @@ class Ui(QtWidgets.QMainWindow):
 
             self.canvas.draw()
             self.showMessage('The canvas updated!',0)
-            
-
-
-
 
     def plotParameter(self,name=None, desc=None):
         self.tabWidget.setCurrentIndex(1)
@@ -487,9 +480,6 @@ class Ui(QtWidgets.QMainWindow):
 
     def info(self,  msg, description=''):
         self.showMessage((('Info: %s - %s')% (msg,description)),1)
-
-
-
 
 
 if __name__ == '__main__':
