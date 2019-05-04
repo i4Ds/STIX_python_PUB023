@@ -99,16 +99,18 @@ def analysis(file_in, file_out):
 
 
 def main():
-    log=open(proc_log,'a+')
+    print('opening log file...')
+    log=open(proc_log,'r+')
     log_content=log.read()
-
+    print(log_content)
+    return
     for f in os.listdir(raw_dir):
         if f.endswith(".dat"):
             raw_filename=(os.path.join(raw_dir, f))
             if raw_filename in log_content:
                 print('Processed already: %s '%raw_filename)
                 continue
-            filename=os.path.splitext(f)[0]+'.pklz'
+            filename=os.path.splitext(f)[0]+'.pkl'
             l0_filename=os.path.join(l0_dir,filename)
             filename=os.path.splitext(f)[0]+'.root'
             l1_filename=os.path.join(l1_dir,filename)

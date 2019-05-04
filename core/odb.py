@@ -9,17 +9,17 @@ from __future__ import (absolute_import, unicode_literals)
 
 import pprint
 import sqlite3
-from cStringIO import StringIO
+from io import StringIO
 
 class ODB(object):
     def __init__(self, filename):
         self.filename = filename
         self.conn = None
         try:
-
             self.conn = sqlite3.connect(self.filename)
         except sqlite3.Error as er:
-            print(er.message)
+            #print(er.message)
+            pass
         else:
             self.cur = self.conn.cursor()
     def __del__(self):
@@ -54,7 +54,7 @@ class ODB(object):
                 ]
             return rows
     def get_parameter_values(self,name):
-        sql=('select header.header_time, parameter.raw, parameter.eng_value,header.ID, parameter.descr, parameter.eng_value_type from '
+        sql=('select header.header_time, parameter.raw, parameter.eng_value,header.ID, parameter.descr from '
             'parameter join header on header.ID=parameter.packet_id and '
             'name=? order by header.ID asc')
         args=(name,)
@@ -65,8 +65,10 @@ class ODB(object):
         data=[]
         for h in headers:
             header_id=h['ID']
-            print(header_id)
+            #print(header_id)
             parameters=self.get_parameters_by_header_ID(header_id)
+            h['DESCR']=h['descr']
+            h['time']=h['header_time']
             data.append({'header':h,'parameter':parameters})
         return data
 
@@ -74,9 +76,6 @@ class ODB(object):
         sql=('select * from parameter where packet_id=? order by ID')
         parameters=self.execute(sql, (header_ID,), 'dict')
         return parameters
-
-
-
 
     def get_packet_spid(self):
         sql='select header_time, SPID  from header order by ID asc'
@@ -88,7 +87,7 @@ class ODB(object):
         sql='select header_time, SPID from header'
         return self.execute(sql,None)
     def get_parameter_names_of_spid(self,spid):
-        sql=('select distinct parameter.name,parameter.descr,parameter.eng_value_type from ' 
+        sql=('select distinct parameter.name,parameter.descr from ' 
                 'parameter join header on header.ID=parameter.packet_id and header.SPID=?')
         args=(spid,)
         return self.execute(sql)
@@ -104,8 +103,8 @@ class ODB(object):
         args=(spid,)
         return self.execute(sql,args,'dict')
     
-def test():
-    db=ODB('../a.db')
-    print(db.get_packets())
-test()
+#def test():
+#    db=ODB('../a.db')
+#    print(db.get_packets())
+#test()
 

@@ -32,9 +32,11 @@ CREATE_TABLE_HEADER_SQL = """CREATE TABLE header (
 CREATE_TABLE_PARAMETER_SQL = """CREATE TABLE parameter (
             ID	INTEGER PRIMARY KEY AUTOINCREMENT,
             packet_id INTEGER NOT NULL,
+            descr, TEXT ,
             name TEXT,
             raw	TEXT,
-            eng_value	TEXT
+            parent, INTEGER,
+            value TEXT
             );"""
 
             #descr	TEXT,
@@ -44,6 +46,7 @@ class stix_writer:
         self.filename = filename
         self.current_packet_id = -1
         self.current_run_id = -1
+        self.current_parent_id=0
         if filename:
             db_exist = os.path.isfile(filename)
             self.conn = sqlite3.connect(filename)
@@ -66,6 +69,15 @@ class stix_writer:
             row = self.cur.fetchone()
             if row:
                 self.current_run_id = row[0]
+    def get_last_parameter_id(self):
+        if self.cur:
+            self.cur.execute('select max(ID) from parameter')
+            row = self.cur.fetchone()
+            if row:
+                self.current_parent_id= row[0]
+            else:
+                return 0
+
     def register_run(self, filename):
         self.cur.execute('insert into run (filename) values(?)', (filename, ))
         self.update_run_id()
@@ -86,25 +98,31 @@ class stix_writer:
         self.conn.close()
 
     def write_parameters(self, parameters):
-        par_list = []
         if parameters:
             for par in parameters:
                 if par:
-                    par_list.append((self.current_packet_id, par['name'],
-                                    # par['descr'],
-                                     str(par['raw']),str(par['value'])))
-        self.insert_parameters(par_list)
+                    par_list=(self.current_packet_id, par['name'],
+                                     par['descr'],
+                                     str(par['raw']),str(par['value']),self.current_packet_id)
+                    if  'child' in par:
+                       if par['child']:
+                            self.get_last_parameter_id()
+                            self.write_parameters(par['child'])
+                    self.insert_parameters(par_list)
 
     def insert_parameters(self, parlist):
-        if self.cur and parlist:
-            self.cur.executemany(
-                #'insert into parameter (packet_id, name,descr,raw,eng_value ) values(?,?,?,?,?)',
-                'insert into parameter (packet_id, name,raw,eng_value ) values(?,?,?,?)',
+        self.cur.execute(
+                'insert into parameter (packet_id, name,descr,raw,value,parent) values(?,?,?,?,?,?)',
                 parlist)
     def write(self, header, parameters, parameter_desc):
         #parameters description not used
         self.write_header(header)
         self.write_parameters(parameters)
+    def write_all(self,data):
+        for e in data:
+            self.write_header(e['header'])
+            self.write_parameters(e['parameter'])
+        
 
 
 def test():

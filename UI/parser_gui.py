@@ -6,6 +6,8 @@ import gzip
 from core import stix_telemetry_parser 
 from core import stix_global
 from core import stix_writer
+from core import stix_writer_sqlite
+from core import odb
 import os
 from UI import mainwindow_rc5
 from UI.mainwindow import Ui_MainWindow
@@ -34,22 +36,30 @@ class StixDataReader(QThread):
     def run(self):
         self.data=[]
         filename=self.filename
-        if '.pklz' in filename:
-            self.info.emit(('Decompressing {}').format(in_filename))
+        if filename.endswith('.pklz'):
+            self.info.emit(('Decompressing {}').format(filename))
             f=gzip.open(filename,'rb')
             self.info.emit(('Loading ...'))
             self.data=pickle.load(f)['packet']
             f.close()
-        elif '.pkl' in filename :
+        elif filename.endswith('.pkl'):
             f=open(filename,'rb')
             self.info.emit('Loading ...')
             self.data=pickle.load(f)['packet']
             f.close()
-        elif '.dat' in filename:
+        elif filename.endswith('.dat'):
             self.parseRawFile()
-        elif '.xml' in filename:
+        elif filename.endswith(('.db','.sqlite')):
+            self.read_packet_from_db(filename)
+        elif filename.endswith('.xml'):
             self.parseESOCXmlFile(filename)
         self.dataLoaded.emit(self.data)
+    def read_packet_from_db(self,filename):
+        self.info.emit(('Loading data from {}').format(filename))
+        db=odb.ODB(filename)
+
+        self.data=db.get_packets()
+
 
     def parseESOCXmlFile(self,in_filename):
         packets=[]
@@ -226,18 +236,26 @@ class Ui(QtWidgets.QMainWindow):
 
 
     def save(self):
-        self.output_filename = str(QtWidgets.QFileDialog.getSaveFileName(self, "Save file", "", ".pklz")[0])
+        self.output_filename = str(QtWidgets.QFileDialog.getSaveFileName(self, "Save file", "", ".pklz .pkl .db .sqlite")[0])
         
-        if not self.output_filename:
+        if not self.output_filename.endswith(('.pklz','.pkl','.db','.sqlite')):
+            msg=('unsupported file format !')
             return
         msg=('Writing data to file %s')%self.output_filename
         self.showMessage(msg,2)
 
-        stw=stix_writer.stix_writer(self.output_filename)
-        stw.register_run(str(self.input_filename))
-        stw.write_all(self.data)
-        stw.done()
-        self.showMessage((('Data has written to %s ')%self.output_filename),2)
+        if self.output_filename.endswith(('.pklz','.pkl')):
+            stw=stix_writer.stix_writer(self.output_filename)
+            stw.register_run(str(self.input_filename))
+            stw.write_all(self.data)
+            stw.done()
+        elif self.output_filename.endswith('.db'):
+            stw=stix_writer_sqlite.stix_writer(self.output_filename)
+            stw.register_run(str(self.input_filename))
+            stw.write_all(self.data)
+            stw.done()
+
+        self.showMessage((('Data has been written to %s ')%self.output_filename),2)
         
     def setListViewSelected(self,row):
         #index = self.model.createIndex(row, 0);
@@ -265,7 +283,7 @@ class Ui(QtWidgets.QMainWindow):
 
     def getOpenFilename(self):
         self.input_filename = QtWidgets.QFileDialog.getOpenFileName(None,'Select file', '.', 
-                'STIX data file (*.dat *.pkl *.pklz *xml)')[0]
+                'STIX data file (*.dat *.pkl *.pklz *xml *.db)')[0]
         if not self.input_filename:
             return
         self.openFile(self.input_filename)

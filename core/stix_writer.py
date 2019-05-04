@@ -21,7 +21,7 @@ class stix_writer:
         self.fout=None
         self.packets=[]
 
-        if 'pklz' in filename:
+        if filename.endswith('.pklz'):
             self.fout=gzip.open(filename,'wb')
         else:
             self.fout=open(filename,'wb')
@@ -33,7 +33,6 @@ class stix_writer:
                   }
 
     def write_header(self, header):
-
         """
         it is called for every telemetry data header
         """
@@ -48,6 +47,7 @@ class stix_writer:
         packet={'header':header, 'parameter':parameters, 
                 'parameter_desc':parameter_desc}
         self.packets.append(packet)
+
     def done(self):
         data={'run':self.run, 'packet':self.packets}
         pickle.dump(data,self.fout)
