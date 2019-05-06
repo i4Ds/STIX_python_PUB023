@@ -11,11 +11,7 @@ from core import odb
 import os
 import numpy as np
 from UI import mainwindow_rc5
-from UI.mainwindow import Ui_MainWindow
 
-#from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-#from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
-#from matplotlib.figure import Figure
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtChart import QChart,QChartView,  QLineSeries,QValueAxis,QBarSeries,QBarSet,QScatterSeries
 import re
