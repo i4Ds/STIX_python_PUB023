@@ -9,6 +9,7 @@ from core import stix_writer
 from core import stix_writer_sqlite
 from core import odb
 import os
+import numpy as np
 from UI import mainwindow_rc5
 from UI.mainwindow import Ui_MainWindow
 
@@ -16,7 +17,7 @@ from UI.mainwindow import Ui_MainWindow
 #from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
 #from matplotlib.figure import Figure
 from PyQt5.QtCore import QThread, pyqtSignal
-from PyQt5.QtChart import QChart,QChartView, QLineSeries,QValueAxis,QBarSeries,QBarSet
+from PyQt5.QtChart import QChart,QChartView,  QLineSeries,QValueAxis,QBarSeries,QBarSet,QScatterSeries
 import re
 import binascii
 import xmltodict
@@ -449,7 +450,7 @@ class Ui(QtWidgets.QMainWindow):
         elif y:
             style=self.styleEdit.text()
             if not style:
-                style='o-'
+                style='-'
             title='%s'%str(name)
             desc=self.descLabel.text()
             if desc:
@@ -471,11 +472,19 @@ class Ui(QtWidgets.QMainWindow):
             
             if xaxis_type!=2:
                 series=QLineSeries()
+                series2=None
+
                 #print(y)
                 #print(x)
                 for xx,yy in zip(x,y):
                     series.append(xx,yy)
+                if 'o' in style:
+                    series2=QScatterSeries()
+                    for xx,yy in zip(x,y):
+                        series2.append(xx,yy)
+                    self.chart.addSeries(series2)
                 self.chart.addSeries(series)
+
                 self.chart.createDefaultAxes()
                 axisX=QValueAxis()
                 axisX.setTitleText(xlabel)
@@ -491,10 +500,13 @@ class Ui(QtWidgets.QMainWindow):
 
                 #histogram
             else:
-                series=QBarSeries()
-                dataset=QBarSet(name)
-                dataset.append(y)
-                series.append(dataset)
+                nbins=len(set(y))
+                ycounts, xedges=np.histogram(y,bins=nbins)
+                series=QLineSeries()
+                for i in range(0,nbins):
+                    meanx=(xedges[i]+xedges[i+1])/2.
+                    series.append(meanx,ycounts[i])
+                #series.append(dataset)
                 self.chart.addSeries(series)
                 self.chart.createDefaultAxes()
 
