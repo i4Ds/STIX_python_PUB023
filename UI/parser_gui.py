@@ -12,10 +12,11 @@ import os
 from UI import mainwindow_rc5
 from UI.mainwindow import Ui_MainWindow
 
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
-from matplotlib.figure import Figure
+#from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+#from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
+#from matplotlib.figure import Figure
 from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtChart import QChart,QChartView, QLineSeries,QValueAxis,QBarSeries,QBarSet
 import re
 import binascii
 import xmltodict
@@ -153,11 +154,11 @@ class Ui(QtWidgets.QMainWindow):
         self.action_Open.triggered.connect(self.getOpenFilename)
 
 
-        self.paramTreeWidget_header=QtWidgets.QTreeWidgetItem(['Name','description','raw','Eng value'])
-        self.paramTreeWidget.setHeaderItem(self.paramTreeWidget_header)
+        #self.paramTreeWidget_header=QtWidgets.QTreeWidgetItem(['Name','description','raw','Eng value'])
+        #self.paramTreeWidget.setHeaderItem(self.paramTreeWidget_header)
 
-        self.packetTreeWidget_header=QtWidgets.QTreeWidgetItem(['Timestamp','Description'])
-        self.packetTreeWidget.setHeaderItem(self.packetTreeWidget_header)
+        #self.packetTreeWidget_header=QtWidgets.QTreeWidgetItem(['Timestamp','Description'])
+        #self.packetTreeWidget.setHeaderItem(self.packetTreeWidget_header)
 
 
 
@@ -169,7 +170,7 @@ class Ui(QtWidgets.QMainWindow):
         self.actionNext.setEnabled(False)
         self.actionSave.setEnabled(False)
         self.action_Plot.setEnabled(False)
-        self.actionLog.triggered.connect(self.dockWidget_2.show)
+        #self.actionLog.triggered.connect(self.dockWidget_2.show)
         self.actionSet_IDB.triggered.connect(self.onSetIDBClicked)
 
         self.plotButton.clicked.connect(self.onPlotButtonClicked)
@@ -177,18 +178,20 @@ class Ui(QtWidgets.QMainWindow):
 
         self.current_row=0
 
-        self.figure = Figure()
-        self.canvas = FigureCanvas(self.figure)
-        self.gridLayout.addWidget(self.canvas, 1, 0, 1, 14)
-        self.savePlotButton.clicked.connect(self.savePlot)
-        self.actionPaste.triggered.connect(self.paste)
+        #self.figure = Figure()
+        self.chart=QChart()
+        self.chartView= QChartView(self.chart)
+        self.gridLayout.addWidget(self.chartView, 1, 0, 1, 14)
+        #self.savePlotButton.clicked.connect(self.savePlot)
+        #self.actionPaste.triggered.connect(self.paste)
         
     def savePlot(self):
         if self.figure.get_axes():
-            filename= str(QtWidgets.QFileDialog.getSaveFileName(self, "Save file", "", "*.pdf *.png *.svg *.jpg")[0])
+            filename= str(QtWidgets.QFileDialog.getSaveFileName(self, 
+                "Save file", "", "*.pdf *.png *.svg *.jpg")[0])
             if filename:
                 self.figure.savefig(filename)
-                self.showMessage(('Saved to %s.'%filename),0)
+                self.showMessage(('Saved to %s.'%filename))
         
 
         else:
@@ -203,8 +206,8 @@ class Ui(QtWidgets.QMainWindow):
 
     def paste(self):
         raw_hex= QtWidgets.QApplication.clipboard().text()
-        if not raw_hex:
-            self.showMessage('No data in the clipboard.',0)
+        if len(raw_hex)<16:
+            self.showMessage('No data in the clipboard.')
             return 
         data_hex= re.sub(r"\s+", "", raw_hex)
         try:
@@ -213,17 +216,17 @@ class Ui(QtWidgets.QMainWindow):
             status, header, parameters, param_type, param_desc, num_bytes_read = stix_telemetry_parser.parse_one_packet(
                 in_file, self)
             data=[{'header':header,'parameter':parameters}]
-            self.showMessage(('%d bytes read from the clipboard'%num_bytes_read),1)
+            self.showMessage(('%d bytes read from the clipboard'%num_bytes_read))
             self.onDataLoaded(data)
         except TypeError:
-            self.showMessage('Failed to parse the packet',0)
+            self.showMessage('Failed to parse the packet')
 
 
-    def showMessage(self,msg, destination=0):
-        if destination != 1:
-            self.statusbar.showMessage(msg)
-        if destination !=0 :
-            self.listWidget_2.addItem(msg)
+    def showMessage(self,msg):
+        #if destination != 1:
+        self.statusbar.showMessage(msg)
+        #if destination !=0 :
+        #    self.listWidget_2.addItem(msg)
 
     def onSetIDBClicked(self):
         msgBox = QtWidgets.QMessageBox()
@@ -242,7 +245,7 @@ class Ui(QtWidgets.QMainWindow):
             msg=('unsupported file format !')
             return
         msg=('Writing data to file %s')%self.output_filename
-        self.showMessage(msg,2)
+        self.showMessage(msg)
 
         if self.output_filename.endswith(('.pklz','.pkl')):
             stw=stix_writer.stix_writer(self.output_filename)
@@ -255,7 +258,7 @@ class Ui(QtWidgets.QMainWindow):
             stw.write_all(self.data)
             stw.done()
 
-        self.showMessage((('Data has been written to %s ')%self.output_filename),2)
+        self.showMessage((('Data has been written to %s ')%self.output_filename))
         
     def setListViewSelected(self,row):
         #index = self.model.createIndex(row, 0);
@@ -290,7 +293,7 @@ class Ui(QtWidgets.QMainWindow):
 
     def openFile(self,filename):
         msg='Loading file %s ...'%filename
-        self.showMessage(msg, 2)
+        self.showMessage(msg)
 
         self.dataReader=StixDataReader(filename)
         self.dataReader.dataLoaded.connect(self.onDataLoaded)
@@ -299,10 +302,10 @@ class Ui(QtWidgets.QMainWindow):
         self.dataReader.start()
 
     def onDataReaderInfo(self,msg):
-        self.showMessage(msg,0)
+        self.showMessage(msg)
 
     def onDataReaderError(self,msg):
-        self.showMessage(msg,2)
+        self.showMessage(msg)
 
 
     def onDataLoaded(self,data):
@@ -330,20 +333,20 @@ class Ui(QtWidgets.QMainWindow):
             root.setText(0,'{:.2f}'.format(header['time']))
             root.setText(1,('TM({},{}) - {}').format(header['service_type'],header['service_subtype'],header['DESCR']))
         self.total_packets=len(self.data)
-        self.showMessage((('%d packets loaded')%(self.total_packets)), 1)
+        self.showMessage((('%d packets loaded')%(self.total_packets)))
         self.packetTreeWidget.currentItemChanged.connect(self.onPacketSelected)
         self.showPacket(0)
     
     def onPacketSelected(self, cur, pre):
         self.current_row=self.packetTreeWidget.currentIndex().row()
-        self.showMessage((('Packet #%d selected') % self.current_row),0)
+        self.showMessage((('Packet #%d selected') % self.current_row))
         self.showPacket(self.current_row)
 
     def showPacket(self,row):
         if not self.data:
             return
         header=self.data[row]['header']
-        self.showMessage((('Packet %d / %d  %s ' )% (row, self.total_packets, header['DESCR'])),0)
+        self.showMessage((('Packet %d / %d  %s ' )% (row, self.total_packets, header['DESCR'])))
         self.paramTreeWidget.clear()
         header_root=QtWidgets.QTreeWidgetItem(self.paramTreeWidget)
         header_root.setText(0,"Header")
@@ -374,7 +377,7 @@ class Ui(QtWidgets.QMainWindow):
                     if p['child']:
                         self.showParameterTree(p['child'],root)
             except KeyError:
-                self.showMessage(('[Error  ]: keyError occurred when adding parameter'),1)
+                self.showMessage(('[Error  ]: keyError occurred when adding parameter'))
         self.paramTreeWidget.itemDoubleClicked.connect(self.onTreeItemClicked)
 
     def walk(self,name, params, header, ret_x, ret_y,xaxis=0,data_type=0):
@@ -386,25 +389,26 @@ class Ui(QtWidgets.QMainWindow):
                 continue
             if name == p['name']:
                 values=None
+                #print('data type:{}'.format(data_type))
                 if data_type==0:
                     values=p['raw']
                 else:
                     values=p['value']
                 try:
-                    eng_value=None
-                    if values is float or int:
-                        eng_value=values
+                    yvalue=None
+                    if type(values) is float or type(values) is int:
+                        yvalue=values
                     else:
-                        eng_value=values[0]
+                        yvalue=values[0]
 
-                    if type(eng_value) is float or int:
-                        ret_y.append(eng_value)
+                    if type(yvalue) is float or int:
+                        ret_y.append(yvalue)
                         if xaxis==1:
                             ret_x.append(timestamp)
                     else:
-                        self.showMessage((('Can not plot %s  ')%str(eng_value)),1)
+                        self.showMessage((('Can not plot %s  ')%str(yvalue)))
                 except IndexError:
-                    self.showMessage((('%s has empty values')%str(p)),1)
+                    self.showMessage((('%s has empty values')%str(p)))
 
             if 'child' in p:
                 if p['child']:
@@ -413,6 +417,10 @@ class Ui(QtWidgets.QMainWindow):
 
 
     def onPlotButtonClicked(self):
+        if self.chart:
+            self.chart.removeAllSeries()
+
+
         if not self.data:
             return 
         name=self.paramNameEdit.text()
@@ -433,10 +441,11 @@ class Ui(QtWidgets.QMainWindow):
                 header=packet['header']
                 self.walk(name, params,header,timestamp,y,xaxis_type,data_type)
 
-        ax=self.figure.add_subplot(111)
-        ax.clear()
+        
+        x=[]
+
         if not y:
-            self.showMessage('No data points',0)
+            self.showMessage('No data points')
         elif y:
             style=self.styleEdit.text()
             if not style:
@@ -446,31 +455,70 @@ class Ui(QtWidgets.QMainWindow):
             if desc:
                 title += '- %s'%desc
 
+
+            self.chart.setTitle(title)
+
             ylabel='Raw value'
             if data_type==1:
                 ylabel='Engineering  value'
-
-
-            if xaxis_type ==0:
-                ax.plot(y,style)
-                ax.set_xlabel("Packet #")
-
-            elif xaxis_type==1:
+            if xaxis_type ==0 :
+                xlabel= "Packet #"
+                x=range(0,len(y))
+            if xaxis_type==1:
                 x=[t-timestamp[0] for t in timestamp]
-                ax.plot(x,y,style)
-                ax.set_xlabel("Time - T0 (s)")
-            else:
+                xlabel='Time -T0 (s)'
+
+            
+            if xaxis_type!=2:
+                series=QLineSeries()
+                #print(y)
+                #print(x)
+                for xx,yy in zip(x,y):
+                    series.append(xx,yy)
+                self.chart.addSeries(series)
+                self.chart.createDefaultAxes()
+                axisX=QValueAxis()
+                axisX.setTitleText(xlabel)
+                self.chart.setAxisX(axisX)
+
+                axisY=QValueAxis()
+                #axisY.setTitleText(ylabel)
+                axisX.setTitleText(name)
+
+                self.chart.setAxisY(axisY)
+                series.attachAxis(axisX)
+                series.attachAxis(axisY)
+
                 #histogram
-                nbins=len(set(y))
-                ax.hist(y,nbins, density=True, facecolor='g', alpha=0.75)
-                ax.set_xlabel("%s"%title)
-                ylabel='Counts'
+            else:
+                series=QBarSeries()
+                dataset=QBarSet(name)
+                dataset.append(y)
+                series.append(dataset)
+                self.chart.addSeries(series)
+                self.chart.createDefaultAxes()
 
-            ax.set_title(title)
-            ax.set_ylabel(ylabel)
+                axisX=QValueAxis()
 
-            self.canvas.draw()
-            self.showMessage('The canvas updated!',0)
+                axisX.setTitleText(name)
+
+                self.chart.setAxisX(axisX)
+                
+                axisY=QValueAxis()
+
+                axisY.setTitleText("Counts")
+
+                self.chart.setAxisY(axisY)
+
+                series.attachAxis(axisX)
+                series.attachAxis(axisY)
+
+
+
+            #self.widget.setChart(self.chart)
+            self.chartView.setRubberBand(QChartView.HorizontalRubberBand)
+            self.chartView.setRenderHint(QtGui.QPainter.Antialiasing)
+            self.showMessage('The canvas updated!')
 
     def plotParameter(self,name=None, desc=None):
         self.tabWidget.setCurrentIndex(1)
@@ -491,13 +539,13 @@ class Ui(QtWidgets.QMainWindow):
 
 
     def error(self,  msg, description=''):
-        self.showMessage((('Error: %s - %s')% (msg,description)),1)
+        self.showMessage((('Error: %s - %s')% (msg,description)))
 
     def warning(self, msg, description=''):
-        self.showMessage((('Warning: %s - %s')% (msg,description)),1)
+        self.showMessage((('Warning: %s - %s')% (msg,description)))
 
     def info(self,  msg, description=''):
-        self.showMessage((('Info: %s - %s')% (msg,description)),1)
+        self.showMessage((('Info: %s - %s')% (msg,description)))
 
 
 if __name__ == '__main__':

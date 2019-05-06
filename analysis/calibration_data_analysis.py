@@ -45,8 +45,12 @@ def analysis(file_in, file_out):
     now=datetime.datetime.now()
     alog.write(str(now)+'\n')
     alog.write(file_in+'\n')
+    f=None
+    if file_in.endswith('.pklz'):
+        f=gzip.open(file_in,'rb')
+    else:
+        f=open(file_in,'rb')
 
-    f=gzip.open(file_in,'rb')
     data=pickle.load(f)['packet']
     detector_id=[]
     triggers=[]
@@ -102,8 +106,6 @@ def main():
     print('opening log file...')
     log=open(proc_log,'r+')
     log_content=log.read()
-    print(log_content)
-    return
     for f in os.listdir(raw_dir):
         if f.endswith(".dat"):
             raw_filename=(os.path.join(raw_dir, f))
