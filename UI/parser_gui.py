@@ -11,6 +11,7 @@ from core import odb
 import os
 import numpy as np
 from UI import mainwindow_rc5
+from UI import mainwindow
 
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtChart import QChart,QChartView,  QLineSeries,QValueAxis,QBarSeries,QBarSet,QScatterSeries
@@ -126,13 +127,20 @@ class StixDataReader(QThread):
 
 
 
-class Ui(QtWidgets.QMainWindow):
-    def __init__(self):
-        super(Ui, self).__init__()
-        uic.loadUi('UI/mainwindow.ui', self)
+class Ui(mainwindow.Ui_MainWindow):
+    def __init__(self, MainWindow):
+        #super(Ui, self).__init__(M)
+        super(Ui,self).setupUi(MainWindow)
+        #uic.loadUi('UI/mainwindow.ui', self)
 
+        self.MainWindow=MainWindow
 
         self.initialize()
+
+    def close(self):
+        self.MainWindow.close()
+    def style(self):
+        return self.MainWindow.style()
 
 
     def initialize(self):
@@ -560,10 +568,10 @@ if __name__ == '__main__':
     filename=None
     if len(sys.argv)>=2:
         filename=sys.argv[1]
-
     app = QtWidgets.QApplication(sys.argv)
-    window = Ui()
-    window.show()
+    MainWindow=QtWidgets.QMainWindow()
+    window = Ui(MainWindow)
+    MainWindow.show()
     if filename:
         window.openFile(filename)
     sys.exit(app.exec_())
