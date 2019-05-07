@@ -1,4 +1,4 @@
-
+#March 25,2019
 import sys
 import os
 import pickle
@@ -190,12 +190,12 @@ class Ui(mainwindow.Ui_MainWindow):
 
         #IDB location
 
-        self.settings = QtCore.QSettings('FHNW', 'stix_parser')
-        self.idb_filename=self.settings.value('idb_filename',[],str)
+        settings = QtCore.QSettings('FHNW', 'stix_parser')
+        self.idb_filename=settings.value('idb_filename',[],str)
         if self.idb_filename:
             idb.STIX_IDB=idb.IDB(self.idb_filename)
         if not idb.STIX_IDB.is_connected():
-            self.showMessage('Failed to locate IDB')
+            self.showMessage('IDB has not been set!')
         else:
             self.showMessage('IDB found: {} '.format(idb.STIX_IDB.get_idb_filename()))
         
@@ -250,10 +250,11 @@ class Ui(mainwindow.Ui_MainWindow):
             return 
 
         idb.STIX_IDB=idb.IDB(self.idb_filename)
-        self.settings.setValue('idb_filename',self.idb_filename)
+        if idb.STIX_IDB.is_connected():
+            settings = QtCore.QSettings('FHNW', 'stix_parser')
+            settings.setValue('idb_filename',self.idb_filename)
         self.showMessage('current IDB: {} '.format(idb.STIX_IDB.get_idb_filename()))
-
-
+           
 
     def save(self):
         self.output_filename = str(QtWidgets.QFileDialog.getSaveFileName(self, "Save file", "", ".pklz .pkl .db .sqlite")[0])
