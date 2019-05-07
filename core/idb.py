@@ -14,15 +14,17 @@ from core import stix_logger
 
 LOGGER = stix_logger.LOGGER
 STIX_IDB_FILENAME='idb/idb.sqlite'
-POSSIBLE_LOCATIONS=['idb/idb.sqlite','idb/idb.db','idb.sqlite','idb.db']
+
+
+POSSIBLE_LOCATIONS=['../idb/idb.sqlite','../idb/idb.db','../idb.sqlite','../idb.db']
 def find_idb(filename):
     if os.path.exists(filename):
-        return filename
+        return True, filename
     else:
         for fname in POSSIBLE_LOCATIONS:
             if os.path.exists(fname):
-                return fname
-        return filename
+                return True, fname
+        return False, None
 
 
 
@@ -32,13 +34,23 @@ def find_idb(filename):
 class IDB(object):
     def __init__(self, filename=STIX_IDB_FILENAME, logger=LOGGER):
 
-        self.filename=find_idb(filename)
+        status, self.filename=find_idb(filename)
         self.conn = None
         self.parameter_structures=dict()
         self.soc_descriptions=dict()
         self.s2k_table_contents=dict()
-        self.connect_database(self.filename)
+        if status:
+            self.connect_database(self.filename)
+
         self.logger=logger
+    def is_connected(self):
+        if self.cur:
+            return True
+        else:
+            return False
+
+    def get_idb_filename(self):
+        return os.path.abspath(self.filename)
 
     def connect_database(self,filename):
         try:
@@ -49,7 +61,7 @@ class IDB(object):
         else:
             self.cur = self.conn.cursor()
 
-    def __del__(self):
+    def close(self):
         if self.conn:
             self.conn.close()
 
@@ -225,7 +237,7 @@ def test():
     #    a=STIX_IDB.get_s2k_parameter_types(3, 16)
     #pprint.pprint(STIX_IDB.get_telecommand_characteristics(237, 7,1))
     #pprint.pprint(STIX_IDB.get_telecommand_characteristics(237, 7,2))
-    pprint.pprint(STIX_IDB.get_variable_packet_structure(54137))
+    #pprint.pprint(STIX_IDB.get_variable_packet_structure(54137))
 
 
 if __name__ == '__main__':

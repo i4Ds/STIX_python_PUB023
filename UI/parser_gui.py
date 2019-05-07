@@ -8,6 +8,7 @@ from core import stix_global
 from core import stix_writer
 from core import stix_writer_sqlite
 from core import odb
+from core import idb
 import os
 import numpy as np
 from UI import mainwindow_rc5
@@ -177,7 +178,6 @@ class Ui(mainwindow.Ui_MainWindow):
         self.action_Plot.setEnabled(False)
         #self.actionLog.triggered.connect(self.dockWidget_2.show)
         self.actionSet_IDB.triggered.connect(self.onSetIDBClicked)
-
         self.plotButton.clicked.connect(self.onPlotButtonClicked)
         self.action_Plot.triggered.connect(self.onPlotActionClicked)
 
@@ -189,6 +189,7 @@ class Ui(mainwindow.Ui_MainWindow):
         self.gridLayout.addWidget(self.chartView, 1, 0, 1, 14)
         #self.savePlotButton.clicked.connect(self.savePlot)
         #self.actionPaste.triggered.connect(self.paste)
+        self.showMessage('IDB found: {} '.format(idb.STIX_IDB.get_idb_filename()))
         
     def savePlot(self):
         if self.figure.get_axes():
@@ -234,13 +235,13 @@ class Ui(mainwindow.Ui_MainWindow):
         #    self.listWidget_2.addItem(msg)
 
     def onSetIDBClicked(self):
-        msgBox = QtWidgets.QMessageBox()
-        msgBox.setIcon(QtWidgets.QMessageBox.Information)
-        path = os.path.dirname(os.path.realpath(__file__))
-        msgBox.setText("Please copy file idb.sqlite to the folder %s/idb/ to change IDB !"%path)
-        msgBox.setWindowTitle("STIX DATA VIEWER")
-        msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
-        msgBox.exec_()
+        self.idb_filename= QtWidgets.QFileDialog.getOpenFileName(None,'Select file', '.', 
+                'IDB file(*.db *.sqlite *.sqlite3)')[0]
+
+        idb.STIX_IDB.close()
+        idb.STIX_IDB=idb.IDB(self.idb_filename)
+        self.showMessage('current IDB: {} '.format(idb.STIX_IDB.get_idb_filename()))
+
 
 
     def save(self):
