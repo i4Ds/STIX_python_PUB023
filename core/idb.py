@@ -19,12 +19,12 @@ STIX_IDB_FILENAME='idb/idb.sqlite'
 POSSIBLE_LOCATIONS=['../idb/idb.sqlite','../idb/idb.db','../idb.sqlite','../idb.db']
 def find_idb(filename):
     if os.path.exists(filename):
-        return True, filename
+        return filename
     else:
         for fname in POSSIBLE_LOCATIONS:
             if os.path.exists(fname):
-                return True, fname
-        return False, None
+                return fname
+        return None
 
 
 
@@ -34,12 +34,12 @@ def find_idb(filename):
 class IDB(object):
     def __init__(self, filename=STIX_IDB_FILENAME, logger=LOGGER):
 
-        status, self.filename=find_idb(filename)
+        self.filename=find_idb(filename)
         self.conn = None
         self.parameter_structures=dict()
         self.soc_descriptions=dict()
         self.s2k_table_contents=dict()
-        if status:
+        if self.filename:
             self.connect_database(self.filename)
 
         self.logger=logger

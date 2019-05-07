@@ -1,25 +1,32 @@
-from PyQt5 import uic, QtWidgets, QtCore, QtGui
+
 import sys
 import os
 import pickle
 import gzip
+import numpy as np
+import re
+import binascii
+import xmltodict
+
+from io import BytesIO
+from PyQt5 import uic, QtWidgets, QtCore, QtGui
+from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtChart import QChart,QChartView,  QLineSeries,QValueAxis,QBarSeries,QBarSet,QScatterSeries
+
 from core import stix_telemetry_parser 
 from core import stix_global
 from core import stix_writer
 from core import stix_writer_sqlite
 from core import odb
 from core import idb
-import os
-import numpy as np
+
 from UI import mainwindow_rc5
 from UI import mainwindow
 
-from PyQt5.QtCore import QThread, pyqtSignal
-from PyQt5.QtChart import QChart,QChartView,  QLineSeries,QValueAxis,QBarSeries,QBarSet,QScatterSeries
-import re
-import binascii
-import xmltodict
-from io import BytesIO
+
+
+
+
 
 class StixDataReader(QThread):
     """
@@ -144,6 +151,7 @@ class Ui(mainwindow.Ui_MainWindow):
         return self.MainWindow.style()
 
 
+
     def initialize(self):
         self.tabWidget.setCurrentIndex(0)
         self.actionExit.triggered.connect(self.close)
@@ -158,14 +166,6 @@ class Ui(mainwindow.Ui_MainWindow):
 
 
         self.action_Open.triggered.connect(self.getOpenFilename)
-
-
-        #self.paramTreeWidget_header=QtWidgets.QTreeWidgetItem(['Name','description','raw','Eng value'])
-        #self.paramTreeWidget.setHeaderItem(self.paramTreeWidget_header)
-
-        #self.packetTreeWidget_header=QtWidgets.QTreeWidgetItem(['Timestamp','Description'])
-        #self.packetTreeWidget.setHeaderItem(self.packetTreeWidget_header)
-
 
 
         self.actionNext.triggered.connect(self.nextPacket)
@@ -183,13 +183,21 @@ class Ui(mainwindow.Ui_MainWindow):
 
         self.current_row=0
 
-        #self.figure = Figure()
         self.chart=QChart()
         self.chartView= QChartView(self.chart)
         self.gridLayout.addWidget(self.chartView, 1, 0, 1, 14)
-        #self.savePlotButton.clicked.connect(self.savePlot)
-        #self.actionPaste.triggered.connect(self.paste)
-        self.showMessage('IDB found: {} '.format(idb.STIX_IDB.get_idb_filename()))
+
+
+        #IDB location
+
+        self.settings = QtCore.QSettings('FHNW', 'stix_parser')
+        self.idb_filename=self.settings.value('idb_filename',[],str)
+        if self.idb_filename:
+            idb.STIX_IDB=idb.IDB(self.idb_filename)
+        if not idb.STIX_IDB.is_connected():
+            self.showMessage('Failed to locate IDB')
+        else:
+            self.showMessage('IDB found: {} '.format(idb.STIX_IDB.get_idb_filename()))
         
     def savePlot(self):
         if self.figure.get_axes():
@@ -238,8 +246,11 @@ class Ui(mainwindow.Ui_MainWindow):
         self.idb_filename= QtWidgets.QFileDialog.getOpenFileName(None,'Select file', '.', 
                 'IDB file(*.db *.sqlite *.sqlite3)')[0]
 
-        idb.STIX_IDB.close()
+        if not self.idb_filename:
+            return 
+
         idb.STIX_IDB=idb.IDB(self.idb_filename)
+        self.settings.setValue('idb_filename',self.idb_filename)
         self.showMessage('current IDB: {} '.format(idb.STIX_IDB.get_idb_filename()))
 
 
