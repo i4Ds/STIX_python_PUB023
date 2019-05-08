@@ -36,6 +36,7 @@ class IDB(object):
 
         self.filename=find_idb(filename)
         self.conn = None
+        self.cur= None
         self.parameter_structures=dict()
         self.soc_descriptions=dict()
         self.s2k_table_contents=dict()

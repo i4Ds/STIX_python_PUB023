@@ -9,7 +9,6 @@ from __future__ import (absolute_import, unicode_literals)
 
 import pprint
 import sqlite3
-from io import StringIO
 
 class ODB(object):
     def __init__(self, filename):

@@ -11,7 +11,7 @@ from __future__ import (absolute_import, unicode_literals)
 import argparse
 import pprint
 import binascii
-from cStringIO import StringIO
+from cBytesIO import BytesIO
 import xmltodict
 from core import idb
 from core import stix_global
@@ -65,7 +65,7 @@ def parse_soc_ascii_file(in_filename, out_filename=None, selected_spid=0):
             parameters=None
             tctm='tm'
             if data_hex[0:2]=='0D':
-                in_file=StringIO(data_binary)
+                in_file=BytesIO(data_binary)
                 status, header, parameters, param_type, param_desc, num_bytes_read = tm_parser.parse_one_packet(
                     in_file, LOGGER)
             elif data_hex[0:2]=='1D':

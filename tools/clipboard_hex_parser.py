@@ -8,7 +8,7 @@ import binascii
 import Tkinter as tk
 import re
 from core import stix_telemetry_parser as parser
-from cStringIO import StringIO
+from cBytesIO import BytesIO
 from core import stix_logger
 LOGGER = stix_logger.LOGGER
 def parser_clipboard_data():
@@ -19,7 +19,7 @@ def parser_clipboard_data():
     print(data_hex)
     try:
         data_binary = binascii.unhexlify(data_hex)
-        in_file=StringIO(data_binary)
+        in_file=BytesIO(data_binary)
         status, header, parameters, param_type, param_desc, num_bytes_read = parser.parse_one_packet(
             in_file, LOGGER)
         if header and parameters:

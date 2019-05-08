@@ -5,14 +5,14 @@
 # @date         : March. 28, 2019
 import sys
 import Tkinter as tk
-from cStringIO import StringIO
+from cBytesIO import BytesIO
 import numpy as np
 from matplotlib import pyplot as plt
 
 root = tk.Tk()
 root.withdraw()
 raw_data=root.clipboard_get()
-buf=StringIO(raw_data)
+buf=BytesIO(raw_data)
 #print buf.readlines()
 x=[]
 y=[]

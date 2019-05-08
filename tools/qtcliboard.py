@@ -6,13 +6,13 @@ from PyQt5.QtCore import *
 import binascii
 import re
 from core import stix_telemetry_parser as parser
-from cStringIO import StringIO
+from cBytesIO import BytesIO
 def parser_clipboard_data(raw_hex):
     data_hex= re.sub(r"\s+", "", raw_hex)
     print(data_hex)
     try:
         data_binary = binascii.unhexlify(data_hex)
-        in_file=StringIO(data_binary)
+        in_file=BytesIO(data_binary)
         status, header, parameters, param_type, param_desc, num_bytes_read = parser.parse_one_packet(
             in_file, None)
         if header or parameters:

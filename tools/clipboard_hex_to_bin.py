@@ -7,7 +7,7 @@ import sys
 import binascii
 import Tkinter as tk
 import re
-from cStringIO import StringIO
+from cBytesIO import BytesIO
 def write_clipboard(fname):
     with open(fname,'wb') as fout:
         root = tk.Tk()

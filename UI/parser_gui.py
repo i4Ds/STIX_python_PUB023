@@ -19,6 +19,7 @@ from core import stix_writer
 from core import stix_writer_sqlite
 from core import odb
 from core import idb
+from io import BytesIO
 
 from UI import mainwindow_rc5
 from UI import mainwindow
@@ -176,6 +177,7 @@ class Ui(mainwindow.Ui_MainWindow):
         self.actionNext.setEnabled(False)
         self.actionSave.setEnabled(False)
         self.action_Plot.setEnabled(False)
+        self.actionPaste.triggered.connect(self.onPasteTriggered)
         #self.actionLog.triggered.connect(self.dockWidget_2.show)
         self.actionSet_IDB.triggered.connect(self.onSetIDBClicked)
         self.plotButton.clicked.connect(self.onPlotButtonClicked)
@@ -218,7 +220,7 @@ class Ui(mainwindow.Ui_MainWindow):
 
 
 
-    def paste(self):
+    def onPasteTriggered(self):
         raw_hex= QtWidgets.QApplication.clipboard().text()
         if len(raw_hex)<16:
             self.showMessage('No data in the clipboard.')
@@ -226,15 +228,25 @@ class Ui(mainwindow.Ui_MainWindow):
         data_hex= re.sub(r"\s+", "", raw_hex)
         try:
             data_binary = binascii.unhexlify(data_hex)
-            in_file=StringIO(data_binary)
+            in_file=BytesIO(data_binary)
             status, header, parameters, param_type, param_desc, num_bytes_read = stix_telemetry_parser.parse_one_packet(
                 in_file, self)
             data=[{'header':header,'parameter':parameters}]
             self.showMessage(('%d bytes read from the clipboard'%num_bytes_read))
             self.onDataLoaded(data)
-        except TypeError:
-            self.showMessage('Failed to parse the packet')
+        except Exception as e:
+            self.showErrorMessageBox(str(e),data_hex)
 
+    def showErrorMessageBox(self,message,content):
+        msg =QtWidgets.QMessageBox()
+        msg.setIcon(QtWidgets.QMessageBox.Critical)
+        msg.setText("Error")
+        msg.setInformativeText(message)
+        msg.setWindowTitle("Error")
+        msg.setDetailedText(content)
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok | QtWidgets.QMessageBox.Cancel)
+        retval = msg.exec_()
+    
 
     def showMessage(self,msg):
         #if destination != 1:

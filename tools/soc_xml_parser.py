@@ -5,7 +5,7 @@ from __future__ import (absolute_import, unicode_literals)
 import argparse
 import pprint
 import binascii
-from io import StringIO
+from io import BytesIO
 import xmltodict
 from core import idb
 from core import stix_global
@@ -34,7 +34,7 @@ def parse_esa_xml_file(in_filename, out_filename=None, selected_spid=0):
         for packet in packets:
             data_hex=packet['raw']
             data_binary= binascii.unhexlify(data_hex)
-            in_file=StringIO(data_binary[76:])
+            in_file=BytesIO(data_binary[76:])
             status, header, parameters, param_type, param_desc, num_bytes_read = tm_parser.parse_one_packet(
                 in_file, LOGGER)
             total_packets += 1
