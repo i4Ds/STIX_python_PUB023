@@ -235,9 +235,9 @@ class Ui(mainwindow.Ui_MainWindow):
             self.showMessage(('%d bytes read from the clipboard'%num_bytes_read))
             self.onDataLoaded(data)
         except Exception as e:
-            self.showErrorMessageBox(str(e),data_hex)
+            self.showMessageBox(str(e),data_hex)
 
-    def showErrorMessageBox(self,message,content):
+    def showMessageBox(self,message,content):
         msg =QtWidgets.QMessageBox()
         msg.setIcon(QtWidgets.QMessageBox.Critical)
         msg.setText("Error")

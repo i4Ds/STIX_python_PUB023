@@ -4,7 +4,7 @@ import math
 import os
 import pprint
 #from matplotlib import pyplot as plt
-from ROOT import TGraph, TFile,TCanvas
+from ROOT import TGraph, TFile,TCanvas,TH1F
 from array import array 
 from core import stix_telemetry_parser
 from core import stix_logger
@@ -19,10 +19,19 @@ proc_log='GU/log/processing.log'
 ana_log='GU/log/calibration.log'
 
 
+def histogram(x,y,title,xlabel,ylabel):
+    n=len(x)
+    h=TH1F("h","Counts",n,0,n)
+    for n,c in zip(x,y):
+        h.SetBinContent(n+1,c)
+
+    h.GetXaxis().SetTitle(xlabel)
+    h.GetYaxis().SetTitle(ylabel)
+    h.SetTitle(title)
+    return h
 
 def graph2(x,y, title, xlabel, ylabel):
     n=len(x)
-    
     g=TGraph(n,array('d',x),array('d',y))
     g.GetXaxis().SetTitle(xlabel)
     g.GetYaxis().SetTitle(ylabel)
@@ -87,16 +96,15 @@ def analysis(file_in, file_out):
                 cc.cd()
                 g.Draw("ALP")
                 fr.cd()
-                cc.Write("c%d"%ip)
-                g.Write("g%d"%ip)
-                ip += 1
+                cc.Write(("c_d_{}_p_{}").format(detectors[n],pixels[n]))
+                #g.Write(("g_d_{}_p_{}").format(detectors[n],pixels[n]))
                      
         triggers.extend(counts)
-    g=graph2(detector_id,triggers,'Triggers','Pixel #', 'Counts')
+    g=histogram(detector_id,triggers,'Triggers','Pixel #', 'Counts')
     cc.cd()
-    g.Draw("ALP")
+    g.Draw("hist")
     cc.Write('triggers')
-    g.Write("trigger_g%d"%ip)
+    #g.Write("trigger")
     fr.Close()
 
     
