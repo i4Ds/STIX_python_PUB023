@@ -55,7 +55,7 @@ class stix_logger:
                     except:
                         print(par)
         elif type(parameters) is dict:
-            pprint.pprint(par)
+            pprint.pprint(parameters)
 
 
 

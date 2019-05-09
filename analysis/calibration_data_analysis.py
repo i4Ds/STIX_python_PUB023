@@ -85,8 +85,8 @@ def analysis(file_in, file_out):
         counts=[np.sum(sub_spectra[0]), np.sum(sub_spectra[1]), np.sum(sub_spectra[2])]
         for n, c in enumerate(counts):
             if c>0:
-                alog.write('%d events in Detector %s Pixel %s\n' %(c, detectors[n], pixels[n]))
-                print('%d events in Detector %s Pixel %s\n' %(c, detectors[n], pixels[n]))
+                alog.write('packet %d: %d events in Detector %s Pixel %s\n' %(ip, c, detectors[n], pixels[n]))
+                print('packet %d: %d events in Detector %s Pixel %s\n' %(ip, c, detectors[n], pixels[n]))
                 #plt.subplot(nrow,1, ip)
                 xlabel=('ADC channel')
                 ylabel=('Counts')
@@ -96,11 +96,14 @@ def analysis(file_in, file_out):
                 cc.cd()
                 g.Draw("ALP")
                 fr.cd()
-                cc.Write(("c_d_{}_p_{}").format(detectors[n],pixels[n]))
+                cc.Write(("c_d_{}_{}_p_{}").format(ip,detectors[n],pixels[n]))
                 #g.Write(("g_d_{}_p_{}").format(detectors[n],pixels[n]))
+        ip+=1
+    
                      
         triggers.extend(counts)
-    g=histogram(detector_id,triggers,'Triggers','Pixel #', 'Counts')
+
+    g=histogram(detector_id,triggers,'total counts','Pixel #', 'Counts')
     cc.cd()
     g.Draw("hist")
     cc.Write('triggers')

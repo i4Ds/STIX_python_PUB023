@@ -38,6 +38,9 @@ class IDB(object):
         self.conn = None
         self.cur= None
         self.parameter_structures=dict()
+        self.calibration_polynomial=dict()
+        self.calibration_curves=dict()
+        self.textual_parameter_LUT=dict()
         self.soc_descriptions=dict()
         self.s2k_table_contents=dict()
         if self.filename:
@@ -224,6 +227,50 @@ class IDB(object):
             res=self.execute(sql, (spid,), 'dict')
             self.parameter_structures[spid]=res
             return res
+
+
+        
+    def get_calibration_curve(self,pcf_curtx):
+        """ calibration curve defined in CAP database """
+        if pcf_curtx in self.calibration_curves:
+            return self.calibration_curves[pcf_curtx]
+        else:
+            sql = (
+                'select cap_xvals, cap_yvals from cap '
+                ' where cap_numbr=? order by cast(CAP_XVALS as double) asc'
+            )
+            args=(pcf_curtx,)
+            rows=self.execute(sql,args)
+            self.calibration_curves[pcf_curtx]=rows
+            return rows
+
+    def get_parameter_textual_interpret(self,pcf_curtx,raw_value):
+        if (pcf_curtx, raw_value) in self.textual_parameter_LUT:
+            return self.textual_parameter_LUT[(pcf_curtx,raw_value)]
+        else:
+        
+            sql = (
+                'select TXP_ALTXT from TXP where  TXP_NUMBR=? and ?>=TXP_FROM '
+                ' and TXP_TO>=? limit 1')
+            args=(pcf_curtx, raw_value, raw_value)
+            rows=self.execute(sql,args)
+            self.textual_parameter_LUT[(pcf_curtx,raw_value)]=rows
+
+            return rows
+
+
+    def get_calibration_polynomial(self,pcf_curtx):
+        if pcf_curtx in self.calibration_polynomial:
+            return self.calibration_polynomial[pcf_curtx]
+        else:
+            sql = ('select MCF_POL1, MCF_POL2, MCF_POL3, MCF_POL4, MCF_POL5 '
+                   'from MCF where MCF_IDENT=? limit 1')
+            args=(pcf_curtx,)
+            rows=self.execute(sql,args)
+            self.calibration_polynomial[pcf_curtx]=rows
+            return rows
+
+
 
 
 

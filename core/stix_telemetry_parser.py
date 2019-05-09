@@ -82,13 +82,13 @@ def parse_stix_raw_file(in_filename, logger, out_filename=None, selected_spid=0,
         num_fix_packets=0
         num_variable_packets=0
         num_bytes_read = 0
-        stix_writer=None
-        if  '.pkl' in out_filename or '.pklz' in out_filename :
+        st_writer=None
+        if  out_filename.endswith(('.pkl','.pklz')):
             st_writer = stw_pkl.stix_writer(out_filename)
-        else:
+        elif out_filename.endswith(('.db','.sqlite')):
             st_writer = stw_db.stix_writer(out_filename)
-
-        st_writer.register_run(in_filename)
+        if st_writer:
+            st_writer.register_run(in_filename)
 
         total_packets=0
         while True:
@@ -105,12 +105,13 @@ def parse_stix_raw_file(in_filename, logger, out_filename=None, selected_spid=0,
                 num_variable_packets += 1
             
             logger.pprint(header,parameters)
-            if status and parameters:
+            if status and parameters and st_writer:
                 #st_writer.write_header(header)
                 #st_writer.write_parameters(parameters)
                 st_writer.write(header,parameters,param_desc)
 
-        st_writer.done()
+        if st_writer:
+            st_writer.done()
         if logger:
             logger.info('{} packets found in the file: {}'.format(total_packets,in_filename))
             logger.info('{} ({} fixed and {} variable) packets processed.'.format(num_packets,\

@@ -14,7 +14,7 @@ from core import stix_logger
 LOGGER = stix_logger.LOGGER
 def main():
     in_filename = 'test/stix.dat'
-    out_filename = 'stix_out'
+    out_filename = ''
     sel_spid = 0
     logger_level=10
     #pkl or db
@@ -53,8 +53,8 @@ def main():
     in_filename = args['in']
 
     LOGGER.set_level(logger_level)
-    LOGGER.info('Input file', in_filename)
-    LOGGER.info('Output file', out_filename)
+    LOGGER.info('Input', in_filename)
+    LOGGER.info('Output', out_filename)
 
     stix_telemetry_parser.parse_stix_raw_file(in_filename,LOGGER, 
             out_filename, sel_spid, output_param_type=output_param_type)

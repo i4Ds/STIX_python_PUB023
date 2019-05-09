@@ -15,7 +15,7 @@ import sys
 import math
 import re
 from scipy import interpolate
-import numpy as np
+#import numpy as np
 import struct as st
 import pprint
 from core import idb
@@ -147,36 +147,24 @@ def get_parameter_physical_value(pcf_curtx, para_type, raw_values, logger=None):
             return float(
                 raw_values[0]) + float(raw_values[1]) / 65536.,'F'
         else:
-            return raw_values,'I'
+            return '','I'
         # no need to interpret
     raw_value=raw_values[0]
     prefix = re.split('\d+', pcf_curtx)[0]
     if prefix in ['CIXTS', 'CAAT', 'CIXT']:
         # textual interpret
-        sql = (
-            'select TXP_ALTXT from TXP where  TXP_NUMBR=? and ?>=TXP_FROM '
-            ' and TXP_TO>=? limit 1')
-        args=(pcf_curtx, raw_value, raw_value)
-        rows = STIX_IDB.execute(sql,args)
+        rows = STIX_IDB.get_parameter_textual_interpret(pcf_curtx,raw_value)
         if rows:
             return rows[0][0],'S'
     elif prefix == 'CIXP':
-        sql = (
-            'select cap_xvals, cap_yvals from cap '
-            ' where cap_numbr=? order by cast(CAP_XVALS as double) asc'
-        )
-        args=(pcf_curtx,)
-        # calibration curve defined in CAP database
-        rows = STIX_IDB.execute(sql,args)
+        rows = STIX_IDB.get_calibration_curve(pcf_curtx)
         if rows:
             x_points = [float(row[0]) for row in rows]
             y_points = [float(row[1]) for row in rows]
             tck = interpolate.splrep(x_points, y_points)
-            # interpolate value using the calibration curve in CAP
             return interpolate.splev(raw_value, tck), 'F'
     elif prefix == 'NIX':
         # temperature
-        # query PDI
         if logger:
             logger.warning('{} not interpreted'.format(pcf_curtx))
         if pcf_curtx == 'NIX00101':
@@ -187,14 +175,15 @@ def get_parameter_physical_value(pcf_curtx, para_type, raw_values, logger=None):
         return None,None
     elif prefix == 'CIX':
         # Polynomial
-        sql = ('select MCF_POL1, MCF_POL2, MCF_POL3, MCF_POL4, MCF_POL5 '
-               'from MCF where MCF_IDENT=? limit 1')
-        args=(pcf_curtx)
-        rows = STIX_IDB.execute(sql,args)
+        rows=STIX_IDB.get_calibration_polynomial(pcf_curtx)
         if rows:
-            pol_coeff = np.array([float(x) for x in rows[0]])
-            x_points = np.array([math.pow(raw_value, i) for i in range(0, 5)])
-            return np.dot(pol_coeff, x_points),'F'
+            pol_coeff = ([float(x) for x in rows[0]])
+            x_points = ([math.pow(raw_value, i) for i in range(0, 5)])
+            sum_value=0
+            for a, b in zip(pol_coeff,x_points):
+                sum_value+=a*b
+            return sum_value,'F'
+
         return None,None
     return None,None
 
