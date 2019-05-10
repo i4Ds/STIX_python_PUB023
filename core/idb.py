@@ -37,6 +37,8 @@ class IDB(object):
         self.filename=find_idb(filename)
         self.conn = None
         self.cur= None
+        
+
         self.parameter_structures=dict()
         self.calibration_polynomial=dict()
         self.calibration_curves=dict()

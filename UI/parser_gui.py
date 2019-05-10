@@ -212,11 +212,13 @@ class Ui(mainwindow.Ui_MainWindow):
             filename = str(QtWidgets.QFileDialog.getSaveFileName(
                 None, "Save file", "", "*.png *.jpg")[0])
             if filename:
+                if not filename.endswith(('.png','.jpg')):
+                    filename+='.png'
                 #self.figure.savefig(filename)
                 p=self.chartView.grab()
                 p.save(filename)
-
                 self.showMessage(('Saved to %s.' % filename))
+
 
         else:
             msgBox = QtWidgets.QMessageBox()
