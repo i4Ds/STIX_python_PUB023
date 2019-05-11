@@ -14,6 +14,7 @@ from core import stix_global
 from core import variable_parameter_parser as vp
 from core import stix_writer as stw_pkl
 from core import stix_writer_sqlite as stw_db
+from core import stix_writer_mongo as stw_mongo
 from core import stix_parser
 
 def parse_telemetry_packet(buf,output_param_type='tree',logger=None):
@@ -87,6 +88,9 @@ def parse_stix_raw_file(in_filename, logger, out_filename=None, selected_spid=0,
             st_writer = stw_pkl.stix_writer(out_filename)
         elif out_filename.endswith(('.db','.sqlite')):
             st_writer = stw_db.stix_writer(out_filename)
+        elif  'mongo' in out_filename:
+            st_writer = stw_mongo.stix_writer()
+
         if st_writer:
             st_writer.register_run(in_filename)
 

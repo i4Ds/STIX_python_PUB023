@@ -15,7 +15,7 @@ import sys
 import math
 import re
 from scipy import interpolate
-#import numpy as np
+import numpy as np
 import struct as st
 import pprint
 from core import idb
@@ -162,7 +162,8 @@ def get_parameter_physical_value(pcf_curtx, para_type, raw_values, logger=None):
             x_points = [float(row[0]) for row in rows]
             y_points = [float(row[1]) for row in rows]
             tck = interpolate.splrep(x_points, y_points)
-            return interpolate.splev(raw_value, tck), 'F'
+            val=str(interpolate.splev(raw_value, tck))
+            return val, 'F'
     elif prefix == 'NIX':
         # temperature
         if logger:
