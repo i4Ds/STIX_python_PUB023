@@ -31,7 +31,7 @@ class stix_writer:
             print('can not connect to mongodb')
     def register_run(self,in_filename):
         try:
-            self.last_run_id=self.runs_col.find().sort({'_id', -1}).limit(1)[0]['_id']
+            self.last_run_id=self.runs_col.find().sort('_id',-1).limit(1)[0]['_id']
         except TypeError:
             self.last_run_id=-1
         self.this_run_id=self.last_run_id+1

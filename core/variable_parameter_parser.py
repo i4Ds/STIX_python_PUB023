@@ -44,14 +44,14 @@ class variable_parameter_parser:
         self.output_type =output_type
         self.results_dict={}
         self.debug=False
-        self.parameter_desc={}
+        #self.parameter_desc={}
     def debug_enabled(self):
         self.debug=True
     def reset(self):
         self.nodes[0]['child']=[]
         self.results_tree[:]=[]
         self.results_dict.clear()
-        self.parameter_desc.clear()
+        #self.parameter_desc.clear()
         self.current_offset = 0
         self.last_offset = 0
         self.current_offset_bit = 0
@@ -100,7 +100,8 @@ class variable_parameter_parser:
         self.num_nodes += 1
         return node
     def get_parameter_description(self):
-        return self.parameter_desc
+        #return self.parameter_desc
+        pass
     def register_parameter(self,
                            mother,
                            name,
@@ -130,7 +131,7 @@ class variable_parameter_parser:
         #counter:  number of repeated times
 
         for par in self.structures:
-            self.parameter_desc[par['PCF_NAME']]=par['PCF_DESCR']
+            #self.parameter_desc[par['PCF_NAME']]=par['PCF_DESCR']
             if repeater:
                 for e in reversed(repeater):
                     e['counter'] -= 1
@@ -141,7 +142,8 @@ class variable_parameter_parser:
                 mother, par['PCF_NAME'], par['VPD_POS'], par['PCF_WIDTH'],
                 par['VPD_OFFSET'], par['VPD_GRPSIZE'], par, 0,
                 par['PCF_DESCR'], [])
-            
+
+                      
 
             rpsize = par['VPD_GRPSIZE']
             if rpsize > 0:
@@ -205,7 +207,7 @@ class variable_parameter_parser:
                     'raw': result['raw'],
                     'value': result['value'],
                     #'eng_value_type': result['eng_value_type'],
-                    'descr': result['descr'],
+                    #'descr': result['descr'],
                     'child': []
                 }
                 if node['child']:

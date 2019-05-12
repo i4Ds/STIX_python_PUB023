@@ -56,7 +56,8 @@ def parse_one_packet(in_file,logger,selected_spid=0, output_param_type='tree'):
                 vpd_parser = vp.variable_parameter_parser(
                     app_raw, spid, output_param_type,logger)
                 bytes_parsed, parameters = vpd_parser.get_parameters()
-                param_desc=vpd_parser.get_parameter_description()
+                param_desc=None
+                #vpd_parser.get_parameter_description()
 
                 if bytes_parsed!= app_raw_length and logger:
                     logger.info("Packet length invalid, data length: {}, processed: {}".format(

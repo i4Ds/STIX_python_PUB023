@@ -193,14 +193,14 @@ def interpret_telemetry_parameter(app_data, par, parameter_interpret=True, logge
     if name == 'NIX00299':
         return None
     sw_desc = STIX_IDB.get_scos_description(name)
-    desc = par['PCF_DESCR']
+    #desc = par['PCF_DESCR']
     offset = par['offset']
     offset_bit = int(par['offset_bit'])
     pcf_width = int(par['PCF_WIDTH'])
     ptc = int(par['PCF_PTC'])
     pfc = int(par['PCF_PFC'])
     pcf_curtx = par['PCF_CURTX']
-    unit = par['PCF_UNIT']
+    #unit = par['PCF_UNIT']
     s2k_table = STIX_IDB.get_s2k_parameter_types(ptc, pfc)
     para_type = s2k_table['S2K_TYPE']
     raw_values = unpack_parameter(app_data, para_type, offset,
@@ -209,7 +209,7 @@ def interpret_telemetry_parameter(app_data, par, parameter_interpret=True, logge
     if not parameter_interpret:
         return {'name': name,
                 'raw': raw_values,
-                'descr':desc,
+                #'descr':desc,
                 'value':None
                 #'eng_value_type':None
                 }
@@ -222,7 +222,7 @@ def interpret_telemetry_parameter(app_data, par, parameter_interpret=True, logge
                 'Parameter {} is not converted to physical value'.format(name))
     return {
         'name': name,
-        'descr': desc,
+        #'descr': desc,
         #'sw_desc': sw_desc,
         'raw': raw_values,
         #'pos': offset,

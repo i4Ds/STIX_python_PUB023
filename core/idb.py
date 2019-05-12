@@ -37,14 +37,14 @@ class IDB(object):
         self.filename=find_idb(filename)
         self.conn = None
         self.cur= None
-        
-
         self.parameter_structures=dict()
         self.calibration_polynomial=dict()
         self.calibration_curves=dict()
         self.textual_parameter_LUT=dict()
         self.soc_descriptions=dict()
+        self.pcf_descriptions=dict()
         self.s2k_table_contents=dict()
+        #self.parameter_desc=dict()
         if self.filename:
             self.connect_database(self.filename)
 
@@ -57,6 +57,18 @@ class IDB(object):
 
     def get_idb_filename(self):
         return os.path.abspath(self.filename)
+
+    #def get_parameter_desc(self,name):
+    #    if self.parameter_desc:
+    #        return self.parameter_desc[name]
+    #    else self.parameter_desc:
+    #        sql='select SCOS_NAME, SW_DESCR from SW_PARA '
+    #        rows=self.execute(sql,None,'dict')
+    #        for row in rows:
+    #            name=row['SCOS_NAME']
+    #            desc=row['SW_PARA']
+    #            self.parameter_desc[name]=desc
+
 
     def connect_database(self,filename):
         try:
@@ -118,6 +130,7 @@ class IDB(object):
                 self.soc_descriptions[name]=res
                 return res
             return 'NO_SCOS_DESC'
+    
 
     def get_telemetry_description(self, spid):
         """get telemetry data information """
@@ -135,10 +148,17 @@ class IDB(object):
             return rows[0]
         return 0,0
     def get_PCF_description(self,name):
-        sql=('select PCF_DESCR from PCF where PCF_NAME=?')
-
-        return self.execute(sql,(name,))
-
+        """ get scos long description """
+        if name in self.pcf_descriptions:
+            return self.pcf_descriptions[name]
+        else:
+            rows = self.execute(
+                'select PCF_DESCR from PCF where PCF_NAME=? ',(name,))
+            if rows:
+                res=rows[0][0]
+                self.pcf_descriptions[name]=res
+                return res
+            return 'NO_SCOS_DESC'
 
     def get_packet_type_info(self, packet_type, packet_subtype, pi1_val=-1):
         """
@@ -192,7 +212,8 @@ class IDB(object):
             #database query is slower
             return self.parameter_structures[spid]
         else:
-            sql = ('select PLF.*, PCF.* '
+            #'select PLF.*, PCF.* '
+            sql = ('select PLF.PLF_OFFBY, PLF.PLF_OFFBI, PCF.PCF_NAME, PCF.PCF_WIDTH, PCF.PCF_PFC,PCF.PCF_PTC, PCF.PCF_CURTX '
                    ' from PLF   inner join PCF  on PLF.PLF_NAME = PCF.PCF_NAME '
                    ' and PLF.PLF_SPID=? order by PLF.PLF_OFFBY asc')
             args=(spid,)
@@ -223,13 +244,15 @@ class IDB(object):
             return self.parameter_structures[spid]
         else:
             sql = (
-                'select VPD.*, PCF.*'
+                'select PCF.PCF_NAME, VPD.VPD_POS,PCF.PCF_WIDTH,PCF.PCF_PFC, PCF.PCF_PTC,VPD.VPD_OFFSET,'
+                ' VPD.VPD_GRPSIZE,PCF.PCF_DESCR ,PCF.PCF_CURTX '
                 ' from VPD inner join PCF on  VPD.VPD_NAME=PCF.PCF_NAME and VPD.VPD_TPSD=? order by '
                 ' VPD.VPD_POS asc')
             res=self.execute(sql, (spid,), 'dict')
             self.parameter_structures[spid]=res
             return res
 
+            #'select VPD.*, PCF.*'
 
         
     def get_calibration_curve(self,pcf_curtx):

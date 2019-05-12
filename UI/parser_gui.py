@@ -417,8 +417,12 @@ class Ui(mainwindow.Ui_MainWindow):
             if not p:
                 continue
             try:
-                root.setText(0, p['name'])
-                root.setText(1, p['descr'])
+                param_name=p['name']
+                desc=idb.STIX_IDB.get_PCF_description(param_name)
+                scos_desc=idb.STIX_IDB.get_scos_description(param_name)
+                root.setToolTip(1,scos_desc)
+                root.setText(0, param_name)
+                root.setText(1, desc)
                 root.setText(2, str(p['raw']))
                 root.setText(3, str(p['value']))
                 if 'child' in p:

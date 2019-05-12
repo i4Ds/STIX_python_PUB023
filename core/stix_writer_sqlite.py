@@ -26,13 +26,11 @@ CREATE_TABLE_HEADER_SQL = """CREATE TABLE header (
 	service_type	INTEGER NOT NULL,
 	service_subtype	INTEGER NOT NULL,
 	header_time	REAL NOT NULL,
-	descr	TEXT,
 	seg_flag INTEGER,
 	data_length	INTEGER NOT NULL );"""
 CREATE_TABLE_PARAMETER_SQL = """CREATE TABLE parameter (
             ID	INTEGER PRIMARY KEY AUTOINCREMENT,
             packet_id INTEGER NOT NULL,
-            descr, TEXT ,
             name TEXT,
             raw	TEXT,
             parent, INTEGER,
@@ -102,7 +100,7 @@ class stix_writer:
             for par in parameters:
                 if par:
                     par_list=(self.current_packet_id, par['name'],
-                                     par['descr'],
+                                     #par['descr'],
                                      str(par['raw']),str(par['value']),self.current_packet_id)
                     if  'child' in par:
                        if par['child']:
@@ -112,8 +110,11 @@ class stix_writer:
 
     def insert_parameters(self, parlist):
         self.cur.execute(
-                'insert into parameter (packet_id, name,descr,raw,  value,parent) values(?,?,?,?,?,?)',
+                'insert into parameter (packet_id, name,raw,  value,parent) values(?,?,?,?,?)',
                 parlist)
+                #'insert into parameter (packet_id, name,descr,raw,  value,parent) values(?,?,?,?,?,?)',
+                #parlist)
+
     def write(self, header, parameters, parameter_desc):
         #parameters description not used
         self.write_header(header)
