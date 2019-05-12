@@ -177,6 +177,12 @@ class Ui_MainWindow(object):
         icon2.addPixmap(QtGui.QPixmap(":/Icons/images/paste.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionPaste.setIcon(icon2)
         self.actionPaste.setObjectName("actionPaste")
+        self.actionLoad_mongodb = QtWidgets.QAction(MainWindow)
+        icon3 = QtGui.QIcon()
+        icon3.addPixmap(QtGui.QPixmap(":/Icons/images/mongodb.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionLoad_mongodb.setIcon(icon3)
+        self.actionLoad_mongodb.setText("")
+        self.actionLoad_mongodb.setObjectName("actionLoad_mongodb")
         self.menu_File.addAction(self.action_Open)
         self.menu_File.addAction(self.actionSave)
         self.menu_File.addAction(self.actionExit)
@@ -187,6 +193,7 @@ class Ui_MainWindow(object):
         self.menuSetting.addAction(self.actionSet_IDB)
         self.menu_Tools.addAction(self.action_Plot)
         self.menu_Tools.addAction(self.actionPaste)
+        self.menu_Tools.addAction(self.actionLoad_mongodb)
         self.menubar.addAction(self.menu_File.menuAction())
         self.menubar.addAction(self.menuAction.menuAction())
         self.menubar.addAction(self.menuSetting.menuAction())
@@ -200,6 +207,7 @@ class Ui_MainWindow(object):
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.action_Plot)
         self.toolBar.addAction(self.actionPaste)
+        self.toolBar.addAction(self.actionLoad_mongodb)
 
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(1)
@@ -249,3 +257,4 @@ class Ui_MainWindow(object):
         self.actionPaste.setToolTip(_translate("MainWindow", "Read raw data from the clipboard"))
 
 
+import mainwindow_rc5

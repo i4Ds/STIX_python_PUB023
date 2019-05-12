@@ -241,10 +241,6 @@ def parse_telemetry_header(packet):
     if packet[0] != 0x0D:
         return stix_global.HEADER_FIRST_BYTE_INVALID, None
 
-    #print('packet header {:02x}\n'.format(packet[0]))
-    #print('packet header {:02x}\n'.format(0x0D))
-
-
     header_raw = st.unpack('>HHHBBBBIH', packet[0:16])
     header = {}
     for h, s in zip(header_raw, stix_header.telemetry_raw_structure):
@@ -316,7 +312,6 @@ def parse_app_header(header, data, data_length):
 def parse_fixed_packet(app_data,spid,logger=None):
     parameter_structures = STIX_IDB.get_fixed_packet_structure(spid)
     return get_fixed_packet_parameters(app_data, parameter_structures,logger)
-
 
 def get_fixed_packet_parameters(app_data, parameter_structure_list,logger=None):
     """

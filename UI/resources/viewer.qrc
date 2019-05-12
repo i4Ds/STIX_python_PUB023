@@ -1,8 +1,9 @@
 <RCC>
-  <qresource prefix="/Icons">
-    <file>images/paste.svg</file>
-    <file>images/fileopen.png</file>
-    <file>images/graph.svg</file>
-    <file>images/app.svg</file>
-  </qresource>
+    <qresource prefix="/Icons">
+        <file>images/paste.svg</file>
+        <file>images/fileopen.png</file>
+        <file>images/graph.svg</file>
+        <file>images/app.svg</file>
+        <file>images/mongodb.svg</file>
+    </qresource>
 </RCC>

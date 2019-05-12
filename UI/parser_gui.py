@@ -21,8 +21,12 @@ from core import odb
 from core import idb
 from io import BytesIO
 
+
 from UI import mainwindow_rc5
 from UI import mainwindow
+from UI import mongo_dialog
+from functools import partial
+from core import mongo_db as mgdb
 
 
 class StixDataReader(QThread):
@@ -63,8 +67,8 @@ class StixDataReader(QThread):
     def read_packet_from_db(self, filename):
         self.info.emit(('Loading data from {}').format(filename))
         db = odb.ODB(filename)
-
         self.data = db.get_packets()
+        print(self.data)
 
     def parseESOCXmlFile(self, in_filename):
         packets = []
@@ -182,8 +186,11 @@ class Ui(mainwindow.Ui_MainWindow):
         self.actionSet_IDB.triggered.connect(self.onSetIDBClicked)
         self.plotButton.clicked.connect(self.onPlotButtonClicked)
         self.action_Plot.triggered.connect(self.onPlotActionClicked)
+        self.actionLoad_mongodb.triggered.connect(self.onLoadMongoDBTriggered)
+        self.mdb=None
 
         self.current_row = 0
+        self.data=[]
 
         self.chart = QChart()
         self.chart.layout().setContentsMargins(0,0,0,0)
@@ -195,8 +202,8 @@ class Ui(mainwindow.Ui_MainWindow):
 
         # IDB location
 
-        settings = QtCore.QSettings('FHNW', 'stix_parser')
-        self.idb_filename = settings.value('idb_filename', [], str)
+        self.settings = QtCore.QSettings('FHNW', 'stix_parser')
+        self.idb_filename = self.settings.value('idb_filename', [], str)
         if self.idb_filename:
             idb.STIX_IDB = idb.IDB(self.idb_filename)
         if not idb.STIX_IDB.is_connected():
@@ -273,8 +280,8 @@ class Ui(mainwindow.Ui_MainWindow):
 
         idb.STIX_IDB = idb.IDB(self.idb_filename)
         if idb.STIX_IDB.is_connected():
-            settings = QtCore.QSettings('FHNW', 'stix_parser')
-            settings.setValue('idb_filename', self.idb_filename)
+            #settings = QtCore.QSettings('FHNW', 'stix_parser')
+            self.settings.setValue('idb_filename', self.idb_filename)
         self.showMessage(
             'current IDB: {} '.format(
                 idb.STIX_IDB.get_idb_filename()))
@@ -353,21 +360,29 @@ class Ui(mainwindow.Ui_MainWindow):
     def onDataReaderError(self, msg):
         self.showMessage(msg)
 
-    def onDataLoaded(self, data):
-        self.data = data
-        total_packets = len(self.data)
+    def onDataLoaded(self, data,clear=True):
+        if not clear:
+            self.data.append(data)
+        else:
+            self.data = data
 
-        self.packetTreeWidget.clear()
-        self.displayPackets()
+        self.displayPackets(clear)
+
         if self.data:
             self.actionPrevious.setEnabled(True)
             self.actionNext.setEnabled(True)
             self.actionSave.setEnabled(True)
             self.action_Plot.setEnabled(True)
 
-    def displayPackets(self):
+    def displayPackets(self,clear=True):
+
+        if clear:
+            self.packetTreeWidget.clear()
+
         t0=0
         for p in self.data:
+            if type(p) is not dict:
+                continue
             header = p['header']
             root = QtWidgets.QTreeWidgetItem(self.packetTreeWidget)
             if t0==0:
@@ -383,6 +398,53 @@ class Ui(mainwindow.Ui_MainWindow):
         self.packetTreeWidget.currentItemChanged.connect(self.onPacketSelected)
         self.showPacket(0)
 
+    def onLoadMongoDBTriggered(self):
+        diag=QtWidgets.QDialog()
+        diag_ui=mongo_dialog.Ui_Dialog()
+        diag_ui.setupUi(diag)
+        #self.settings = QtCore.QSettings('FHNW', 'stix_parser')
+        self.mongo_server= self.settings.value('mongo_server', [], str)
+        self.mongo_port= self.settings.value('mongo_port', [], str)
+        if self.mongo_server:
+            diag_ui.serverLineEdit.setText(self.mongo_server)
+        if self.mongo_port:
+            diag_ui.portLineEdit.setText(self.mongo_port)
+        diag_ui.pushButton.clicked.connect(partial(self.loadRunsFromMongoDB,diag_ui))
+        diag_ui.buttonBox.accepted.connect(partial(self.loadDataFromMongoDB,diag_ui,diag))
+        diag.exec_()
+    def loadRunsFromMongoDB(self,dui):
+        server=dui.serverLineEdit.text()
+        port=dui.portLineEdit.text()
+        self.showMessage('saving setting...')
+        if self.mongo_server!=server:
+            self.settings.setValue('mongo_server', server)
+        if self.mongo_port!=port:
+            self.settings.setValue('mongo_port', port)
+        self.showMessage('connecting Mongo database ...')
+        self.mdb=mgdb.MongoDB(server,int(port))
+        dui.treeWidget.clear()
+        self.showMessage('Fetching data...')
+        for run in self.mdb.get_runs():
+            root = QtWidgets.QTreeWidgetItem(dui.treeWidget)
+            root.setText(0, str(run['_id']))
+            root.setText(1, run['file'])
+            root.setText(2, run['date'])
+            root.setText(3, str(run['start']))
+            root.setText(4, str(run['end']))
+
+    def loadDataFromMongoDB(self,dui,diag):
+        selected_runs=[]
+        for item in dui.treeWidget.selectedItems():
+            selected_runs.append(item.text(0))
+        if selected_runs:
+            data=self.mdb.get_packets(selected_runs[0])
+            if data:
+                self.onDataLoaded(data,clear=True)
+            else:
+                self.showMessage('No packets found!')
+        diag.done(0)
+        #close
+
     def onPacketSelected(self, cur, pre):
         self.current_row = self.packetTreeWidget.currentIndex().row()
         self.showMessage((('Packet #%d selected') % self.current_row))
@@ -395,7 +457,9 @@ class Ui(mainwindow.Ui_MainWindow):
         self.showMessage(
             (('Packet %d / %d  %s ') %
              (row, self.total_packets, header['DESCR'])))
+
         self.paramTreeWidget.clear()
+
         header_root = QtWidgets.QTreeWidgetItem(self.paramTreeWidget)
         header_root.setText(0, "Header")
         rows = len(header)
@@ -449,7 +513,7 @@ class Ui(mainwindow.Ui_MainWindow):
                     values = p['value']
                 try:
                     yvalue = None
-                    if type(values) is tuple:
+                    if (type(values) is tuple) or (type(values) is list):
                         yvalue = float(values[0])
                     else:
                         yvalue = float(values)

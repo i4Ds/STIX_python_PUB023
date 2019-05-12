@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 # @title        : stix_writer.py
-# @description  : Write decoded parameters to a python pickle file
-#                 see https://docs.python.org/2/library/pickle.html for descriptions of python pickle
-#                 It can be further analyzed.
+# @description  : Write decoded parameters to a mongo database 
 # @author       : Hualin Xiao
-# @date         : Feb. 27, 2019
+# @date         : May. 12, 2019
 #import json
 import pprint
 import pymongo
@@ -32,8 +30,9 @@ class stix_writer:
     def register_run(self,in_filename):
         try:
             self.last_run_id=self.runs_col.find().sort('_id',-1).limit(1)[0]['_id']
-        except TypeError:
+        except :
             self.last_run_id=-1
+        
         self.this_run_id=self.last_run_id+1
         self.run_info={'file':in_filename,
                'date': datetime.datetime.now().isoformat(),
