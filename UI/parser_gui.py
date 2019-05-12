@@ -365,7 +365,6 @@ class Ui(mainwindow.Ui_MainWindow):
             self.data.append(data)
         else:
             self.data = data
-
         self.displayPackets(clear)
 
         if self.data:
@@ -375,10 +374,8 @@ class Ui(mainwindow.Ui_MainWindow):
             self.action_Plot.setEnabled(True)
 
     def displayPackets(self,clear=True):
-
         if clear:
             self.packetTreeWidget.clear()
-
         t0=0
         for p in self.data:
             if type(p) is not dict:
@@ -431,11 +428,14 @@ class Ui(mainwindow.Ui_MainWindow):
             root.setText(2, run['date'])
             root.setText(3, str(run['start']))
             root.setText(4, str(run['end']))
+        self.showMessage('Runs loaded!')
 
     def loadDataFromMongoDB(self,dui,diag):
         selected_runs=[]
         for item in dui.treeWidget.selectedItems():
             selected_runs.append(item.text(0))
+        if not selected_runs:
+            self.showMessage('Run not selected!')
         if selected_runs:
             data=self.mdb.get_packets(selected_runs[0])
             if data:
