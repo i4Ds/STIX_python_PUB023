@@ -660,7 +660,7 @@ class Ui(mainwindow.Ui_MainWindow):
                 # histogram
             else:
                 nbins = len(set(self.y))
-                ycounts, xedges = np.histogram(y, bins=nbins)
+                ycounts, xedges = np.histogram(self.y, bins=nbins)
                 series = QLineSeries()
                 for i in range(0, nbins):
                     meanx = (xedges[i] + xedges[i + 1]) / 2.

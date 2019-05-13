@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #  File: stix_global
-#  A file to keep global variables
+#  a module to keep global variables
 #
 SUCCESS = 1
 OK = 1

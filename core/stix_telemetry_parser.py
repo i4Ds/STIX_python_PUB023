@@ -47,7 +47,6 @@ def parse_one_packet(in_file,logger,selected_spid=0, output_param_type='tree'):
         tpsd = header['TPSD']
         if selected_spid == 0 or spid == selected_spid:
             app_raw_length = len(app_raw)
-
             if tpsd == -1:
                 parameters = stix_parser.parse_fixed_packet(
                     app_raw, spid)

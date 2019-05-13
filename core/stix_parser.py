@@ -34,328 +34,315 @@ def unpack_integer(raw, structure):
     for name, bits in structure.items():
         result[name] = slice_bits(raw, bits[0], bits[1])
     return result
-def unpack_parameter(in_data, parameter_type, offset, offset_bit, data_length, logger=None):
-    data_type = ''
-    nbytes = int(math.ceil((data_length + offset_bit) / 8.))
-    if parameter_type == 'U':
-        if nbytes <= 6:
-            data_type = UNSIGNED_UNPACK_STRING[nbytes - 1]
+
+class StixTelemetryParser:
+    def __init__(self, stix_idb=STIX_IDB, logger=None):
+        self.logger=logger
+        self.idb=stix_idb
+    def error(self,msg):
+        if self.logger:
+            self.logger.error(msg)
+    def info(self,msg):
+        if self.logger:
+            self.logger.info(msg)
+    def warning(self,msg):
+        if self.logger:
+            self.logger.warning(msg)
+
+    def decode(self, in_data, param_type, offset, offset_bit, length):
+        nbytes = int(math.ceil((length+ offset_bit) / 8.))
+        raw_bin= in_data[int(offset):int(offset + nbytes)]
+        if nbytes != len(raw_bin):
+            self.error('Invalid data {} real: {}'.format(nbytes, 
+                len(raw_bin)))
+            return None
+        upstr = ''
+        if param_type == 'U':
+            if nbytes <= 6:
+                upstr = UNSIGNED_UNPACK_STRING[nbytes - 1]
+            else:
+                upstr = str(nbytes) + 's'
+        elif param_type == 'I':
+            if nbytes <= 6:
+                upstr = SIGNED_UNPACK_STRING[nbytes - 1]
+            else:
+                upstr = str(nbytes) + 's'
+        elif param_type == 'T':
+            upstr = '>IH'
+        elif param_type == 'O':
+            upstr = str(nbytes) + 's'
         else:
-            data_type = str(nbytes) + 's'
-    elif parameter_type == 'I':
-        if nbytes <= 6:
-            data_type = SIGNED_UNPACK_STRING[nbytes - 1]
+            upstr = str(nbytes) + 's'
+        results = ()
+        raw= st.unpack(upstr, raw_bin)
+
+        if upstr == 'BBB':  # 24-bit integer
+            value = (raw[0] << 16)| (raw[1] << 8)| raw[2]
+            if length< 16 and length% 8 != 0:
+                start_bit = nbytes * 8 - (offset_bit + length)
+                value= slice_bits(value, start_bit, length)
+            results = (value, )
+        elif length < 16 and length % 8 != 0:
+            # bit-offset only for 8bits or 16 bits integer
+            start_bit = nbytes * 8 - (offset_bit + length)
+            results = (slice_bits(raw[0], start_bit, length), )
+            # checked
         else:
-            data_type = str(nbytes) + 's'
-    elif parameter_type == 'T':
-        data_type = '>IH'
-    elif parameter_type == 'O':
-        data_type = str(nbytes) + 's'
-    else:
-        data_type = str(nbytes) + 's'
-    
-    results = ()
-    raw_data = in_data[int(offset):int(offset + nbytes)]
-    if nbytes != len(raw_data):
-        if logger:
-            logger.error(
-                'Invalid data length, expect {}, but real length is: {}'.format(
-                    nbytes, len(raw_data)))
-        return None
-    unpacked_values = st.unpack(data_type, raw_data)
-    if data_type == 'BBB':  # 24-bit integer
-        value = (unpacked_values[0] << 16)| (unpacked_values[1] << 8)| unpacked_values[2]
-        if data_length < 16 and data_length % 8 != 0:
-            start_bit = nbytes * 8 - (offset_bit + data_length)
-            value= slice_bits(value, start_bit, data_length)
-        results = (value, )
-    elif data_length < 16 and data_length % 8 != 0:
-        # bit-offset only for 8bits or 16 bits integer
-        start_bit = nbytes * 8 - (offset_bit + data_length)
-        results = (slice_bits(unpacked_values[0], start_bit, data_length), )
-        # checked
-    else:
-        results = unpacked_values
+            results = raw
     return results
+    def find_next_header(f):
+        nbytes = 0
+        bad_block = ''
+        while True:
+            x = f.read(1)
+            if not x:
+                break
+            pos = f.tell()
+            bad_block += ' ' + x.hex()
+            nbytes += 1
+            if x == 0x0D:
+                f.seek(pos - 1)
+                return True, nbytes, bad_block
+        return False, nbytes, bad_block
 
-def find_next_telemetry_header(f):
-    nbytes = 0
-    bad_block = ''
-    while True:
-        x = f.read(1)
-        if not x:
-            break
-        pos = f.tell()
-        bad_block += ' ' + x.hex()
-        nbytes += 1
-        if x == 0x0D:
-            f.seek(pos - 1)
-            return True, nbytes, bad_block
-    return False, nbytes, bad_block
+    def convert_raw_to_eng(self, pcf_curtx, param_type, raw):
+        """convert parameter raw values to engineer values"""
+        if not raw:
+            return None
+        if not pcf_curtx:
+            if param_type == 'T': #timestamp
+                return float(
+                    raw[0]) + float(raw[1]) / 65536.
+            else:
+                return None
+            # no need to interpret
+        raw_value=raw[0]
+        prefix = re.split('\d+', pcf_curtx)[0]
+        if prefix in ['CIXTS', 'CAAT', 'CIXT']:
+            # textual interpret
+            rows = self.idb.get_parameter_textual_interpret(pcf_curtx,raw_value)
+            if rows:
+                return rows[0][0]
 
-def convert_raw_to_eng(pcf_curtx, para_type, raw_values, logger=None):
-    """
-    convert raw value  to physical value using the calibration factors in
-    several IDB tables: txf, txp, pas, cap or mcf
-    Args:
-        pcf_curtx: parameter name known from pcf,such as CAAT1006TM
-        raw_values:  raw value of the parameter,it is a tuple
-        para_type:  parameter type
-    Returns:
-        physical values,eng_type (Float, Integral, String)
-    """
-    if not raw_values:
-        return None,None
+            self.warning('No textual calibration for {}'.format(pcf_curtx))
+            return None
+        elif prefix =='CIXP':
+            rows = self.idb.get_calibration_curve(pcf_curtx)
+            if rows:
+                x_points = [float(row[0]) for row in rows]
+                y_points = [float(row[1]) for row in rows]
+                tck = interpolate.splrep(x_points, y_points)
+                val=str(interpolate.splev(raw_value, tck))
+                return val
+            self.warning('No calibration factors for {}'.format(pcf_curtx))
+            return None
 
-    if not pcf_curtx:
-        if para_type == 'T':
-            # timestamp
-            return float(
-                raw_values[0]) + float(raw_values[1]) / 65536.,'F'
-        else:
-            return '','I'
-        # no need to interpret
-    raw_value=raw_values[0]
-    prefix = re.split('\d+', pcf_curtx)[0]
-    if prefix in ['CIXTS', 'CAAT', 'CIXT']:
-        # textual interpret
-        rows = STIX_IDB.get_parameter_textual_interpret(pcf_curtx,raw_value)
-        if rows:
-            return rows[0][0],'S'
-    elif prefix == 'CIXP':
-        rows = STIX_IDB.get_calibration_curve(pcf_curtx)
-        if rows:
-            x_points = [float(row[0]) for row in rows]
-            y_points = [float(row[1]) for row in rows]
-            tck = interpolate.splrep(x_points, y_points)
-            val=str(interpolate.splev(raw_value, tck))
-            return val, 'F'
-    elif prefix == 'NIX':
-        # temperature
-        #if logger:
-        #    logger.warning('{} not interpreted'.format(pcf_curtx))
-        #if pcf_curtx == 'NIX00101':
-            #see SO-STIX-DS-30001_IDeF-X HD datasheet page 29
-        #    pass
-        return None,None
-    elif prefix == 'CIX':
-        rows=STIX_IDB.get_calibration_polynomial(pcf_curtx)
-        if rows:
-            pol_coeff = ([float(x) for x in rows[0]])
-            x_points = ([math.pow(raw_value, i) for i in range(0, 5)])
-            sum_value=0
-            for a, b in zip(pol_coeff,x_points):
-                sum_value+=a*b
-            return sum_value,'F'
-        return None,None
-    return None,None
-
-def interpret_telemetry_parameter(app_data, par, parameter_interpret=True, logger=None):
-    name = par['PCF_NAME']
-    if name == 'NIX00299':
+        elif prefix == 'NIX':
+            # temperature
+            #if pcf_curtx == 'NIX00101':
+                #see SO-STIX-DS-30001_IDeF-X HD datasheet page 29
+            #    pass
+            self.warning('{} not interpreted. '.format(pcf_curtx))
+            return None
+        elif prefix == 'CIX':
+            rows=self.idb.get_calibration_polynomial(pcf_curtx)
+            if rows:
+                pol_coeff = ([float(x) for x in rows[0]])
+                x_points = ([math.pow(raw_value, i) for i in range(0, 5)])
+                sum_value=0
+                for a, b in zip(pol_coeff,x_points):
+                    sum_value+=a*b
+                return sum_value
+            self.warning('No calibration factors for {}'.format(pcf_curtx))
+            return None
         return None
-    sw_desc = STIX_IDB.get_scos_description(name)
-    #desc = par['PCF_DESCR']
-    offset = par['offset']
-    offset_bit = int(par['offset_bit'])
-    pcf_width = int(par['PCF_WIDTH'])
-    ptc = int(par['PCF_PTC'])
-    pfc = int(par['PCF_PFC'])
-    pcf_curtx = par['PCF_CURTX']
-    #unit = par['PCF_UNIT']
-    s2k_table = STIX_IDB.get_s2k_parameter_types(ptc, pfc)
-    para_type = s2k_table['S2K_TYPE']
-    raw_values = unpack_parameter(app_data, para_type, offset,
-                                  offset_bit, pcf_width,logger)
-    if not parameter_interpret:
-        return {'name': name,
-                'raw': raw_values,
-                #'descr':desc,
-                'value':None
-                #'eng_value_type':None
-                }
 
-    physical_values, phys_value_type = convert_raw_to_eng(
-        pcf_curtx, para_type, raw_values,logger)
-    if not physical_values:
-        if logger:
-            logger.warning(
-                'Parameter {} is not converted to physical value'.format(name))
-    return {
-        'name': name,
-        #'descr': desc,
-        #'sw_desc': sw_desc,
-        'raw': raw_values,
-        #'pos': offset,
-        #'offbit': offset_bit,
-        #'width': pcf_width,
-        #'unit': unit,
-        #'eng_value_type': phys_value_type,
-        'value': physical_values
-    }
-def parse_telemetry_header(packet):
-    # see STIX ICD-0812-ESC  (Page
-    # 57)
-    if packet[0] != 0x0D:
-        return stix_global.HEADER_FIRST_BYTE_INVALID, None
+    def parse_telemetry_parameter(self, app_data, par, calibration=True):
+        name = par['PCF_NAME']
+        if name == 'NIX00299':
+            return None
+        offset = par['offset']
+        offset_bit = int(par['offset_bit'])
+        pcf_width = int(par['PCF_WIDTH'])
+        ptc = int(par['PCF_PTC'])
+        pfc = int(par['PCF_PFC'])
 
-    header_raw = st.unpack('>HHHBBBBIH', packet[0:16])
-    header = {}
-    for h, s in zip(header_raw, stix_header.telemetry_raw_structure):
-        header.update(unpack_integer(h, s))
-    status= check_header(header,'tm')
-    if status == stix_global.OK:
-        header.update({'segmentation': stix_header.packet_seg[header['seg_flag']]})
-        header.update(
-            {'time': header['fine_time'] / 65536. + header['coarse_time']})
-    return status, header
+        s2k_table = self.idb.get_s2k_parameter_types(ptc, pfc)
+        param_type = s2k_table['S2K_TYPE']
+        raw_values = self.decode(app_data, param_type, offset,
+                                      offset_bit, pcf_width)
+        if not calibration:
+            return {'name': name,
+                    'raw': raw_values,
+                    'value':None}
 
-def check_header(header,tmtc='tm'):
-    # header validate
-    constrains=None
-    if tmtc=='tm':
-        constrains=stix_header.telemetry_header_constraints
-    else:
-        constrains=stix_header.telecommand_header_constraints
-    for name, lim in constrains.items():
-        if header[name] not in lim:
-            return stix_global.HEADER_INVALID
-    return stix_global.OK
+        pcf_curtx = par['PCF_CURTX']
+        eng_values= self.convert_raw_to_eng(
+            pcf_curtx, param_type, raw_values)
+        return {
+            'name': name,
+            'raw': raw_values,
+            'value': eng_values}
+
+    def parse_telemetry_header(self,packet):
+        """ see STIX ICD-0812-ESC  (Page # 57) """
+        if packet[0] != 0x0D:
+            return stix_global.HEADER_FIRST_BYTE_INVALID, None
+        header_raw = st.unpack('>HHHBBBBIH', packet[0:16])
+        header = {}
+        for h, s in zip(header_raw, stix_header.telemetry_raw_structure):
+            header.update(unpack_integer(h, s))
+        status= self.check_header(header,'tm')
+        if status == stix_global.OK:
+            header.update({'segmentation': stix_header.packet_seg[header['seg_flag']]})
+            header.update(
+                {'time': header['fine_time'] / 65536. + header['coarse_time']})
+        return status, header
 
 
-def parse_app_header(header, data, data_length):
-    """
-    Decode the data field header  and
-    identify package types using
-    Service type and service subtype 
-    Args:
-        header: a dictionary describe the header
-        data: Application raw data
-    Returns:
-    """
-    service_type = header['service_type']
-    service_subtype = header['service_subtype']
-    offset, width = STIX_IDB.get_packet_type_offset(service_type,
-                                                    service_subtype)
-    # see solar orbit ICD Page 36
-    # width is in units of bits
-    pi1_val = -1
-    if offset != -1:
-        start = offset - 16  # 16bytes read already
-        end = start + width / 8  # it can be : 0, 16,8
-        data_structure = '>B'
-        if width == 16:
-            data_structure = '>H'
-        res = st.unpack(data_structure, data[int(start):int(end)])
-        pi1_val = res[0]
-    type_info = STIX_IDB.get_packet_type_info(service_type, service_subtype,
-                                              pi1_val)
-    info = [{
-        'DESCR': type_info['PID_DESCR']
-    }, {
-        'SPID': type_info['PID_SPID']
-    }, {
-        'TPSD': type_info['PID_TPSD']
-    }, {
-        'data_length': data_length
-    }, {
-        'SSID': pi1_val
-    }]
-    for e in info:
-        header.update(e)
-
-def parse_fixed_packet(app_data,spid,logger=None):
-    parameter_structures = STIX_IDB.get_fixed_packet_structure(spid)
-    return get_fixed_packet_parameters(app_data, parameter_structures,logger)
-
-def get_fixed_packet_parameters(app_data, parameter_structure_list,logger=None):
-    """
-    Extract parameters from a fixed data packet
-    Structures of parameters are defined in the database PLF
-    see Solar orbit IDB ICD section 3.3.2.5.1
-    """
-    parameters = []
-    for par in parameter_structure_list:
-        par['offset'] = int(par['PLF_OFFBY']) - 16
-        # offset is known from the PLF table
-        par['offset_bit'] = int(par['PLF_OFFBI'])
-        par['type'] = 'fixed'
-        parameter = interpret_telemetry_parameter(app_data, par,True, logger)
-        parameters.append(parameter)
-    return parameters
-
-def read_one_packet(in_file, logger):
-    """
-    Read one telemetry packet and parse the header
-    """
-    file_start_pos = in_file.tell()
-    header_raw = in_file.read(16)
-    if not header_raw:
-        return stix_global.EOF, None, None, None, len(header_raw)
-    header_status, header = parse_telemetry_header(header_raw)
-    if header_status != stix_global.OK:
-        if logger:
-            logger.warning('Bad header around {}, error code: '.format(in_file.tell()), header_status)
-
-        is_found, bytes_skipped, bad_block = find_next_telemetry_header(in_file)
-        if logger:
-            logger.warning('Unexpected block around {}:'.format(in_file.tell()), bad_block)
-
-        cur_pos = in_file.tell()
-        if is_found and logger:
-            logger.info('New header at ', cur_pos)
-            logger.info('Bytes skipped ', bytes_skipped)
-            return stix_global.NEXT_PACKET, None, header_raw,\
-                None, cur_pos - file_start_pos
+    def check_header(self, header,tmtc='tm'):
+        # header validate
+        constrains=None
+        if tmtc=='tm':
+            constrains=stix_header.telemetry_header_constraints
         else:
-            return stix_global.EOF, None, header_raw,\
-                None, cur_pos - file_start_pos
-    data_length = header['length']
-    app_length = (data_length + 1) - 10
+            constrains=stix_header.telecommand_header_constraints
+        for name, lim in constrains.items():
+            if header[name] not in lim:
+                return stix_global.HEADER_INVALID
+        return stix_global.OK
 
-    if app_length <= 0:  # wrong packet length
-        logger.warning('Source data length 0')
-        return stix_global.NEXT_PACKET, None, header_raw,None,\
-                in_file.tell() - file_start_pos
-    app_data = in_file.read(app_length)
-    if len(app_data) != app_length:
-        if logger:
-            logger.error("No enough data was read")
-        return stix_global.EOF, None, header_raw,\
-            None, in_file.tell() - file_start_pos
-    parse_app_header(header, app_data,app_length)
-    return stix_global.OK, header, header_raw, app_data, \
-        in_file.tell() - file_start_pos
+    def decode_app_header(self, header, data, length):
+        """ Decode the data field header  
+        """
+        service_type = header['service_type']
+        service_subtype = header['service_subtype']
+        offset, width = self.idb.get_packet_type_offset(service_type,
+                                                        service_subtype)
+        # see solar orbit ICD Page 36
+        SSID= -1
+        if offset != -1:
+            start = offset - 16  # 16bytes read already
+            end = start + width / 8  # it can be : 0, 16,8
+            upstr= '>B'
+            if width == 16:
+                upstr= '>H'
+            res = st.unpack(upstr, data[int(start):int(end)])
+            SSID= res[0]
+        info = self.idb.get_packet_type_info(service_type, service_subtype,
+                                                  SSID)
+        header['DESCR']=info['PID_DESCR']
+        header['SPID']=info['PID_SPID']
+        header['TPSD']=info['PID_TPSD']
+        header['length']=length
+        header['SSID']=SSID
 
-def parse_telecommand_header(packet):
-    # see STIX ICD-0812-ESC  (Page
-    # 56)
-    if packet[0] != 0x1D:
-        return stix_global.HEADER_FIRST_BYTE_INVALID, None
-    header_raw = st.unpack('>HHHBBBB', packet[0:10])
-    header = {}
-    for h, s in zip(header_raw, stix_header.telecommand_raw_structure):
-        header.update(unpack_integer(h, s))
-    status= check_header(header,'tc')
-    info=STIX_IDB.get_telecommand_characteristics(header['service_type'],
-            header['service_subtype'], header['source_id'])
-    header['DESCR']=info['CCF_DESCR']+' - ' +info['CCF_DESCR2']
-    header['SPID']=''
-    header['name']=info['CCF_CNAME']
-    if status == stix_global.OK:
-        try:
-            header['ACK_DESC']=stix_header.ACK_mapping[header['ACK']]
-        except KeyError:
-            status=stix_global.HEADER_KEY_ERROR
-    return status, header
+    def parse_fixed_packet(self, buf, spid):
+        param_struct= self.idb.get_fixed_packet_structure(spid)
+        return self.get_fixed_packet_parameters(buf, param_struct)
 
-def parse_telecommand_parameter(header,packet):
-    pass
-def parse_telecommand_packet(buf, logger=None):
-    header_status,header=parse_telecommand_header(buf)
-    if header_status != stix_global.OK and logger:
-        logger.warning('Bad telecommand header ')
-    else:
-        pprint.pprint(header)
-    return header,None
+    def get_fixed_packet_parameters(self, buf, param_struct):
+        """ Extract parameters from a fixed data packet see Solar orbit IDB ICD section 3.3.2.5.1
+        """
+        params= []
+        for par in param_struct:
+            par['offset'] = int(par['PLF_OFFBY']) - 16
+            par['offset_bit'] = int(par['PLF_OFFBI'])
+            par['type'] = 'fixed'
+            parameter = parse_telemetry_parameter(buf, par)
+            params.append(parameter)
+        return params
+
+    def format_parse_result(self,status,length, header=None, header_raw=None,
+            app_raw=None):
+        return {'status': status,
+                'header': header, 
+                'header_raw':header_raw, 
+                'app_raw':app_raw,
+                'num_read': length
+                }
+    def read_one_packet(self, in_file):
+        start_pos = in_file.tell()
+        header_raw= in_file.read(16)
+        cur_pos = in_file.tell()
+        num_read=cur_pos-start_pos
+
+        if not header_raw:
+            return self.format_parse_result(stix_global.EOF, header_raw=header_raw, 
+                    length=len(header_raw))
+
+        header_status, header = self.parse_telemetry_header(header_raw)
+
+        if header_status != stix_global.OK:
+            self.warning('Bad header at {}, code {} '.format(in_file.tell(), header_status))
+            found, num_skipped, bad_block = find_next_header(in_file)
+
+            cur_pos = in_file.tell()
+            num_read=cur_pos-start_pos
+            self.warning('''Unexpected block around {}, 
+                            Number of bytes skipped: {}'''.format(
+                in_file.tell(),num_skipped))
+            if found:
+                self.info('New header at ', cur_pos)
+                return self.format_parse_result(stix_global.NEXT_PACKET, 
+                        num_read, header_raw=header_raw)
+            else:
+                return self.format_parse_result(stix_global.EOF, 
+                        num_read, header_raw=header_raw)
+
+        app_length =header['length']+9
+        if app_length <= 0:  # wrong packet length
+            self.warning('Source data length 0')
+            return self.format_parse_result(stix_global.NEXT_PACKET,
+                    num_read, header_raw=header_raw)
+
+        app_data = in_file.read(app_length)
+
+        num_read=in_file.tell()-start_pos
+
+        actual_length=len(app_data)
+        if actual_length != app_length:
+
+        self.error("Incomplete data packet! pos:  {}, expect: {}, actual: {}, ".format(
+            in_file.tell(), app_length, actual_length))
+            return self.format_parse_result(stix_global.EOF, num_read,header_raw=header_raw)
+        self.decode_app_header(header, app_data, app_length)
+        return self.format_parse_result(stix_global.OK, num_read, 
+                header, header_raw, app_data)
+
+
+class StixTelecommandParser(StixTelemetryParser):
+    def __init__(self, stix_idb=STIX_IDB, logger=None):
+        supper().__init__(stix_idb,logger)
+    def parse_telecommand_header(self, packet):
+        # see STIX ICD-0812-ESC  (Page
+        # 56)
+        if packet[0] != 0x1D:
+            return stix_global.HEADER_FIRST_BYTE_INVALID, None
+        header_raw = st.unpack('>HHHBBBB', packet[0:10])
+        header = {}
+        for h, s in zip(header_raw, stix_header.telecommand_raw_structure):
+            header.update(unpack_integer(h, s))
+        status= check_header(header,'tc')
+        info=self.idb.get_telecommand_characteristics(header['service_type'],
+                header['service_subtype'], header['source_id'])
+        header['DESCR']=info['CCF_DESCR']+' - ' +info['CCF_DESCR2']
+        header['SPID']=''
+        header['name']=info['CCF_CNAME']
+        if status == stix_global.OK:
+            try:
+                header['ACK_DESC']=stix_header.ACK_mapping[header['ACK']]
+            except KeyError:
+                status=stix_global.HEADER_KEY_ERROR
+        return status, header
+
+    def parse_telecommand_parameter(self.header,packet):
+        pass
+    def parse_telecommand_packet(self, buf, logger=None):
+        header_status,header=self.parse_telecommand_header(buf)
+        if header_status != stix_global.OK and logger:
+            logger.warning('Bad telecommand header ')
+        else:
+            pprint.pprint(header)
+        return header,None
 
