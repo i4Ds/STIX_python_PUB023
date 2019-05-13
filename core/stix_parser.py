@@ -28,41 +28,15 @@ SIGNED_UNPACK_STRING = ['b', '>h', 'bbb', '>i', 'bbbbb', '>ih']
 
 
 def slice_bits(data, offset, length):
-    """
-     get the value of the bits between [offset, offset+length]
-    """
     return (data >> offset) & ((1 << length) - 1)
-
-
 def unpack_integer(raw, structure):
-    """
-    unpack a 16 bit or 32 bit  integer using the defined structure
-    Args:
-        structure:
-        Structure is a dictionary describing the structure of the integer
-    Returns:
-        a dictionary 
-    """
     result = {}
     for name, bits in structure.items():
         result[name] = slice_bits(raw, bits[0], bits[1])
     return result
-
-
 def unpack_parameter(in_data, parameter_type, offset, offset_bit, data_length, logger=None):
-    """
-    unpack a 'fixed'  parameter from a binary stream
-    Args:
-        in_data         : binary data
-        offset          : offset 
-        parameter_type  : parameter type known from the s2k table
-        data_length     : data length in units of bits
-    Results:
-        unpacked data
-    """
     data_type = ''
     nbytes = int(math.ceil((data_length + offset_bit) / 8.))
-    # bytes to be read
     if parameter_type == 'U':
         if nbytes <= 6:
             data_type = UNSIGNED_UNPACK_STRING[nbytes - 1]
@@ -82,8 +56,6 @@ def unpack_parameter(in_data, parameter_type, offset, offset_bit, data_length, l
     
     results = ()
     raw_data = in_data[int(offset):int(offset + nbytes)]
-
-
     if nbytes != len(raw_data):
         if logger:
             logger.error(
@@ -91,10 +63,6 @@ def unpack_parameter(in_data, parameter_type, offset, offset_bit, data_length, l
                     nbytes, len(raw_data)))
         return None
     unpacked_values = st.unpack(data_type, raw_data)
-
-    #print('data type:'+data_type)
-    #print(parameter_type, offset, offset_bit,data_length)
-
     if data_type == 'BBB':  # 24-bit integer
         value = (unpacked_values[0] << 16)| (unpacked_values[1] << 8)| unpacked_values[2]
         if data_length < 16 and data_length % 8 != 0:
@@ -110,8 +78,7 @@ def unpack_parameter(in_data, parameter_type, offset, offset_bit, data_length, l
         results = unpacked_values
     return results
 
-
-def find_next_header(f):
+def find_next_telemetry_header(f):
     nbytes = 0
     bad_block = ''
     while True:
@@ -124,10 +91,9 @@ def find_next_header(f):
         if x == 0x0D:
             f.seek(pos - 1)
             return True, nbytes, bad_block
-
     return False, nbytes, bad_block
 
-def get_parameter_physical_value(pcf_curtx, para_type, raw_values, logger=None):
+def convert_raw_to_eng(pcf_curtx, para_type, raw_values, logger=None):
     """
     convert raw value  to physical value using the calibration factors in
     several IDB tables: txf, txp, pas, cap or mcf
@@ -166,16 +132,13 @@ def get_parameter_physical_value(pcf_curtx, para_type, raw_values, logger=None):
             return val, 'F'
     elif prefix == 'NIX':
         # temperature
-        if logger:
-            logger.warning('{} not interpreted'.format(pcf_curtx))
-        if pcf_curtx == 'NIX00101':
+        #if logger:
+        #    logger.warning('{} not interpreted'.format(pcf_curtx))
+        #if pcf_curtx == 'NIX00101':
             #see SO-STIX-DS-30001_IDeF-X HD datasheet page 29
-            pass
-
-
+        #    pass
         return None,None
     elif prefix == 'CIX':
-        # Polynomial
         rows=STIX_IDB.get_calibration_polynomial(pcf_curtx)
         if rows:
             pol_coeff = ([float(x) for x in rows[0]])
@@ -184,7 +147,6 @@ def get_parameter_physical_value(pcf_curtx, para_type, raw_values, logger=None):
             for a, b in zip(pol_coeff,x_points):
                 sum_value+=a*b
             return sum_value,'F'
-
         return None,None
     return None,None
 
@@ -205,7 +167,6 @@ def interpret_telemetry_parameter(app_data, par, parameter_interpret=True, logge
     para_type = s2k_table['S2K_TYPE']
     raw_values = unpack_parameter(app_data, para_type, offset,
                                   offset_bit, pcf_width,logger)
-
     if not parameter_interpret:
         return {'name': name,
                 'raw': raw_values,
@@ -214,7 +175,7 @@ def interpret_telemetry_parameter(app_data, par, parameter_interpret=True, logge
                 #'eng_value_type':None
                 }
 
-    physical_values, phys_value_type = get_parameter_physical_value(
+    physical_values, phys_value_type = convert_raw_to_eng(
         pcf_curtx, para_type, raw_values,logger)
     if not physical_values:
         if logger:
@@ -232,9 +193,6 @@ def interpret_telemetry_parameter(app_data, par, parameter_interpret=True, logge
         #'eng_value_type': phys_value_type,
         'value': physical_values
     }
-
-
-
 def parse_telemetry_header(packet):
     # see STIX ICD-0812-ESC  (Page
     # 57)
@@ -251,7 +209,6 @@ def parse_telemetry_header(packet):
         header.update(
             {'time': header['fine_time'] / 65536. + header['coarse_time']})
     return status, header
-
 
 def check_header(header,tmtc='tm'):
     # header validate
@@ -271,12 +228,10 @@ def parse_app_header(header, data, data_length):
     Decode the data field header  and
     identify package types using
     Service type and service subtype 
-
     Args:
         header: a dictionary describe the header
         data: Application raw data
     Returns:
-
     """
     service_type = header['service_type']
     service_subtype = header['service_subtype']
@@ -329,8 +284,6 @@ def get_fixed_packet_parameters(app_data, parameter_structure_list,logger=None):
         parameters.append(parameter)
     return parameters
 
-
-
 def read_one_packet(in_file, logger):
     """
     Read one telemetry packet and parse the header
@@ -344,7 +297,7 @@ def read_one_packet(in_file, logger):
         if logger:
             logger.warning('Bad header around {}, error code: '.format(in_file.tell()), header_status)
 
-        is_found, bytes_skipped, bad_block = find_next_header(in_file)
+        is_found, bytes_skipped, bad_block = find_next_telemetry_header(in_file)
         if logger:
             logger.warning('Unexpected block around {}:'.format(in_file.tell()), bad_block)
 
@@ -398,7 +351,6 @@ def parse_telecommand_header(packet):
 
 def parse_telecommand_parameter(header,packet):
     pass
-
 def parse_telecommand_packet(buf, logger=None):
     header_status,header=parse_telecommand_header(buf)
     if header_status != stix_global.OK and logger:

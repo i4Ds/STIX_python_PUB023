@@ -16,8 +16,10 @@ class stix_writer:
         self.filename=None
         self.packets=[]
         self.db=None
-        self.packet_col=None
+        self.packet_col=[]
         self.runs_col=None
+        self.start=-1
+        self.end=-1
         try :
             self.connect= pymongo.MongoClient('localhost', 27017)
             self.db = self.connect["stix"]
@@ -43,17 +45,19 @@ class stix_writer:
     def write(self,header, parameters, parameter_desc=dict()):
         packet={'header':header, 'parameter':parameters,
                 'run_id':self.this_run_id}
-        #'parameter_desc':parameter_desc
-        self.packets.append(packet)
+        #self.packets.append(packet)
+        if self.db:
+            self.packet_col.insert_one(packet)
+        if self.start<0:
+            self.start=header['time']
+        self.end=header['time']
     def done(self):
-        start_time=self.packets[0]['header']['time']
-        end_time=self.packets[-1]['header']['time']
-        self.run_info['start']=start_time
-        self.run_info['end']=end_time
+        self.run_info['start']=self.start
+        self.run_info['end']=self.end
         self.run_info['_id']=self.this_run_id
         if self.db:
             self.runs_col.insert_one(self.run_info)
-            self.packet_col.insert_many(self.packets)
+            #self.packet_col.insert_many(self.packets)
     def write_all(self, data):
         pass
     def write_parameters(self, parameters,spid=0):

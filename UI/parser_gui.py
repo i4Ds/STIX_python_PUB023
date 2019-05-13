@@ -185,12 +185,17 @@ class Ui(mainwindow.Ui_MainWindow):
         # self.actionLog.triggered.connect(self.dockWidget_2.show)
         self.actionSet_IDB.triggered.connect(self.onSetIDBClicked)
         self.plotButton.clicked.connect(self.onPlotButtonClicked)
+        self.exportButton.clicked.connect(self.onExportButtonClicked)
         self.action_Plot.triggered.connect(self.onPlotActionClicked)
         self.actionLoad_mongodb.triggered.connect(self.onLoadMongoDBTriggered)
         self.mdb=None
 
         self.current_row = 0
         self.data=[]
+        self.x=[]
+        self.y=[]
+        self.xlabel='x'
+        self.ylabel='y'
 
         self.chart = QChart()
         self.chart.layout().setContentsMargins(0,0,0,0)
@@ -198,7 +203,7 @@ class Ui(mainwindow.Ui_MainWindow):
         self.savePlotButton.clicked.connect(self.savePlot)
         
         self.chartView = QChartView(self.chart)
-        self.gridLayout.addWidget(self.chartView, 1, 0, 1, 14)
+        self.gridLayout.addWidget(self.chartView, 1, 0, 1, 15)
 
         # IDB location
 
@@ -212,6 +217,25 @@ class Ui(mainwindow.Ui_MainWindow):
             self.showMessage(
                 'IDB found: {} '.format(
                     idb.STIX_IDB.get_idb_filename()))
+
+    def onExportButtonClicked(self):
+        if self.y:
+            filename = str(QtWidgets.QFileDialog.getSaveFileName(
+                None, "Save file", "", "*.csv")[0])
+            if filename:
+                with open(filename,'w') as f:
+                    f.write('{},{}\n'.format(self.xlabel,self.ylabel))
+                    for xx,yy in zip(self.x,self.y):
+                        f.write('{},{}\n'.format(xx,yy))
+                    self.showMessage('The data has been written to {}'.format(filename))
+        else:
+            msgBox = QtWidgets.QMessageBox()
+            msgBox.setIcon(QtWidgets.QMessageBox.Information)
+            msgBox.setText('Plot first!')
+            msgBox.setWindowTitle("Warning")
+            msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            msgBox.exec_()
+
 
     def savePlot(self):
         #if self.figure.get_axes():
@@ -429,7 +453,6 @@ class Ui(mainwindow.Ui_MainWindow):
             root.setText(3, str(run['start']))
             root.setText(4, str(run['end']))
         self.showMessage('Runs loaded!')
-
     def loadDataFromMongoDB(self,dui,diag):
         selected_runs=[]
         for item in dui.treeWidget.selectedItems():
@@ -437,12 +460,13 @@ class Ui(mainwindow.Ui_MainWindow):
         if not selected_runs:
             self.showMessage('Run not selected!')
         if selected_runs:
+            diag.done(0)
+            self.showMessage('Loading data ...!')
             data=self.mdb.get_packets(selected_runs[0])
             if data:
                 self.onDataLoaded(data,clear=True)
             else:
                 self.showMessage('No packets found!')
-        diag.done(0)
         #close
 
     def onPacketSelected(self, cur, pre):
@@ -501,9 +525,11 @@ class Ui(mainwindow.Ui_MainWindow):
         if not params:
             return
         timestamp = header['time']
+        #parameters=[p for p in params if p['name'] == name] 
         for p in params:
-            if not p or 'raw' not in p:
+            if type(p) is not dict:
                 continue
+        #for p in parameters:
             if name == p['name']:
                 values = None
                 #print('data type:{}'.format(data_type))
@@ -539,48 +565,52 @@ class Ui(mainwindow.Ui_MainWindow):
     def onPlotButtonClicked(self):
         if self.chart:
             self.chart.removeAllSeries()
-
         if not self.data:
             return
+        self.showMessage('Preparing plot ...')
         name = self.paramNameEdit.text()
         packet_selection = self.comboBox.currentIndex()
         xaxis_type = self.xaxisComboBox.currentIndex()
         data_type = self.dataTypeComboBox.currentIndex()
 
         timestamp = []
-        y = []
+        self.y = []
+        packet_id = self.current_row
+        params = self.data[packet_id]['parameter']
+        header = self.data[packet_id]['header']
+        current_spid=header['SPID']
         if packet_selection == 0:
-            packet_id = self.current_row
-            params = self.data[packet_id]['parameter']
-            header = self.data[packet_id]['header']
             self.walk(
                 name,
                 params,
                 header,
                 timestamp,
-                y,
+                self.y,
                 xaxis_type,
                 data_type)
         elif packet_selection == 1:
             for packet in self.data:
-                params = packet['parameter']
                 header = packet['header']
+                if packet['header']['SPID'] != current_spid:
+                    continue
+                #only look for parameters in the packets of the same type
+                params = packet['parameter']
                 self.walk(
                     name,
                     params,
                     header,
                     timestamp,
-                    y,
+                    self.y,
                     xaxis_type,
                     data_type)
 
-        x = []
+        self.x = []
 
 
 
-        if not y:
+        if not self.y:
             self.showMessage('No data points')
-        elif y:
+        elif self.y:
             style = self.styleEdit.text()
             if not style:
                 style = '-'
@@ -596,9 +626,9 @@ class Ui(mainwindow.Ui_MainWindow):
                 ylabel = 'Engineering  value'
             if xaxis_type == 0:
                 xlabel = "Packet #"
-                x = range(0, len(y))
+                self.x = range(0, len(self.y))
             if xaxis_type == 1:
-                x = [t - timestamp[0] for t in timestamp]
+                self.x = [t - timestamp[0] for t in timestamp]
                 xlabel = 'Time -T0 (s)'
 
             if xaxis_type != 2:
@@ -607,11 +637,11 @@ class Ui(mainwindow.Ui_MainWindow):
 
                 # print(y)
                 # print(x)
-                for xx, yy in zip(x, y):
+                for xx, yy in zip(self.x, self.y):
                     series.append(xx, yy)
                 if 'o' in style:
                     series2 = QScatterSeries()
-                    for xx, yy in zip(x, y):
+                    for xx, yy in zip(self.x, self.y):
                         series2.append(xx, yy)
                     self.chart.addSeries(series2)
                 self.chart.addSeries(series)
@@ -629,7 +659,7 @@ class Ui(mainwindow.Ui_MainWindow):
 
                 # histogram
             else:
-                nbins = len(set(y))
+                nbins = len(set(self.y))
                 ycounts, xedges = np.histogram(y, bins=nbins)
                 series = QLineSeries()
                 for i in range(0, nbins):
@@ -657,6 +687,8 @@ class Ui(mainwindow.Ui_MainWindow):
                 #self.chart.setAxisX(axisX,series)
 
             # self.widget.setChart(self.chart)
+            self.xlabel=xlabel
+            self.ylabel=ylabel
             self.chartView.setRubberBand(QChartView.RectangleRubberBand)
             self.chartView.setRenderHint(QtGui.QPainter.Antialiasing)
             self.showMessage('The canvas updated!')

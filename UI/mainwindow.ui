@@ -153,13 +153,6 @@
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
          <layout class="QGridLayout" name="gridLayout">
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_4">
-            <property name="text">
-             <string>Type:</string>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="1">
            <widget class="QComboBox" name="xaxisComboBox">
             <item>
@@ -186,6 +179,46 @@
             </property>
            </widget>
           </item>
+          <item row="0" column="4">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>In</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="9">
+           <widget class="QLineEdit" name="styleEdit">
+            <property name="maximumSize">
+             <size>
+              <width>40</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="text">
+             <string>-</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="10">
+           <spacer name="horizontalSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>25</width>
+              <height>17</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>Type:</string>
+            </property>
+           </widget>
+          </item>
           <item row="0" column="3">
            <widget class="QLineEdit" name="paramNameEdit">
             <property name="maximumSize">
@@ -193,13 +226,6 @@
               <width>150</width>
               <height>16777215</height>
              </size>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="4">
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>In</string>
             </property>
            </widget>
           </item>
@@ -251,52 +277,12 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="7">
-           <widget class="QComboBox" name="dataTypeComboBox">
-            <item>
-             <property name="text">
-              <string>Raw values</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Engineering values</string>
-             </property>
-            </item>
-           </widget>
-          </item>
           <item row="0" column="8">
            <widget class="QLabel" name="label_3">
             <property name="text">
              <string>Curve Style:</string>
             </property>
            </widget>
-          </item>
-          <item row="0" column="9">
-           <widget class="QLineEdit" name="styleEdit">
-            <property name="maximumSize">
-             <size>
-              <width>40</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>-</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="10">
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>25</width>
-              <height>17</height>
-             </size>
-            </property>
-           </spacer>
           </item>
           <item row="0" column="11">
            <widget class="QPushButton" name="plotButton">
@@ -321,6 +307,27 @@
             </property>
             <property name="text">
              <string>Save</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="7">
+           <widget class="QComboBox" name="dataTypeComboBox">
+            <item>
+             <property name="text">
+              <string>Raw values</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Engineering values</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item row="0" column="13">
+           <widget class="QPushButton" name="exportButton">
+            <property name="text">
+             <string>Export data</string>
             </property>
            </widget>
           </item>
