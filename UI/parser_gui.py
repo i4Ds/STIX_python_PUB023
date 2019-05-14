@@ -13,14 +13,12 @@ from PyQt5 import uic, QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtChart import QChart, QChartView, QLineSeries, QValueAxis, QBarSeries, QBarSet, QScatterSeries
 
-from core import stix_telemetry_parser
+from core import stix_parser 
 from core import stix_global
 from core import stix_writer
-from core import stix_writer_sqlite
-from core import odb
+from core import stix_sqlite_reader
 from core import idb
 from io import BytesIO
-
 
 from UI import mainwindow_rc5
 from UI import mainwindow
@@ -41,6 +39,7 @@ class StixDataReader(QThread):
         super(StixDataReader, self).__init__()
         self.filename = filename
         self.data = []
+        self.stix_telemetry_parser=stix_parser.StixTelemetryParser()
 
     def run(self):
         self.data = []
@@ -66,7 +65,7 @@ class StixDataReader(QThread):
 
     def read_packet_from_db(self, filename):
         self.info.emit(('Loading data from {}').format(filename))
-        db = odb.ODB(filename)
+        db = stix_sqlite_reader.StixSqliteReader(filename)
         self.data = db.get_packets()
         print(self.data)
 
@@ -92,8 +91,14 @@ class StixDataReader(QThread):
             data_hex = packet['raw']
             data_binary = binascii.unhexlify(data_hex)
             in_file = BytesIO(data_binary[76:])
-            status, header, parameters, param_type, param_desc, num_bytes_read = stix_telemetry_parser.parse_one_packet(
-                in_file, self)
+
+            result=self.stix_telemetry_parser.parse_one_packet_from_file(in_file, 0, 'tree')
+            status=result['status']
+            header=result['header']
+            parameters=result['parameters']
+            param_type=result['parameter_type']
+            num_bytes_read=result['num_read']
+
             if i % freq == 0:
                 self.info.emit("{.0f}% loaded".format(100 * i / num))
             self.data.append({'header': header, 'parameter': parameters})
@@ -117,13 +122,18 @@ class StixDataReader(QThread):
             selected_spid = 0
             last_percent = 0
             while True:
-                status, header, parameters, param_type, param_desc, num_bytes_read = stix_telemetry_parser.parse_one_packet(
-                    in_file, None, selected_spid, output_param_type='tree')
+                result=self.stix_telemetry_parser.parse_one_packet_from_file(in_file, 0, 'tree')
+                status=result['status']
+                header=result['header']
+                parameters=result['parameters']
+                param_type=result['parameter_type']
+                num_bytes_read=result['num_read']
+
                 total_read += num_bytes_read
                 total_packets += 1
-                if status == stix_global.NEXT_PACKET:
+                if status == stix_global._next_packet:
                     continue
-                if status == stix_global.EOF:
+                if status == stix_global._eof:
                     break
 
                 if int(total_read / percent) > int(last_percent):
@@ -210,13 +220,13 @@ class Ui(mainwindow.Ui_MainWindow):
         self.settings = QtCore.QSettings('FHNW', 'stix_parser')
         self.idb_filename = self.settings.value('idb_filename', [], str)
         if self.idb_filename:
-            idb.STIX_IDB = idb.IDB(self.idb_filename)
-        if not idb.STIX_IDB.is_connected():
+            idb._stix_idb = idb.IDB(self.idb_filename)
+        if not idb._stix_idb.is_connected():
             self.showMessage('IDB has not been set!')
         else:
             self.showMessage(
                 'IDB found: {} '.format(
-                    idb.STIX_IDB.get_idb_filename()))
+                    idb._stix_idb.get_idb_filename()))
 
     def onExportButtonClicked(self):
         if self.y:
@@ -268,8 +278,14 @@ class Ui(mainwindow.Ui_MainWindow):
         try:
             data_binary = binascii.unhexlify(data_hex)
             in_file = BytesIO(data_binary)
-            status, header, parameters, param_type, param_desc, num_bytes_read = stix_telemetry_parser.parse_one_packet(
-                in_file, self)
+            #status, header, parameters, param_type, param_desc, num_bytes_read = stix_telemetry_parser.parse_one_packet(
+            #    in_file, self)
+            result=self.stix_telemetry_parser.parse_one_packet_from_file(in_file, 0, 'tree')
+            status=result['status']
+            header=result['header']
+            parameters=result['parameters']
+            param_type=result['parameter_type']
+            num_bytes_read=result['num_read']
             data = [{'header': header, 'parameter': parameters}]
             self.showMessage(
                 ('%d bytes read from the clipboard' %
@@ -302,13 +318,13 @@ class Ui(mainwindow.Ui_MainWindow):
         if not self.idb_filename:
             return
 
-        idb.STIX_IDB = idb.IDB(self.idb_filename)
-        if idb.STIX_IDB.is_connected():
+        idb._stix_idb = idb.IDB(self.idb_filename)
+        if idb._stix_idb.is_connected():
             #settings = QtCore.QSettings('FHNW', 'stix_parser')
             self.settings.setValue('idb_filename', self.idb_filename)
         self.showMessage(
             'current IDB: {} '.format(
-                idb.STIX_IDB.get_idb_filename()))
+                idb._stix_idb.get_idb_filename()))
 
     def save(self):
         self.output_filename = str(
@@ -323,12 +339,12 @@ class Ui(mainwindow.Ui_MainWindow):
         self.showMessage(msg)
 
         if self.output_filename.endswith(('.pklz', '.pkl')):
-            stw = stix_writer.stix_writer(self.output_filename)
+            stw = stix_writer.StixPickleWriter(self.output_filename)
             stw.register_run(str(self.input_filename))
             stw.write_all(self.data)
             stw.done()
         elif self.output_filename.endswith('.db'):
-            stw = stix_writer_sqlite.stix_writer(self.output_filename)
+            stw = stix_writer.StixSqliteWriter(self.output_filename)
             stw.register_run(str(self.input_filename))
             stw.write_all(self.data)
             stw.done()
@@ -506,8 +522,8 @@ class Ui(mainwindow.Ui_MainWindow):
                 continue
             try:
                 param_name=p['name']
-                desc=idb.STIX_IDB.get_PCF_description(param_name)
-                scos_desc=idb.STIX_IDB.get_scos_description(param_name)
+                desc=idb._stix_idb.get_PCF_description(param_name)
+                scos_desc=idb._stix_idb.get_scos_description(param_name)
                 root.setToolTip(1,scos_desc)
                 root.setText(0, param_name)
                 root.setText(1, desc)

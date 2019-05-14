@@ -12,27 +12,19 @@ import pprint
 import sqlite3
 from core import stix_logger
 
-LOGGER = stix_logger.LOGGER
-STIX_IDB_FILENAME='idb/idb.sqlite'
+_stix_idb_filename='idb/idb.sqlite'
 
-
-POSSIBLE_LOCATIONS=['../idb/idb.sqlite','../idb/idb.db','../idb.sqlite','../idb.db']
+_search_locations=['../idb/idb.sqlite','../idb/idb.db','../idb.sqlite','../idb.db']
 def find_idb(filename):
     if os.path.exists(filename):
         return filename
     else:
-        for fname in POSSIBLE_LOCATIONS:
+        for fname in _search_locations:
             if os.path.exists(fname):
                 return fname
         return None
-
-
-
-
-
-
-class IDB(object):
-    def __init__(self, filename=STIX_IDB_FILENAME, logger=LOGGER):
+class IDB:
+    def __init__(self, filename=_stix_idb_filename):
 
         self.filename=find_idb(filename)
         self.conn = None
@@ -48,7 +40,7 @@ class IDB(object):
         if self.filename:
             self.connect_database(self.filename)
 
-        self.logger=logger
+        #self.logger=logger
     def is_connected(self):
         if self.cur:
             return True
@@ -74,7 +66,7 @@ class IDB(object):
         try:
             self.conn = sqlite3.connect(filename,check_same_thread=False)
         except sqlite3.Error as er:
-            self.logger.error(er.message)
+            #self.logger.error(er.message)
             raise Exception('Failed to connect to IDB !')
         else:
             self.cur = self.conn.cursor()
@@ -86,12 +78,6 @@ class IDB(object):
     def execute(self, sql,arguments, result_type='list'):
         """
         execute sql and return results in a list or a dictionary
-        Args:
-            sql: sql
-            result_type: type of results. It can be list or dict
-        return:
-            database query result
-        N
         """
         if not self.cur:
             raise Exception('IDB is not initialized!')
@@ -299,7 +285,7 @@ class IDB(object):
 
 
 
-STIX_IDB = IDB()
+_stix_idb = IDB()
 
 def test():
     """ test  the database interfaces"""
