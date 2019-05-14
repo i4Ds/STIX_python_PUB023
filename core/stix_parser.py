@@ -18,6 +18,7 @@ from scipy import interpolate
 import numpy as np
 import struct as st
 import pprint
+import copy
 from core import idb
 from core import stix_global
 from core import header as stix_header
@@ -137,9 +138,8 @@ class StixParameterParser:
         return None
 
     def parse_telemetry_parameter(self, app_data, par, calibration=True):
+
         name = par['PCF_NAME']
-        if name == 'NIX00299':
-            return None
         offset = par['offset']
         offset_bit = int(par['offset_bit'])
         pcf_width = int(par['PCF_WIDTH'])
@@ -381,6 +381,7 @@ class StixTelemetryParser(StixParameterParser):
 
     def parse_file(self,in_filename, out_filename=None, selected_spid=0,
             pstruct='tree'):
+        _stix_logger.info('Processing file: {}'.format(in_filename))
         with open(in_filename, 'rb') as in_file:
             st_writer=None
             if  out_filename.endswith(('.pkl','.pklz')):
@@ -423,9 +424,9 @@ class StixTelemetryParser(StixParameterParser):
             _stix_logger.info('{} packets found in the file: {}'.format(total,in_filename))
             _stix_logger.info('{} ({} fixed and {} variable) packets processed.'.format(
                     fix+var,fix,var))
-            _stix_logger.info('Writing parameters to file {} ...'.format(out_filename))
+            if out_filename:
+                _stix_logger.info('Writing parameters to file {} ...'.format(out_filename))
             _stix_logger.info('Done.')
-
 
 
 class StixVariablePacketParser(StixParameterParser):
@@ -433,43 +434,67 @@ class StixVariablePacketParser(StixParameterParser):
     Variable length packet parser
     """
     def __init__(self):
-        pass
+        self.debug=False
+        self.nodes_LUT=[]
+        self.last_spid=-1
+
     def debug_enabled(self):
         self.debug=True
-    def parse(self,data, spid, output_type='tree'):
-        """
-        """
-        self.root = None
-        self.source_data = data
-        self.spid = spid
+
+    def init_nodes(self):
         self.nodes = []
-        self.results_tree = []
-        self.num_nodes = 0
         self.nodes.append(
             self.create_node('top', 0, 0, 0, stix_global._max_parameters, None,
                              1))
+        self.nodes[0]['child']=[]
+        self.length_min = 0
+
+    def load_nodes(self,spid):
+        for node in self.nodes_LUT:
+            if spid == node['spid']:
+                self.nodes=node['nodes']
+                self.length_min=node['length_min']
+                return True
+        return False
+    def store_current_nodes(self):
+        node = {'spid':self.spid,
+                'nodes':self.nodes,
+                'length_min':self.length_min}
+
+        self.nodes_LUT.append(node)#copy
+
+
+
+    def parse(self,data, spid, output_type='tree'):
+        """
+        """
+        self.output_type =output_type
+        self.source_data = data
+        self.spid = spid
         self.current_offset = 0
         self.last_offset = 0
         self.current_offset_bit = 0
-        self.length_min = 0
-        self.output_type =output_type
-        self.results_dict={}
-        self.debug=False
-        #self.parameter_desc={}
-
-    #def start(self):
-        self.nodes[0]['child']=[]
+        self.results_tree = []
         self.results_tree[:]=[]
+        self.results_dict={}
         self.results_dict.clear()
-        #self.parameter_desc.clear()
-        #self.current_offset = 0
-        #self.last_offset = 0
-        #self.current_offset_bit = 0
-        #self.length_min = 0
-        
+
+
+        if spid != self.last_spid:
+            self.init_nodes()
+            self.build_tree()
+
+        #if spid != self.last_spid:
+        #    if not self.load_nodes(spid):
+        #        self.init_nodes()
+        #        self.build_tree()
+        #        self.store_current_nodes()
+
+        self.last_spid=spid
+
 
     def get_parameters(self):
-        self.build_tree()
+
         packet_length = len(self.source_data)
         if self.length_min > packet_length:
             return 0, None, stix_global._variable_packet_length_mismatch 
@@ -499,11 +524,9 @@ class StixVariablePacketParser(StixParameterParser):
             'counter': counter,
             #'width': width,
             'parameter': parameter,
-            'ID': self.num_nodes,
             'child': child,
             #'desc': desc
         }
-        self.num_nodes += 1
         return node
     def get_parameter_description(self):
         #return self.parameter_desc
@@ -530,13 +553,13 @@ class StixVariablePacketParser(StixParameterParser):
         To build a parameter tree 
         """
         #self.start()
-        self.structures = _stix_idb.get_variable_packet_structure(self.spid)
+        structures = _stix_idb.get_variable_packet_structure(self.spid)
 
         mother = self.nodes[0]
         repeater = [{'node': mother, 'counter': stix_global._max_parameters}]
         #counter:  number of repeated times
 
-        for par in self.structures:
+        for par in structures:
             #self.parameter_desc[par['PCF_NAME']]=par['PCF_DESCR']
             if repeater:
                 for e in reversed(repeater):
@@ -548,16 +571,10 @@ class StixVariablePacketParser(StixParameterParser):
                 mother, par['PCF_NAME'], par['VPD_POS'], par['PCF_WIDTH'],
                 par['VPD_OFFSET'], par['VPD_GRPSIZE'], par, 0,
                 par['PCF_DESCR'], [])
-
-                      
-
             rpsize = par['VPD_GRPSIZE']
             if rpsize > 0:
                 mother = node
                 repeater.append({'node': node, 'counter': rpsize})
-
-
-
 
     def pprint_par(self,st):
         if self.debug:
@@ -609,8 +626,6 @@ class StixVariablePacketParser(StixParameterParser):
                     'name': node['name'],
                     'raw': result['raw'],
                     'value': result['value'],
-                    #'eng_value_type': result['eng_value_type'],
-                    #'descr': result['descr'],
                     'child': []
                 }
                 if node['child']:

@@ -184,7 +184,6 @@ class Ui_MainWindow(object):
         icon3 = QtGui.QIcon()
         icon3.addPixmap(QtGui.QPixmap(":/Icons/images/mongodb.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionLoad_mongodb.setIcon(icon3)
-        self.actionLoad_mongodb.setText("")
         self.actionLoad_mongodb.setObjectName("actionLoad_mongodb")
         self.menu_File.addAction(self.action_Open)
         self.menu_File.addAction(self.actionSave)
@@ -259,6 +258,7 @@ class Ui_MainWindow(object):
         self.action_Plot.setText(_translate("MainWindow", "&Plot"))
         self.actionPaste.setText(_translate("MainWindow", "Paste"))
         self.actionPaste.setToolTip(_translate("MainWindow", "Read raw data from the clipboard"))
+        self.actionLoad_mongodb.setText(_translate("MainWindow", "Connect MonogoDB"))
 
 
 import mainwindow_rc5

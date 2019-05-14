@@ -481,7 +481,7 @@
      <normaloff>:/Icons/images/mongodb.svg</normaloff>:/Icons/images/mongodb.svg</iconset>
    </property>
    <property name="text">
-    <string/>
+    <string>Connect MonogoDB</string>
    </property>
   </action>
  </widget>
