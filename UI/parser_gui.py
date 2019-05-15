@@ -152,6 +152,7 @@ class Ui(mainwindow.Ui_MainWindow):
         #uic.loadUi('UI/mainwindow.ui', self)
 
         self.MainWindow = MainWindow
+        self.stix_telemetry_parser=stix_parser.StixTelemetryParser()
 
         self.initialize()
 
@@ -369,11 +370,22 @@ class Ui(mainwindow.Ui_MainWindow):
 
     def nextPacket(self):
         self.current_row += 1
+        length=len(self.data)
+        
+        if self.current_row>=length:
+            self.current_row=length-1
+            self.showMessage('No more packet!')
+            
+
         self.showPacket(self.current_row)
         self.setListViewSelected(self.current_row)
 
     def previousPacket(self):
         self.current_row -= 1
+        if self.current_row <0:
+            self.current_row=0
+            self.showMessage('Reach the first packet!')
+
         self.showPacket(self.current_row)
         self.setListViewSelected(self.current_row)
 

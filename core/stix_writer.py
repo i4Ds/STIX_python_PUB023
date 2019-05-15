@@ -27,9 +27,10 @@ class StixPickleWriter:
         else:
             self.fout=open(filename,'wb')
 
-    def register_run(self,in_filename):
+    def register_run(self,in_filename,filesize=0):
         self.run={'Input':in_filename,
                    'Output':self.filename,
+                   'filsize':filesize,
                    'Date': datetime.datetime.now().isoformat()
                   }
 
@@ -66,39 +67,55 @@ class StixMongoWriter:
     """store data in  a NoSQL database"""
     def __init__(self):
 
-        self.filename=None
         self.packets=[]
         self.db=None
-        self.packet_col=[]
-        self.runs_col=None
+        self.collection_packets=None
+        self.collection_runs=None
         self.start=-1
         self.end=-1
         try :
             self.connect= pymongo.MongoClient('localhost', 27017)
             self.db = self.connect["stix"]
-            self.packet_col=self.db['packets']
-            self.runs_col=self.db['runs']
-            
+
+            self.collection_packets=self.db['packets']
+            self.collection_headers=self.db['headers']
+            self.collection_runs=self.db['runs']
         except Exception as e:
             raise(e)
             print('can not connect to mongodb')
-    def register_run(self,in_filename):
+    def create_indexes(self):
+        """to speed up query """
+        if self.collection_headers:
+            if self.collection_headers.count() == 0:
+                self.collection_headers.create_index([('time',-1),('SPID',-1),
+                    ('service_type',-1),('service_subtype',-1),('run_id',-1)],unique=False)
+
+        if self.collection_runs:
+            if self.collection_runs.count() == 0:
+                self.collection_runs.create_index([('file',-1),('date',-1)],unique=False)
+
+        if self.collection_packets:
+            if self.collection_packets.count() == 0:
+                self.collection_packets.create_index([('header.time',-1),
+                    ('header_id',-1),('run_id',-1)],unique=False)
+    def register_run(self,in_filename, filesize=0):
         try:
-            self.last_run_id=self.runs_col.find().sort('_id',-1).limit(1)[0]['_id']
+            self.last_run_id=self.collection_runs.find().sort('_id',-1).limit(1)[0]['_id']
         except :
             self.last_run_id=-1
         
         self.this_run_id=self.last_run_id+1
         self.run_info={'file':in_filename,
                'date': datetime.datetime.now().isoformat(),
+               'filesize':filesize
                }
 
     def write(self,header, parameters, parameter_desc=dict()):
-        packet={'header':header, 'parameter':parameters,
-                'run_id':self.this_run_id}
-        #self.packets.append(packet)
         if self.db:
-            self.packet_col.insert_one(packet)
+            header['run_id']=self.this_run_id
+            header_id=self.collection_headers.insert_one(header).inserted_id
+            packets={'header':header, 'parameter':parameters,'header_id':header_id,'run_id':self.this_run_id}
+            result=self.collection_packets.insert_one(packets)
         if self.start<0:
             self.start=header['time']
         self.end=header['time']
@@ -107,8 +124,8 @@ class StixMongoWriter:
         self.run_info['end']=self.end
         self.run_info['_id']=self.this_run_id
         if self.db:
-            self.runs_col.insert_one(self.run_info)
-            #self.packet_col.insert_many(self.packets)
+            self.collection_runs.insert_one(self.run_info)
+            #self.collection_parameters.insert_many(self.packets)
 
 
 ''' sqlite schema '''
@@ -116,6 +133,7 @@ class StixMongoWriter:
 CREATE_TABLE_RUN_SQL = '''create table run(
         ID	INTEGER PRIMARY KEY AUTOINCREMENT,
         filename  TEXT,
+        filesize INTEGER NULL,
         start_time DATE DEFAULT (datetime('now','localtime'))
         );'''
 CREATE_TABLE_HEADER_SQL = """CREATE TABLE header (
@@ -177,8 +195,8 @@ class StixSqliteWriter:
             else:
                 return 0
 
-    def register_run(self, filename):
-        self.cur.execute('insert into run (filename) values(?)', (filename, ))
+    def register_run(self, filename, filesize=0):
+        self.cur.execute('insert into run (filename, filesize) values(?,?)', (filename,filesize ))
         self.update_run_id()
 
     def write_header(self, header):

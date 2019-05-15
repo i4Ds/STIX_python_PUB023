@@ -94,7 +94,7 @@ class StixParameterParser:
                 return float(
                     raw[0]) + float(raw[1]) / 65536.
             else:
-                return None
+                return ''
             # no need to interpret
         raw_value=raw[0]
         prefix = re.split('\d+', pcf_curtx)[0]
@@ -105,7 +105,7 @@ class StixParameterParser:
                 return rows[0][0]
 
             _stix_logger.warn('No textual calibration for {}'.format(pcf_curtx))
-            return None
+            return ''
         elif prefix =='CIXP':
             rows = _stix_idb.get_calibration_curve(pcf_curtx)
             if rows:
@@ -115,7 +115,7 @@ class StixParameterParser:
                 val=str(interpolate.splev(raw_value, tck))
                 return val
             _stix_logger.warn('No calibration factors for {}'.format(pcf_curtx))
-            return None
+            return ''
 
         elif prefix == 'NIX':
             # temperature
@@ -123,7 +123,7 @@ class StixParameterParser:
                 #see SO-STIX-DS-30001_IDeF-X HD datasheet page 29
             #    pass
             _stix_logger.warn('{} not interpreted. '.format(pcf_curtx))
-            return None
+            return '' 
         elif prefix == 'CIX':
             rows=_stix_idb.get_calibration_polynomial(pcf_curtx)
             if rows:
@@ -134,8 +134,8 @@ class StixParameterParser:
                     sum_value+=a*b
                 return sum_value
             _stix_logger.warn('No calibration factors for {}'.format(pcf_curtx))
-            return None
-        return None
+            return ''
+        return ''
 
     def parse_telemetry_parameter(self, app_data, par, calibration=True):
 
@@ -153,7 +153,7 @@ class StixParameterParser:
         if not calibration:
             return {'name': name,
                     'raw': raw_values,
-                    'value':None}
+                    'value':''}
 
         pcf_curtx = par['PCF_CURTX']
         eng_values= self.convert_raw_to_eng(
@@ -392,7 +392,8 @@ class StixTelemetryParser(StixParameterParser):
                 st_writer = stix_writer.StixMongoWriter()
 
             if st_writer:
-                st_writer.register_run(in_filename)
+                filesize=os.path.getsize(in_filename)
+                st_writer.register_run(in_filename,filesize)
             
             fix=0
             total=0
@@ -552,7 +553,6 @@ class StixVariablePacketParser(StixParameterParser):
         """
         To build a parameter tree 
         """
-        #self.start()
         structures = _stix_idb.get_variable_packet_structure(self.spid)
 
         mother = self.nodes[0]
