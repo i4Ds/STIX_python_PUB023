@@ -454,23 +454,39 @@ class Ui(mainwindow.Ui_MainWindow):
         #self.settings = QtCore.QSettings('FHNW', 'stix_parser')
         self.mongo_server= self.settings.value('mongo_server', [], str)
         self.mongo_port= self.settings.value('mongo_port', [], str)
+        self.mongo_user= self.settings.value('mongo_user', [], str)
+        self.mongo_pwd= self.settings.value('mongo_pwd', [], str)
+
         if self.mongo_server:
             diag_ui.serverLineEdit.setText(self.mongo_server)
         if self.mongo_port:
             diag_ui.portLineEdit.setText(self.mongo_port)
+        if self.mongo_user:
+            diag_ui.userLineEdit.setText(self.mongo_user)
+        if self.mongo_pwd:
+            diag_ui.pwdLineEdit.setText(self.mongo_pwd)
         diag_ui.pushButton.clicked.connect(partial(self.loadRunsFromMongoDB,diag_ui))
         diag_ui.buttonBox.accepted.connect(partial(self.loadDataFromMongoDB,diag_ui,diag))
         diag.exec_()
     def loadRunsFromMongoDB(self,dui):
         server=dui.serverLineEdit.text()
         port=dui.portLineEdit.text()
+        user=dui.userLineEdit.text()
+        pwd=dui.pwdLineEdit.text()
+
         self.showMessage('saving setting...')
         if self.mongo_server!=server:
             self.settings.setValue('mongo_server', server)
         if self.mongo_port!=port:
             self.settings.setValue('mongo_port', port)
+        if self.mongo_user!=user:
+            self.settings.setValue('mongo_user', user)
+        if self.mongo_pwd!=pwd:
+            self.settings.setValue('mongo_pwd', pwd)
+
         self.showMessage('connecting Mongo database ...')
-        self.mdb=mgdb.MongoDB(server,int(port))
+        self.mdb=mgdb.MongoDB(server,int(port),user,pwd)
+
         dui.treeWidget.clear()
         self.showMessage('Fetching data...')
         for run in self.mdb.get_runs():
@@ -650,6 +666,7 @@ class Ui(mainwindow.Ui_MainWindow):
             self.chart.setTitle(title)
 
             ylabel = 'Raw value'
+            xlabel=name
             if data_type == 1:
                 ylabel = 'Engineering  value'
             if xaxis_type == 0:

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# @title        : ODB.py
-# @description  : stix_write_sqlite.py
+# @title        : stix_sqlite_reader.py
+# @description  : read data from sqlite database
 # @author       : Hualin Xiao
 # @date         : Feb. 15, 2019
 from __future__ import (absolute_import, unicode_literals)

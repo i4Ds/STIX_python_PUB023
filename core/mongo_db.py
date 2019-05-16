@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-# @title        : stix_writer.py
-# @description  : Write decoded packets to a mongo database 
+# @title        : MongoDB.py
+# @description  : Mongodb reader
 # @author       : Hualin Xiao
 # @date         : May. 12, 2019
 #import json
@@ -12,7 +12,7 @@ import bson
 import pymongo
 
 class MongoDB(object):
-    def __init__(self, server='localhost',port=27017):
+    def __init__(self, server='localhost',port=27017, user='',pwd=''):
         self.filename=None
         self.packets=[]
         self.db=None
@@ -20,12 +20,15 @@ class MongoDB(object):
         self.collection_runs=None
         self.collection_headers=None
         try :
-            self.connect= pymongo.MongoClient(server, port)
+            if server=='localhost' and user=='' and pwd=='':
+                self.connect= pymongo.MongoClient(server, port)
+            else:
+                self.connect= pymongo.MongoClient(server, port,username=user,
+                        password=pwd,authSource='stix')
             self.db = self.connect["stix"]
             self.collection_packets=self.db['packets']
             self.collection_headers=self.db['headers']
             self.collection_runs=self.db['runs']
-
         except Exception as e:
             raise(e)
             print('can not connect to mongodb')
