@@ -153,6 +153,7 @@ class StixParameterParser:
         if not calibration:
             return {'name': name,
                     'raw': raw_values,
+                    'desc':par['PCF_DESCR'],
                     'value':''}
 
         pcf_curtx = par['PCF_CURTX']
@@ -161,6 +162,7 @@ class StixParameterParser:
         return {
             'name': name,
             'raw': raw_values,
+            'desc':par['PCF_DESCR'],
             'value': eng_values}
 
 class StixTelemetryParser(StixParameterParser):
@@ -625,6 +627,7 @@ class StixVariablePacketParser(StixParameterParser):
                 result_node = {
                     'name': node['name'],
                     'raw': result['raw'],
+                    'desc':result['desc'],
                     'value': result['value'],
                     'child': []
                 }

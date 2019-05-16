@@ -103,6 +103,12 @@ class IDB:
         """ get SPID description """
         sql='select PID_DESCR,PID_TYPE,PID_STYPE from PID where PID_SPID=? limit 1'
         return self.execute(sql,(spid,))
+    def print_all_spid_desc(self):
+        sql='select PID_DESCR,PID_SPID from PID'
+        rows=self.execute(sql,None)
+        for row in rows:
+            print('"{}":"{}",'.format(row[1],row[0]))
+
     
     def get_scos_description(self, name):
         """ get scos long description """
@@ -199,7 +205,7 @@ class IDB:
             return self.parameter_structures[spid]
         else:
             #'select PLF.*, PCF.* '
-            sql = ('select PLF.PLF_OFFBY, PLF.PLF_OFFBI, PCF.PCF_NAME, PCF.PCF_WIDTH, PCF.PCF_PFC,PCF.PCF_PTC, PCF.PCF_CURTX '
+            sql = ('select PCF.PCF_DESCR, PLF.PLF_OFFBY, PLF.PLF_OFFBI, PCF.PCF_NAME, PCF.PCF_WIDTH, PCF.PCF_PFC,PCF.PCF_PTC, PCF.PCF_CURTX '
                    ' from PLF   inner join PCF  on PLF.PLF_NAME = PCF.PCF_NAME '
                    ' and PLF.PLF_SPID=? order by PLF.PLF_OFFBY asc')
             args=(spid,)
@@ -230,7 +236,7 @@ class IDB:
             return self.parameter_structures[spid]
         else:
             sql = (
-                'select PCF.PCF_NAME, VPD.VPD_POS,PCF.PCF_WIDTH,PCF.PCF_PFC, PCF.PCF_PTC,VPD.VPD_OFFSET,'
+                'select PCF.PCF_NAME,  VPD.VPD_POS,PCF.PCF_WIDTH,PCF.PCF_PFC, PCF.PCF_PTC,VPD.VPD_OFFSET,'
                 ' VPD.VPD_GRPSIZE,PCF.PCF_DESCR ,PCF.PCF_CURTX '
                 ' from VPD inner join PCF on  VPD.VPD_NAME=PCF.PCF_NAME and VPD.VPD_TPSD=? order by '
                 ' VPD.VPD_POS asc')
@@ -297,6 +303,7 @@ def test():
     #pprint.pprint(STIX_IDB.get_telecommand_characteristics(237, 7,1))
     #pprint.pprint(STIX_IDB.get_telecommand_characteristics(237, 7,2))
     #pprint.pprint(STIX_IDB.get_variable_packet_structure(54137))
+    _stix_idb.print_all_spid_desc()
 
 
 if __name__ == '__main__':
