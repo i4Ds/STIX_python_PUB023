@@ -14,42 +14,12 @@
    <string>Dialog</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>Server</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="1">
-    <widget class="QLineEdit" name="serverLineEdit">
-     <property name="text">
-      <string>localhost</string>
-     </property>
-    </widget>
-   </item>
    <item row="0" column="2">
     <widget class="QLabel" name="label_2">
      <property name="text">
       <string>Port</string>
      </property>
     </widget>
-   </item>
-   <item row="0" column="5">
-    <spacer name="horizontalSpacer">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>208</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="1" column="1">
-    <widget class="QLineEdit" name="userLineEdit"/>
    </item>
    <item row="1" column="2" colspan="2">
     <widget class="QLabel" name="label_4">
@@ -58,10 +28,10 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="4">
-    <widget class="QLineEdit" name="pwdLineEdit">
-     <property name="echoMode">
-      <enum>QLineEdit::Password</enum>
+   <item row="1" column="5">
+    <widget class="QPushButton" name="pushButton">
+     <property name="text">
+      <string>Connect</string>
      </property>
     </widget>
    </item>
@@ -100,18 +70,49 @@
      </column>
     </widget>
    </item>
-   <item row="3" column="0" colspan="5">
-    <spacer name="horizontalSpacer_2">
+   <item row="1" column="4">
+    <widget class="QLineEdit" name="pwdLineEdit">
+     <property name="echoMode">
+      <enum>QLineEdit::Password</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="4">
+    <widget class="QLineEdit" name="portLineEdit">
+     <property name="text">
+      <string>27017</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>Username</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="serverLineEdit">
+     <property name="text">
+      <string>localhost</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="5">
+    <spacer name="horizontalSpacer">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="sizeHint" stdset="0">
       <size>
-       <width>534</width>
+       <width>208</width>
        <height>20</height>
       </size>
      </property>
     </spacer>
+   </item>
+   <item row="1" column="1">
+    <widget class="QLineEdit" name="userLineEdit"/>
    </item>
    <item row="3" column="5">
     <widget class="QDialogButtonBox" name="buttonBox">
@@ -123,24 +124,17 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="4">
-    <widget class="QLineEdit" name="portLineEdit">
+   <item row="0" column="0">
+    <widget class="QLabel" name="label">
      <property name="text">
-      <string>27017</string>
+      <string>Server</string>
      </property>
     </widget>
    </item>
-   <item row="1" column="5">
-    <widget class="QPushButton" name="pushButton">
+   <item row="3" column="0" colspan="5">
+    <widget class="QLabel" name="statusLabel">
      <property name="text">
-      <string>Connect</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label_3">
-     <property name="text">
-      <string>Username</string>
+      <string/>
      </property>
     </widget>
    </item>
