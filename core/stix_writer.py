@@ -46,7 +46,7 @@ class StixPickleWriter:
         line=(','.join(map(str, msg)))
         self.packet_counter += 1
     def write(self,header, parameters):
-        packet={'header':header, 'parameter':parameters}
+        packet={'header':header, 'parameters':parameters}
         self.packets.append(packet)
 
     def done(self):
@@ -114,7 +114,7 @@ class StixMongoWriter:
         if self.db:
             header['run_id']=self.this_run_id
             header_id=self.collection_headers.insert_one(header).inserted_id
-            packets={'header':header, 'parameter':parameters,'header_id':header_id,'run_id':self.this_run_id}
+            packets={'header':header, 'parameters':parameters,'header_id':header_id,'run_id':self.this_run_id}
             result=self.collection_packets.insert_one(packets)
         if self.start<0:
             self.start=header['time']

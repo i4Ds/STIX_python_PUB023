@@ -101,7 +101,7 @@ class StixDataReader(QThread):
 
             if i % freq == 0:
                 self.info.emit("{.0f}% loaded".format(100 * i / num))
-            self.data.append({'header': header, 'parameter': parameters})
+            self.data.append({'header': header, 'parameters': parameters})
 
     def parseRawFile(self):
         filename = self.filename
@@ -142,7 +142,7 @@ class StixDataReader(QThread):
                             100 * total_read / size))
                 last_percent = total_read / percent
 
-                self.data.append({'header': header, 'parameter': parameters})
+                self.data.append({'header': header, 'parameters': parameters})
 
 
 class Ui(mainwindow.Ui_MainWindow):
@@ -287,7 +287,7 @@ class Ui(mainwindow.Ui_MainWindow):
             parameters=result['parameters']
             param_type=result['parameter_type']
             num_bytes_read=result['num_read']
-            data = [{'header': header, 'parameter': parameters}]
+            data = [{'header': header, 'parameters': parameters}]
             self.showMessage(
                 ('%d bytes read from the clipboard' %
                  num_bytes_read))
@@ -391,7 +391,7 @@ class Ui(mainwindow.Ui_MainWindow):
 
     def getOpenFilename(self):
         self.input_filename = QtWidgets.QFileDialog.getOpenFileName(
-            None, 'Select file', '.', 'STIX data file (*.dat *.pkl *.pklz *xml *.db)')[0]
+            None, 'Select file', '.', 'STIX data file (* *.dat *.pkl *.pklz *xml *.db)')[0]
         if not self.input_filename:
             return
         self.openFile(self.input_filename)
@@ -540,7 +540,7 @@ class Ui(mainwindow.Ui_MainWindow):
             root.setText(0, key)
             root.setText(1, str(val))
 
-        params = self.data[row]['parameter']
+        params = self.data[row]['parameters']
         param_root = QtWidgets.QTreeWidgetItem(self.paramTreeWidget)
         param_root.setText(0, "Parameters")
         self.showParameterTree(params, param_root)
@@ -624,7 +624,7 @@ class Ui(mainwindow.Ui_MainWindow):
         timestamp = []
         self.y = []
         packet_id = self.current_row
-        params = self.data[packet_id]['parameter']
+        params = self.data[packet_id]['parameters']
         header = self.data[packet_id]['header']
         current_spid=header['SPID']
         if packet_selection == 0:
@@ -642,7 +642,7 @@ class Ui(mainwindow.Ui_MainWindow):
                 if packet['header']['SPID'] != current_spid:
                     continue
                 #only look for parameters in the packets of the same type
-                params = packet['parameter']
+                params = packet['parameters']
                 self.walk(
                     name,
                     params,
