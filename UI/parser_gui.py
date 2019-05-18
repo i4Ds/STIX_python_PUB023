@@ -39,7 +39,7 @@ class StixDataReader(QThread):
         super(StixDataReader, self).__init__()
         self.filename = filename
         self.data = []
-        self.stix_telemetry_parser=stix_parser.StixTelemetryParser()
+        self.stix_telemetry_parser=stix_parser.StixTCTMParser()
 
     def run(self):
         self.data = []
@@ -90,14 +90,16 @@ class StixDataReader(QThread):
         for i, packet in enumerate(packets):
             data_hex = packet['raw']
             data_binary = binascii.unhexlify(data_hex)
-            in_file = BytesIO(data_binary[76:])
+            data=data_binary[76:]
 
-            result=self.stix_telemetry_parser.parse_one_packet_from_file(in_file, 0, 'tree')
-            status=result['status']
-            header=result['header']
-            parameters=result['parameters']
-            param_type=result['parameter_type']
-            num_bytes_read=result['num_read']
+            result=self.stix_telemetry_parser.parse(data, 0, 'tree')
+            if not result:
+                continue
+            #status=result['status']
+            header=result[0]['header']
+            parameters=result[0]['parameters']
+            #param_type=result['parameter_type']
+            #num_bytes_read=result['num_read']
 
             if i % freq == 0:
                 self.info.emit("{.0f}% loaded".format(100 * i / num))
@@ -121,28 +123,29 @@ class StixDataReader(QThread):
             self.data = []
             selected_spid = 0
             last_percent = 0
-            while True:
-                result=self.stix_telemetry_parser.parse_one_packet_from_file(in_file, 0, 'tree')
-                status=result['status']
-                header=result['header']
-                parameters=result['parameters']
-                param_type=result['parameter_type']
-                num_bytes_read=result['num_read']
+            self.data=self.stix_telemetry_parser.parse_file(in_file, '', 'tree')
+            #while True:
+            #    result=self.stix_telemetry_parser.parse(in_file, 0, 'tree')
+            #    status=result['status']
+            #    header=result['header']
+            #    parameters=result['parameters']
+            #    param_type=result['parameter_type']
+            #    num_bytes_read=result['num_read']
 
-                total_read += num_bytes_read
-                total_packets += 1
-                if status == stix_global._next_packet:
-                    continue
-                if status == stix_global._eof:
-                    break
+            #    total_read += num_bytes_read
+            #    total_packets += 1
+            #    if status == stix_global._next_packet:
+            #        continue
+            #    if status == stix_global._eof:
+            #        break
 
-                if int(total_read / percent) > int(last_percent):
-                    self.info.emit(
-                        "{:.0f}% loaded".format(
-                            100 * total_read / size))
-                last_percent = total_read / percent
+            #    if int(total_read / percent) > int(last_percent):
+            #        self.info.emit(
+            #            "{:.0f}% loaded".format(
+            #                100 * total_read / size))
+            #    last_percent = total_read / percent
 
-                self.data.append({'header': header, 'parameters': parameters})
+            #    self.data.append({'header': header, 'parameters': parameters})
 
 
 class Ui(mainwindow.Ui_MainWindow):
@@ -152,7 +155,7 @@ class Ui(mainwindow.Ui_MainWindow):
         #uic.loadUi('UI/mainwindow.ui', self)
 
         self.MainWindow = MainWindow
-        self.stix_telemetry_parser=stix_parser.StixTelemetryParser()
+        self.stix_telemetry_parser=stix_parser.StixTCTMParser()
 
         self.initialize()
 
@@ -278,15 +281,15 @@ class Ui(mainwindow.Ui_MainWindow):
         data_hex = re.sub(r"\s+", "", raw_hex)
         try:
             data_binary = binascii.unhexlify(data_hex)
-            in_file = BytesIO(data_binary)
             #status, header, parameters, param_type, param_desc, num_bytes_read = stix_telemetry_parser.parse_one_packet(
             #    in_file, self)
-            result=self.stix_telemetry_parser.parse_one_packet_from_file(in_file, 0, 'tree')
-            status=result['status']
+            packets=self.stix_telemetry_parser.parse(data_binary, 0, 'tree')
+            if not packets:
+                return
+            result=packets[0]
             header=result['header']
             parameters=result['parameters']
-            param_type=result['parameter_type']
-            num_bytes_read=result['num_read']
+            num_bytes_read=len(raw_hex)
             data = [{'header': header, 'parameters': parameters}]
             self.showMessage(
                 ('%d bytes read from the clipboard' %

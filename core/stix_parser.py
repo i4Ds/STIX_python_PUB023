@@ -48,7 +48,7 @@ def substr(buf, i, width=1):
         return True, i+length, data
 
 
-def find_next_header(self,buf, i):
+def find_next_header(buf, i):
     nbytes = 0
     bad_block = ''
     length=len(buf)
@@ -223,7 +223,7 @@ class StixVariablePacketParser(StixParameterParser):
 
 
 
-    def parse(self,data, spid, output_type='tree'):
+    def parse(self, data, spid, output_type='tree'):
         """
         """
         self.output_type =output_type
@@ -535,10 +535,8 @@ class StixTCTMParser(StixParameterParser):
             _stix_logger.info('Processing file: {}'.format(in_filename))
             _stix_logger.info("File size:{} kB ".format(len(data)/1024))
 
-            print('Processing file: {}'.format(in_filename))
-            print("File size:{} kB ".format(len(data)/1024))
 
-            packets=self.parse(data,0,  selected_spid,pstruct)
+            packets=self.parse(data,0,  pstruct,selected_spid)
             st_writer=None
             if  out_filename.endswith(('.pkl','.pklz')):
                 st_writer = stix_writer.StixPickleWriter(out_filename)
@@ -553,7 +551,7 @@ class StixTCTMParser(StixParameterParser):
             _stix_logger.info('Done.')
 
 
-    def parse(self, buf, i=0, selected_spid=0, pstruct='tree'):
+    def parse(self, buf, i=0, pstruct='tree', selected_spid=0):
         length=len(buf)
         if i >= length:
             return
@@ -595,7 +593,7 @@ class StixTCTMParser(StixParameterParser):
                         _stix_logger.warn("Variable packet length inconsistent! SPID: {}, Actual: {}, IDB: {}".format(
                             spid, num_read, app_length))
                 packets.append({'header':header,'parameters':parameters})
-            elif ord(buf[i])==0x1D:
+            elif buf[i]==0x1D:
                 total+=1
                 tc+=1
                 status, i, header_raw=substr(buf,i,12)
@@ -612,6 +610,7 @@ class StixTCTMParser(StixParameterParser):
                 packets.append({'header':header, 'parameters':None})
             else:
                 old_i=i
+                _stix_logger.warn('bad header {} at {}!'.format(buf[i],i))
                 i=find_next_header(buf,i)
                 if i==stix_global._eof:
                     break
