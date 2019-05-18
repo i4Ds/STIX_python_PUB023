@@ -33,35 +33,11 @@ class StixPickleWriter:
                    'filsize':filesize,
                    'Date': datetime.datetime.now().isoformat()
                   }
-
-    def write_header(self, header):
-        """
-        it is called for every telemetry data header
-        """
-        msg = [
-            self.packet_counter, header['service_type'],
-            header['service_subtype'], header['SPID'],header['SSID'], header['DESCR'],
-            header['time'], header['coarse_time'], header['fine_time'],header['segmentation'],header['data_length']
-        ]
-        line=(','.join(map(str, msg)))
-        self.packet_counter += 1
-    def write(self,header, parameters):
-        packet={'header':header, 'parameters':parameters}
-        self.packets.append(packet)
-
-    def done(self):
-        data={'run':self.run, 'packet':self.packets}
-        pickle.dump(data,self.fout)
-        self.fout.close()
-    def write_all(self, data):
-        for p in data:
-            self.write(p['header'],p['parameter'])
-
-
-    def write_parameters(self, parameters,spid=0):
-        pprint.pprint(parameters)
-
-
+    def write_all(self,packets):
+        if self.fout:
+            data={'run':self.run, 'packet':self.packets}
+            pickle.dump(data,self.fout)
+            self.fout.close()
 
 class StixMongoWriter:
     """store data in  a NoSQL database"""
@@ -80,6 +56,7 @@ class StixMongoWriter:
             self.collection_packets=self.db['packets']
             self.collection_headers=self.db['headers']
             self.collection_runs=self.db['runs']
+            self.create_indexes()
         except Exception as e:
             raise(e)
             print('can not connect to mongodb')
@@ -103,28 +80,28 @@ class StixMongoWriter:
             self.last_run_id=self.collection_runs.find().sort('_id',-1).limit(1)[0]['_id']
         except :
             self.last_run_id=-1
-        
         self.this_run_id=self.last_run_id+1
         self.run_info={'file':in_filename,
                'date': datetime.datetime.now().isoformat(),
                'filesize':filesize
                }
 
-    def write(self,header, parameters, parameter_desc=dict()):
+    def write_all(self,packets):
         if self.db:
-            header['run_id']=self.this_run_id
-            header_id=self.collection_headers.insert_one(header).inserted_id
-            packets={'header':header, 'parameters':parameters,'header_id':header_id,'run_id':self.this_run_id}
-            result=self.collection_packets.insert_one(packets)
-        if self.start<0:
-            self.start=header['time']
-        self.end=header['time']
-    def done(self):
-        self.run_info['start']=self.start
-        self.run_info['end']=self.end
-        self.run_info['_id']=self.this_run_id
-        if self.db:
+            self.run_info['start']=packets[0]['header']['time']
+            self.run_info['end']=packets[-1]['header']['time']
+            self.run_info['_id']=self.this_run_id
             self.collection_runs.insert_one(self.run_info)
+
+            for packet in packets:
+                header=packet['header']
+                parameters=packet['parameters']
+                header['run_id']=self.this_run_id
+                header_id=self.collection_headers.insert_one(header).inserted_id
+                packet['header_id']=header_id
+                packet['run_id']=self.this_run_id
+                result=self.collection_packets.insert_one(packet)
+
             #self.collection_parameters.insert_many(self.packets)
 
 
@@ -145,7 +122,7 @@ CREATE_TABLE_HEADER_SQL = """CREATE TABLE header (
 	service_subtype	INTEGER NOT NULL,
 	header_time	REAL NOT NULL,
 	seg_flag INTEGER,
-	data_length	INTEGER NOT NULL );"""
+	length	INTEGER NOT NULL );"""
 CREATE_TABLE_PARAMETER_SQL = """CREATE TABLE parameter (
             ID	INTEGER PRIMARY KEY AUTOINCREMENT,
             packet_id INTEGER NOT NULL,
@@ -203,10 +180,10 @@ class StixSqliteWriter:
         if self.cur:
             row = (header['SPID'], self.current_run_id, header['service_type'],
                    header['service_subtype'], header['time'], header['DESCR'],
-                   header['seg_flag'], header['data_length'])
+                   header['seg_flag'], header['length'])
             self.cur.execute(
                 'insert into header (SPID, run_id, service_type, service_subtype,header_time, descr, \
-                        seg_flag, data_length) values( ?,?, ?,?,?,?,?,?)', row)
+                        seg_flag, length) values( ?,?, ?,?,?,?,?,?)', row)
             self.update_packet_id()
 
     def done(self):
@@ -238,8 +215,8 @@ class StixSqliteWriter:
         #parameters description not used
         self.write_header(header)
         self.write_parameters(parameters)
-    def write_all(self,data):
-        for e in data:
+    def write_all(self,packets):
+        for e in packets:
             self.write_header(e['header'])
             self.write_parameters(e['parameter'])
         
@@ -279,6 +256,8 @@ class StixROOTWriter:
     def done(self):
         self.tree.Write()
         self.fout.Close()
+    def write_all(self,packets):
+        pass
 
     def write_header(self, header):
         """
@@ -290,7 +269,7 @@ class StixROOTWriter:
             self.service_subtype[0]=header['service_subtype']
             self.service_type[0]=header['service_type']
             self.SPID[0]=header['SPID']
-            self.length[0]=header['data_length']
+            self.length[0]=header['length']
             self.timestamp[0]=header['time']
             for i,c in enumerate(header['DESCR'][0:64]):
                 self.desc[i]=str(c)

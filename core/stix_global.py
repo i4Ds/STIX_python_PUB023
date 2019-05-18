@@ -5,6 +5,8 @@
 #
 _fix_length_packet_type=1001
 _variable_length_packet_type=1002
+_tm_packet=1004
+_tc_packet=1003
 _success = 1
 _ok = True
 _next_packet = 2

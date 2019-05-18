@@ -39,6 +39,28 @@ def unpack_integer(raw, structure):
         result[name] = slice_bits(raw, bits[0], bits[1])
     return result
 
+def substr(buf, i, width=1):
+    data=buf[i:i+width]
+    length=len(data)
+    if length!=width:
+        return False, i+length, data
+    else:
+        return True, i+length, data
+
+
+def find_next_header(self,buf, i):
+    nbytes = 0
+    bad_block = ''
+    length=len(buf)
+    while i<length:
+        x = buf[i]
+        if x == 0x0D or x==0x1D:
+            return i
+        else:
+            i +=1
+    return stix_global._eof
+
+
 class StixParameterParser:
     def __init__(self):
         pass
@@ -164,273 +186,6 @@ class StixParameterParser:
             'raw': raw_values,
             'desc':par['PCF_DESCR'],
             'value': eng_values}
-
-class StixTelemetryParser(StixParameterParser):
-    def __init__(self):
-        self.vp_parser=StixVariablePacketParser()
-
-    def find_next_header(self,f):
-        nbytes = 0
-        bad_block = ''
-
-        while True:
-            x = f.read(1)
-            if not x:
-                break
-            pos = f.tell()
-            if nbytes<256:
-                bad_block += ' ' + x.hex()
-            nbytes += 1
-            xval=st.unpack('>B',x)[0]
-            if xval == 0x0D:
-                f.seek(pos - 1)
-                return True, nbytes, bad_block
-
-        return False, nbytes, bad_block
-
-
-    def parse_telemetry_header(self,packet):
-        """ see STIX ICD-0812-ESC  (Page # 57) """
-
-        if packet[0] != 0x0D:
-            return stix_global._header_first_byte_invalid, None
-        header_raw = st.unpack('>HHHBBBBIH', packet[0:16])
-        header = {}
-        for h, s in zip(header_raw, stix_header._telemetry_raw_structure):
-            header.update(unpack_integer(h, s))
-        status= self.check_header(header,'tm')
-        if status == stix_global._ok:
-            header.update({'segmentation': stix_header._packet_seg[header['seg_flag']]})
-            header.update(
-                {'time': header['fine_time'] / 65536. + header['coarse_time']})
-        return status, header
-
-
-    def check_header(self, header,tmtc='tm'):
-        # header validate
-        constrains=None
-        if tmtc=='tm':
-            constrains=stix_header._telemetry_header_constraints
-        else:
-            constrains=stix_header._telecommand_header_constraints
-        for name, lim in constrains.items():
-            if header[name] not in lim:
-                print("header invalide")
-                print(name)
-                return stix_global._header_invalid
-        return stix_global._ok
-
-    def decode_app_header(self, header, data, length):
-        """ Decode the data field header  
-        """
-        service_type = header['service_type']
-        service_subtype = header['service_subtype']
-        offset, width = _stix_idb.get_packet_type_offset(service_type,
-                                                        service_subtype)
-        # see solar orbit ICD Page 36
-        SSID= -1
-        if offset != -1:
-            start = offset - 16  # 16bytes read already
-            end = start + width / 8  # it can be : 0, 16,8
-            upstr= '>B'
-            if width == 16:
-                upstr= '>H'
-            res = st.unpack(upstr, data[int(start):int(end)])
-            SSID= res[0]
-        info = _stix_idb.get_packet_type_info(service_type, service_subtype,
-                                                  SSID)
-        header['DESCR']=info['PID_DESCR']
-        header['SPID']=info['PID_SPID']
-        header['TPSD']=info['PID_TPSD']
-        header['length']=length
-        header['SSID']=SSID
-
-    def parse_fixed_packet(self, buf, spid):
-        param_struct= _stix_idb.get_fixed_packet_structure(spid)
-        return self.get_fixed_packet_parameters(buf, param_struct, calibration=True)
-
-    def get_fixed_packet_parameters(self, buf, param_struct,calibration):
-        """ Extract parameters from a fixed data packet see Solar orbit IDB ICD section 3.3.2.5.1
-        """
-        params= []
-        for par in param_struct:
-            par['offset'] = int(par['PLF_OFFBY']) - 16
-            par['offset_bit'] = int(par['PLF_OFFBI'])
-            par['type'] = 'fixed'
-            parameter = self.parse_telemetry_parameter(buf, par, calibration)
-            params.append(parameter)
-        return params
-
-    def format_parse_result(self,status,length, header=None, header_raw=None,
-            app_raw=None):
-        return {'status': status,
-                'header': header, 
-                'header_raw':header_raw, 
-                'app_raw':app_raw,
-                'num_read': length
-                }
-
-    def read_packet(self, in_file):
-        start_pos = in_file.tell()
-        header_raw= in_file.read(16)
-        cur_pos = in_file.tell()
-        num_read=len(header_raw)
-        if not header_raw or num_read<16:
-            return self.format_parse_result(stix_global._eof, num_read, None, header_raw)
-        header_status, header = self.parse_telemetry_header(header_raw)
-
-        if header_status != stix_global._ok:
-            _stix_logger.warn('Bad header at {}, code {} '.format(in_file.tell(), header_status))
-
-            found, num_skipped, bad_block = self.find_next_header(in_file)
-
-
-            cur_pos = in_file.tell()
-            num_read=cur_pos-start_pos
-            _stix_logger.warn('''Unexpected block around {}, 
-                            Number of bytes skipped: {}'''.format(
-                in_file.tell(),num_skipped))
-            if found:
-                _stix_logger.info('New header at {}'.format(cur_pos))
-                return self.format_parse_result(stix_global._next_packet, 
-                        num_read, header_raw=header_raw)
-            else:
-                print('not found next header')
-
-                return self.format_parse_result(stix_global._eof, 
-                        num_read, header_raw=header_raw)
-
-        app_length =header['length']-9
-
-
-        if app_length <= 0:  # wrong packet length
-            _stix_logger.warn('Source data length 0')
-            return self.format_parse_result(stix_global._next_packet,
-                    num_read, header_raw=header_raw)
-        app_data = in_file.read(app_length)
-
-
-        num_read=in_file.tell()-start_pos
-        actual_length=len(app_data)
-        if actual_length != app_length:
-            _stix_logger.error("Incomplete data packet! pos:  {}, expect: {}, actual: {}, ".format(
-            in_file.tell(), app_length, actual_length))
-            return self.format_parse_result(stix_global._eof, num_read,header_raw=header_raw)
-
-        self.decode_app_header(header, app_data, app_length)
-        return self.format_parse_result(stix_global._ok, num_read, 
-                header, header_raw, app_data)
-
-
-    def parse_packet(self,buf,output_param_type='tree'):
-        if len(buf)<=16:
-            return {'status':stix_global._bad_packet, 
-                    'header':None,
-                    'parameters':None}
-        header_raw=buf[0:16]
-        header_status, header = self.parse_telemetry_header(header_raw)
-        app_length = header['length']-9
-        app_raw=buf[17:]
-        self.decode_app_header(header, app_raw, app_length)
-        tpsd = header['TPSD']
-        spid= header['SPID']
-        if tpsd == -1:
-            parameters = self.parse_fixed_packet(app_raw, spid)
-        else:
-            self.vp_parser.parse(app_raw,spid, output_param_type)
-            num_read, parameters, status = self.vp_parser.get_parameters()
-        return {'status': stix_global._ok and status, 
-                'header':header, 
-                'parameters':parameters
-                }
-
-
-    def parse_one_packet_from_file(self,in_file,selected_spid=0, output_param_type='tree'):
-        result= self.read_packet(in_file)
-        status=result['status']
-        header=result['header'] 
-        header_raw=result['header_raw']
-        app_raw=result['app_raw']
-        num_read=result['num_read']
-
-        parameters = None
-        param_type=stix_global._unknown_packet_type
-        param_desc=dict()
-        if status!= stix_global._next_packet and status != stix_global._eof and header:
-            spid = header['SPID']
-            tpsd = header['TPSD']
-            if selected_spid == 0 or spid == selected_spid:
-                buffer_length = len(app_raw)
-                if tpsd == -1:
-                    parameters = self.parse_fixed_packet(
-                        app_raw, spid)
-                    param_type=stix_global._fix_length_packet_type
-                else:
-                    param_type=stix_global._variable_length_packet_type
-                    self.vp_parser.parse(app_raw, spid, output_param_type)
-                    app_num_read, parameters,status = self.vp_parser.get_parameters()
-                    param_desc=None
-                    if app_num_read!= buffer_length:
-                        _stix_logger.warn("Variable packet length inconsistent! SPID: {}, Actual: {}, IDB: {}".format(
-                            spid, buffer_length, app_num_read))
-        return {'status':status, 
-                    'header':header,
-                    'parameters':parameters, 
-                    'parameter_type':param_type,
-                    'num_read':num_read
-                    }
-
-
-    def parse_file(self,in_filename, out_filename=None, selected_spid=0,
-            pstruct='tree'):
-        _stix_logger.info('Processing file: {}'.format(in_filename))
-        with open(in_filename, 'rb') as in_file:
-            st_writer=None
-            if  out_filename.endswith(('.pkl','.pklz')):
-                st_writer = stix_writer.StixPickleWriter(out_filename)
-            elif out_filename.endswith(('.db','.sqlite')):
-                st_writer = stix_writer.StixSqliteWriter(out_filename)
-            elif  'mongo' in out_filename:
-                st_writer = stix_writer.StixMongoWriter()
-
-            if st_writer:
-                filesize=os.path.getsize(in_filename)
-                st_writer.register_run(in_filename,filesize)
-            
-            fix=0
-            total=0
-            var=0
-
-            while True:
-                result=self.parse_one_packet_from_file(in_file, selected_spid, pstruct)
-
-                status=result['status']
-                header=result['header']
-                parameters=result['parameters']
-                param_type=result['parameter_type']
-                bytes_read=result['num_read']
-                total+=1
-                
-                if status == stix_global._next_packet:
-                    continue
-                if status == stix_global._eof:
-                    break
-
-                if param_type ==stix_global._fix_length_packet_type:
-                    fix+=1
-                elif param_type == stix_global._variable_length_packet_type: 
-                    var+=1
-                if status and parameters and st_writer:
-                    st_writer.write(header,parameters)
-            if st_writer:
-                st_writer.done()
-            _stix_logger.info('{} packets found in the file: {}'.format(total,in_filename))
-            _stix_logger.info('{} ({} fixed and {} variable) packets processed.'.format(
-                    fix+var,fix,var))
-            if out_filename:
-                _stix_logger.info('Writing parameters to file {} ...'.format(out_filename))
-            _stix_logger.info('Done.')
-
 
 class StixVariablePacketParser(StixParameterParser):
     """
@@ -667,4 +422,210 @@ class StixVariablePacketParser(StixParameterParser):
             #not to interpret a raw value to physical value
         return self.parse_telemetry_parameter(
             self.source_data, par, calibration)
+
+class StixTCTMParser(StixParameterParser):
+    def __init__(self):
+        self.vp_parser=StixVariablePacketParser()
+    def parse_telemetry_header(self,packet):
+        """ see STIX ICD-0812-ESC  (Page # 57) """
+
+        if ord(packet[0:1]) != 0x0D:
+            return stix_global._header_first_byte_invalid, None
+
+        header_raw = st.unpack('>HHHBBBBIH', packet[0:16])
+        header = {}
+        for h, s in zip(header_raw, stix_header._telemetry_raw_structure):
+            header.update(unpack_integer(h, s))
+        status= self.check_header(header,'tm')
+        if status == stix_global._ok:
+            header.update({'segmentation': stix_header._packet_seg[header['seg_flag']]})
+            header.update(
+                {'time': header['fine_time'] / 65536. + header['coarse_time']})
+        return status, header
+
+
+    def check_header(self, header,tmtc='tm'):
+        # header validate
+        constrains=None
+        if tmtc=='tm':
+            constrains=stix_header._telemetry_header_constraints
+        else:
+            constrains=stix_header._telecommand_header_constraints
+        for name, lim in constrains.items():
+            if header[name] not in lim:
+                print("header invalide")
+                print(name)
+                return stix_global._header_invalid
+        return stix_global._ok
+
+    def decode_app_header(self, header, data, length):
+        """ Decode the data field header  
+        """
+        service_type = header['service_type']
+        service_subtype = header['service_subtype']
+        offset, width = _stix_idb.get_packet_type_offset(service_type,
+                                                        service_subtype)
+        # see solar orbit ICD Page 36
+        SSID= -1
+        if offset != -1:
+            start = offset - 16  # 16bytes read already
+            end = start + width / 8  # it can be : 0, 16,8
+            upstr= '>B'
+            if width == 16:
+                upstr= '>H'
+            res = st.unpack(upstr, data[int(start):int(end)])
+            SSID= res[0]
+        info = _stix_idb.get_packet_type_info(service_type, service_subtype,
+                                                  SSID)
+        header['DESCR']=info['PID_DESCR']
+        header['SPID']=info['PID_SPID']
+        header['TPSD']=info['PID_TPSD']
+        header['length']=length
+        header['SSID']=SSID
+
+    def parse_fixed_packet(self, buf, spid):
+        param_struct= _stix_idb.get_fixed_packet_structure(spid)
+        return self.get_fixed_packet_parameters(buf, param_struct, calibration=True)
+
+    def get_fixed_packet_parameters(self, buf, param_struct,calibration):
+        """ Extract parameters from a fixed data packet see Solar orbit IDB ICD section 3.3.2.5.1
+        """
+        params= []
+        for par in param_struct:
+            par['offset'] = int(par['PLF_OFFBY']) - 16
+            par['offset_bit'] = int(par['PLF_OFFBI'])
+            par['type'] = 'fixed'
+            parameter = self.parse_telemetry_parameter(buf, par, calibration)
+            params.append(parameter)
+        return params
+
+    def parse_telecommand_header(self, packet):
+        # see STIX ICD-0812-ESC  (Page
+        # 56)
+        if packet[0] != 0x1D:
+            return stix_global._header_first_byte_invalid, None
+        header_raw = st.unpack('>HHHBBBB', packet[0:10])
+        header = {}
+        for h, s in zip(header_raw, stix_header._telecommand_raw_structure):
+            header.update(unpack_integer(h, s))
+        status= self.check_header(header,'tc')
+        info=_stix_idb.get_telecommand_characteristics(header['service_type'],
+                header['service_subtype'], header['source_id'])
+        header['DESCR']=info['CCF_DESCR']+' - ' +info['CCF_DESCR2']
+        header['SPID']=''
+        header['name']=info['CCF_CNAME']
+        if status == stix_global._ok:
+            try:
+                header['ACK_DESC']=stix_header._ACK_mapping[header['ACK']]
+            except KeyError:
+                status=stix_global._header_key_error
+        return status, header
+
+    def parse_telecommand_parameter(self,header,packet):
+        pass
+    def parse_telecommand_packet(self, buf):
+        pass
+
+ 
+
+    def parse_file(self,in_filename, out_filename=None, selected_spid=0,
+            pstruct='tree'):
+        with open(in_filename, 'rb') as in_file:
+            data=in_file.read()
+            _stix_logger.info('Processing file: {}'.format(in_filename))
+            _stix_logger.info("File size:{} kB ".format(len(data)/1024))
+
+            print('Processing file: {}'.format(in_filename))
+            print("File size:{} kB ".format(len(data)/1024))
+
+            packets=self.parse(data,0,  selected_spid,pstruct)
+            st_writer=None
+            if  out_filename.endswith(('.pkl','.pklz')):
+                st_writer = stix_writer.StixPickleWriter(out_filename)
+            elif out_filename.endswith(('.db','.sqlite')):
+                st_writer = stix_writer.StixSqliteWriter(out_filename)
+            elif  'mongo' in out_filename:
+                st_writer = stix_writer.StixMongoWriter()
+            if st_writer:
+                st_writer.register_run(in_filename,len(data))
+                _stix_logger.info('Writing parameters to file {} ...'.format(out_filename))
+                st_writer.write_all(packets)
+            _stix_logger.info('Done.')
+
+
+    def parse(self, buf, i=0, selected_spid=0, pstruct='tree'):
+        length=len(buf)
+        if i >= length:
+            return
+        packets=[]
+        fix=0
+        total=0
+        var=0
+        tc=0
+        while i<length:
+            if buf[i]==0x0D:
+                total+=1
+                status, i, header_raw=substr(buf,i,16)
+                if status == stix_global._eof:
+                    break
+                header_status, header = self.parse_telemetry_header(header_raw)
+                if header_status != stix_global._ok:
+                    _stix_logger.warn('Bad header at {}, code {} '.format(i, header_status))
+                    continue
+
+                app_length = header['length']-9
+                status, i, app_raw=substr(buf, i, app_length)
+                if status==stix_global._eof:
+                    break
+
+                self.decode_app_header(header, app_raw, app_length)
+                tpsd = header['TPSD']
+                spid= header['SPID']
+                if selected_spid>0 and selected_spid!=spid:
+                    continue
+                parameters=None
+                if tpsd == -1:
+                    parameters = self.parse_fixed_packet(app_raw, spid)
+                    fix+=1
+                else:
+                    var+=1
+                    self.vp_parser.parse(app_raw,spid, pstruct)
+                    num_read, parameters, status = self.vp_parser.get_parameters()
+                    if num_read!= app_length:
+                        _stix_logger.warn("Variable packet length inconsistent! SPID: {}, Actual: {}, IDB: {}".format(
+                            spid, num_read, app_length))
+                packets.append({'header':header,'parameters':parameters})
+            elif ord(buf[i])==0x1D:
+                total+=1
+                tc+=1
+                status, i, header_raw=substr(buf,i,12)
+                if status == stix_global._eof:
+                    break
+                header_status, header = self.parse_telecommand_header(header_raw)
+                if header_raw!=stix_global._ok:
+                    _stix_logger.warn("A bad telecommand packet found, cursor at: {} ".format(i-12))
+                    continue
+                app_length=header['length']-6+1
+                status, i,app_raw=substr(buf, i, app_length)
+                if status==stix_global._eof:
+                    break
+                packets.append({'header':header, 'parameters':None})
+            else:
+                old_i=i
+                i=find_next_header(buf,i)
+                if i==stix_global._eof:
+                    break
+                _stix_logger.warn('New header find at {}, {} bytes skipped!'.format(i,
+                    i-old_i))
+        
+
+
+        _stix_logger.info('total packets: {}; TM: {} (fix:{} variable: {}); TC:{}'.format(
+            total, fix+var, fix,var, tc))
+        return packets
+
+
+
+
+
 
