@@ -516,6 +516,7 @@ class StixTCTMParser(StixParameterParser):
         header['SPID']=''
         header['name']=info['CCF_CNAME']
         header['TMTC']='TC'
+        header['time']=0
         if status == stix_global._ok:
             try:
                 header['ACK_DESC']=stix_header._ACK_mapping[header['ACK']]
@@ -546,11 +547,15 @@ class StixTCTMParser(StixParameterParser):
                 st_writer = stix_writer.StixSqliteWriter(out_filename)
             elif  'mongo' in out_filename:
                 st_writer = stix_writer.StixMongoWriter()
+
             if st_writer:
                 st_writer.register_run(in_filename,len(data))
                 _stix_logger.info('Writing parameters to file {} ...'.format(out_filename))
                 st_writer.write_all(packets)
-            _stix_logger.info('Done.')
+                _stix_logger.info('Done.')
+            else:
+                return packets
+
 
 
     def parse(self, buf, i=0, pstruct='tree', selected_spid=0):
@@ -563,6 +568,9 @@ class StixTCTMParser(StixParameterParser):
         var=0
         tc=0
         while i<length:
+
+
+
             if buf[i]==0x0D:
                 total+=1
                 status, i, header_raw=substr(buf,i,16)
@@ -602,7 +610,8 @@ class StixTCTMParser(StixParameterParser):
                 if status == stix_global._eof:
                     break
                 header_status, header = self.parse_telecommand_header(header_raw)
-                if header_raw!=stix_global._ok:
+            
+                if header_status!=stix_global._ok:
                     _stix_logger.warn("A bad telecommand packet found, cursor at: {} ".format(i-12))
                     continue
                 app_length=header['length']-6+1
@@ -610,6 +619,7 @@ class StixTCTMParser(StixParameterParser):
                 if status==stix_global._eof:
                     break
                 packets.append({'header':header, 'parameters':None})
+
             else:
                 old_i=i
                 _stix_logger.warn('bad header {} at {}!'.format(buf[i],i))
@@ -618,6 +628,9 @@ class StixTCTMParser(StixParameterParser):
                     break
                 _stix_logger.warn('New header find at {}, {} bytes skipped!'.format(i,
                     i-old_i))
+
+            if 100*i%length==0:
+                _stix_logger.info('Loading {}% '.format(100.*i/length))
         
 
 

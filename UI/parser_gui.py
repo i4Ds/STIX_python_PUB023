@@ -25,6 +25,7 @@ from UI import mainwindow
 from UI import mongo_dialog
 from functools import partial
 from core import mongo_db as mgdb
+from core import stix_logger
 
 
 class StixDataReader(QThread):
@@ -39,15 +40,14 @@ class StixDataReader(QThread):
         super(StixDataReader, self).__init__()
         self.filename = filename
         self.data = []
-        self.stix_telemetry_parser=stix_parser.StixTCTMParser()
-
+        self.stix_tctm_parser=stix_parser.StixTCTMParser()
+        stix_logger._stix_logger.set_signal(self.info)
     def run(self):
         self.data = []
         filename = self.filename
         if filename.endswith('.pklz'):
-            self.info.emit(('Decompressing {}').format(filename))
+            self.info.emit(('Loading {} ...').format(filename))
             f = gzip.open(filename, 'rb')
-            self.info.emit(('Loading ...'))
             self.data = pickle.load(f)['packet']
             f.close()
         elif filename.endswith('.pkl'):
@@ -61,6 +61,7 @@ class StixDataReader(QThread):
             self.read_packet_from_db(filename)
         elif filename.endswith('.xml'):
             self.parseESOCXmlFile(filename)
+
         self.dataLoaded.emit(self.data)
 
     def read_packet_from_db(self, filename):
@@ -92,18 +93,13 @@ class StixDataReader(QThread):
             data_binary = binascii.unhexlify(data_hex)
             data=data_binary[76:]
 
-            result=self.stix_telemetry_parser.parse(data, 0, 'tree')
-            if not result:
-                continue
-            #status=result['status']
-            header=result[0]['header']
-            parameters=result[0]['parameters']
-            #param_type=result['parameter_type']
-            #num_bytes_read=result['num_read']
-
+            packets=self.stix_tctm_parser.parse(data, 0, 'tree')
             if i % freq == 0:
                 self.info.emit("{.0f}% loaded".format(100 * i / num))
-            self.data.append({'header': header, 'parameters': parameters})
+
+            if not packets:
+                continue
+            self.data.extend(packets)
 
     def parseRawFile(self):
         filename = self.filename
@@ -113,39 +109,16 @@ class StixDataReader(QThread):
         except Exception as e:
             self.error.emit('Failed to open {}'.format(str(e)))
         else:
+            buf=in_file.read()
             size = os.stat(filename).st_size
             percent = int(size / 100)
             num_packets = 0
             total_read = 0
-            stix_writer = None
-            # st_writer.register_run(in_filename)
             total_packets = 0
             self.data = []
-            selected_spid = 0
             last_percent = 0
-            self.data=self.stix_telemetry_parser.parse_file(in_file, '', 'tree')
-            #while True:
-            #    result=self.stix_telemetry_parser.parse(in_file, 0, 'tree')
-            #    status=result['status']
-            #    header=result['header']
-            #    parameters=result['parameters']
-            #    param_type=result['parameter_type']
-            #    num_bytes_read=result['num_read']
 
-            #    total_read += num_bytes_read
-            #    total_packets += 1
-            #    if status == stix_global._next_packet:
-            #        continue
-            #    if status == stix_global._eof:
-            #        break
-
-            #    if int(total_read / percent) > int(last_percent):
-            #        self.info.emit(
-            #            "{:.0f}% loaded".format(
-            #                100 * total_read / size))
-            #    last_percent = total_read / percent
-
-            #    self.data.append({'header': header, 'parameters': parameters})
+            self.data=self.stix_tctm_parser.parse(buf, 0, 'tree')
 
 
 class Ui(mainwindow.Ui_MainWindow):
@@ -155,7 +128,7 @@ class Ui(mainwindow.Ui_MainWindow):
         #uic.loadUi('UI/mainwindow.ui', self)
 
         self.MainWindow = MainWindow
-        self.stix_telemetry_parser=stix_parser.StixTCTMParser()
+        self.stix_tctm_parser=stix_parser.StixTCTMParser()
 
         self.initialize()
 
@@ -281,9 +254,9 @@ class Ui(mainwindow.Ui_MainWindow):
         data_hex = re.sub(r"\s+", "", raw_hex)
         try:
             data_binary = binascii.unhexlify(data_hex)
-            #status, header, parameters, param_type, param_desc, num_bytes_read = stix_telemetry_parser.parse_one_packet(
+            #status, header, parameters, param_type, param_desc, num_bytes_read = stix_tctm_parser.parse_one_packet(
             #    in_file, self)
-            packets=self.stix_telemetry_parser.parse(data_binary, 0, 'tree')
+            packets=self.stix_tctm_parser.parse(data_binary, 0, 'tree')
             if not packets:
                 return
             result=packets[0]
@@ -551,6 +524,8 @@ class Ui(mainwindow.Ui_MainWindow):
         self.paramTreeWidget.expandItem(header_root)
 
     def showParameterTree(self, params, parent):
+        if not params:
+            return
         for p in params:
             root = QtWidgets.QTreeWidgetItem(parent)
             if not p:

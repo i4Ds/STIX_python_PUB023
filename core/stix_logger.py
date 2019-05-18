@@ -11,11 +11,14 @@ import sys
 class StixLogger:
     def __init__(self, filename=None, verbose=10):
         self.logfile=None
+        self.signal=None
         self.set_logger(filename,verbose)
-
+    def set_signal(self,sig):
+        self.signal=sig
     def set_logger(self,filename, verbose):
         if self.logfile:
             self.logfile.close()
+            self.logfile=None
         self.filename= filename
         self.verbose=verbose
         if filename:
@@ -27,10 +30,18 @@ class StixLogger:
     def set_verbose(self,verbose):
         self.verbose=verbose
     def printf(self,msg):
-        if self.logfile:
+        if self.signal:
+            self.emit(msg)
+        elif self.logfile:
             self.logfile.write(msg+'\n')
         else:
             print(msg)
+
+    def emit(self,msg):
+        if self.signal:
+            self.signal.emit(msg)
+
+
 
 
     def error(self,  msg):
@@ -91,7 +102,7 @@ class StixLogger:
 
 
     def debug(self, msg):
-        if self.verbose <4 :
+        if self.verbose < 4 :
             return 
         self.printf(msg)
 
