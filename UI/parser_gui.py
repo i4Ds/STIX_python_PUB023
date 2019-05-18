@@ -442,7 +442,7 @@ class Ui(mainwindow.Ui_MainWindow):
 
             root.setText(0, '{:.2f}'.format(header['time']-t0))
             root.setText(1,
-                         ('TM({},{}) - {}').format(header['service_type'],
+                         ('{}({},{}) - {}').format(header['TMTC'],header['service_type'],
                                                    header['service_subtype'],
                                                    header['DESCR']))
         self.total_packets = len(self.data)

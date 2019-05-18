@@ -439,6 +439,7 @@ class StixTCTMParser(StixParameterParser):
         status= self.check_header(header,'tm')
         if status == stix_global._ok:
             header.update({'segmentation': stix_header._packet_seg[header['seg_flag']]})
+            header['TMTC']='TM'
             header.update(
                 {'time': header['fine_time'] / 65536. + header['coarse_time']})
         return status, header
@@ -514,6 +515,7 @@ class StixTCTMParser(StixParameterParser):
         header['DESCR']=info['CCF_DESCR']+' - ' +info['CCF_DESCR2']
         header['SPID']=''
         header['name']=info['CCF_CNAME']
+        header['TMTC']='TC'
         if status == stix_global._ok:
             try:
                 header['ACK_DESC']=stix_header._ACK_mapping[header['ACK']]
