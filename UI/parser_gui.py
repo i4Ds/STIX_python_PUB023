@@ -13,7 +13,7 @@ from PyQt5 import uic, QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtChart import QChart, QChartView, QLineSeries, QValueAxis, QBarSeries, QBarSet, QScatterSeries
 
-from core import stix_parser 
+from core import stix_parser
 from core import stix_global
 from core import stix_writer
 from core import stix_sqlite_reader
@@ -39,8 +39,9 @@ class StixDataReader(QThread):
         super(StixDataReader, self).__init__()
         self.filename = filename
         self.data = []
-        self.stix_tctm_parser=stix_parser.StixTCTMParser()
+        self.stix_tctm_parser = stix_parser.StixTCTMParser()
         stix_logger._stix_logger.set_signal(self.info)
+
     def run(self):
         self.data = []
         filename = self.filename
@@ -79,7 +80,8 @@ class StixDataReader(QThread):
 
             self.info.emit(('Parsing {}').format(in_filename))
             doc = xmltodict.parse(fd.read())
-            for e in doc['ns2:ResponsePart']['Response']['PktRawResponse']['PktRawResponseElement']:
+            for e in doc['ns2:ResponsePart']['Response']['PktRawResponse'][
+                    'PktRawResponseElement']:
                 packet = {'id': e['@packetID'], 'raw': e['Packet']}
                 packets.append(packet)
         num = len(packets)
@@ -90,9 +92,9 @@ class StixDataReader(QThread):
         for i, packet in enumerate(packets):
             data_hex = packet['raw']
             data_binary = binascii.unhexlify(data_hex)
-            data=data_binary[76:]
+            data = data_binary[76:]
 
-            packets=self.stix_tctm_parser.parse(data, 0, 'tree')
+            packets = self.stix_tctm_parser.parse(data, 0, 'tree')
             if i % freq == 0:
                 self.info.emit("{.0f}% loaded".format(100 * i / num))
 
@@ -108,7 +110,7 @@ class StixDataReader(QThread):
         except Exception as e:
             self.error.emit('Failed to open {}'.format(str(e)))
         else:
-            buf=in_file.read()
+            buf = in_file.read()
             size = os.stat(filename).st_size
             percent = int(size / 100)
             num_packets = 0
@@ -117,7 +119,7 @@ class StixDataReader(QThread):
             self.data = []
             last_percent = 0
 
-            self.data=self.stix_tctm_parser.parse(buf, 0, 'tree')
+            self.data = self.stix_tctm_parser.parse(buf, 0, 'tree')
 
 
 class Ui(mainwindow.Ui_MainWindow):
@@ -127,7 +129,7 @@ class Ui(mainwindow.Ui_MainWindow):
         #uic.loadUi('UI/mainwindow.ui', self)
 
         self.MainWindow = MainWindow
-        self.stix_tctm_parser=stix_parser.StixTCTMParser()
+        self.stix_tctm_parser = stix_parser.StixTCTMParser()
 
         self.initialize()
 
@@ -142,18 +144,14 @@ class Ui(mainwindow.Ui_MainWindow):
         self.actionExit.triggered.connect(self.close)
         self.action_Plot.setEnabled(False)
 
-        self.actionNext.setIcon(
-            self.style().standardIcon(
-                QtWidgets.QStyle.SP_ArrowForward))
-        self.actionPrevious.setIcon(
-            self.style().standardIcon(
-                QtWidgets.QStyle.SP_ArrowBack))
-        self.action_Open.setIcon(
-            self.style().standardIcon(
-                QtWidgets.QStyle.SP_DialogOpenButton))
-        self.actionSave.setIcon(
-            self.style().standardIcon(
-                QtWidgets.QStyle.SP_DriveFDIcon))
+        self.actionNext.setIcon(self.style().standardIcon(
+            QtWidgets.QStyle.SP_ArrowForward))
+        self.actionPrevious.setIcon(self.style().standardIcon(
+            QtWidgets.QStyle.SP_ArrowBack))
+        self.action_Open.setIcon(self.style().standardIcon(
+            QtWidgets.QStyle.SP_DialogOpenButton))
+        self.actionSave.setIcon(self.style().standardIcon(
+            QtWidgets.QStyle.SP_DriveFDIcon))
 
         self.actionSave.triggered.connect(self.save)
 
@@ -174,20 +172,20 @@ class Ui(mainwindow.Ui_MainWindow):
         self.exportButton.clicked.connect(self.onExportButtonClicked)
         self.action_Plot.triggered.connect(self.onPlotActionClicked)
         self.actionLoad_mongodb.triggered.connect(self.onLoadMongoDBTriggered)
-        self.mdb=None
+        self.mdb = None
 
         self.current_row = 0
-        self.data=[]
-        self.x=[]
-        self.y=[]
-        self.xlabel='x'
-        self.ylabel='y'
+        self.data = []
+        self.x = []
+        self.y = []
+        self.xlabel = 'x'
+        self.ylabel = 'y'
 
         self.chart = QChart()
-        self.chart.layout().setContentsMargins(0,0,0,0)
+        self.chart.layout().setContentsMargins(0, 0, 0, 0)
         self.chart.setBackgroundRoundness(0)
         self.savePlotButton.clicked.connect(self.savePlot)
-        
+
         self.chartView = QChartView(self.chart)
         self.gridLayout.addWidget(self.chartView, 1, 0, 1, 15)
 
@@ -200,20 +198,21 @@ class Ui(mainwindow.Ui_MainWindow):
         if not idb._stix_idb.is_connected():
             self.showMessage('IDB has not been set!')
         else:
-            self.showMessage(
-                'IDB found: {} '.format(
-                    idb._stix_idb.get_idb_filename()))
+            self.showMessage('IDB found: {} '.format(
+                idb._stix_idb.get_idb_filename()))
 
     def onExportButtonClicked(self):
         if self.y:
-            filename = str(QtWidgets.QFileDialog.getSaveFileName(
-                None, "Save file", "", "*.csv")[0])
+            filename = str(
+                QtWidgets.QFileDialog.getSaveFileName(None, "Save file", "",
+                                                      "*.csv")[0])
             if filename:
-                with open(filename,'w') as f:
-                    f.write('{},{}\n'.format(self.xlabel,self.ylabel))
-                    for xx,yy in zip(self.x,self.y):
-                        f.write('{},{}\n'.format(xx,yy))
-                    self.showMessage('The data has been written to {}'.format(filename))
+                with open(filename, 'w') as f:
+                    f.write('{},{}\n'.format(self.xlabel, self.ylabel))
+                    for xx, yy in zip(self.x, self.y):
+                        f.write('{},{}\n'.format(xx, yy))
+                    self.showMessage(
+                        'The data has been written to {}'.format(filename))
         else:
             msgBox = QtWidgets.QMessageBox()
             msgBox.setIcon(QtWidgets.QMessageBox.Information)
@@ -222,20 +221,19 @@ class Ui(mainwindow.Ui_MainWindow):
             msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
             msgBox.exec_()
 
-
     def savePlot(self):
         #if self.figure.get_axes():
         if self.chart:
-            filename = str(QtWidgets.QFileDialog.getSaveFileName(
-                None, "Save file", "", "*.png *.jpg")[0])
+            filename = str(
+                QtWidgets.QFileDialog.getSaveFileName(None, "Save file", "",
+                                                      "*.png *.jpg")[0])
             if filename:
-                if not filename.endswith(('.png','.jpg')):
-                    filename+='.png'
+                if not filename.endswith(('.png', '.jpg')):
+                    filename += '.png'
                 #self.figure.savefig(filename)
-                p=self.chartView.grab()
+                p = self.chartView.grab()
                 p.save(filename)
                 self.showMessage(('Saved to %s.' % filename))
-
 
         else:
             msgBox = QtWidgets.QMessageBox()
@@ -255,17 +253,16 @@ class Ui(mainwindow.Ui_MainWindow):
             data_binary = binascii.unhexlify(data_hex)
             #status, header, parameters, param_type, param_desc, num_bytes_read = stix_tctm_parser.parse_one_packet(
             #    in_file, self)
-            packets=self.stix_tctm_parser.parse(data_binary, 0, 'tree')
+            packets = self.stix_tctm_parser.parse(data_binary, 0, 'tree')
             if not packets:
                 return
-            result=packets[0]
-            header=result['header']
-            parameters=result['parameters']
-            num_bytes_read=len(raw_hex)
+            result = packets[0]
+            header = result['header']
+            parameters = result['parameters']
+            num_bytes_read = len(raw_hex)
             data = [{'header': header, 'parameters': parameters}]
             self.showMessage(
-                ('%d bytes read from the clipboard' %
-                 num_bytes_read))
+                ('%d bytes read from the clipboard' % num_bytes_read))
             self.onDataLoaded(data)
         except Exception as e:
             self.showMessageBox(str(e), data_hex)
@@ -277,8 +274,8 @@ class Ui(mainwindow.Ui_MainWindow):
         msg.setInformativeText(message)
         msg.setWindowTitle("Error")
         msg.setDetailedText(content)
-        msg.setStandardButtons(QtWidgets.QMessageBox.Ok |
-                               QtWidgets.QMessageBox.Cancel)
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok
+                               | QtWidgets.QMessageBox.Cancel)
         retval = msg.exec_()
 
     def showMessage(self, msg):
@@ -298,17 +295,16 @@ class Ui(mainwindow.Ui_MainWindow):
         if idb._stix_idb.is_connected():
             #settings = QtCore.QSettings('FHNW', 'stix_parser')
             self.settings.setValue('idb_filename', self.idb_filename)
-        self.showMessage(
-            'current IDB: {} '.format(
-                idb._stix_idb.get_idb_filename()))
+        self.showMessage('current IDB: {} '.format(
+            idb._stix_idb.get_idb_filename()))
 
     def save(self):
         self.output_filename = str(
-            QtWidgets.QFileDialog.getSaveFileName(
-                None, "Save file", "", ".pklz .pkl .db .sqlite")[0])
+            QtWidgets.QFileDialog.getSaveFileName(None, "Save file", "",
+                                                  ".pklz .pkl .db .sqlite")[0])
 
         if not self.output_filename.endswith(
-                ('.pklz', '.pkl', '.db', '.sqlite')):
+            ('.pklz', '.pkl', '.db', '.sqlite')):
             msg = ('unsupported file format !')
             return
         msg = ('Writing data to file %s') % self.output_filename
@@ -326,8 +322,7 @@ class Ui(mainwindow.Ui_MainWindow):
             stw.done()
 
         self.showMessage(
-            (('Data has been written to %s ') %
-             self.output_filename))
+            (('Data has been written to %s ') % self.output_filename))
 
     def setListViewSelected(self, row):
         #index = self.model.createIndex(row, 0);
@@ -345,20 +340,19 @@ class Ui(mainwindow.Ui_MainWindow):
 
     def nextPacket(self):
         self.current_row += 1
-        length=len(self.data)
-        
-        if self.current_row>=length:
-            self.current_row=length-1
+        length = len(self.data)
+
+        if self.current_row >= length:
+            self.current_row = length - 1
             self.showMessage('No more packet!')
-            
 
         self.showPacket(self.current_row)
         self.setListViewSelected(self.current_row)
 
     def previousPacket(self):
         self.current_row -= 1
-        if self.current_row <0:
-            self.current_row=0
+        if self.current_row < 0:
+            self.current_row = 0
             self.showMessage('Reach the first packet!')
 
         self.showPacket(self.current_row)
@@ -366,7 +360,8 @@ class Ui(mainwindow.Ui_MainWindow):
 
     def getOpenFilename(self):
         self.input_filename = QtWidgets.QFileDialog.getOpenFileName(
-            None, 'Select file', '.', 'STIX data file (* *.dat *.pkl *.pklz *xml *.db)')[0]
+            None, 'Select file', '.',
+            'STIX data file (* *.dat *.pkl *.pklz *xml *.db)')[0]
         if not self.input_filename:
             return
         self.openFile(self.input_filename)
@@ -387,7 +382,7 @@ class Ui(mainwindow.Ui_MainWindow):
     def onDataReaderError(self, msg):
         self.showMessage(msg)
 
-    def onDataLoaded(self, data,clear=True):
+    def onDataLoaded(self, data, clear=True):
         if not clear:
             self.data.append(data)
         else:
@@ -400,38 +395,37 @@ class Ui(mainwindow.Ui_MainWindow):
             self.actionSave.setEnabled(True)
             self.action_Plot.setEnabled(True)
 
-    def displayPackets(self,clear=True):
+    def displayPackets(self, clear=True):
         if clear:
             self.packetTreeWidget.clear()
-        t0=0
+        t0 = 0
         for p in self.data:
             if type(p) is not dict:
                 continue
             header = p['header']
             root = QtWidgets.QTreeWidgetItem(self.packetTreeWidget)
-            if t0==0:
-                t0=header['time']
+            if t0 == 0:
+                t0 = header['time']
 
-            root.setText(0, '{:.2f}'.format(header['time']-t0))
-            root.setText(1,
-                         ('{}({},{}) - {}').format(header['TMTC'],header['service_type'],
-                                                   header['service_subtype'],
-                                                   header['DESCR']))
+            root.setText(0, '{:.2f}'.format(header['time'] - t0))
+            root.setText(1, ('{}({},{}) - {}').format(
+                header['TMTC'], header['service_type'],
+                header['service_subtype'], header['DESCR']))
         self.total_packets = len(self.data)
         self.showMessage((('%d packets loaded') % (self.total_packets)))
         self.packetTreeWidget.currentItemChanged.connect(self.onPacketSelected)
         self.showPacket(0)
 
     def onLoadMongoDBTriggered(self):
-        diag=QtWidgets.QDialog()
-        diag_ui=mongo_dialog.Ui_Dialog()
+        diag = QtWidgets.QDialog()
+        diag_ui = mongo_dialog.Ui_Dialog()
         diag_ui.setupUi(diag)
         #self.settings = QtCore.QSettings('FHNW', 'stix_parser')
-        self.mongo_server= self.settings.value('mongo_server', [], str)
-        self.mongo_port= self.settings.value('mongo_port', [], str)
+        self.mongo_server = self.settings.value('mongo_server', [], str)
+        self.mongo_port = self.settings.value('mongo_port', [], str)
 
-        self.mongo_user= self.settings.value('mongo_user', [], str)
-        self.mongo_pwd= self.settings.value('mongo_pwd', [], str)
+        self.mongo_user = self.settings.value('mongo_user', [], str)
+        self.mongo_pwd = self.settings.value('mongo_pwd', [], str)
 
         if self.mongo_server:
             diag_ui.serverLineEdit.setText(self.mongo_server)
@@ -443,28 +437,33 @@ class Ui(mainwindow.Ui_MainWindow):
         if self.mongo_pwd:
             diag_ui.pwdLineEdit.setText(self.mongo_pwd)
 
-        diag_ui.pushButton.clicked.connect(partial(self.loadRunsFromMongoDB,diag_ui))
-        diag_ui.buttonBox.accepted.connect(partial(self.loadDataFromMongoDB,diag_ui,diag))
+        diag_ui.pushButton.clicked.connect(
+            partial(self.loadRunsFromMongoDB, diag_ui))
+        diag_ui.buttonBox.accepted.connect(
+            partial(self.loadDataFromMongoDB, diag_ui, diag))
         diag.exec_()
-    def loadRunsFromMongoDB(self,dui):
-        server=dui.serverLineEdit.text()
-        port=dui.portLineEdit.text()
-        user=dui.userLineEdit.text()
-        pwd=dui.pwdLineEdit.text()
+
+    def loadRunsFromMongoDB(self, dui):
+        server = dui.serverLineEdit.text()
+        port = dui.portLineEdit.text()
+        user = dui.userLineEdit.text()
+        pwd = dui.pwdLineEdit.text()
 
         self.showMessage('saving setting...')
-        if self.mongo_server!=server:
+        if self.mongo_server != server:
             self.settings.setValue('mongo_server', server)
-        if self.mongo_port!=port:
+        if self.mongo_port != port:
             self.settings.setValue('mongo_port', port)
 
-        if self.mongo_user!=user:
+        if self.mongo_user != user:
             self.settings.setValue('mongo_user', user)
-        if self.mongo_pwd!=pwd:
+        if self.mongo_pwd != pwd:
             self.settings.setValue('mongo_pwd', pwd)
 
         self.showMessage('connecting Mongo database ...')
-        self.mdb=mgdb.MongoDB(server,int(port),user,pwd)
+        self.mdb = mgdb.MongoDB(server, int(port), user, pwd)
+        if not self.mdb.is_connected():
+            return
 
         dui.treeWidget.clear()
         self.showMessage('Fetching data...')
@@ -476,8 +475,9 @@ class Ui(mainwindow.Ui_MainWindow):
             root.setText(3, str(run['start']))
             root.setText(4, str(run['end']))
         self.showMessage('Runs loaded!')
-    def loadDataFromMongoDB(self,dui,diag):
-        selected_runs=[]
+
+    def loadDataFromMongoDB(self, dui, diag):
+        selected_runs = []
         for item in dui.treeWidget.selectedItems():
             selected_runs.append(item.text(0))
         if not selected_runs:
@@ -485,9 +485,9 @@ class Ui(mainwindow.Ui_MainWindow):
         if selected_runs:
             diag.done(0)
             self.showMessage('Loading data ...!')
-            data=self.mdb.get_packets(selected_runs[0])
+            data = self.mdb.get_packets(selected_runs[0])
             if data:
-                self.onDataLoaded(data,clear=True)
+                self.onDataLoaded(data, clear=True)
             else:
                 self.showMessage('No packets found!')
         #close
@@ -501,9 +501,8 @@ class Ui(mainwindow.Ui_MainWindow):
         if not self.data:
             return
         header = self.data[row]['header']
-        self.showMessage(
-            (('Packet %d / %d  %s ') %
-             (row, self.total_packets, header['DESCR'])))
+        self.showMessage((('Packet %d / %d  %s ') % (row, self.total_packets,
+                                                     header['DESCR'])))
 
         self.paramTreeWidget.clear()
 
@@ -530,10 +529,10 @@ class Ui(mainwindow.Ui_MainWindow):
             if not p:
                 continue
             try:
-                param_name=p['name']
-                desc=idb._stix_idb.get_PCF_description(param_name)
-                scos_desc=idb._stix_idb.get_scos_description(param_name)
-                root.setToolTip(1,scos_desc)
+                param_name = p['name']
+                desc = idb._stix_idb.get_PCF_description(param_name)
+                scos_desc = idb._stix_idb.get_scos_description(param_name)
+                root.setToolTip(1, scos_desc)
                 root.setText(0, param_name)
                 root.setText(1, desc)
                 root.setText(2, str(p['raw']))
@@ -550,7 +549,7 @@ class Ui(mainwindow.Ui_MainWindow):
         if not params:
             return
         timestamp = header['time']
-        #parameters=[p for p in params if p['name'] == name] 
+        #parameters=[p for p in params if p['name'] == name]
         for p in params:
             if type(p) is not dict:
                 continue
@@ -578,14 +577,8 @@ class Ui(mainwindow.Ui_MainWindow):
 
             if 'child' in p:
                 if p['child']:
-                    self.walk(
-                        name,
-                        p['child'],
-                        header,
-                        ret_x,
-                        ret_y,
-                        xaxis,
-                        data_type)
+                    self.walk(name, p['child'], header, ret_x, ret_y, xaxis,
+                              data_type)
 
     def onPlotButtonClicked(self):
         if self.chart:
@@ -603,16 +596,10 @@ class Ui(mainwindow.Ui_MainWindow):
         packet_id = self.current_row
         params = self.data[packet_id]['parameters']
         header = self.data[packet_id]['header']
-        current_spid=header['SPID']
+        current_spid = header['SPID']
         if packet_selection == 0:
-            self.walk(
-                name,
-                params,
-                header,
-                timestamp,
-                self.y,
-                xaxis_type,
-                data_type)
+            self.walk(name, params, header, timestamp, self.y, xaxis_type,
+                      data_type)
         elif packet_selection == 1:
             for packet in self.data:
                 header = packet['header']
@@ -620,18 +607,10 @@ class Ui(mainwindow.Ui_MainWindow):
                     continue
                 #only look for parameters in the packets of the same type
                 params = packet['parameters']
-                self.walk(
-                    name,
-                    params,
-                    header,
-                    timestamp,
-                    self.y,
-                    xaxis_type,
-                    data_type)
+                self.walk(name, params, header, timestamp, self.y, xaxis_type,
+                          data_type)
 
         self.x = []
-
-
 
         if not self.y:
             self.showMessage('No data points')
@@ -647,7 +626,7 @@ class Ui(mainwindow.Ui_MainWindow):
             self.chart.setTitle(title)
 
             ylabel = 'Raw value'
-            xlabel=name
+            xlabel = name
             if data_type == 1:
                 ylabel = 'Engineering  value'
             if xaxis_type == 0:
@@ -713,8 +692,8 @@ class Ui(mainwindow.Ui_MainWindow):
                 #self.chart.setAxisX(axisX,series)
 
             # self.widget.setChart(self.chart)
-            self.xlabel=xlabel
-            self.ylabel=ylabel
+            self.xlabel = xlabel
+            self.ylabel = ylabel
             self.chartView.setRubberBand(QChartView.RectangleRubberBand)
             self.chartView.setRenderHint(QtGui.QPainter.Antialiasing)
             self.showMessage('The canvas updated!')

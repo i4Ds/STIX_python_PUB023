@@ -3,7 +3,7 @@
 #  File: header.py
 #  data structure
 #
-_telemetry_raw_structure= [  # each dictionary
+_telemetry_raw_structure = [  # each dictionary
     {
         'APID': [0, 11],
         'APID_packet_category': [0, 4],
@@ -40,29 +40,28 @@ _telemetry_raw_structure= [  # each dictionary
         'fine_time': [0, 16]
     }
 ]
-_telemetry_header_constraints= {
+_telemetry_header_constraints = {
     'version': [0],
     'packet_type': [0],
     'seg_flag': range(0, 4),
     'length': range(0, 4106 + 1),
     'PUS': [16],
 }
-_telecommand_header_constraints={
+_telecommand_header_constraints = {
     'version': [0],
     'length': range(0, 222 + 1),
-    'seg_flag':[3],
-
-    }
+    'seg_flag': [3],
+}
 
 _packet_seg = [
-    'continuation packet', 'first packet', 'last packet',
-    'stand-alone packet'
+    'continuation packet', 'first packet', 'last packet', 'stand-alone packet'
 ]
-_ACK_mapping={
-        0:'no response',
-        9:'ACC_ACK EXE_ACK',
-        1:'ACC_ACK',
-        8: 'EXE_ACK'}
+_ACK_mapping = {
+    0: 'no response',
+    9: 'ACC_ACK EXE_ACK',
+    1: 'ACC_ACK',
+    8: 'EXE_ACK'
+}
 
 _telecommand_raw_structure = [  # each dictionary
     {

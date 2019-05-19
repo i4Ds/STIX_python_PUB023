@@ -10,6 +10,7 @@ from __future__ import (absolute_import, unicode_literals)
 import pprint
 import sqlite3
 
+
 class StixSqliteReader(object):
     def __init__(self, filename):
         self.filename = filename
@@ -21,9 +22,11 @@ class StixSqliteReader(object):
             pass
         else:
             self.cur = self.conn.cursor()
+
     def __del__(self):
         if self.conn:
             self.conn.close()
+
     def execute(self, sql, args, result_type='list'):
         """
         execute sql and return results in a list or a dictionary
@@ -38,7 +41,7 @@ class StixSqliteReader(object):
         else:
             rows = None
             if args:
-                self.cur.execute(sql,args)
+                self.cur.execute(sql, args)
             else:
                 self.cur.execute(sql)
 
@@ -52,58 +55,69 @@ class StixSqliteReader(object):
                     for row in self.cur.fetchall()
                 ]
             return rows
-    def get_parameter_values(self,name):
-        sql=('select header.header_time, parameter.raw, parameter.eng_value,header.ID, parameter.descr from '
+
+    def get_parameter_values(self, name):
+        sql = (
+            'select header.header_time, parameter.raw, parameter.eng_value,header.ID, parameter.descr from '
             'parameter join header on header.ID=parameter.packet_id and '
             'name=? order by header.ID asc')
-        args=(name,)
+        args = (name, )
         return self.execute(sql, args, 'dict')
+
     def get_packets(self):
-        sql=('select * from header order by ID asc')
-        headers=self.execute(sql, None, 'dict')
-        data=[]
+        sql = ('select * from header order by ID asc')
+        headers = self.execute(sql, None, 'dict')
+        data = []
         for h in headers:
-            header_id=h['ID']
+            header_id = h['ID']
             #print(header_id)
-            parameters=self.get_parameters_by_header_ID(header_id)
-            h['DESCR']=h['descr']
-            h['time']=h['header_time']
-            data.append({'header':h,'parameter':parameters})
+            parameters = self.get_parameters_by_header_ID(header_id)
+            h['DESCR'] = h['descr']
+            h['time'] = h['header_time']
+            data.append({'header': h, 'parameter': parameters})
         return data
 
-    def get_parameters_by_header_ID(self,header_ID):
-        sql=('select * from parameter where packet_id=? order by ID')
-        parameters=self.execute(sql, (header_ID,), 'dict')
+    def get_parameters_by_header_ID(self, header_ID):
+        sql = ('select * from parameter where packet_id=? order by ID')
+        parameters = self.execute(sql, (header_ID, ), 'dict')
         return parameters
 
     def get_packet_spid(self):
-        sql='select header_time, SPID  from header order by ID asc'
-        return self.execute(sql,None)
-    def get_operation_modes(self):
-        sql='select header.header_time, parameter.raw from parameter join header on header.ID=parameter.packet_id and name="NIXD0023"' 
-        return self.execute(sql,None)
-    def get_headers(self):
-        sql='select header_time, SPID from header'
-        return self.execute(sql,None)
-    def get_parameter_names_of_spid(self,spid):
-        sql=('select distinct parameter.name,parameter.descr from ' 
-                'parameter join header on header.ID=parameter.packet_id and header.SPID=?')
-        args=(spid,)
-        return self.execute(sql)
-    def get_parameter_names_of_service(self,service):
-        sql='select parameter.name from \
-                parameter join header on header.ID=parameter.packet_id and header.service_type=?'
-        args=(service,)
-        return self.execute(sql,args)
+        sql = 'select header_time, SPID  from header order by ID asc'
+        return self.execute(sql, None)
 
-    def get_parameter_of_spid(self,spid):
-        sql='select parameter.* from \
+    def get_operation_modes(self):
+        sql = 'select header.header_time, parameter.raw from parameter join header on header.ID=parameter.packet_id and name="NIXD0023"'
+        return self.execute(sql, None)
+
+    def get_headers(self):
+        sql = 'select header_time, SPID from header'
+        return self.execute(sql, None)
+
+    def get_parameter_names_of_spid(self, spid):
+        sql = (
+            'select distinct parameter.name,parameter.descr from '
+            'parameter join header on header.ID=parameter.packet_id and header.SPID=?'
+        )
+        args = (spid, )
+        return self.execute(sql)
+
+    def get_parameter_names_of_service(self, service):
+        sql = 'select parameter.name from \
+                parameter join header on header.ID=parameter.packet_id and header.service_type=?'
+
+        args = (service, )
+        return self.execute(sql, args)
+
+    def get_parameter_of_spid(self, spid):
+        sql = 'select parameter.* from \
                 parameter join header on header.ID=parameter.packet_id and header.SPID=?'
-        args=(spid,)
-        return self.execute(sql,args,'dict')
-    
+
+        args = (spid, )
+        return self.execute(sql, args, 'dict')
+
+
 #def test():
 #    db=ODB('../a.db')
 #    print(db.get_packets())
 #test()
-

@@ -42,14 +42,17 @@ class Ui_Dialog(object):
         self.serverLineEdit = QtWidgets.QLineEdit(Dialog)
         self.serverLineEdit.setObjectName("serverLineEdit")
         self.gridLayout.addWidget(self.serverLineEdit, 0, 1, 1, 1)
-        spacerItem = QtWidgets.QSpacerItem(208, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        spacerItem = QtWidgets.QSpacerItem(208, 20,
+                                           QtWidgets.QSizePolicy.Expanding,
+                                           QtWidgets.QSizePolicy.Minimum)
         self.gridLayout.addItem(spacerItem, 0, 5, 1, 1)
         self.userLineEdit = QtWidgets.QLineEdit(Dialog)
         self.userLineEdit.setObjectName("userLineEdit")
         self.gridLayout.addWidget(self.userLineEdit, 1, 1, 1, 1)
         self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel
+                                          | QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.gridLayout.addWidget(self.buttonBox, 3, 5, 1, 1)
         self.label = QtWidgets.QLabel(Dialog)
@@ -72,13 +75,13 @@ class Ui_Dialog(object):
         self.label_4.setText(_translate("Dialog", "Password"))
         self.pushButton.setText(_translate("Dialog", "Connect"))
         self.treeWidget.headerItem().setText(0, _translate("Dialog", "ID"))
-        self.treeWidget.headerItem().setText(1, _translate("Dialog", "Filename"))
-        self.treeWidget.headerItem().setText(2, _translate("Dialog", "Creation time"))
+        self.treeWidget.headerItem().setText(1, _translate(
+            "Dialog", "Filename"))
+        self.treeWidget.headerItem().setText(
+            2, _translate("Dialog", "Creation time"))
         self.treeWidget.headerItem().setText(3, _translate("Dialog", "Start"))
         self.treeWidget.headerItem().setText(4, _translate("Dialog", "End"))
         self.portLineEdit.setText(_translate("Dialog", "27017"))
         self.label_3.setText(_translate("Dialog", "Username"))
         self.serverLineEdit.setText(_translate("Dialog", "localhost"))
         self.label.setText(_translate("Dialog", "Server"))
-
-
