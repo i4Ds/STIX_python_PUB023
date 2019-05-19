@@ -567,9 +567,8 @@ class StixTCTMParser(StixParameterParser):
         total=0
         var=0
         tc=0
+        last=0
         while i<length:
-
-
 
             if buf[i]==0x0D:
                 total+=1
@@ -629,9 +628,11 @@ class StixTCTMParser(StixParameterParser):
                 _stix_logger.warn('New header find at {}, {} bytes skipped!'.format(i,
                     i-old_i))
 
-            if 100*i%length==0:
-                _stix_logger.info('Loading {}% '.format(100.*i/length))
-        
+            
+            current=int(100.*i/length)
+            if current>last:
+                _stix_logger.emit('{}% loaded'.format(current))
+            last=current
 
 
         _stix_logger.info('total packets: {}; TM: {} (fix:{} variable: {}); TC:{}'.format(

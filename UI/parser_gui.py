@@ -8,7 +8,7 @@ import re
 import binascii
 import xmltodict
 
-from io import BytesIO
+#from io import BytesIO
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtChart import QChart, QChartView, QLineSeries, QValueAxis, QBarSeries, QBarSet, QScatterSeries
@@ -18,7 +18,6 @@ from core import stix_global
 from core import stix_writer
 from core import stix_sqlite_reader
 from core import idb
-from io import BytesIO
 
 from UI import mainwindow_rc5
 from UI import mainwindow
