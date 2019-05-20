@@ -9,7 +9,7 @@
 #    PLF (paramter list) ->
 #    SOSW (parameter name) -> PCF (parameter length and position)  -> S2K_parameter ( type, length)
 #    ->TXP, CAP , or MCF interpret parameter
-from __future__ import (absolute_import, unicode_literals)
+#from __future__ import (absolute_import, unicode_literals)
 import os
 import sys
 import math

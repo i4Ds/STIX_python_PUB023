@@ -1,5 +1,7 @@
 # March 25,2019
 import sys
+sys.path.append('..')
+sys.path.append('.')
 import os
 import pickle
 import gzip
@@ -75,12 +77,12 @@ class StixDataReader(QThread):
                 [utc_timestamp, data_hex] = line.strip().split()
                 data_binary = binascii.unhexlify(data_hex)
                 packets=self.stix_tctm_parser.parse(data_binary,0,'tree')
+                if packets:
+                    packets[0]['header']['utc']=utc_timestamp
                 self.data.extend(packets)
                 if idx%10==0:
                     self.info.emit('{} packet have been read'.format(idx))
                 idx+=1
-
-
 
             
 
