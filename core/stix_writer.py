@@ -51,6 +51,8 @@ class StixMongoWriter:
         self.db = None
         self.collection_packets = None
         self.collection_runs = None
+        self.current_run_id=0
+        self.current_header_id=0
         self.start = -1
         self.end = -1
         try:
@@ -90,32 +92,43 @@ class StixMongoWriter:
 
     def register_run(self, in_filename, filesize=0):
         try:
-            self.last_run_id = self.collection_runs.find().sort(
-                '_id', -1).limit(1)[0]['_id']
-        except:
-            self.last_run_id = -1
-        self.this_run_id = self.last_run_id + 1
+            self.current_run_id= self.collection_runs.find().sort(
+                '_id', -1).limit(1)[0]['_id']+1
+        except Exception as e:
+            raise(e)
+            self.current_run_id=0
+        try:
+            self.current_header_id= self.collection_headers.find().sort(
+                '_id', -1).limit(1)[0]['_id']+1
+        except Exception as e:
+            self.current_header_id= 0
+
+
         self.run_info = {
             'file': in_filename,
             'date': datetime.datetime.now().isoformat(),
             'filesize': filesize
         }
 
+
     def write_all(self, packets):
         if self.db:
             self.run_info['start'] = packets[0]['header']['time']
             self.run_info['end'] = packets[-1]['header']['time']
-            self.run_info['_id'] = self.this_run_id
-            self.collection_runs.insert_one(self.run_info)
+            self.run_info['_id'] = self.current_run_id
+            run_id=self.collection_runs.insert_one(self.run_info).inserted_id
 
             for packet in packets:
                 header = packet['header']
                 parameters = packet['parameters']
-                header['run_id'] = self.this_run_id
+                header['run_id'] = run_id
+                header['_id']=self.current_header_id
                 header_id = self.collection_headers.insert_one(
                     header).inserted_id
+                self.current_header_id += 1
+
                 packet['header_id'] = header_id
-                packet['run_id'] = self.this_run_id
+                packet['run_id'] = self.current_run_id
                 result = self.collection_packets.insert_one(packet)
 
             #self.collection_parameters.insert_many(self.packets)
