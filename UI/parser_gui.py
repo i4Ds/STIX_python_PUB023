@@ -55,16 +55,38 @@ class StixDataReader(QThread):
             self.info.emit('Loading ...')
             self.data = pickle.load(f)['packet']
             f.close()
-        elif filename.endswith('.dat'):
-            self.parseRawFile()
+        elif filename.endswith(('.dat','.binary')):
+            self.parseRawFile(filename)
         elif filename.endswith(('.db', '.sqlite')):
-            self.read_packet_from_db(filename)
+            self.readSqliteDB(filename)
         elif filename.endswith('.xml'):
             self.parseESOCXmlFile(filename)
-
+        elif filename.endswith('.ascii'):
+            self.parseMocAscii(filename)
+        else:
+            self.error.emit('unknown file type: {}'.format(filename))
         self.dataLoaded.emit(self.data)
+    def parseMocAscii(self,filename):
+        self.data= []
+        with open(filename) as fd:
+            self.info.emit('Reading packets from the file {}'.format(filename))
+            idx=0
+            for line in fd:
+                [utc_timestamp, data_hex] = line.strip().split()
+                data_binary = binascii.unhexlify(data_hex)
+                packets=self.stix_tctm_parser.parse(data_binary,0,'tree')
+                self.data.extend(packets)
+                if idx%10==0:
+                    self.info.emit('{} packet have been read'.format(idx))
+                idx+=1
 
-    def read_packet_from_db(self, filename):
+
+
+            
+
+
+
+    def readSqliteDB(self, filename):
         self.info.emit(('Loading data from {}').format(filename))
         db = stix_sqlite_reader.StixSqliteReader(filename)
         self.data = db.get_packets()
@@ -102,9 +124,8 @@ class StixDataReader(QThread):
                 continue
             self.data.extend(packets)
 
-    def parseRawFile(self):
-        filename = self.filename
-
+    def parseRawFile(self,filename):
+        #filename = self.filename
         try:
             in_file = open(filename, 'rb')
         except Exception as e:
