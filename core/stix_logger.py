@@ -18,7 +18,7 @@ class StixLogger:
     def set_signal(self, sig):
         self.signal = sig
 
-    def set_logger(self, filename, verbose):
+    def set_logger(self, filename=None, verbose=3):
         if self.logfile:
             self.logfile.close()
             self.logfile = None
