@@ -94,15 +94,20 @@ class StixMongoWriter:
         try:
             self.current_run_id= self.collection_runs.find().sort(
                 '_id', -1).limit(1)[0]['_id']+1
-        except Exception as e:
-            raise(e)
+        except IndexError:
             self.current_run_id=0
+            #first entry
         try:
             self.current_header_id= self.collection_headers.find().sort(
                 '_id', -1).limit(1)[0]['_id']+1
-        except Exception as e:
+        except IndexError:
             self.current_header_id= 0
 
+        try:
+            self.current_packet_id= self.collection_packets.find().sort(
+                '_id', -1).limit(1)[0]['_id']+1
+        except IndexError:
+            self.current_packet_id=0
 
         self.run_info = {
             'file': in_filename,
@@ -121,6 +126,7 @@ class StixMongoWriter:
             for packet in packets:
                 header = packet['header']
                 parameters = packet['parameters']
+
                 header['run_id'] = run_id
                 header['_id']=self.current_header_id
                 header_id = self.collection_headers.insert_one(
@@ -129,7 +135,10 @@ class StixMongoWriter:
 
                 packet['header_id'] = header_id
                 packet['run_id'] = self.current_run_id
+                packet['_id']=self.current_packet_id
+
                 result = self.collection_packets.insert_one(packet)
+                self.current_packet_id+=1
 
             #self.collection_parameters.insert_many(self.packets)
 
