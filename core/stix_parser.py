@@ -18,6 +18,7 @@ from scipy import interpolate
 import numpy as np
 import struct as st
 import pprint
+import binascii
 from core import idb
 from core import stix_global
 from core import header as stix_header
@@ -551,33 +552,42 @@ class StixTCTMParser(StixParameterParser):
                    in_filename,
                    out_filename=None,
                    selected_spid=0,
-                   pstruct='tree'):
-        with open(in_filename, 'rb') as in_file:
-            data = in_file.read()
-            _stix_logger.info('Processing file: {}'.format(in_filename))
-            _stix_logger.info("File size:{} kB ".format(len(data) / 1024))
+                   pstruct='tree', file_type='binary'):
+        _stix_logger.info('Processing file: {}'.format(in_filename))
+        packets=[]
+        file_size=os.path.getsize(in_filename)
+        if file_type=='binary':
+            with open(in_filename, 'rb') as in_file:
+                data = in_file.read()
+                _stix_logger.info("File size:{} kB ".format(len(data) / 1024))
+                packets = self.parse_binary(data, 0, pstruct, selected_spid)
+        elif file_type=='ascii':
+            packets = self.parse_moc_ascii(in_filename, pstruct, selected_spid)
+        else:
+            _stix_logger.error('{} has unknown input file type'.format(in_filename))
 
-            packets = self.parse(data, 0, pstruct, selected_spid)
-            st_writer = None
-            if out_filename.endswith(('.pkl', '.pklz')):
-                st_writer = stix_writer.StixPickleWriter(out_filename)
-            elif out_filename.endswith(('.db', '.sqlite')):
-                st_writer = stix_writer.StixSqliteWriter(out_filename)
-            elif 'mongo' in out_filename:
-                st_writer = stix_writer.StixMongoWriter()
-            else:
-                _stix_logger.warn('Result will not be saved.')
 
-            if st_writer:
-                st_writer.register_run(in_filename, len(data))
-                _stix_logger.info(
-                    'Writing parameters to file {} ...'.format(out_filename))
-                st_writer.write_all(packets)
-                _stix_logger.info('Done.')
-            else:
-                return packets
 
-    def parse(self, buf, i=0, pstruct='tree', selected_spid=0):
+        st_writer = None
+        if out_filename.endswith(('.pkl', '.pklz')):
+            st_writer = stix_writer.StixPickleWriter(out_filename)
+        elif out_filename.endswith(('.db', '.sqlite')):
+            st_writer = stix_writer.StixSqliteWriter(out_filename)
+        elif 'mongo' in out_filename:
+            st_writer = stix_writer.StixMongoWriter()
+        else:
+            _stix_logger.warn('Result will not be saved.')
+
+        if st_writer:
+            st_writer.register_run(in_filename, file_size)
+            _stix_logger.info(
+                'Writing parameters to file {} ...'.format(out_filename))
+            st_writer.write_all(packets)
+            _stix_logger.info('Done.')
+        else:
+            return packets
+
+    def parse_binary(self, buf, i=0, pstruct='tree', selected_spid=0):
         length = len(buf)
         if i >= length:
             return
@@ -662,3 +672,23 @@ class StixTCTMParser(StixParameterParser):
             'total packets: {}; TM: {} (fix:{} variable: {}); TC:{}'.format(
                 total, fix + var, fix, var, tc))
         return packets
+    def parse_moc_ascii(self, filename, pstruct='tree', selected_spid=0):
+        packets=[]
+        with open(filename) as fd:
+            _stix_logger.info('Reading packets from the file {}'.format(filename))
+            idx=0
+            for line in fd:
+                [utc_timestamp, data_hex] = line.strip().split()
+                data_binary = binascii.unhexlify(data_hex)
+                packet=self.parse_binary(data_binary,0,'tree',selected_spid)
+                if packet:
+                    packet[0]['header']['utc']=utc_timestamp
+                    packets.extend(packet)
+                if idx%10==0:
+                    _stix_logger.info('{} packet have been read'.format(idx))
+                idx+=1
+        return packets
+
+
+
+

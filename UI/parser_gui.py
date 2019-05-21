@@ -76,7 +76,7 @@ class StixDataReader(QThread):
             for line in fd:
                 [utc_timestamp, data_hex] = line.strip().split()
                 data_binary = binascii.unhexlify(data_hex)
-                packets=self.stix_tctm_parser.parse(data_binary,0,'tree')
+                packets=self.stix_tctm_parser.parse_binary(data_binary,0,'tree')
                 if packets:
                     packets[0]['header']['utc']=utc_timestamp
                 self.data.extend(packets)
@@ -118,7 +118,7 @@ class StixDataReader(QThread):
             data_binary = binascii.unhexlify(data_hex)
             data = data_binary[76:]
 
-            packets = self.stix_tctm_parser.parse(data, 0, 'tree')
+            packets = self.stix_tctm_parser.parse_binary(data, 0, 'tree')
             if i % freq == 0:
                 self.info.emit("{.0f}% loaded".format(100 * i / num))
 
@@ -142,7 +142,7 @@ class StixDataReader(QThread):
             self.data = []
             last_percent = 0
 
-            self.data = self.stix_tctm_parser.parse(buf, 0, 'tree')
+            self.data = self.stix_tctm_parser.parse_binary(buf, 0, 'tree')
 
 
 class Ui(mainwindow.Ui_MainWindow):
@@ -276,7 +276,7 @@ class Ui(mainwindow.Ui_MainWindow):
             data_binary = binascii.unhexlify(data_hex)
             #status, header, parameters, param_type, param_desc, num_bytes_read = stix_tctm_parser.parse_one_packet(
             #    in_file, self)
-            packets = self.stix_tctm_parser.parse(data_binary, 0, 'tree')
+            packets = self.stix_tctm_parser.parse_binary(data_binary, 0, 'tree')
             if not packets:
                 return
             result = packets[0]
