@@ -27,11 +27,12 @@ class StixPickleWriter:
         else:
             self.fout = open(filename, 'wb')
 
-    def register_run(self, in_filename, filesize=0):
+    def register_run(self, in_filename, filesize=0, comment=''):
         self.run = {
             'Input': in_filename,
             'Output': self.filename,
             'filsize': filesize,
+            'comment':comment,
             'Date': datetime.datetime.now().isoformat()
         }
 
@@ -90,7 +91,7 @@ class StixMongoWriter:
                                                       ('run_id', -1)],
                                                      unique=False)
 
-    def register_run(self, in_filename, filesize=0):
+    def register_run(self, in_filename, filesize=0, comment=''):
         try:
             self.current_run_id= self.collection_runs.find().sort(
                 '_id', -1).limit(1)[0]['_id']+1
@@ -111,6 +112,7 @@ class StixMongoWriter:
 
         self.run_info = {
             'file': in_filename,
+            'comment':comment,
             'date': datetime.datetime.now().isoformat(),
             'filesize': filesize
         }
@@ -211,7 +213,7 @@ class StixSqliteWriter:
             else:
                 return 0
 
-    def register_run(self, filename, filesize=0):
+    def register_run(self, filename, filesize=0, comment=''):
         self.cur.execute('insert into run (filename, filesize) values(?,?)',
                          (filename, filesize))
         self.update_run_id()

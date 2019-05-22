@@ -552,7 +552,7 @@ class StixTCTMParser(StixParameterParser):
                    in_filename,
                    out_filename=None,
                    selected_spid=0,
-                   pstruct='tree', file_type='binary'):
+                   pstruct='tree', file_type='binary', comment=''):
         _stix_logger.info('Processing file: {}'.format(in_filename))
         packets=[]
         file_size=os.path.getsize(in_filename)
@@ -579,7 +579,7 @@ class StixTCTMParser(StixParameterParser):
             _stix_logger.warn('Result will not be saved.')
 
         if st_writer:
-            st_writer.register_run(in_filename, file_size)
+            st_writer.register_run(in_filename, file_size, comment)
             _stix_logger.info(
                 'Writing parameters to file {} ...'.format(out_filename))
             st_writer.write_all(packets)
