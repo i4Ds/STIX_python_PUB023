@@ -429,8 +429,13 @@ class Ui(mainwindow.Ui_MainWindow):
             root = QtWidgets.QTreeWidgetItem(self.packetTreeWidget)
             if t0 == 0:
                 t0 = header['time']
+            timestamp_str=''
+            try: 
+                timestamp_str=header['utc']
+            except KeyError:
+                timestamp_str='{:.2f}'.format(header['time'] - t0)
 
-            root.setText(0, '{:.2f}'.format(header['time'] - t0))
+            root.setText(0, timestamp_str)
             root.setText(1, ('{}({},{}) - {}').format(
                 header['TMTC'], header['service_type'],
                 header['service_subtype'], header['DESCR']))
