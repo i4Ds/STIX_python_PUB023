@@ -12,11 +12,17 @@ import sys
 class StixLogger:
     def __init__(self, filename=None, verbose=10):
         self.logfile = None
-        self.signal = None
+        self.signal_info = None
+        self.signal_warn= None
+        self.signal_error= None
+        self.signal_enabled=False
         self.set_logger(filename, verbose)
 
-    def set_signal(self, sig):
-        self.signal = sig
+    def set_signal(self, sig_info, sig_warn,sig_error):
+        self.signal_info = sig_info
+        self.signal_warn= sig_warn
+        self.signal_error= sig_error
+        self.signal_enabled=True
 
     def set_logger(self, filename=None, verbose=3):
         if self.logfile:
@@ -28,37 +34,41 @@ class StixLogger:
             try:
                 self.logfile = open(filename, 'w+')
             except IOError:
-                print(
-                    'Can not open log file {}'.format(filename),
-                    file=sys.stderr)
+                print('Can not open log file {}'.format(filename),
+                        file=sys.stderr)
 
     def set_verbose(self, verbose):
         self.verbose = verbose
 
-    def printf(self, msg):
-        if self.signal:
-            self.emit(msg)
+    def printf(self, msg, msg_type="info"):
+        if self.signal_enabled:
+            if msg_type=='info':
+                self.signal_info.emit(msg)
+            elif msg_type=='warn':
+                self.signal_warn.emit(msg)
+            elif msg_type=='error':
+                self.signal_error.emit(msg)
         elif self.logfile:
             self.logfile.write(msg + '\n')
         else:
             print(msg)
 
-    def emit(self, msg):
-        if self.signal:
-            self.signal.emit(msg)
-
     def error(self, msg):
-        self.printf(('[ERROR  ] : {}'.format(msg)))
+        self.printf(('[ERROR  ] : {}'.format(msg)),'error')
 
     def warn(self, msg):
         if self.verbose < 1:
             return
-        self.printf(('[WARNING]: {}'.format(msg)))
+        self.printf(('[WARN   ]: {}'.format(msg)),'warn')
 
     def info(self, msg):
         if self.verbose < 2:
             return
-        self.printf(('[INFO   ] : {}'.format(msg)))
+        if not self.signal_enabled:
+            self.printf(('[INFO   ] : {}'.format(msg)),'info')
+        else:
+            self.printf(msg,'info')
+
 
     def pprint_parameters(self, parameters):
         if self.verbose < 3 or not parameters:

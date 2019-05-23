@@ -26,14 +26,21 @@ def graph2(x,y, title, xlabel, ylabel):
     g.SetTitle(title)
     return g
 
-def graph(y, title, xlabel, ylabel):
+def hist(k,y, title, xlabel, ylabel):
     n=len(y)
-    x=array('d',range(0,n))
-    g=TGraph(n,x,array('d',y))
-    g.GetXaxis().SetTitle(xlabel)
-    g.GetYaxis().SetTitle(ylabel)
-    g.SetTitle(title)
-    return g
+    total=sum(y)
+    h2=TH1F("h%d"%k,"%s; %s; %s"%(title,xlabel,ylabel),n,0,n)
+    for i,val in enumerate(y):
+        for j in range(val):
+            h2.Fill(i)
+            #to correct the histogram wrong entries
+        #h2.SetBinContent(i+1,val)
+    h2.GetXaxis().SetTitle(xlabel)
+    h2.GetYaxis().SetTitle(ylabel)
+    h2.SetTitle(title)
+    #h2.SetEntries(sum)
+
+    return h2 
 
 def search(name, data):
     return [element for element in data if element['name'] == name]
@@ -95,9 +102,10 @@ def analysis(file_in, file_out):
                 xlabel=('ADC channel')
                 ylabel=('Counts')
                 title=('Detector %d Pixel %d'%(row['detector'], row['pixel']))
-                g=graph(row['spec'],title,xlabel,ylabel)
+                g=hist(ip, row['spec'],title,xlabel,ylabel)
                 cc.cd()
-                g.Draw("ALP")
+                ip+=1
+                g.Draw("hist")
                 fr.cd()
                 cc.Write(("c_d_{}_{}_p_{}").format(ip,row['detector'],row['pixel']))
                 h.Fill(12*row['detector']+row['pixel'], row['counts'])

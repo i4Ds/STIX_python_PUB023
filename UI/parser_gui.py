@@ -36,13 +36,14 @@ class StixDataReader(QThread):
     dataLoaded = pyqtSignal(list)
     error = pyqtSignal(str)
     info = pyqtSignal(str)
+    warn= pyqtSignal(str)
 
     def __init__(self, filename):
         super(StixDataReader, self).__init__()
         self.filename = filename
         self.data = []
         self.stix_tctm_parser = stix_parser.StixTCTMParser()
-        stix_logger._stix_logger.set_signal(self.info)
+        stix_logger._stix_logger.set_signal(self.info, self.warn,self.error)
 
     def run(self):
         self.data = []
@@ -189,7 +190,7 @@ class Ui(mainwindow.Ui_MainWindow):
         self.actionSave.setEnabled(False)
         self.action_Plot.setEnabled(False)
         self.actionPaste.triggered.connect(self.onPasteTriggered)
-        # self.actionLog.triggered.connect(self.dockWidget_2.show)
+        self.actionLog.triggered.connect(self.dockWidget.show)
         self.actionSet_IDB.triggered.connect(self.onSetIDBClicked)
         self.plotButton.clicked.connect(self.onPlotButtonClicked)
         self.exportButton.clicked.connect(self.onExportButtonClicked)
@@ -222,7 +223,7 @@ class Ui(mainwindow.Ui_MainWindow):
             self.showMessage('IDB has not been set!')
         else:
             self.showMessage('IDB found: {} '.format(
-                idb._stix_idb.get_idb_filename()))
+                idb._stix_idb.get_idb_filename()),1)
 
     def onExportButtonClicked(self):
         if self.y:
@@ -301,9 +302,11 @@ class Ui(mainwindow.Ui_MainWindow):
                                | QtWidgets.QMessageBox.Cancel)
         retval = msg.exec_()
 
-    def showMessage(self, msg):
-        # if destination != 1:
-        self.statusbar.showMessage(msg)
+    def showMessage(self, msg, where=0):
+        if where != 1:
+            self.statusbar.showMessage(msg)
+        if where != 0:
+            self.statusListWidget.addItem(msg)
         # if destination !=0 :
         #    self.listWidget_2.addItem(msg)
 
@@ -319,7 +322,7 @@ class Ui(mainwindow.Ui_MainWindow):
             #settings = QtCore.QSettings('FHNW', 'stix_parser')
             self.settings.setValue('idb_filename', self.idb_filename)
         self.showMessage('current IDB: {} '.format(
-            idb._stix_idb.get_idb_filename()))
+            idb._stix_idb.get_idb_filename()),1)
 
     def save(self):
         self.output_filename = str(
@@ -397,13 +400,16 @@ class Ui(mainwindow.Ui_MainWindow):
         self.dataReader.dataLoaded.connect(self.onDataLoaded)
         self.dataReader.error.connect(self.onDataReaderError)
         self.dataReader.info.connect(self.onDataReaderInfo)
+        self.dataReader.warn.connect(self.onDataReaderWarn)
         self.dataReader.start()
 
     def onDataReaderInfo(self, msg):
-        self.showMessage(msg)
+        self.showMessage(msg,0)
+    def onDataReaderWarn(self, msg):
+        self.showMessage(msg,1)
 
     def onDataReaderError(self, msg):
-        self.showMessage(msg)
+        self.showMessage(msg,1)
 
     def onDataLoaded(self, data, clear=True):
         if not clear:
@@ -524,6 +530,7 @@ class Ui(mainwindow.Ui_MainWindow):
         self.current_row = self.packetTreeWidget.currentIndex().row()
         self.showMessage((('Packet #%d selected') % self.current_row))
         self.showPacket(self.current_row)
+
 
     def showPacket(self, row):
         if not self.data:
@@ -741,14 +748,14 @@ class Ui(mainwindow.Ui_MainWindow):
         #print(it, col, it.text(0))
         self.plotParameter(it.text(0), it.text(1))
 
-    def error(self, msg, description=''):
-        self.showMessage((('Error: %s - %s') % (msg, description)))
+    #def error(self, msg, description=''):
+    #    self.showMessage((('Error: %s - %s') % (msg, description)),1)
 
-    def warning(self, msg, description=''):
-        self.showMessage((('Warning: %s - %s') % (msg, description)))
+    #def warning(self, msg, description=''):
+    #    self.showMessage((('Warning: %s - %s') % (msg, description)))
 
-    def info(self, msg, description=''):
-        self.showMessage((('Info: %s - %s') % (msg, description)))
+    #def info(self, msg, description=''):
+    #    self.showMessage((('Info: %s - %s') % (msg, description)))
 
 
 if __name__ == '__main__':

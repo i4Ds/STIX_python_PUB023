@@ -68,13 +68,13 @@ class StixParameterParser:
     def __init__(self):
         pass
 
-    def decode(self, in_data, param_type, offset, offset_bit, length):
+    def decode(self, in_data, param_type, offset, offset_bit, length,param_name=''):
         nbytes = int(math.ceil((length + offset_bit) / 8.))
         raw_bin = in_data[int(offset):int(offset + nbytes)]
         if nbytes != len(raw_bin):
             _stix_logger.error(
-                'Data too short to unpack:  Expect: {} real: {}'.format(
-                    nbytes, len(raw_bin)))
+                'Data length mismatch when unpacking parameter {}.  Expect: {} real: {}'.format(
+                    param_name, nbytes, len(raw_bin)))
             return None
         upstr = ''
         if param_type == 'U':
@@ -179,7 +179,7 @@ class StixParameterParser:
         s2k_table = _stix_idb.get_s2k_parameter_types(ptc, pfc)
         param_type = s2k_table['S2K_TYPE']
         raw_values = self.decode(app_data, param_type, offset, offset_bit,
-                                 pcf_width)
+                                 pcf_width, param_name=name)
         if not calibration:
             return {
                 'name': name,
@@ -665,7 +665,7 @@ class StixTCTMParser(StixParameterParser):
 
             current = int(100. * i / length)
             if current > last:
-                _stix_logger.emit('{}% loaded'.format(current))
+                _stix_logger.info('{}% loaded'.format(current))
             last = current
 
         _stix_logger.info(
