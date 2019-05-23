@@ -92,7 +92,6 @@ def analysis(file_in, file_out):
             if row['counts']>0:
                 alog.write('packet %d: %d events in Detector %d Pixel %d\n' %(i, row['counts'], row['detector'], row['pixel']))
                 print('Detector %02d Pixel %02d: %0d events' %(row['detector'], row['pixel'],row['counts']))
-                #plt.subplot(nrow,1, ip)
                 xlabel=('ADC channel')
                 ylabel=('Counts')
                 title=('Detector %d Pixel %d'%(row['detector'], row['pixel']))
@@ -140,6 +139,6 @@ def main():
             analysis(l0_filename, l1_filename)
 
 
-#main()
-analysis('GU/l0/calibration_asw152_2.pkl','GU/l1/calibration_asw152_2.root')
+main()
+#analysis('GU/l0/calibration_asw152_2.pkl','GU/l1/calibration_asw152_2.root')
 
