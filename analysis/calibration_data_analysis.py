@@ -6,11 +6,10 @@ import pprint
 #from matplotlib import pyplot as plt
 from ROOT import TGraph, TFile,TCanvas,TH1F
 from array import array 
-from core import stix_telemetry_parser
+from core import stix_parser
 from core import stix_logger
 import datetime
-LOGGER = stix_logger.LOGGER
-LOGGER.set_level(1)
+_stix_logger= stix_logger._stix_logger
 
 raw_dir='GU/raw/'
 l0_dir='GU/l0/'
@@ -69,7 +68,7 @@ def analysis(file_in, file_out):
     cc=TCanvas()
     fr=TFile(file_out,"recreate")
     for i, d in enumerate(data):
-        param=d['parameter']
+        param=d['parameters']
         spectra=param['NIX00158']
         nstruct=param['NIX00159']
         nbins=param['NIXG0403']
@@ -130,8 +129,12 @@ def main():
             print('Parsing file %s -> %s'%( raw_filename, l0_filename))
             log.write(raw_filename+'\n')
 
-            stix_telemetry_parser.parse_stix_raw_file(raw_filename,LOGGER, 
-                l0_filename, 54124, 'array')
+            #stix_telemetry_parser.parse_stix_raw_file(raw_filename, 
+            #    l0_filename, 54124, 'array')
+
+            stix_logger._stix_logger.set_logger('log/process.log', 2)
+            parser = stix_parser.StixTCTMParser()
+            parser.parse_file(raw_filename, l0_filename, 54124, 'array','binary', 'calibration run')
             analysis(l0_filename, l1_filename)
 
 

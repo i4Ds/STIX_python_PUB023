@@ -349,7 +349,7 @@ class Ui(mainwindow.Ui_MainWindow):
 
     def setListViewSelected(self, row):
         #index = self.model.createIndex(row, 0);
-        # if index.isValid():
+        #if index.isValid():
         #    self.model.selectionModel().select( index, QtGui.QItemSelectionModel.Select)
         pass
 
@@ -565,9 +565,9 @@ class Ui(mainwindow.Ui_MainWindow):
                 root.setText(1, desc)
                 root.setText(2, str(p['raw']))
                 root.setText(3, str(p['value']))
-                if 'child' in p:
-                    if p['child']:
-                        self.showParameterTree(p['child'], root)
+                if 'children' in p:
+                    if p['children']:
+                        self.showParameterTree(p['children'], root)
             except KeyError:
                 self.showMessage(
                     ('[Error  ]: keyError occurred when adding parameter'))
@@ -603,9 +603,9 @@ class Ui(mainwindow.Ui_MainWindow):
                 except Exception as e:
                     self.showMessage((('%s ') % str(e)))
 
-            if 'child' in p:
-                if p['child']:
-                    self.walk(name, p['child'], header, ret_x, ret_y, xaxis,
+            if 'children' in p:
+                if p['children']:
+                    self.walk(name, p['children'], header, ret_x, ret_y, xaxis,
                               data_type)
 
     def onPlotButtonClicked(self):

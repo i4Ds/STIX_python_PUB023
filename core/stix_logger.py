@@ -73,9 +73,9 @@ class StixLogger:
                             value = par['value']
                         self.printf(('{:<10} {:<30} {:<15} {:15}'.format(
                             par['name'], par['descr'], par['raw'], value)))
-                        if 'child' in par:
-                            if par['child']:
-                                self.pprint_parameters(par['child'])
+                        if 'children' in par:
+                            if par['children']:
+                                self.pprint_parameters(par['children'])
                     except:
                         self.printf(par)
         elif type(parameters) is dict:

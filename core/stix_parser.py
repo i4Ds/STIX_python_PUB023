@@ -216,7 +216,7 @@ class StixVariablePacketParser(StixParameterParser):
         self.nodes.append(
             self.create_node('top', 0, 0, 0, stix_global._max_parameters, None,
                              1))
-        self.nodes[0]['child'] = []
+        self.nodes[0]['children'] = []
         self.length_min = 0
 
     def load_nodes(self, spid):
@@ -282,7 +282,7 @@ class StixVariablePacketParser(StixParameterParser):
                     parameter,
                     counter=0,
                     desc='',
-                    child=[]):
+                    children=[]):
         node = {
             'name': name,
             'offset_bit': offset_bit,
@@ -291,7 +291,7 @@ class StixVariablePacketParser(StixParameterParser):
             'counter': counter,
             #'width': width,
             'parameter': parameter,
-            'child': child,
+            'children': children,
             #'desc': desc
         }
         return node
@@ -310,12 +310,12 @@ class StixVariablePacketParser(StixParameterParser):
                            parameter,
                            counter,
                            desc='',
-                           child=[]):
+                           children=[]):
         node = self.create_node(name, position, width, offset_bit, repeat_size,
-                                parameter, counter, desc, child)
+                                parameter, counter, desc, children)
         if width % 8 == 0:
             self.length_min += width / 8
-        mother['child'].append(node)
+        mother['children'].append(node)
         return node
 
     def build_tree(self):
@@ -371,7 +371,7 @@ class StixVariablePacketParser(StixParameterParser):
         counter = mother['counter']
         parameter_values = {}
         for i in range(0, counter):
-            for node in mother['child']:
+            for node in mother['children']:
                 if not node or self.current_offset > len(self.source_data):
                     return None
                 result = self.parse_parameter(node)
@@ -381,7 +381,7 @@ class StixVariablePacketParser(StixParameterParser):
                     self.results_dict[name].append(value)
                 else:
                     self.results_dict[name] = [value]
-                if node['child']:
+                if node['children']:
                     node['counter'] = value
                     self.walk_to_array(node)
 
@@ -391,7 +391,7 @@ class StixVariablePacketParser(StixParameterParser):
         result_node = None
         counter = mother['counter']
         for i in range(0, counter):
-            for node in mother['child']:
+            for node in mother['children']:
                 if not node or self.current_offset > len(self.source_data):
                     return
                 result = self.parse_parameter(node)
@@ -400,11 +400,11 @@ class StixVariablePacketParser(StixParameterParser):
                     'raw': result['raw'],
                     'desc': result['desc'],
                     'value': result['value'],
-                    'child': []
+                    'children': []
                 }
-                if node['child']:
+                if node['children']:
                     node['counter'] = result['raw'][0]
-                    self.walk_to_tree(node, result_node['child'])
+                    self.walk_to_tree(node, result_node['children'])
                 para.append(result_node)
 
     def parse_parameter(self, node):

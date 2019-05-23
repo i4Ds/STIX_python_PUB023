@@ -244,10 +244,10 @@ class StixSqliteWriter:
                         str(par['raw']),
                         str(par['value']),
                         self.current_packet_id)
-                    if 'child' in par:
-                        if par['child']:
+                    if 'children' in par:
+                        if par['children']:
                             self.get_last_parameter_id()
-                            self.write_parameters(par['child'])
+                            self.write_parameters(par['children'])
                     self.insert_parameters(par_list)
 
     def insert_parameters(self, parlist):
