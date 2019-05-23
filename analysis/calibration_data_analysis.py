@@ -2,7 +2,7 @@ import pickle, gzip
 import numpy as np
 import math
 import os
-import pprint
+from pprint import pprint
 #from matplotlib import pyplot as plt
 from ROOT import TGraph, TFile,TCanvas,TH1F
 from array import array 
@@ -17,17 +17,6 @@ l1_dir='GU/l1/'
 proc_log='GU/log/processing.log'
 ana_log='GU/log/calibration.log'
 
-
-def histogram(x,y,title,xlabel,ylabel):
-    n=len(x)
-    h=TH1F("h","Counts",n,0,n)
-    for n,c in zip(x,y):
-        h.SetBinContent(n+1,c)
-
-    h.GetXaxis().SetTitle(xlabel)
-    h.GetYaxis().SetTitle(ylabel)
-    h.SetTitle(title)
-    return h
 
 def graph2(x,y, title, xlabel, ylabel):
     n=len(x)
@@ -45,6 +34,35 @@ def graph(y, title, xlabel, ylabel):
     g.GetYaxis().SetTitle(ylabel)
     g.SetTitle(title)
     return g
+
+def search(name, data):
+    return [element for element in data if element['name'] == name]
+
+def get_calibration_spectra(packet):
+    param=packet['parameters']
+
+    calibration=search('NIX00159',param)[0]
+
+    cal=calibration['children']
+    nstruct=int(calibration['raw'][0])
+    detectors=[int(item['raw'][0]) for item in cal if item['name']=='NIXD0155']
+    pixels=[int(item['raw'][0]) for item in cal if item['name']=='NIXD0156']
+    spectra=[[int(it['raw'][0]) for it in  item['children']] for item in cal if item['name']=='NIX00146']
+    #kspectra=[item['children'] for item in cal if item['name']=='NIX00146']
+    counts=[]
+    for e in spectra:
+        counts.append(sum(e))
+
+    result=[]
+    for i in range(nstruct):
+        result.append({'detector':detectors[i],
+            'pixel':pixels[i],
+            'counts':counts[i],
+            'spec':spectra[i]})
+    return result
+
+
+
 
 
 def analysis(file_in, file_out):
@@ -67,47 +85,31 @@ def analysis(file_in, file_out):
     ip=1
     cc=TCanvas()
     fr=TFile(file_out,"recreate")
+    h=TH1F("h","Triggers; Pixel #; Counts",12*32,0,12*32)
     for i, d in enumerate(data):
-        param=d['parameters']
-        spectra=param['NIX00158']
-        nstruct=param['NIX00159']
-        nbins=param['NIXG0403']
-        #print('spectra length:')
-        #print(len(spectra))
-        detectors=param['NIXD0155']
-        pixels=param['NIXD0156']
-        
-        for det, pix in zip(detectors,pixels):
-            #print(det,pix)
-            detector_id.append((int(det))*12+int(pix))
-        sub_spectra=[spectra[0:1024], spectra[1024:2048], spectra[2048:3072]]
-        counts=[np.sum(sub_spectra[0]), np.sum(sub_spectra[1]), np.sum(sub_spectra[2])]
-        for n, c in enumerate(counts):
-            if c>0:
-                alog.write('packet %d: %d events in Detector %s Pixel %s\n' %(ip, c, detectors[n], pixels[n]))
-                print('packet %d: %d events in Detector %s Pixel %s\n' %(ip, c, detectors[n], pixels[n]))
+        results=get_calibration_spectra(d)
+        for row in results:
+            if row['counts']>0:
+                alog.write('packet %d: %d events in Detector %d Pixel %d\n' %(i, row['counts'], row['detector'], row['pixel']))
+                print('Detector %02d Pixel %02d: %0d events' %(row['detector'], row['pixel'],row['counts']))
                 #plt.subplot(nrow,1, ip)
                 xlabel=('ADC channel')
                 ylabel=('Counts')
-                title=('Detector %s Pixel %s'%(detectors[n], pixels[n]))
-                g=graph(sub_spectra[n],title,xlabel,ylabel)
-
+                title=('Detector %d Pixel %d'%(row['detector'], row['pixel']))
+                g=graph(row['spec'],title,xlabel,ylabel)
                 cc.cd()
                 g.Draw("ALP")
                 fr.cd()
-                cc.Write(("c_d_{}_{}_p_{}").format(ip,detectors[n],pixels[n]))
-                #g.Write(("g_d_{}_p_{}").format(detectors[n],pixels[n]))
-        ip+=1
-    
+                cc.Write(("c_d_{}_{}_p_{}").format(ip,row['detector'],row['pixel']))
+                h.Fill(12*row['detector']+row['pixel'], row['counts'])
                      
-        triggers.extend(counts)
 
-    g=histogram(detector_id,triggers,'total counts','Pixel #', 'Counts')
     cc.cd()
-    g.Draw("hist")
+    h.Draw("hist")
     cc.Write('triggers')
     #g.Write("trigger")
     fr.Close()
+
 
     
 
@@ -134,9 +136,10 @@ def main():
 
             stix_logger._stix_logger.set_logger('log/process.log', 2)
             parser = stix_parser.StixTCTMParser()
-            parser.parse_file(raw_filename, l0_filename, 54124, 'array','binary', 'calibration run')
+            parser.parse_file(raw_filename, l0_filename, 54124, 'tree','binary', 'calibration run')
             analysis(l0_filename, l1_filename)
 
 
-main()
+#main()
+analysis('GU/l0/calibration_asw152_2.pkl','GU/l1/calibration_asw152_2.root')
 
