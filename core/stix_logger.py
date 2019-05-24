@@ -23,6 +23,9 @@ class StixLogger:
         self.signal_warn= sig_warn
         self.signal_error= sig_error
         self.signal_enabled=True
+    def emit(self,msg):
+        self.info(msg)
+
 
     def set_logger(self, filename=None, verbose=3):
         if self.logfile:

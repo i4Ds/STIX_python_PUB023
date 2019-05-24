@@ -234,7 +234,10 @@ class IDB:
             #source_id in the header is needed to identify the packet type
             return res[command_subtype - 1]
         else:
-            return res[0]
+            try:
+                return res[0]
+            except IndexError:
+                return None
 
     def get_telecommand_parameters(self, name):
         sql = 'select * from CDF where CDF_CNAME=?'

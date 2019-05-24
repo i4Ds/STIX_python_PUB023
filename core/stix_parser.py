@@ -530,6 +530,9 @@ class StixTCTMParser(StixParameterParser):
         info = _stix_idb.get_telecommand_characteristics(
             header['service_type'], header['service_subtype'],
             header['source_id'])
+        if not info:
+            return stix_global._header_key_error, header
+
         header['DESCR'] = info['CCF_DESCR'] + ' - ' + info['CCF_DESCR2']
         header['SPID'] = ''
         header['name'] = info['CCF_CNAME']

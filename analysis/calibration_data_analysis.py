@@ -98,7 +98,7 @@ def analysis(file_in, file_out):
         for row in results:
             if row['counts']>0:
                 alog.write('packet %d: %d events in Detector %d Pixel %d\n' %(i, row['counts'], row['detector'], row['pixel']))
-                print('Detector %02d Pixel %02d: %0d events' %(row['detector'], row['pixel'],row['counts']))
+                print('Detector %02d Pixel %02d: %0d event(s)' %(row['detector'], row['pixel'],row['counts']))
                 xlabel=('ADC channel')
                 ylabel=('Counts')
                 title=('Detector %d Pixel %d'%(row['detector'], row['pixel']))
