@@ -17,6 +17,9 @@ l1_dir='GU/l1/'
 proc_log='GU/log/processing.log'
 ana_log='GU/log/calibration.log'
 
+def drawMap(detector, pixel, counts):
+
+    pass
 
 def graph2(x,y, title, xlabel, ylabel):
     n=len(x)
@@ -129,7 +132,7 @@ def main():
         if f.endswith(".dat"):
             raw_filename=(os.path.join(raw_dir, f))
             if raw_filename in log_content:
-                print('Processed already: %s '%raw_filename)
+                #print('Processed already: %s '%raw_filename)
                 continue
             filename=os.path.splitext(f)[0]+'.pkl'
             l0_filename=os.path.join(l0_dir,filename)

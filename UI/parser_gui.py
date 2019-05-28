@@ -714,6 +714,7 @@ class Ui(mainwindow.Ui_MainWindow):
                 axisX.setTitleText(name)
                 axisY = QValueAxis()
 
+
                 axisY.setTitleText("Counts")
 
                 self.chart.setAxisY(axisY)
@@ -731,6 +732,11 @@ class Ui(mainwindow.Ui_MainWindow):
             self.ylabel = ylabel
             self.chartView.setRubberBand(QChartView.RectangleRubberBand)
             self.chartView.setRenderHint(QtGui.QPainter.Antialiasing)
+            
+            msg='Y length: {}, min-Y:  {}, max-Y: {}'.format(len(self.y),min(self.y),max(self.y))
+
+            self.showMessage(msg,1)
+
             self.showMessage('The canvas updated!')
 
     def plotParameter(self, name=None, desc=None):
