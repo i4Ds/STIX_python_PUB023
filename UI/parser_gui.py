@@ -9,6 +9,7 @@ import numpy as np
 import re
 import binascii
 import xmltodict
+import pprint
 
 #from io import BytesIO
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
@@ -146,6 +147,8 @@ class StixDataReader(QThread):
             self.data = self.stix_tctm_parser.parse_binary(buf, 0, 'tree')
 
 
+
+
 class Ui(mainwindow.Ui_MainWindow):
     def __init__(self, MainWindow):
         #super(Ui, self).__init__(M)
@@ -189,6 +192,8 @@ class Ui(mainwindow.Ui_MainWindow):
         self.actionNext.setEnabled(False)
         self.actionSave.setEnabled(False)
         self.action_Plot.setEnabled(False)
+        self.actionCopy.triggered.connect(self.onCopyTriggered)
+        self.actionCopy.setEnabled(False)
         self.actionPaste.triggered.connect(self.onPasteTriggered)
         self.actionLog.triggered.connect(self.dockWidget.show)
         self.actionSet_IDB.triggered.connect(self.onSetIDBClicked)
@@ -266,6 +271,19 @@ class Ui(mainwindow.Ui_MainWindow):
             msgBox.setWindowTitle("STIX DATA VIEWER")
             msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
             msgBox.exec_()
+    def onCopyTriggered(self):
+        packet_id = self.current_row
+        try:
+            packet= self.data[packet_id]
+            ss=pprint.pformat(packet)
+            cb = QtWidgets.QApplication.clipboard()
+            cb.clear(mode=cb.Clipboard )
+            cb.setText(ss, mode=cb.Clipboard)
+            self.showMessage('The packet has been copied to clipboard!',0)
+        except Exception as e:
+            self.showMessage(str(e),0)
+
+
 
     def onPasteTriggered(self):
         raw_hex = QtWidgets.QApplication.clipboard().text()
@@ -422,6 +440,7 @@ class Ui(mainwindow.Ui_MainWindow):
             self.actionPrevious.setEnabled(True)
             self.actionNext.setEnabled(True)
             self.actionSave.setEnabled(True)
+            self.actionCopy.setEnabled(True)
             self.action_Plot.setEnabled(True)
 
     def displayPackets(self, clear=True):
@@ -449,6 +468,7 @@ class Ui(mainwindow.Ui_MainWindow):
         self.showMessage((('%d packets loaded') % (self.total_packets)))
         self.packetTreeWidget.currentItemChanged.connect(self.onPacketSelected)
         self.showPacket(0)
+        self.current_row=0
 
     def onLoadMongoDBTriggered(self):
         diag = QtWidgets.QDialog()
@@ -538,9 +558,7 @@ class Ui(mainwindow.Ui_MainWindow):
         header = self.data[row]['header']
         self.showMessage((('Packet %d / %d  %s ') % (row, self.total_packets,
                                                      header['DESCR'])))
-
         self.paramTreeWidget.clear()
-
         header_root = QtWidgets.QTreeWidgetItem(self.paramTreeWidget)
         header_root.setText(0, "Header")
         rows = len(header)
@@ -555,6 +573,7 @@ class Ui(mainwindow.Ui_MainWindow):
         self.showParameterTree(params, param_root)
         self.paramTreeWidget.expandItem(param_root)
         self.paramTreeWidget.expandItem(header_root)
+        self.current_row=row
 
     def showParameterTree(self, params, parent):
         if not params:

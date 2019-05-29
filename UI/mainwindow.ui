@@ -362,14 +362,6 @@
     </property>
     <addaction name="actionAbout"/>
    </widget>
-   <widget class="QMenu" name="menuAction">
-    <property name="title">
-     <string>&amp;View</string>
-    </property>
-    <addaction name="actionPrevious"/>
-    <addaction name="actionNext"/>
-    <addaction name="actionLog"/>
-   </widget>
    <widget class="QMenu" name="menuSetting">
     <property name="title">
      <string>&amp;Settings</string>
@@ -381,10 +373,25 @@
      <string>&amp;Tools</string>
     </property>
     <addaction name="action_Plot"/>
-    <addaction name="actionPaste"/>
     <addaction name="actionLoad_mongodb"/>
    </widget>
+   <widget class="QMenu" name="menuAction">
+    <property name="title">
+     <string>&amp;View</string>
+    </property>
+    <addaction name="actionPrevious"/>
+    <addaction name="actionNext"/>
+    <addaction name="actionLog"/>
+   </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>&amp;Edit</string>
+    </property>
+    <addaction name="actionPaste"/>
+    <addaction name="actionCopy"/>
+   </widget>
    <addaction name="menu_File"/>
+   <addaction name="menuEdit"/>
    <addaction name="menuAction"/>
    <addaction name="menuSetting"/>
    <addaction name="menu_Tools"/>
@@ -407,8 +414,10 @@
    <addaction name="actionPrevious"/>
    <addaction name="actionNext"/>
    <addaction name="separator"/>
-   <addaction name="action_Plot"/>
    <addaction name="actionPaste"/>
+   <addaction name="actionCopy"/>
+   <addaction name="separator"/>
+   <addaction name="action_Plot"/>
    <addaction name="actionLoad_mongodb"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
@@ -484,7 +493,7 @@
      <normaloff>:/Icons/images/paste.svg</normaloff>:/Icons/images/paste.svg</iconset>
    </property>
    <property name="text">
-    <string>Paste</string>
+    <string>P&amp;aste</string>
    </property>
    <property name="toolTip">
     <string>Read raw data from the clipboard</string>
@@ -497,6 +506,15 @@
    </property>
    <property name="text">
     <string>Connect MonogoDB</string>
+   </property>
+  </action>
+  <action name="actionCopy">
+   <property name="icon">
+    <iconset resource="resources/viewer.qrc">
+     <normaloff>:/Icons/images/copy.svg</normaloff>:/Icons/images/copy.svg</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Copy</string>
    </property>
   </action>
  </widget>
