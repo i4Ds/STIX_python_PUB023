@@ -16,7 +16,7 @@ Parsing of raw data is based on IDB.
   ```
 3. Install dependencies:
 ```
-pip3 install numpy xmltodict PyQt5 pyqtchart scipy pymongo
+pip3 install numpy xmltodict PyQt5 pyqtchart scipy pymongo pprint
 ```
 
 
