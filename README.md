@@ -29,6 +29,7 @@ python3 applications/parser -i <RAW_DATA_FILENAME> -o <OUTPUT>  -v  <Verbose lev
 
 2. Use the package in your own code.  Here are two examples
 
+
 ```
 #/usr/bin/python3 
 from core import stix_logger
