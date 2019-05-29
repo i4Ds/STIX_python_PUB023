@@ -61,7 +61,7 @@ for packet in packets:
  
   
 
-3. use graphical user interface 
+3. Run graphical user interface 
 ````
 python3 UI/parser_gui.py
 ````
