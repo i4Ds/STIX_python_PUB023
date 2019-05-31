@@ -691,6 +691,12 @@ class StixTCTMParser(StixParameterParser):
                     _stix_logger.info('{} packet have been read'.format(idx))
                 idx+=1
         return packets
+    def parse_hex(self, hex_text, pstruct='tree'):
+        raw= binascii.unhexlify(hex_text)
+        return self.stix_tctm_parser.parse_binary(data_binary,i=0, pstruct=pstruct)
+
+
+
 
 
 
