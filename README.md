@@ -16,17 +16,19 @@ Parsing of raw data is based on IDB.
   ```
 3. Install dependencies:
 ```
-pip3 install numpy xmltodict PyQt5 pyqtchart scipy pymongo
+pip3 install numpy xmltodict PyQt5 pyqtchart scipy pymongo pprint
 ```
 
 
-### How to use 
-1. run in the command line 
+### How to use the parser
+1. Command line parser
 ```
 python3 applications/parser -i <RAW_DATA_FILENAME> -o <OUTPUT>  -v  <Verbose level>
 ```
 
+
 2. Use the package in your own code.  Here are two examples
+
 
 ```
 #/usr/bin/python3 
@@ -59,7 +61,7 @@ for packet in packets:
  
   
 
-3. use graphical user interface 
+3. Run graphical user interface 
 ````
 python3 UI/parser_gui.py
 ````
