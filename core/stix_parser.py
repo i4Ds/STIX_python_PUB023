@@ -19,6 +19,7 @@ import numpy as np
 import struct as st
 import pprint
 import binascii
+import xmltodict
 from core import idb
 from core import stix_global
 from core import header as stix_header
@@ -566,6 +567,8 @@ class StixTCTMParser(StixParameterParser):
                 packets = self.parse_binary(data, 0, pstruct, selected_spid)
         elif file_type=='ascii':
             packets = self.parse_moc_ascii(in_filename, pstruct, selected_spid)
+        elif file_type=='xml':
+            packets = self.parse_moc_xml(in_filename, pstruct, selected_spid)
         else:
             _stix_logger.error('{} has unknown input file type'.format(in_filename))
 
@@ -683,7 +686,7 @@ class StixTCTMParser(StixParameterParser):
             for line in fd:
                 [utc_timestamp, data_hex] = line.strip().split()
                 data_binary = binascii.unhexlify(data_hex)
-                packet=self.parse_binary(data_binary,0,'tree',selected_spid)
+                packet=self.parse_binary(data_binary,0,pstruct,selected_spid)
                 if packet:
                     packet[0]['header']['utc']=utc_timestamp
                     packets.extend(packet)
@@ -695,8 +698,35 @@ class StixTCTMParser(StixParameterParser):
         raw= binascii.unhexlify(hex_text)
         return self.stix_tctm_parser.parse_binary(data_binary,i=0, pstruct=pstruct)
 
+    def parse_moc_xml(self, in_filename,pstruct='tree',selected_spid=0):
+        packets = []
+        try:
+            fd = open(in_filename)
+        except Exception as e:
+            _stix_logger.error('Failed to open {}'.format(str(e)))
+        else:
 
-
+            _stix_logger.info(('Parsing {}').format(in_filename))
+            doc = xmltodict.parse(fd.read())
+            for e in doc['ns2:ResponsePart']['Response']['PktRawResponse'][
+                    'PktRawResponseElement']:
+                packet = {'id': e['@packetID'], 'raw': e['Packet']}
+                packets.append(packet)
+        num = len(packets)
+        freq = 1
+        if num > 100:
+            freq = num / 100
+        for i, packet in enumerate(packets):
+            data_hex = packet['raw']
+            data_binary = binascii.unhexlify(data_hex)
+            data = data_binary[76:]
+            packet=self.parse_binary(data_binary,0,pstruct,selected_spid)
+            if i % freq == 0:
+                _stix_logger.info("{:.0f}% loaded".format(100 * i / num))
+            if not packet:
+                continue
+            packets.extend(packet)
+        return packets
 
 
 

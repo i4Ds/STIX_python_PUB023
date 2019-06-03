@@ -120,7 +120,7 @@ class StixMongoWriter:
 
 
     def write_all(self, packets):
-        if self.db:
+        if self.db and packets:
             self.run_info['start'] = packets[0]['header']['time']
             self.run_info['end'] = packets[-1]['header']['time']
             self.run_info['_id'] = self.current_run_id

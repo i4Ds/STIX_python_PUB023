@@ -524,7 +524,7 @@ class Ui(mainwindow.Ui_MainWindow):
         for run in self.mdb.get_runs():
             root = QtWidgets.QTreeWidgetItem(dui.treeWidget)
             root.setText(0, str(run['_id']))
-            root.setText(1, run['file'])
+            root.setText(1, run['filename'])
             root.setText(2, run['date'])
             root.setText(3, str(run['start']))
             root.setText(4, str(run['end']))
