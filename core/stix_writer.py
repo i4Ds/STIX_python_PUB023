@@ -111,7 +111,8 @@ class StixMongoWriter:
             self.current_packet_id=0
 
         self.run_info = {
-            'file': in_filename,
+            'filename': os.path.basename(in_filename),
+            'path': os.path.dirname(in_filename),
             'comment':comment,
             'date': datetime.datetime.now().isoformat(),
             'filesize': filesize

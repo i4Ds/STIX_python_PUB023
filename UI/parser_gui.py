@@ -122,7 +122,7 @@ class StixDataReader(QThread):
 
             packets = self.stix_tctm_parser.parse_binary(data, 0, 'tree')
             if i % freq == 0:
-                self.info.emit("{.0f}% loaded".format(100 * i / num))
+                self.info.emit("{:.0f}% loaded".format(100 * i / num))
 
             if not packets:
                 continue
