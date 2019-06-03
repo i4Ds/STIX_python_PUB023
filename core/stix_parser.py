@@ -572,8 +572,6 @@ class StixTCTMParser(StixParameterParser):
         else:
             _stix_logger.error('{} has unknown input file type'.format(in_filename))
 
-
-
         st_writer = None
         if out_filename.endswith(('.pkl', '.pklz')):
             st_writer = stix_writer.StixPickleWriter(out_filename)
@@ -697,9 +695,9 @@ class StixTCTMParser(StixParameterParser):
     def parse_hex(self, hex_text, pstruct='tree'):
         raw= binascii.unhexlify(hex_text)
         return self.stix_tctm_parser.parse_binary(data_binary,i=0, pstruct=pstruct)
-
     def parse_moc_xml(self, in_filename,pstruct='tree',selected_spid=0):
         packets = []
+        results=[]
         try:
             fd = open(in_filename)
         except Exception as e:
@@ -716,17 +714,18 @@ class StixTCTMParser(StixParameterParser):
         freq = 1
         if num > 100:
             freq = num / 100
+
         for i, packet in enumerate(packets):
             data_hex = packet['raw']
             data_binary = binascii.unhexlify(data_hex)
             data = data_binary[76:]
-            packet=self.parse_binary(data_binary,0,pstruct,selected_spid)
+            result=self.parse_binary(data,0,pstruct,selected_spid)
             if i % freq == 0:
                 _stix_logger.info("{:.0f}% loaded".format(100 * i / num))
-            if not packet:
+            if not result:
                 continue
-            packets.extend(packet)
-        return packets
+            results.extend(result)
+        return results
 
 
 
