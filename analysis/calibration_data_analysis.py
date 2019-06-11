@@ -2,7 +2,7 @@ import pickle, gzip
 import numpy as np
 import math
 import os
-from pprint import pprint
+import pprint
 #from matplotlib import pyplot as plt
 from ROOT import TGraph, TFile,TCanvas,TH1F
 from array import array 
@@ -18,8 +18,8 @@ proc_log='GU/log/processing.log'
 ana_log='GU/log/calibration.log'
 
 def drawMap(detector, pixel, counts):
-
     pass
+
 
 def graph2(x,y, title, xlabel, ylabel):
     n=len(x)
@@ -45,24 +45,23 @@ def hist(k,y, title, xlabel, ylabel):
 
     return h2 
 
-def search(name, data):
+def search(data, name):
     return [element for element in data if element['name'] == name]
+def get_raw(data, name):
+    return [int(item['raw'][0]) for item in data if item['name']==name]
 
 def get_calibration_spectra(packet):
     param=packet['parameters']
-
-    calibration=search('NIX00159',param)[0]
-
+    calibration=search(param, 'NIX00159')[0]
     cal=calibration['children']
     nstruct=int(calibration['raw'][0])
-    detectors=[int(item['raw'][0]) for item in cal if item['name']=='NIXD0155']
-    pixels=[int(item['raw'][0]) for item in cal if item['name']=='NIXD0156']
+    detectors=get_raw(cal, 'NIXD0155')
+    pixels=get_raw(cal, 'NIXD0156')
     spectra=[[int(it['raw'][0]) for it in  item['children']] for item in cal if item['name']=='NIX00146']
     #kspectra=[item['children'] for item in cal if item['name']=='NIX00146']
     counts=[]
     for e in spectra:
         counts.append(sum(e))
-
     result=[]
     for i in range(nstruct):
         result.append({'detector':detectors[i],
@@ -72,11 +71,11 @@ def get_calibration_spectra(packet):
     return result
 
 
+ 
 
-
-
-def analysis(file_in, file_out):
+def analysis(file_in, file_out, spec_log):
     alog=open(ana_log,'a+')
+    slog=open(spec_log,'w')
     alog.write('-'*20+'\n')
     now=datetime.datetime.now()
     alog.write(str(now)+'\n')
@@ -98,6 +97,9 @@ def analysis(file_in, file_out):
     h=TH1F("h","Triggers; Pixel #; Counts",12*32,0,12*32)
     for i, d in enumerate(data):
         results=get_calibration_spectra(d)
+        spec=pprint.pformat(results)
+        slog.write(spec)
+        slog.write('\n')
         for row in results:
             if row['counts']>0:
                 alog.write('packet %d: %d events in Detector %d Pixel %d\n' %(i, row['counts'], row['detector'], row['pixel']))
@@ -119,6 +121,8 @@ def analysis(file_in, file_out):
     cc.Write('triggers')
     #g.Write("trigger")
     fr.Close()
+    slog.close()
+    alog.close()
 
 
     
@@ -135,7 +139,9 @@ def main():
                 #print('Processed already: %s '%raw_filename)
                 continue
             filename=os.path.splitext(f)[0]+'.pkl'
+            spec_fname=os.path.splitext(f)[0]+'.spec'
             l0_filename=os.path.join(l0_dir,filename)
+            spec_log=os.path.join(l0_dir,spec_fname)
             filename=os.path.splitext(f)[0]+'.root'
             l1_filename=os.path.join(l1_dir,filename)
             print('Parsing file %s -> %s'%( raw_filename, l0_filename))
@@ -145,11 +151,12 @@ def main():
             #    l0_filename, 54124, 'array')
 
             stix_logger._stix_logger.set_logger('log/process.log', 2)
+
             parser = stix_parser.StixTCTMParser()
             parser.parse_file(raw_filename, l0_filename, 54124, 'tree','binary', 'calibration run')
-            analysis(l0_filename, l1_filename)
+            analysis(l0_filename, l1_filename, spec_log)
 
 
-main()
-#analysis('GU/l0/calibration_asw152_2.pkl','GU/l1/calibration_asw152_2.root')
+#main()
+analysis('GU/l0/calibration_asw154_laszlo.pkl','GU/l1/calibration_asw15_laszlo.root', 'GU/l0/calibration_asw154_1.log')
 
