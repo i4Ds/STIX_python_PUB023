@@ -10,6 +10,7 @@ from __future__ import (absolute_import, unicode_literals)
 import os
 import pprint
 import sqlite3
+import sys
 from core import stix_logger
 
 _stix_idb_filename = 'idb/idb.sqlite'
@@ -172,7 +173,12 @@ class IDB:
                 'where PID_TYPE=? and PID_STYPE=? and PID_PI1_VAL=? limit 1')
             args = (packet_type, packet_subtype, pi1_val)
         rows = self.execute(sql, args, 'dict')
-        return rows[0]
+        if rows:
+            return rows[0]
+        else:
+            print("No information in IDB for service {}, service_subtype {}  and pi1_val: {} ".format(packet_type, 
+                packet_subtype, pi1_val), file=sys.stderr)
+            return None
 
     def get_s2k_parameter_types(self, ptc, pfc):
         """ get parameter type """
@@ -229,7 +235,8 @@ class IDB:
             'select * from CCF where CCF_TYPE=? and CCF_STYPE =? order by CCF_CNAME asc'
         )
         res = self.execute(sql, (service_type, service_subtype), 'dict')
-        if command_subtype >= 0 and len(res) > 1:
+        #if command_subtype >= 0 and len(res) > 1:
+        if False:
             #for TC(237,7) , ZIX37701 -- ZIX37724
             #source_id in the header is needed to identify the packet type
             return res[command_subtype - 1]

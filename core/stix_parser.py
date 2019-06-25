@@ -493,13 +493,17 @@ class StixTCTMParser(StixParameterParser):
                 upstr = '>H'
             res = st.unpack(upstr, data[int(start):int(end)])
             SSID = res[0]
+
         info = _stix_idb.get_packet_type_info(service_type, service_subtype,
                                               SSID)
+        if not info:
+            return stix_global._no_PID_info_in_IDB
         header['DESCR'] = info['PID_DESCR']
         header['SPID'] = info['PID_SPID']
         header['TPSD'] = info['PID_TPSD']
         header['length'] = length
         header['SSID'] = SSID
+        return stix_global._ok
 
     def parse_fixed_packet(self, buf, spid):
         param_struct = _stix_idb.get_fixed_packet_structure(spid)
@@ -523,7 +527,11 @@ class StixTCTMParser(StixParameterParser):
         # 56)
         if packet[0] != 0x1D:
             return stix_global._header_first_byte_invalid, None
-        header_raw = st.unpack('>HHHBBBB', packet[0:10])
+        try: 
+            header_raw = st.unpack('>HHHBBBB', packet[0:10])
+        except Exception as e:
+            print(e)
+            return stix_global._header_raw_length_valid, None
         header = {}
         for h, s in zip(header_raw, stix_header._telecommand_raw_structure):
             header.update(unpack_integer(h, s))
@@ -618,7 +626,11 @@ class StixTCTMParser(StixParameterParser):
                 if status == stix_global._eof:
                     break
 
-                self.decode_app_header(header, app_raw, app_length)
+                ret=self.decode_app_header(header, app_raw, app_length)
+                if ret != stix_global._ok:
+                    print("packet ignored",file=sys.stderr)
+                    continue
+
                 tpsd = header['TPSD']
                 spid = header['SPID']
                 if selected_spid > 0 and selected_spid != spid:

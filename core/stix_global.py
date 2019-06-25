@@ -18,3 +18,5 @@ _header_key_error = -4
 _bad_packet = -5
 _variable_packet_length_mismatch = -6
 _unknown_packet_type = -7
+_header_raw_length_valid=-8
+_no_PID_info_in_IDB=-9

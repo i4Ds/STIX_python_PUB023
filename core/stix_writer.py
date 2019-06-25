@@ -46,7 +46,7 @@ class StixPickleWriter:
 class StixMongoWriter:
     """store data in  a NoSQL database"""
 
-    def __init__(self):
+    def __init__(self, server='localhost',username='', password=''):
 
         self.packets = []
         self.db = None
@@ -57,7 +57,8 @@ class StixMongoWriter:
         self.start = -1
         self.end = -1
         try:
-            self.connect = pymongo.MongoClient('localhost', 27017)
+            self.connect = pymongo.MongoClient(server, username=username, 
+                    password=password)
             self.db = self.connect["stix"]
 
             self.collection_packets = self.db['packets']

@@ -46,13 +46,20 @@ def hist(k,y, title, xlabel, ylabel):
     return h2 
 
 def search(data, name):
-    return [element for element in data if element['name'] == name]
+    if type(data) is list:
+        return [element for element in data if element['name'] == name]
+    return None
+
 def get_raw(data, name):
     return [int(item['raw'][0]) for item in data if item['name']==name]
 
 def get_calibration_spectra(packet):
     param=packet['parameters']
-    calibration=search(param, 'NIX00159')[0]
+    search_res=search(param, 'NIX00159')
+    if not search_res:
+        return []
+    calibration=search_res[0]
+
     cal=calibration['children']
     nstruct=int(calibration['raw'][0])
     detectors=get_raw(cal, 'NIXD0155')
@@ -157,6 +164,6 @@ def main():
             analysis(l0_filename, l1_filename, spec_log)
 
 
-#main()
-analysis('GU/l0/calibration_asw154_laszlo.pkl','GU/l1/calibration_asw15_laszlo.root', 'GU/l0/calibration_asw154_1.log')
+main()
+#analysis('GU/l0/calibration_asw154_laszlo.pkl','GU/l1/calibration_asw15_laszlo.root', 'GU/l0/calibration_asw154_1.log')
 
