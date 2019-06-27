@@ -445,10 +445,11 @@ class StixTCTMParser(StixParameterParser):
 
     def parse_telemetry_header(self, packet):
         """ see STIX ICD-0812-ESC  (Page # 57) """
-
+        if len(packet)<16:
+            _stix_logger.warn("Packet length < 16. Packet ignored!")
+            return stix_global._packet_too_short, None
         if ord(packet[0:1]) != 0x0D:
             return stix_global._header_first_byte_invalid, None
-
         header_raw = st.unpack('>HHHBBBBIH', packet[0:16])
         header = {}
         for h, s in zip(header_raw, stix_header._telemetry_raw_structure):
@@ -471,8 +472,8 @@ class StixTCTMParser(StixParameterParser):
             constrains = stix_header._telecommand_header_constraints
         for name, lim in constrains.items():
             if header[name] not in lim:
-                print("header invalide")
-                print(name)
+                #print("header invalid!")
+                #print(name)
                 return stix_global._header_invalid
         return stix_global._ok
 
@@ -628,7 +629,7 @@ class StixTCTMParser(StixParameterParser):
 
                 ret=self.decode_app_header(header, app_raw, app_length)
                 if ret != stix_global._ok:
-                    print("packet ignored",file=sys.stderr)
+                    _stix_logger.warn("A packet ignored due to missing information in IDB")
                     continue
 
                 tpsd = header['TPSD']

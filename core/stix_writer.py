@@ -14,6 +14,8 @@ import datetime
 import uuid
 import sqlite3
 import os
+from core import stix_logger
+_stix_logger = stix_logger._stix_logger
 
 
 class StixPickleWriter:
@@ -70,7 +72,7 @@ class StixMongoWriter:
             print('can not connect to mongodb')
 
     def create_indexes(self):
-        """to speed up query """
+        """to speed up queries """
         if self.collection_headers:
             if self.collection_headers.count() == 0:
                 self.collection_headers.create_index([('time', -1),
@@ -111,10 +113,13 @@ class StixMongoWriter:
         except IndexError:
             self.current_packet_id=0
 
+        log_filename=_stix_logger.get_log_filename()
+
         self.run_info = {
             'filename': os.path.basename(in_filename),
             'path': os.path.dirname(in_filename),
             'comment':comment,
+            'log':log_filename,
             'date': datetime.datetime.now().isoformat(),
             'filesize': filesize
         }

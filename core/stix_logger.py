@@ -16,6 +16,7 @@ class StixLogger:
         self.signal_warn= None
         self.signal_error= None
         self.signal_enabled=False
+        self.filename=filename
         self.set_logger(filename, verbose)
 
     def set_signal(self, sig_info, sig_warn,sig_error):
@@ -25,6 +26,9 @@ class StixLogger:
         self.signal_enabled=True
     def emit(self,msg):
         self.info(msg)
+
+    def get_log_filename(self):
+        return self.filename
 
 
     def set_logger(self, filename=None, verbose=3):
@@ -62,7 +66,7 @@ class StixLogger:
     def warn(self, msg):
         if self.verbose < 1:
             return
-        self.printf(('[WARN   ]: {}'.format(msg)),'warn')
+        self.printf(('[WARN   ] : {}'.format(msg)),'warn')
 
     def info(self, msg):
         if self.verbose < 2:
