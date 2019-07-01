@@ -14,6 +14,7 @@ _stix_logger= stix_logger._stix_logger
 raw_dir='GU/raw/'
 l0_dir='GU/l0/'
 l1_dir='GU/l1/'
+l2_dir='GU/l2/'
 proc_log='GU/log/processing.log'
 ana_log='GU/log/calibration.log'
 
@@ -80,7 +81,8 @@ def get_calibration_spectra(packet):
 
  
 
-def analysis(file_in, file_out, spec_log):
+def analysis(file_in, root_filename,
+        pdf_filename, spec_log):
     alog=open(ana_log,'a+')
     slog=open(spec_log,'w')
     alog.write('-'*20+'\n')
@@ -100,8 +102,9 @@ def analysis(file_in, file_out, spec_log):
     print(len(data))
     ip=1
     cc=TCanvas()
-    fr=TFile(file_out,"recreate")
+    fr=TFile(root_filename,"recreate")
     h=TH1F("h","Triggers; Pixel #; Counts",12*32,0,12*32)
+    ipage=0
     for i, d in enumerate(data):
         results=get_calibration_spectra(d)
         spec=pprint.pformat(results)
@@ -118,6 +121,11 @@ def analysis(file_in, file_out, spec_log):
                 cc.cd()
                 ip+=1
                 g.Draw("hist")
+                if ipage==0:
+                    cc.Print(pdf_filename+'(')
+                else:
+                    cc.Print(pdf_filename)
+                ipage += 1
                 fr.cd()
                 cc.Write(("c_d_{}_{}_p_{}").format(ip,row['detector'],row['pixel']))
                 h.Fill(12*row['detector']+row['pixel'], row['counts'])
@@ -126,6 +134,9 @@ def analysis(file_in, file_out, spec_log):
     cc.cd()
     h.Draw("hist")
     cc.Write('triggers')
+    cc.Print(pdf_filename+')')
+    ipage += 1
+    print("Total pages: {}".format(ipage))
     #g.Write("trigger")
     fr.Close()
     slog.close()
@@ -149,8 +160,12 @@ def main():
             spec_fname=os.path.splitext(f)[0]+'.spec'
             l0_filename=os.path.join(l0_dir,filename)
             spec_log=os.path.join(l0_dir,spec_fname)
-            filename=os.path.splitext(f)[0]+'.root'
-            l1_filename=os.path.join(l1_dir,filename)
+            root_filename=os.path.splitext(f)[0]+'.root'
+            l1_filename=os.path.join(l1_dir,root_filename)
+
+            pdf_filename=os.path.splitext(f)[0]+'.pdf'
+            l2_filename=os.path.join(l2_dir,pdf_filename)
+
             print('Parsing file %s -> %s'%( raw_filename, l0_filename))
             log.write(raw_filename+'\n')
 
@@ -161,7 +176,7 @@ def main():
 
             parser = stix_parser.StixTCTMParser()
             parser.parse_file(raw_filename, l0_filename, 54124, 'tree','binary', 'calibration run')
-            analysis(l0_filename, l1_filename, spec_log)
+            analysis(l0_filename, l1_filename,l2_filename, spec_log)
 
 
 main()

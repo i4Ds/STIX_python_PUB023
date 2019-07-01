@@ -34,6 +34,7 @@ class IDB:
     def __init__(self, filename=_stix_idb_filename):
 
         self.filename = find_idb(filename)
+        print("IDB location: {}\n".format(self.filename))
         self.conn = None
         self.cur = None
         self.parameter_structures = dict()
@@ -46,7 +47,6 @@ class IDB:
         #self.parameter_desc=dict()
         if self.filename:
             self.connect_database(self.filename)
-
         #self.logger=logger
     def is_connected(self):
         if self.cur:
