@@ -34,7 +34,7 @@ class IDB:
     def __init__(self, filename=_stix_idb_filename):
 
         self.filename = find_idb(filename)
-        print("IDB location: {}\n".format(self.filename))
+        #print("IDB location: {}\n".format(self.filename))
         self.conn = None
         self.cur = None
         self.parameter_structures = dict()
@@ -44,10 +44,11 @@ class IDB:
         self.soc_descriptions = dict()
         self.pcf_descriptions = dict()
         self.s2k_table_contents = dict()
-        #self.parameter_desc=dict()
+        # self.parameter_desc=dict()
         if self.filename:
             self.connect_database(self.filename)
-        #self.logger=logger
+        # self.logger=logger
+
     def is_connected(self):
         if self.cur:
             return True
@@ -57,7 +58,7 @@ class IDB:
     def get_idb_filename(self):
         return os.path.abspath(self.filename)
 
-    #def get_parameter_desc(self,name):
+    # def get_parameter_desc(self,name):
     #    if self.parameter_desc:
     #        return self.parameter_desc[name]
     #    else self.parameter_desc:
@@ -72,7 +73,7 @@ class IDB:
         try:
             self.conn = sqlite3.connect(filename, check_same_thread=False)
         except sqlite3.Error as er:
-            #self.logger.error(er.message)
+            # self.logger.error(er.message)
             raise Exception('Failed to connect to IDB !')
         else:
             self.cur = self.conn.cursor()
@@ -176,8 +177,8 @@ class IDB:
         if rows:
             return rows[0]
         else:
-            print("No information in IDB for service {}, service_subtype {}  and pi1_val: {} ".format(packet_type, 
-                packet_subtype, pi1_val), file=sys.stderr)
+            print("No information in IDB for service {}, service_subtype {}  and pi1_val: {} ".format(packet_type,
+                                                                                                      packet_subtype, pi1_val), file=sys.stderr)
             return None
 
     def get_s2k_parameter_types(self, ptc, pfc):
@@ -211,7 +212,7 @@ class IDB:
             parameter structures
          """
         if spid in self.parameter_structures:
-            #database query is slower
+            # database query is slower
             return self.parameter_structures[spid]
         else:
             #'select PLF.*, PCF.* '
@@ -229,25 +230,34 @@ class IDB:
                                         service_subtype,
                                         command_subtype=-1):
         """
-          command subtype is only used for 237, 7
+            get TC description
         """
         sql = (
-            'select * from CCF where CCF_TYPE=? and CCF_STYPE =? order by CCF_CNAME asc'
-        )
+            # ,CCF_TYPE, CCF_STYPE, CCF_APID,'
+            'select  CCF_CNAME, CCF_DESCR, CCF_DESCR2, '
+            ' CCF_NPARS from CCF where CCF_TYPE=? and CCF_STYPE =? order by CCF_CNAME asc')
         res = self.execute(sql, (service_type, service_subtype), 'dict')
-        #if command_subtype >= 0 and len(res) > 1:
-        if False:
-            #for TC(237,7) , ZIX37701 -- ZIX37724
-            #source_id in the header is needed to identify the packet type
-            return res[command_subtype - 1]
-        else:
-            try:
-                return res[0]
-            except IndexError:
-                return None
+        # if command_subtype >= 0 and len(res) > 1:
+        # if False:
+        # for TC(237,7) , ZIX37701 -- ZIX37724
+        # source_id in the header is needed to identify the packet type
+        #    return res[command_subtype - 1]
+        # command subtype is only used for 237, 7
+        # else:
+        try:
+            return res[0]
+        except IndexError:
+            return None
 
-    def get_telecommand_parameters(self, name):
-        sql = 'select * from CDF where CDF_CNAME=?'
+    def get_telecommand_structure(self, name):
+        """
+            Get the structure of a telecommand  by its name
+            The structure will be used to decode the TC packet.
+        """
+        sql = (
+            'select CDF_PNAME, CPC_DESCR, CDF_ELTYPE, CDF_ELLEN, CDF_BIT, CDF_GRPSIZE, CDF_INTER,'
+            'CPC_DISPFMT, CPC_CATEG, CPC_PRFREF, CPC_PTC, CPC_PFC from CPC join CDF on CDF_CNAME=? and '
+            'CDF_PNAME=CPC_PNAME  order by CDF_BIT asc')
         args = (name, )
         res = self.execute(sql, args, 'dict')
         return res
@@ -283,13 +293,13 @@ class IDB:
         if (pcf_curtx, raw_value) in self.textual_parameter_LUT:
             return self.textual_parameter_LUT[(pcf_curtx, raw_value)]
         else:
-
             sql = (
                 'select TXP_ALTXT from TXP where  TXP_NUMBR=? and ?>=TXP_FROM '
                 ' and TXP_TO>=? limit 1')
             args = (pcf_curtx, raw_value, raw_value)
             rows = self.execute(sql, args)
             self.textual_parameter_LUT[(pcf_curtx, raw_value)] = rows
+            # lookup table
 
             return rows
 
@@ -313,11 +323,11 @@ def test():
     #print(STIX_IDB.get_s2k_parameter_types(3, 16))
     #print(STIX_IDB.get_parameter_physical_value('CIXP0024TM', 2405))
     #print(STIX_IDB.get_parameter_physical_value('CIX00036TM', 20))
-    #for i in range(100000):
+    # for i in range(100000):
     #    a=STIX_IDB.get_s2k_parameter_types(3, 16)
     #pprint.pprint(STIX_IDB.get_telecommand_characteristics(237, 7,1))
     #pprint.pprint(STIX_IDB.get_telecommand_characteristics(237, 7,2))
-    #pprint.pprint(STIX_IDB.get_variable_packet_structure(54137))
+    # pprint.pprint(STIX_IDB.get_variable_packet_structure(54137))
     _stix_idb.print_all_spid_desc()
 
 

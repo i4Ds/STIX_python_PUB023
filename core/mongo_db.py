@@ -11,79 +11,88 @@ import uuid
 import bson
 import pymongo
 
+
 class MongoDB(object):
-    def __init__(self, server='localhost',port=27017, user='',pwd=''):
-        self.filename=None
-        self.packets=[]
-        self.db=None
-        self.collection_packets=None
-        self.collection_runs=None
-        self.collection_headers=None
-        try :
-            if server=='localhost' and user=='' and pwd=='':
-                self.connect= pymongo.MongoClient(server, port)
+    def __init__(self, server='localhost', port=27017, user='', pwd=''):
+        self.filename = None
+        self.packets = []
+        self.db = None
+        self.collection_packets = None
+        self.collection_runs = None
+        self.collection_headers = None
+        try:
+            if server == 'localhost' and user == '' and pwd == '':
+                self.connect = pymongo.MongoClient(server, port)
             else:
-                self.connect= pymongo.MongoClient(server, port,username=user,
-                        password=pwd,authSource='stix')
+                self.connect = pymongo.MongoClient(
+                    server, port, username=user, password=pwd, authSource='stix')
             self.db = self.connect["stix"]
-            self.collection_packets=self.db['packets']
-            self.collection_headers=self.db['headers']
-            self.collection_runs=self.db['runs']
+            self.collection_packets = self.db['packets']
+            self.collection_headers = self.db['headers']
+            self.collection_runs = self.db['runs']
         except Exception as e:
             raise(e)
             print('can not connect to mongodb')
-    def get_headers(self,run_id):
+
+    def get_headers(self, run_id):
         if self.collection_headers:
-            cursor=self.collection_headers.find({'run_id':int(run_id)}).sort('_id',1)
-            data=[x for x in cursor]
+            cursor = self.collection_headers.find(
+                {'run_id': int(run_id)}).sort('_id', 1)
+            data = [x for x in cursor]
             return data
         else:
             return None
-    def get_run_filename(self,run_id):
+
+    def get_run_filename(self, run_id):
         if self.collection_runs:
-            cursor=self.collection_runs.find({'_id':int(run_id)})
+            cursor = self.collection_runs.find({'_id': int(run_id)})
             for x in cursor:
                 return x['filename']
 
         else:
             return ''
 
-
-    def get_packet_for_header(self,hid, objID=False):
-        header_id=hid
+    def get_packet_for_header(self, hid, objID=False):
+        header_id = hid
         if objID:
-            header_id=bson.ObjectId(hid)
+            header_id = bson.ObjectId(hid)
 
         if self.collection_packets:
-            cursor=self.collection_packets.find({'header_id':int(header_id)})
-            data=[x for x in cursor]
+            cursor = self.collection_packets.find(
+                {'header_id': int(header_id)})
+            data = [x for x in cursor]
             return data
         else:
             return None
 
-    def get_packets(self,run_id):
+    def get_packets(self, run_id):
         if self.collection_packets:
-            cursor=self.collection_packets.find({'run_id':int(run_id)})
-            data=[x for x in cursor]
+            cursor = self.collection_packets.find({'run_id': int(run_id)})
+            data = [x for x in cursor]
             return data
         else:
             return None
+
     def close(self):
         if self.connect:
             self.connect.close()
+
     def get_last_run_packet(self):
         if self.collection_runs:
-            last_run_id=(self.collection_runs.find().sort('_id',-1).limit(1)[0]['_id'])
+            last_run_id = (
+                self.collection_runs.find().sort(
+                    '_id', -1).limit(1)[0]['_id'])
             self.get_packet(last_run_id)
+
     def get_runs(self):
         if self.collection_runs:
-            runs=list(self.collection_runs.find().sort('_id',-1))
+            runs = list(self.collection_runs.find().sort('_id', -1))
             return runs
         else:
             return None
-    #def get_parameters(self,packets, pname):
+    # def get_parameters(self,packets, pname):
 
-    #def get_parameters(self,packets, pname):
+    # def get_parameters(self,packets, pname):
     #    timestamps=[]
     #    utc=[]
     #    orders=[]
@@ -92,22 +101,14 @@ class MongoDB(object):
     #    eng_values=[]
     #    for packet in packets:
     #        timestamp.append(packet['header']['time'])
-            
 
-
-    #def get_parameters_of_run(self,run_id):
+    # def get_parameters_of_run(self,run_id):
     #    packets=self.get_packets(run_id)
     #    for packet in packets:
     #        print(packets)
 
-        
-        
 
-
-
-
-
-if __name__=='__main__':
-    mdb=MongoDB()
-    #print(mdb.get_packet_for_header(318))
+if __name__ == '__main__':
+    mdb = MongoDB()
+    # print(mdb.get_packet_for_header(318))
     mdb.get_parameters_of_run(0)

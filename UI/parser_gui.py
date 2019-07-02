@@ -61,8 +61,8 @@ class StixDataReader(QThread):
             f.close()
         elif filename.endswith(('.dat','.binary')):
             self.parseRawFile(filename)
-        elif filename.endswith(('.db', '.sqlite')):
-            self.readSqliteDB(filename)
+        #elif filename.endswith(('.db', '.sqlite')):
+        #    self.readSqliteDB(filename)
         elif filename.endswith('.xml'):
             self.parseESOCXmlFile(filename)
         elif filename.endswith('.ascii'):
@@ -90,11 +90,11 @@ class StixDataReader(QThread):
 
 
 
-    def readSqliteDB(self, filename):
-        self.info.emit(('Loading data from {}').format(filename))
-        db = stix_sqlite_reader.StixSqliteReader(filename)
-        self.data = db.get_packets()
-        print(self.data)
+    #def readSqliteDB(self, filename):
+    #    self.info.emit(('Loading data from {}').format(filename))
+    #    db = stix_sqlite_reader.StixSqliteReader(filename)
+    #    self.data = db.get_packets()
+    #    print(self.data)
 
     def parseESOCXmlFile(self, in_filename):
         packets = []

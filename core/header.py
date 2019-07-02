@@ -66,8 +66,8 @@ _ACK_mapping = {
 _telecommand_raw_structure = [  # each dictionary
     {
         'APID': [0, 11],
-        'APID_packet_category': [0, 4],
-        'APID_process_ID': [4, 7],
+        'category': [0, 4],
+        'APID_pid': [4, 7],
         'packet_id': [0, 16],
         'version': [13, 3],
         'packet_type': [12, 1],

@@ -18,7 +18,7 @@ class StixSqliteReader(object):
         try:
             self.conn = sqlite3.connect(self.filename)
         except sqlite3.Error as er:
-            #print(er.message)
+            # print(er.message)
             pass
         else:
             self.cur = self.conn.cursor()
@@ -70,7 +70,7 @@ class StixSqliteReader(object):
         data = []
         for h in headers:
             header_id = h['ID']
-            #print(header_id)
+            # print(header_id)
             parameters = self.get_parameters_by_header_ID(header_id)
             h['DESCR'] = h['descr']
             h['time'] = h['header_time']
@@ -97,8 +97,7 @@ class StixSqliteReader(object):
     def get_parameter_names_of_spid(self, spid):
         sql = (
             'select distinct parameter.name,parameter.descr from '
-            'parameter join header on header.ID=parameter.packet_id and header.SPID=?'
-        )
+            'parameter join header on header.ID=parameter.packet_id and header.SPID=?')
         args = (spid, )
         return self.execute(sql)
 
@@ -117,7 +116,7 @@ class StixSqliteReader(object):
         return self.execute(sql, args, 'dict')
 
 
-#def test():
+# def test():
 #    db=ODB('../a.db')
 #    print(db.get_packets())
-#test()
+# test()

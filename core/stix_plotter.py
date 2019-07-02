@@ -14,7 +14,7 @@ import numpy as np
 
 def discrete_cmap(N, base_cmap=None):
     """Create an N-bin discrete colormap from the specified input map
-    base_cmap could be hsv, flag, prism, gist_rainbow, jet, cubehelix, 
+    base_cmap could be hsv, flag, prism, gist_rainbow, jet, cubehelix,
     brg,gitst_ncar, PuRd,etc.
     """
     # Note that if base_cmap is a string or None, you can simply do
@@ -86,7 +86,7 @@ def plot_parameter_timeline(timestamps,
 
 def plot_packet_header_timeline(timestamps, spids, pdf=None):
     fig = plt.figure(figsize=(12, 8))
-    #plt.subplot(211)
+    # plt.subplot(211)
     plt.title('header')
     duration = timestamps[-1] - timestamps[0]
     plt.xlim([0, duration])
@@ -114,7 +114,7 @@ def plot_packet_header_timeline(timestamps, spids, pdf=None):
         pdf.savefig()
         plt.close()
     fig = plt.figure(figsize=(12, 8))
-    #plt.subplot(212)
+    # plt.subplot(212)
     plt.plot(timestamps)
     plt.xlabel('Packet #')
     plt.ylabel('Time (s)')
