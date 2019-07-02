@@ -256,7 +256,7 @@ class IDB:
         """
         sql = (
             'select CDF_PNAME, CPC_DESCR, CDF_ELTYPE, CDF_ELLEN, CDF_BIT, CDF_GRPSIZE, CDF_INTER,'
-            'CPC_DISPFMT, CPC_CATEG, CPC_PRFREF, CPC_PTC, CPC_PFC from CPC join CDF on CDF_CNAME=? and '
+            'CPC_DISPFMT, CPC_CATEG, CPC_PRFREF,CPC_CCAREF, CPC_PAFREF, CPC_PTC, CPC_PFC from CPC join CDF on CDF_CNAME=? and '
             'CDF_PNAME=CPC_PNAME  order by CDF_BIT asc')
         args = (name, )
         res = self.execute(sql, args, 'dict')
@@ -277,6 +277,21 @@ class IDB:
 
             #'select VPD.*, PCF.*'
 
+    def tcparam_interpret(self, ref, raw):
+        """
+         interpret telecommand parameter by using the table PAS  
+        """
+        sql='select PAS_ALTXT from PAS where PAS_NUMBR=? and PAS_ALVAL=?'
+        args = (ref,raw)
+        print("REF: raw:{} {}".format(ref,raw))
+        rows = self.execute(sql, args)
+        print(rows)
+        try:
+            return rows[0][0]
+        except:
+            return ''
+
+
     def get_calibration_curve(self, pcf_curtx):
         """ calibration curve defined in CAP database """
         if pcf_curtx in self.calibration_curves:
@@ -289,7 +304,7 @@ class IDB:
             self.calibration_curves[pcf_curtx] = rows
             return rows
 
-    def get_parameter_textual_interpret(self, pcf_curtx, raw_value):
+    def textual_interpret(self, pcf_curtx, raw_value):
         if (pcf_curtx, raw_value) in self.textual_parameter_LUT:
             return self.textual_parameter_LUT[(pcf_curtx, raw_value)]
         else:

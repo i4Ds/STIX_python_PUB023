@@ -129,30 +129,33 @@ class StixParameterParser:
 
         return results
 
-    def convert_raw_to_eng(self, pcf_curtx, param_type, raw):
+    def convert_raw_to_eng(self, ref, param_type, raw, TMTC='TM'):
         """convert parameter raw values to engineer values"""
         if not raw:
-            return None
-        if not pcf_curtx:
+            return ''
+        if not ref:
             if param_type == 'T':  # timestamp
                 return float(raw[0]) + float(raw[1]) / 65536.
             else:
                 return ''
-            # no need to interpret
+                # no need to interpret
+        if TMTC=='TC':
+            return _stix_idb.tcparam_interpret(ref, raw[0])
+    
         raw_value = raw[0]
-        prefix = re.split('\d+', pcf_curtx)[0]
+        prefix = re.split('\d+', ref)[0]
         if prefix in ['CIXTS', 'CAAT', 'CIXT']:
             # textual interpret
-            rows = _stix_idb.get_parameter_textual_interpret(
-                pcf_curtx, raw_value)
+            rows = _stix_idb.textual_interpret(
+                ref, raw_value)
             if rows:
                 return rows[0][0]
 
             _stix_logger.warn(
-                'No textual calibration for {}'.format(pcf_curtx))
+                'No textual calibration for {}'.format(ref))
             return ''
         elif prefix == 'CIXP':
-            rows = _stix_idb.get_calibration_curve(pcf_curtx)
+            rows = _stix_idb.get_calibration_curve(ref)
             if rows:
                 x_points = [float(row[0]) for row in rows]
                 y_points = [float(row[1]) for row in rows]
@@ -160,7 +163,7 @@ class StixParameterParser:
                 val = str(interpolate.splev(raw_value, tck))
                 return val
             _stix_logger.warn(
-                'No calibration factors for {}'.format(pcf_curtx))
+                'No calibration factors for {}'.format(ref))
             return ''
 
         elif prefix == 'NIX':
@@ -168,10 +171,10 @@ class StixParameterParser:
             # if pcf_curtx == 'NIX00101':
             # see SO-STIX-DS-30001_IDeF-X HD datasheet page 29
             #    pass
-            _stix_logger.warn('{} not interpreted. '.format(pcf_curtx))
+            _stix_logger.warn('{} not interpreted. '.format(ref))
             return ''
         elif prefix == 'CIX':
-            rows = _stix_idb.get_calibration_polynomial(pcf_curtx)
+            rows = _stix_idb.get_calibration_polynomial(ref)
             if rows:
                 pol_coeff = ([float(x) for x in rows[0]])
                 x_points = ([math.pow(raw_value, i) for i in range(0, 5)])
@@ -180,11 +183,11 @@ class StixParameterParser:
                     sum_value += a * b
                 return sum_value
             _stix_logger.warn(
-                'No calibration factors for {}'.format(pcf_curtx))
+                'No calibration factors for {}'.format(ref))
             return ''
         return ''
 
-    def parse_parameters(self, app_data, par, calibration=True):
+    def parse_parameters(self, app_data, par, calibration=True, TMTC='TM'):
         s2k_table = _stix_idb.get_s2k_parameter_types(par['ptc'], par['pfc'])
         param_type = s2k_table['S2K_TYPE']
         raw_values = self.decode(app_data, param_type, par['offset'], int(par['offset_bits']),
@@ -193,7 +196,8 @@ class StixParameterParser:
         if not calibration:
             eng_values=''
         else:
-            eng_values = self.convert_raw_to_eng(par['curtx'], param_type, raw_values)
+            eng_values = self.convert_raw_to_eng(par['cal_ref'], param_type, raw_values,TMTC)
+
 
         return {
             'name': par['name'],
@@ -448,13 +452,13 @@ class StixVariablePacketParser(StixParameterParser):
         par['pfc'] = int(par['PCF_PFC'])
         par['name'] = par['PCF_NAME']
         par['desc']=par['PCF_DESCR']
-        par['curtx']=par['PCF_CURTX']
+        par['cal_ref']=par['PCF_CURTX']
 
         calibration = False
         if self.output_type == 'tree':
             calibration = True
         return self.parse_parameters(self.source_data, par,
-                                              calibration)
+                                              calibration, TMTC='TM')
 
 
 class StixTCTMParser(StixParameterParser):
@@ -540,8 +544,8 @@ class StixTCTMParser(StixParameterParser):
             par['pfc'] = int(par['PCF_PFC'])
             par['name'] = par['PCF_NAME']
             par['desc']=par['PCF_DESCR']
-            par['curtx']=par['PCF_CURTX']
-            parameter = self.parse_parameters(buf, par, calibration)
+            par['cal_ref']=par['PCF_CURTX']
+            parameter = self.parse_parameters(buf, par, calibration,TMTC='TM')
             params.append(parameter)
         return params
 
@@ -564,7 +568,8 @@ class StixTCTMParser(StixParameterParser):
         if not info:
             return stix_global._header_key_error, header
 
-        header['DESCR'] = info['CCF_DESCR'] + ' - ' + info['CCF_DESCR2']
+        header['DESCR'] = info['CCF_DESCR'] 
+        header['DESCR2']=info['CCF_DESCR2']
         header['SPID'] = ''
         header['name'] = info['CCF_CNAME']
         header['TMTC'] = 'TC'
@@ -592,8 +597,8 @@ class StixTCTMParser(StixParameterParser):
             par['pfc'] = int(par['CPC_PFC'])
             par['name'] = par['CDF_PNAME']
             par['desc']=par['CPC_DESCR']
-            par['curtx']=par['CPC_PRFREF']
-            parameter = self.parse_parameters(buf, par, calibration=True)
+            par['cal_ref']=par['CPC_PAFREF']
+            parameter = self.parse_parameters(buf, par, calibration=True, TMTC='TC')
             params.append(parameter)
         return params
 
@@ -729,7 +734,7 @@ class StixTCTMParser(StixParameterParser):
                     break
                 parameters=self.get_telecommand_parameters(header, app_raw)
 
-                packets.append({'header': header, 'parameters': None})
+                packets.append({'header': header, 'parameters': parameters})
 
             else:
                 old_i = i
