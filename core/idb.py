@@ -1,25 +1,20 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # @title        : IDB.py
-# @description  : stix idb python interface
+# @description  : STIX idb python interface
 # @author       : Hualin Xiao
 # @date         : Feb. 15, 2019
 from __future__ import (absolute_import, unicode_literals)
-
 import os
 import pprint
 import sqlite3
 import sys
 from core import stix_logger
-
 _stix_idb_filename = 'idb/idb.sqlite'
-
 _search_locations = [
     '../idb/idb.sqlite', '../idb/idb.db', '../idb.sqlite', '../idb.db'
 ]
-
-
 def find_idb(filename):
     if os.path.exists(filename):
         return filename
@@ -28,7 +23,6 @@ def find_idb(filename):
             if os.path.exists(fname):
                 return fname
         return None
-
 
 class IDB:
     def __init__(self, filename=_stix_idb_filename):
@@ -57,23 +51,10 @@ class IDB:
 
     def get_idb_filename(self):
         return os.path.abspath(self.filename)
-
-    # def get_parameter_desc(self,name):
-    #    if self.parameter_desc:
-    #        return self.parameter_desc[name]
-    #    else self.parameter_desc:
-    #        sql='select SCOS_NAME, SW_DESCR from SW_PARA '
-    #        rows=self.execute(sql,None,'dict')
-    #        for row in rows:
-    #            name=row['SCOS_NAME']
-    #            desc=row['SW_PARA']
-    #            self.parameter_desc[name]=desc
-
     def connect_database(self, filename):
         try:
             self.conn = sqlite3.connect(filename, check_same_thread=False)
         except sqlite3.Error as er:
-            # self.logger.error(er.message)
             raise Exception('Failed to connect to IDB !')
         else:
             self.cur = self.conn.cursor()
@@ -178,7 +159,8 @@ class IDB:
             return rows[0]
         else:
             print("No information in IDB for service {}, service_subtype {}  and pi1_val: {} ".format(packet_type,
-                                                                                                      packet_subtype, pi1_val), file=sys.stderr)
+                                                                                                      packet_subtype, pi1_val),
+                                                                                                      file=sys.stderr)
             return None
 
     def get_s2k_parameter_types(self, ptc, pfc):
@@ -212,10 +194,8 @@ class IDB:
             parameter structures
          """
         if spid in self.parameter_structures:
-            # database query is slower
             return self.parameter_structures[spid]
         else:
-            #'select PLF.*, PCF.* '
             sql = (
                 'select PCF.PCF_DESCR, PLF.PLF_OFFBY, PLF.PLF_OFFBI, PCF.PCF_NAME, PCF.PCF_WIDTH, PCF.PCF_PFC,PCF.PCF_PTC, PCF.PCF_CURTX '
                 ' from PLF   inner join PCF  on PLF.PLF_NAME = PCF.PCF_NAME '
@@ -275,7 +255,6 @@ class IDB:
             self.parameter_structures[spid] = res
             return res
 
-            #'select VPD.*, PCF.*'
 
     def tcparam_interpret(self, ref, raw):
         """
@@ -332,15 +311,7 @@ _stix_idb = IDB()
 
 
 def test():
-    """ test  the database interfaces"""
-    #print(STIX_IDB.get_s2k_parameter_types(3, 16))
-    #print(STIX_IDB.get_parameter_physical_value('CIXP0024TM', 2405))
-    #print(STIX_IDB.get_parameter_physical_value('CIX00036TM', 20))
-    # for i in range(100000):
-    #    a=STIX_IDB.get_s2k_parameter_types(3, 16)
-    #pprint.pprint(STIX_IDB.get_telecommand_characteristics(237, 7,1))
-    #pprint.pprint(STIX_IDB.get_telecommand_characteristics(237, 7,2))
-    # pprint.pprint(STIX_IDB.get_variable_packet_structure(54137))
+    """ test  the database interface"""
     _stix_idb.print_all_spid_desc()
 
 
