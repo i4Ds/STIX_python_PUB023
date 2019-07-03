@@ -283,9 +283,7 @@ class IDB:
         """
         sql='select PAS_ALTXT from PAS where PAS_NUMBR=? and PAS_ALVAL=?'
         args = (ref,raw)
-        print("REF: raw:{} {}".format(ref,raw))
         rows = self.execute(sql, args)
-        print(rows)
         try:
             return rows[0][0]
         except:

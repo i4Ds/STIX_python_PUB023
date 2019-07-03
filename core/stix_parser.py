@@ -141,7 +141,7 @@ class StixParameterParser:
                 # no need to interpret
         if TMTC=='TC':
             return _stix_idb.tcparam_interpret(ref, raw[0])
-    
+
         raw_value = raw[0]
         prefix = re.split('\d+', ref)[0]
         if prefix in ['CIXTS', 'CAAT', 'CIXT']:
@@ -198,7 +198,6 @@ class StixParameterParser:
         else:
             eng_values = self.convert_raw_to_eng(par['cal_ref'], param_type, raw_values,TMTC)
 
-
         return {
             'name': par['name'],
             'raw': raw_values,
@@ -211,10 +210,9 @@ class StixVariablePacketParser(StixParameterParser):
     """
     Variable length packet parser
     """
-
     def __init__(self):
         self.debug = False
-        self.nodes_LUT = []
+        #self.nodes_LUT = []
         self.last_spid = -1
 
     def debug_enabled(self):
@@ -228,24 +226,8 @@ class StixVariablePacketParser(StixParameterParser):
         self.nodes[0]['children'] = []
         self.length_min = 0
 
-    def load_nodes(self, spid):
-        for node in self.nodes_LUT:
-            if spid == node['spid']:
-                self.nodes = node['nodes']
-                self.length_min = node['length_min']
-                return True
-        return False
 
-    def store_current_nodes(self):
-        node = {
-            'spid': self.spid,
-            'nodes': self.nodes,
-            'length_min': self.length_min
-        }
-
-        self.nodes_LUT.append(node)  # copy
-
-    def parse(self, data, spid, output_type='tree'):
+    def init_telemetry_parser(self, data, spid, output_type='tree'):
         """
         """
         self.output_type = output_type
@@ -258,20 +240,12 @@ class StixVariablePacketParser(StixParameterParser):
         self.results_tree[:] = []
         self.results_dict = {}
         self.results_dict.clear()
-
         if spid != self.last_spid:
             self.init_nodes()
             self.build_tree()
-
-        #    if not self.load_nodes(spid):
-        #        self.init_nodes()
-        #        self.build_tree()
-        #        self.store_current_nodes()
-
         self.last_spid = spid
 
     def get_parameters(self):
-
         packet_length = len(self.source_data)
         if self.length_min > packet_length:
             return 0, None, stix_global._variable_packet_length_mismatch
@@ -298,16 +272,11 @@ class StixVariablePacketParser(StixParameterParser):
             'position': position,
             'repeat_size': repeat_size,
             'counter': counter,
-            #'width': width,
             'parameter': parameter,
             'children': children,
-            #'desc': desc
         }
         return node
 
-    def get_parameter_description(self):
-        # return self.parameter_desc
-        pass
 
     def register_parameter(self,
                            mother,
@@ -361,22 +330,6 @@ class StixVariablePacketParser(StixParameterParser):
             if rpsize > 0:
                 mother = node
                 repeater.append({'node': node, 'counter': rpsize})
-
-    def pprint_par(self, st):
-        if self.debug:
-            print(('%s %s  %s %s %s %s %s %s\n') %
-                  (str(st['VPD_POS']), st['VPD_NAME'], st['VPD_GRPSIZE'],
-                   st['VPD_OFFSET'], str(st['PCF_WIDTH']), str(st['offset']),
-                   str(st['offset_bits']), st['PCF_DESCR']))
-
-    def pprint_structure(self, structures):
-        if self.debug:
-            pprint.pprint(structures)
-            for st in structures:
-                print(
-                    ('%s %s  %s %s %s %s\n') %
-                    (str(st['VPD_POS']), st['VPD_NAME'], st['VPD_GRPSIZE'],
-                     st['VPD_OFFSET'], str(st['PCF_WIDTH']), st['PCF_DESCR']))
 
     def walk_to_array(self, mother):
         """
@@ -556,7 +509,7 @@ class StixTCTMParser(StixParameterParser):
         try:
             header_raw = st.unpack('>HHHBBBB', packet[0:10])
         except Exception as e:
-            print(e)
+            _stix_logger.error(str(e))
             return stix_global._header_raw_length_valid, None
         header = {}
         for h, s in zip(header_raw, stix_header._telecommand_raw_structure):
@@ -598,6 +551,7 @@ class StixTCTMParser(StixParameterParser):
             par['name'] = par['CDF_PNAME']
             par['desc']=par['CPC_DESCR']
             par['cal_ref']=par['CPC_PAFREF']
+            #pprint.pprint(par)
             parameter = self.parse_parameters(buf, par, calibration=True, TMTC='TC')
             params.append(parameter)
         return params
@@ -704,7 +658,7 @@ class StixTCTMParser(StixParameterParser):
                 if tpsd == -1:
                     parameters = self.parse_fixed_packet(app_raw, spid)
                 else:
-                    self.vp_parser.parse(app_raw, spid, pstruct)
+                    self.vp_parser.init_telemetry_parser(app_raw, spid, pstruct)
                     num_read, parameters, status = self.vp_parser.get_parameters(
                     )
                     if num_read != app_length:
@@ -716,7 +670,8 @@ class StixTCTMParser(StixParameterParser):
             elif buf[i] == 0x1D:
                 # telecommand
                 num_TC += 1
-                status, i, header_raw = substr(buf, i, 12)
+                status, i, header_raw = substr(buf, i, 10)
+                #header 10 bytes, the last two bytes are crc
                 if status == stix_global._eof:
                     break
                 header_status, header = self.parse_telecommand_header(
@@ -728,10 +683,12 @@ class StixTCTMParser(StixParameterParser):
                         "Invalid telecommand header. Cursor at {} ".
                         format(i - 12))
                     continue
-                app_length = header['length'] - 6 + 1
+                app_length = header['length']  + 1 - 4
+                #the last two bytes are crc
                 status, i, app_raw = substr(buf, i, app_length)
                 if status == stix_global._eof:
                     break
+
                 parameters=self.get_telecommand_parameters(header, app_raw)
 
                 packets.append({'header': header, 'parameters': parameters})
@@ -780,7 +737,7 @@ class StixTCTMParser(StixParameterParser):
                 packet = self.parse_binary(
                     data_binary, 0, pstruct, selected_spid, summary)
                 if packet:
-                    packet[0]['header']['utc'] = utc_timestamp
+                    packet[0]['header']['UTC'] = utc_timestamp
                     packets.extend(packet)
                 if idx % 10 == 0:
                     _stix_logger.info('{} packet have been read'.format(idx))
