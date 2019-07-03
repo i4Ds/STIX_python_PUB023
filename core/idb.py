@@ -10,11 +10,10 @@ import os
 import pprint
 import sqlite3
 import sys
-from core import stix_logger
 _stix_idb_filename = 'idb/idb.sqlite'
 _search_locations = [
-    '../idb/idb.sqlite', '../idb/idb.db', '../idb.sqlite', '../idb.db'
-]
+    '../idb/idb.sqlite', '../idb/idb.db', 
+    '../idb.sqlite', '../idb.db']
 def find_idb(filename):
     if os.path.exists(filename):
         return filename
@@ -28,7 +27,6 @@ class IDB:
     def __init__(self, filename=_stix_idb_filename):
 
         self.filename = find_idb(filename)
-        #print("IDB location: {}\n".format(self.filename))
         self.conn = None
         self.cur = None
         self.parameter_structures = dict()
@@ -38,10 +36,8 @@ class IDB:
         self.soc_descriptions = dict()
         self.pcf_descriptions = dict()
         self.s2k_table_contents = dict()
-        # self.parameter_desc=dict()
         if self.filename:
             self.connect_database(self.filename)
-        # self.logger=logger
 
     def is_connected(self):
         if self.cur:
@@ -158,9 +154,8 @@ class IDB:
         if rows:
             return rows[0]
         else:
-            print("No information in IDB for service {}, service_subtype {}  and pi1_val: {} ".format(packet_type,
-                                                                                                      packet_subtype, pi1_val),
-                                                                                                      file=sys.stderr)
+            print("No information in IDB for service {}, service_subtype {}  and pi1_val: {} "
+                    .format(packet_type, packet_subtype, pi1_val))
             return None
 
     def get_s2k_parameter_types(self, ptc, pfc):
@@ -254,21 +249,19 @@ class IDB:
             res = self.execute(sql, (spid, ), 'dict')
             self.parameter_structures[spid] = res
             return res
-
-
     def tcparam_interpret(self, ref, raw):
         """
          interpret telecommand parameter by using the table PAS  
         """
-        sql='select PAS_ALTXT from PAS where PAS_NUMBR=? and PAS_ALVAL=?'
-        args = (ref,raw)
+        sql=('select PAS_ALTXT from PAS where PAS_NUMBR=? and PAS_ALVAL=?')
+        args = (ref, raw)
         rows = self.execute(sql, args)
         try:
             return rows[0][0]
-        except:
+        except (TypeError, IndexError):
             return ''
-
-
+        else:
+            return ''
     def get_calibration_curve(self, pcf_curtx):
         """ calibration curve defined in CAP database """
         if pcf_curtx in self.calibration_curves:
@@ -280,7 +273,6 @@ class IDB:
             rows = self.execute(sql, args)
             self.calibration_curves[pcf_curtx] = rows
             return rows
-
     def textual_interpret(self, pcf_curtx, raw_value):
         if (pcf_curtx, raw_value) in self.textual_parameter_LUT:
             return self.textual_parameter_LUT[(pcf_curtx, raw_value)]
@@ -292,9 +284,7 @@ class IDB:
             rows = self.execute(sql, args)
             self.textual_parameter_LUT[(pcf_curtx, raw_value)] = rows
             # lookup table
-
             return rows
-
     def get_calibration_polynomial(self, pcf_curtx):
         if pcf_curtx in self.calibration_polynomial:
             return self.calibration_polynomial[pcf_curtx]
@@ -305,11 +295,7 @@ class IDB:
             rows = self.execute(sql, args)
             self.calibration_polynomial[pcf_curtx] = rows
             return rows
-
-
 _stix_idb = IDB()
-
-
 def test():
     """ test  the database interface"""
     _stix_idb.print_all_spid_desc()

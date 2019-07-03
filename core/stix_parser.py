@@ -4,17 +4,17 @@
 # @author       : Hualin Xiao
 # @date         : Feb. 11, 2019
 # @description:
-#    The following information/database tables are used for extractions of stix parameters
+#    The following information/database tables are
+#    used for extractions of stix parameters
 #    header ->  service and sub service -> app header -> SPID ->
 #    PLF (paramter list) ->
-#    SOSW (parameter name) -> PCF (parameter length and position)  -> S2K_parameter ( type, length)
+#    SOSW (parameter name) -> PCF (parameter length and position)
+#    -> S2K_parameter ( type, length)
 #    ->TXP, CAP , or MCF interpret parameter
-#from __future__ import (absolute_import, unicode_literals)
 import os
 import math
 import re
 import struct as st
-#import pprint
 import binascii
 import xmltodict
 from scipy import interpolate
@@ -74,9 +74,9 @@ class StixParameterParser:
                param_name=''):
         """
         decode a parameter
-        parameter_type:  
+        parameter_type:
             parameter type
-        offset:  
+        offset:
             offset in units of bits
         offset_bits:
             bits offset
@@ -132,12 +132,11 @@ class StixParameterParser:
             if param_type == 'T':  # timestamp
                 return float(raw[0]) + float(raw[1]) / 65536.
             return ''
-                # no need to interpret
         if TMTC == 'TC':
             return _stix_idb.tcparam_interpret(ref, raw[0])
 
         raw_value = raw[0]
-        prefix = re.split('\d+', ref)[0]
+        prefix = re.split(r'\d+', ref)[0]
         if prefix in ['CIXTS', 'CAAT', 'CIXT']:
             # textual interpret
             rows = _stix_idb.textual_interpret(ref, raw_value)
@@ -251,9 +250,8 @@ class StixVariablePacketParser(StixParameterParser):
         if self.output_type == 'tree':
             self.walk_to_tree(self.nodes[0], self.results_tree)
             return self.current_offset, self.results_tree, stix_global._ok
-        else:
-            self.walk_to_array(self.nodes[0])
-            return self.current_offset, self.results_dict, stix_global._ok
+        self.walk_to_array(self.nodes[0])
+        return self.current_offset, self.results_dict, stix_global._ok
 
     def create_node(self,
                     name,
@@ -327,9 +325,8 @@ class StixVariablePacketParser(StixParameterParser):
         Parameter tree traversal
         """
         if not mother:
-            return
+            return 
         counter = mother['counter']
-        parameter_values = {}
         for i in range(0, counter):
             for node in mother['children']:
                 if not node or self.current_offset > len(self.source_data):
@@ -637,7 +634,8 @@ class StixTCTMParser(StixParameterParser):
                 ret = self.decode_app_header(header, app_raw, app_length)
                 if ret != stix_global._ok:
                     _stix_logger.warn(
-                        "A packet ignored due to lack of information in IDB. Cursor at: {} "
+                        'A packet ignored due to lack of' 
+                        'information in IDB. Cursor at: {} '
                         .format(i))
                     continue
 
@@ -652,11 +650,11 @@ class StixTCTMParser(StixParameterParser):
                 else:
                     self.vp_parser.init_telemetry_parser(
                         app_raw, spid, pstruct)
-                    num_read, parameters, status = self.vp_parser.get_parameters(
-                    )
+                    num_read, parameters, status = self.vp_parser.get_parameters()
                     if num_read != app_length:
                         _stix_logger.warn(
-                            "Variable packet length inconsistent! SPID: {}, Actual: {}, IDB: {}"
+                            ' Variable packet length inconsistent! '
+                            ' SPID: {}, Actual: {}, IDB: {} '
                             .format(spid, num_read, app_length))
                 packets.append({'header': header, 'parameters': parameters})
 
@@ -664,7 +662,7 @@ class StixTCTMParser(StixParameterParser):
                 # telecommand
                 num_tc += 1
                 status, i, header_raw = substr(buf, i, 10)
-                #header 10 bytes, the last two bytes are crc
+                # header 10 bytes, the last two bytes are crc
                 if status == stix_global._eof:
                     break
                 header_status, header = self.parse_telecommand_header(
@@ -745,7 +743,7 @@ class StixTCTMParser(StixParameterParser):
     def parse_hex(self, hex_text, pstruct='tree', summary=None):
         raw = binascii.unhexlify(hex_text)
         return self.parse_binary(
-            data_binary, i=0, pstruct=pstruct, summary=summary)
+            raw, i=0, pstruct=pstruct, summary=summary)
 
     def parse_moc_xml(self,
                       in_filename,

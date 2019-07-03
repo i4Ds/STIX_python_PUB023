@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #  File: header.py
-#  data structure
-#
 _telemetry_raw_structure = [  # each dictionary
     {
         'APID': [0, 11],
