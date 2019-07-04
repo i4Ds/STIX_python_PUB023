@@ -19,7 +19,6 @@ from PyQt5.QtChart import QChart, QChartView, QLineSeries, QValueAxis, QBarSerie
 from core import stix_parser
 from core import stix_global
 from core import stix_writer
-from core import stix_sqlite_reader
 from core import idb
 
 from UI import mainwindow_rc5
