@@ -78,24 +78,13 @@ class StixDataReader(QThread):
             for line in fd:
                 [utc_timestamp, data_hex] = line.strip().split()
                 data_binary = binascii.unhexlify(data_hex)
-                packets=self.stix_tctm_parser.parse_binary(data_binary,0,'tree')
+                packets=self.stix_tctm_parser.parse_binary(data_binary,0)
                 if packets:
                     packets[0]['header']['utc']=utc_timestamp
                 self.data.extend(packets)
                 if idx%10==0:
                     self.info.emit('{} packet have been read'.format(idx))
                 idx+=1
-
-            
-
-
-
-    #def readSqliteDB(self, filename):
-    #    self.info.emit(('Loading data from {}').format(filename))
-    #    db = stix_sqlite_reader.StixSqliteReader(filename)
-    #    self.data = db.get_packets()
-    #    print(self.data)
-
     def parseESOCXmlFile(self, in_filename):
         packets = []
         try:
@@ -120,7 +109,7 @@ class StixDataReader(QThread):
             data_binary = binascii.unhexlify(data_hex)
             data = data_binary[76:]
 
-            packets = self.stix_tctm_parser.parse_binary(data, 0, 'tree')
+            packets = self.stix_tctm_parser.parse_binary(data, 0)
             if i % freq == 0:
                 self.info.emit("{:.0f}% loaded".format(100 * i / num))
 
@@ -129,7 +118,6 @@ class StixDataReader(QThread):
             self.data.extend(packets)
 
     def parseRawFile(self,filename):
-        #filename = self.filename
         try:
             in_file = open(filename, 'rb')
         except Exception as e:
@@ -144,25 +132,19 @@ class StixDataReader(QThread):
             self.data = []
             last_percent = 0
 
-            self.data = self.stix_tctm_parser.parse_binary(buf, 0, 'tree')
+            self.data = self.stix_tctm_parser.parse_binary(buf, 0)
 
 
 
 
 class Ui(mainwindow.Ui_MainWindow):
     def __init__(self, MainWindow):
-        #super(Ui, self).__init__(M)
         super(Ui, self).setupUi(MainWindow)
-        #uic.loadUi('UI/mainwindow.ui', self)
-
         self.MainWindow = MainWindow
         self.stix_tctm_parser = stix_parser.StixTCTMParser()
-
         self.initialize()
-
     def close(self):
         self.MainWindow.close()
-
     def style(self):
         return self.MainWindow.style()
 
@@ -295,7 +277,7 @@ class Ui(mainwindow.Ui_MainWindow):
             data_binary = binascii.unhexlify(data_hex)
             #status, header, parameters, param_type, param_desc, num_bytes_read = stix_tctm_parser.parse_one_packet(
             #    in_file, self)
-            packets = self.stix_tctm_parser.parse_binary(data_binary, 0, 'tree')
+            packets = self.stix_tctm_parser.parse_binary(data_binary, 0)
             if not packets:
                 return
             result = packets[0]
@@ -741,12 +723,6 @@ class Ui(mainwindow.Ui_MainWindow):
                 series.attachAxis(axisX)
                 series.attachAxis(axisY)
 
-                #series.attachAxis(axisX)
-                #series.attachAxis(axisY)
-                #self.chart.setAxisY(axisY,series)
-                #self.chart.setAxisX(axisX,series)
-
-            # self.widget.setChart(self.chart)
             self.xlabel = xlabel
             self.ylabel = ylabel
             self.chartView.setRubberBand(QChartView.RectangleRubberBand)
@@ -770,19 +746,9 @@ class Ui(mainwindow.Ui_MainWindow):
         self.plotParameter()
 
     def onTreeItemClicked(self, it, col):
-        #print(it, col, it.text(0))
         self.plotParameter(it.text(0), it.text(1))
 
-    #def error(self, msg, description=''):
-    #    self.showMessage((('Error: %s - %s') % (msg, description)),1)
-
-    #def warning(self, msg, description=''):
-    #    self.showMessage((('Warning: %s - %s') % (msg, description)))
-
-    #def info(self, msg, description=''):
-    #    self.showMessage((('Info: %s - %s') % (msg, description)))
-
-
+ 
 if __name__ == '__main__':
     filename = None
     if len(sys.argv) >= 2:
