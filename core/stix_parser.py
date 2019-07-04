@@ -4,8 +4,8 @@
 # @author       : Hualin Xiao
 # @date         : Feb. 11, 2019
 # @description:
-#               
-
+#               STIX telemetry raw data parser 
+# @TODO
 import os
 import math
 import re
@@ -28,13 +28,11 @@ _stix_logger = stix_logger._stix_logger
 def slice_bits(data, offset, length):
     return (data >> offset) & ((1 << length) - 1)
 
-
 def unpack_integer(raw, structure):
     result = {}
     for name, bits in structure.items():
         result[name] = slice_bits(raw, bits[0], bits[1])
     return result
-
 
 def substr(buf, i, width=1):
     data = buf[i:i + width]
@@ -134,7 +132,6 @@ class StixParameterParser:
             rows = _stix_idb.textual_interpret(ref, raw_value)
             if rows:
                 return rows[0][0]
-
             _stix_logger.warn('No textual calibration for {}'.format(ref))
             return ''
         elif prefix == 'CIXP':
@@ -170,12 +167,12 @@ class StixParameterParser:
         return ''
 
     def parse_parameters(self, app_data, par, calibration=True, TMTC='TM'):
-        s2k_table = _stix_idb.get_s2k_parameter_types(par['ptc'], par['pfc'])
-        param_type = s2k_table['S2K_TYPE']
+        s2k_LUT= _stix_idb.get_s2k_parameter_types(par['ptc'], par['pfc'])
+        param_type = s2k_LUT['S2K_TYPE']
         raw_values = self.decode(
             app_data,
             param_type,
-            par['offset'],
+            int(par['offset']),
             int(par['offset_bits']),
             par['width'],
             param_name=par['name'])
@@ -332,8 +329,8 @@ class StixVariablePacketParser(StixParameterParser):
         The offset, offset bit and parameter name are described in 'node'
         """
         par = node['parameter']
-        width = par['PCF_WIDTH']
-        vpd_offset = par['VPD_OFFSET']
+        width = int(par['PCF_WIDTH'])
+        vpd_offset = int(par['VPD_OFFSET'])
         if width % 8 != 0:
             if vpd_offset < 0:
                 self.current_offset_bit = self.last_data_width + vpd_offset
@@ -463,7 +460,7 @@ class StixTCTMParser(StixParameterParser):
         for h, s in zip(header_raw, stix_header._telecommand_raw_structure):
             header.update(unpack_integer(h, s))
         status = self.check_header(header, 'tc')
-        info = _stix_idb.get_telecommand_characteristics(
+        info = _stix_idb.get_telecommand_info(
             header['service_type'], header['service_subtype'],
             header['source_id'])
         if not info:
@@ -499,13 +496,11 @@ class StixTCTMParser(StixParameterParser):
             par['name'] = par['CDF_PNAME']
             par['desc'] = par['CPC_DESCR']
             par['cal_ref'] = par['CPC_PAFREF']
-            #pprint.pprint(par)
             parameter = self.parse_parameters(
                 buf, par, calibration=True, TMTC='TC')
             params.append(parameter)
         return params
-    def parse_file(self,
-                   in_filename,
+    def parse_file(self, in_filename,
                    out_filename=None,
                    selected_spid=0,
                    file_type='binary',
@@ -539,19 +534,17 @@ class StixTCTMParser(StixParameterParser):
             st_writer = stix_writer.StixMongoWriter()
         else:
             _stix_logger.warn('No output file is specified.')
-        if not stix_writer:
-            return packets
-        else:
+
+        if st_writer:
             st_writer.register_run(in_filename, file_size, comment)
             _stix_logger.info(
                 'Writing parameters to {} ...'.format(out_filename))
             st_writer.write_all(packets)
             _stix_logger.info('Done.')
+        else:
+            return packets
 
-    def parse_binary(self,
-                     buf,
-                     i=0,
-                     selected_spid=0,
+    def parse_binary(self, buf, i=0,selected_spid=0,
                      summary=None):
         length = len(buf)
         if i >= length:
@@ -684,7 +677,6 @@ class StixTCTMParser(StixParameterParser):
         raw = binascii.unhexlify(hex_text)
         return self.parse_binary(
             raw, i=0,  summary=summary)
-
     def parse_moc_xml(self,
                       in_filename,
                       selected_spid=0,
@@ -696,7 +688,6 @@ class StixTCTMParser(StixParameterParser):
         except Exception as e:
             _stix_logger.error('Failed to open {}'.format(str(e)))
         else:
-
             _stix_logger.info(('Parsing {}').format(in_filename))
             doc = xmltodict.parse(fd.read())
             for e in doc['ns2:ResponsePart']['Response']['PktRawResponse'][

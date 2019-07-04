@@ -31,16 +31,16 @@ class StixPickleWriter:
 
     def register_run(self, in_filename, filesize=0, comment=''):
         self.run = {
-            'Input': in_filename,
-            'Output': self.filename,
-            'filsize': filesize,
+            'input': in_filename,
+            'output': self.filename,
+            'filesize': filesize,
             'comment': comment,
-            'Date': datetime.datetime.now().isoformat()
+            'date': datetime.datetime.now().isoformat()
         }
 
     def write_all(self, packets):
         if self.fout:
-            data = {'run': self.run, 'packet': packets}
+            data = {'run': self.run, 'packets': packets}
             pickle.dump(data, self.fout)
             self.fout.close()
 
