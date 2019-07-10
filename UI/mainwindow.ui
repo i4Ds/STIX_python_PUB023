@@ -157,12 +157,12 @@
            <widget class="QComboBox" name="xaxisComboBox">
             <item>
              <property name="text">
-              <string>Parameter order as X</string>
+              <string>Parameter repeat # as X</string>
              </property>
             </item>
             <item>
              <property name="text">
-              <string>Timestamps as X</string>
+              <string>Timestamp - T0 as X</string>
              </property>
             </item>
             <item>
@@ -253,7 +253,7 @@
             </item>
             <item>
              <property name="text">
-              <string>all packets</string>
+              <string>all loaded packets</string>
              </property>
             </item>
            </widget>
