@@ -5,7 +5,6 @@
 # @description  : STIX idb python interface
 # @author       : Hualin Xiao
 # @date         : Feb. 15, 2019
-
 from __future__ import (absolute_import, unicode_literals)
 import os
 import pprint
@@ -23,8 +22,10 @@ def find_idb(filename):
             if os.path.exists(fname):
                 return fname
         return None
+
 class IDB:
     def __init__(self, filename=_stix_idb_filename):
+
         self.filename = find_idb(filename)
         self.conn = None
         self.cur = None
@@ -37,11 +38,13 @@ class IDB:
         self.s2k_table_contents = dict()
         if self.filename:
             self.connect_database(self.filename)
+
     def is_connected(self):
         if self.cur:
             return True
         else:
             return False
+
     def get_idb_filename(self):
         return os.path.abspath(self.filename)
     def connect_database(self, filename):
@@ -182,6 +185,7 @@ class IDB:
         Args:
             spid: SPID
         Returns:
+            is_fixed: whether it is a fixed length packet
             parameter structures
          """
         if spid in self.parameter_structures:
@@ -204,6 +208,7 @@ class IDB:
             get TC description
         """
         sql = (
+            # ,CCF_TYPE, CCF_STYPE, CCF_APID,'
             'select  CCF_CNAME, CCF_DESCR, CCF_DESCR2, '
             ' CCF_NPARS from CCF where CCF_TYPE=? and CCF_STYPE =? order by CCF_CNAME asc')
         res = self.execute(sql, (service_type, service_subtype), 'dict')
@@ -294,5 +299,7 @@ _stix_idb = IDB()
 def test():
     """ test  the database interface"""
     _stix_idb.print_all_spid_desc()
+
+
 if __name__ == '__main__':
     test()

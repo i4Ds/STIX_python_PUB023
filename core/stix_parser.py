@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 # @title        : parser.py
-# @author       : Hualin Xiao
 # @date         : Feb. 11, 2019
 # @description:
 #               STIX telemetry raw data parser 
@@ -41,8 +40,6 @@ def substr(buf, i, width=1):
         return False, i + length, data
     else:
         return True, i + length, data
-
-
 def find_next_header(buf, i):
     length = len(buf)
     while i < length:
@@ -52,12 +49,9 @@ def find_next_header(buf, i):
         else:
             i += 1
     return stix_global._eof
-
-
 class StixParameterParser:
     def __init__(self):
         pass
-
     def decode(self,
                in_data,
                param_type,
@@ -189,7 +183,6 @@ class StixParameterParser:
             'value': eng_values
         }
 
-
 class StixVariablePacketParser(StixParameterParser):
     """
     Variable length packet parser
@@ -197,13 +190,10 @@ class StixVariablePacketParser(StixParameterParser):
 
     def __init__(self):
         self.debug = False
-        #self.nodes_LUT = []
         self.last_spid = -1
         self.last_num_bits = 0
-
     def debug_enabled(self):
         self.debug = True
-
     def init_nodes(self):
         self.nodes = []
         self.nodes.append(
@@ -283,8 +273,6 @@ class StixVariablePacketParser(StixParameterParser):
 
         mother = self.nodes[0]
         repeater = [{'node': mother, 'counter': stix_global._max_parameters}]
-        # counter:  number of repeated times
-
         for par in structures:
             if repeater:
                 for e in reversed(repeater):
@@ -300,8 +288,7 @@ class StixVariablePacketParser(StixParameterParser):
             if rpsize > 0:
                 mother = node
                 repeater.append({'node': node, 'counter': rpsize})
-
-    def walk(self, mother, para):
+    def walk(self, mother, param):
         if not mother:
             return
         result_node = None
@@ -321,7 +308,7 @@ class StixVariablePacketParser(StixParameterParser):
                 if node['children']:
                     node['counter'] = result['raw'][0]
                     self.walk(node, result_node['children'])
-                para.append(result_node)
+                param.append(result_node)
 
     def parse_parameter(self, node):
         """
@@ -614,14 +601,11 @@ class StixTCTMParser(StixParameterParser):
                                                                            12))
                     continue
                 app_length = header['length'] + 1 - 4
-                #4 bytes go to the header, the last two bytes are crc
                 status, i, app_raw = substr(buf, i, app_length)
                 if status == stix_global._eof:
                     break
-
                 parameters = self.get_telecommand_parameters(header, app_raw)
                 packets.append({'header': header, 'parameters': parameters})
-
             else:
                 old_i = i
                 _stix_logger.warn('Unknown packet {} at {}'.format(buf[i], i))
@@ -698,7 +682,6 @@ class StixTCTMParser(StixParameterParser):
         freq = 1
         if num > 100:
             freq = num / 100
-
         for i, packet in enumerate(packets):
             data_hex = packet['raw']
             data_binary = binascii.unhexlify(data_hex)

@@ -58,7 +58,7 @@ class StixDataReader(QThread):
             self.info.emit('Loading ...')
             self.data = pickle.load(f)['packet']
             f.close()
-        elif filename.endswith(('.dat','.binary')):
+        elif filename.endswith(('.dat','.binary')) or filename.endswith('.BDF'):
             self.parseRawFile(filename)
         #elif filename.endswith(('.db', '.sqlite')):
         #    self.readSqliteDB(filename)

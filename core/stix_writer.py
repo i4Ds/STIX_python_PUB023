@@ -4,15 +4,11 @@
 # @description  : Write decoded data to a python pickle file, sqlite database or mongo database
 # @author       : Hualin Xiao
 # @date         : Feb. 27, 2019
-#import json
 import pprint
 import pickle
 import gzip
-import datetime
 import pymongo
 import datetime
-import uuid
-import sqlite3
 import os
 from core import stix_logger
 _stix_logger = stix_logger._stix_logger
@@ -31,16 +27,16 @@ class StixPickleWriter:
 
     def register_run(self, in_filename, filesize=0, comment=''):
         self.run = {
-            'input': in_filename,
-            'output': self.filename,
-            'filesize': filesize,
+            'Input': in_filename,
+            'Output': self.filename,
+            'filsize': filesize,
             'comment': comment,
-            'date': datetime.datetime.now().isoformat()
+            'Date': datetime.datetime.now().isoformat()
         }
 
     def write_all(self, packets):
         if self.fout:
-            data = {'run': self.run, 'packets': packets}
+            data = {'run': self.run, 'packet': packets}
             pickle.dump(data, self.fout)
             self.fout.close()
 
@@ -114,7 +110,6 @@ class StixMongoWriter:
             self.current_packet_id = 0
 
         log_filename = _stix_logger.get_log_filename()
-
         self.run_info = {
             'filename': os.path.basename(in_filename),
             'path': os.path.dirname(in_filename),
@@ -148,69 +143,3 @@ class StixMongoWriter:
                 result = self.collection_packets.insert_one(packet)
                 self.current_packet_id += 1
 
-            # self.collection_parameters.insert_many(self.packets)
-
-
-try:
-    from ROOT import TFile, TTree
-    from array import array
-
-    class StixROOTWriter:
-        """Write to root"""
-
-        def __init__(self, filename):
-            self.filename = filename
-            self.packet_counter = 0
-            self.fout = None
-            if filename:
-                # self.out=open(filename,'w')
-                self.fout = TFile(filename, 'recreate')
-                self.tree = TTree('header', 'header')
-                self.seg_flag = array('B', [0])
-                self.seq_count = array('I', [0])
-                self.service_subtype = array('B', [0])
-                self.service_type = array('B', [0])
-                self.SPID = array('I', [0])
-                self.length = array('I', [0])
-                self.des = array('B', [0])
-                self.desc = array('c', '\0' * 64)
-                self.timestamp = array('f', [0])
-                self.tree.Branch('seg_flag', self.seg_flag, 'seg_flag/B')
-                self.tree.Branch('seq_count', self.seq_count, 'seq_count/I')
-                self.tree.Branch('service_type', self.service_type,
-                                 'service_type/B')
-                self.tree.Branch('service_subtype', self.service_subtype,
-                                 'service_subtype/B')
-                self.tree.Branch('SPID', self.SPID, 'SPID/I')
-                self.tree.Branch('length', self.length, 'length/I')
-                self.tree.Branch('desc', self.desc, 'desc[64]/C')
-                self.tree.Branch('timestamp', self.timestamp, 'timestamp/f')
-                self.tree.Branch('des', self.des, 'des/B')
-
-        def done(self):
-            self.tree.Write()
-            self.fout.Close()
-
-        def write_all(self, packets):
-            pass
-
-        def write_header(self, header):
-            """
-            it is called for every telemetry data header
-            """
-            if self.fout:
-                self.seg_flag[0] = header['seg_flag']
-                self.seq_count[0] = header['seq_count']
-                self.service_subtype[0] = header['service_subtype']
-                self.service_type[0] = header['service_type']
-                self.SPID[0] = header['SPID']
-                self.length[0] = header['length']
-                self.timestamp[0] = header['time']
-                for i, c in enumerate(header['DESCR'][0:64]):
-                    self.desc[i] = str(c)
-                self.tree.Fill()
-
-        def write_parameters(self, parameters):
-            pprint.pprint(parameters)
-except ImportError:
-    pass

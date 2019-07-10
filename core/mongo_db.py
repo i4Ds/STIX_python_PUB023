@@ -33,6 +33,11 @@ class MongoDB(object):
         except Exception as e:
             raise(e)
             print('can not connect to mongodb')
+    def is_connected(self):
+        if self.connect:
+            return True
+        return False
+
 
     def get_headers(self, run_id):
         if self.collection_headers:
@@ -90,22 +95,6 @@ class MongoDB(object):
             return runs
         else:
             return None
-    # def get_parameters(self,packets, pname):
-
-    # def get_parameters(self,packets, pname):
-    #    timestamps=[]
-    #    utc=[]
-    #    orders=[]
-    #    parameter_values=[]
-    #    raw_values=[]
-    #    eng_values=[]
-    #    for packet in packets:
-    #        timestamp.append(packet['header']['time'])
-
-    # def get_parameters_of_run(self,run_id):
-    #    packets=self.get_packets(run_id)
-    #    for packet in packets:
-    #        print(packets)
 
 
 if __name__ == '__main__':

@@ -2,8 +2,6 @@
 # -*- encoding: utf-8 -*-
 # @title        : stix_logger.py
 # @description  : logger
-# @author       : Hualin Xiao
-# @date         : Feb. 27, 2019
 
 import pprint
 import sys
@@ -95,28 +93,7 @@ class StixLogger:
                     except BaseException:
                         self.printf(par)
         elif type(parameters) is dict:
-            # pprint.pprint(parameters)
             self.printf(parameters)
-
-    def pprint(self, header, parameters):
-        if self.verbose < 3:
-            return
-        self.printf(('*' * 80))
-        self.printf(('packet id      : {}'.format(header['packet_id'])))
-        self.printf(('Description    : {}'.format(header['DESCR'])))
-        self.printf(('Timestamp      : {}'.format(header['time'])))
-        self.printf(('SPID           : {}'.format(header['SPID'])))
-        self.printf(('segmentation   : {}'.format(header['segmentation'])))
-        self.printf(('service type   : {}'.format(header['service_type'])))
-        self.printf(('service subtype: {}'.format(header['service_subtype'])))
-        self.printf(('data length    : {}'.format(header['data_length'])))
-        self.printf(('APID           : {}'.format(header['APID'])))
-        self.printf(('-' * 70))
-        self.printf(('{:<10} {:<30} {:<15} {:15}'.format(
-            'name', 'descr', 'raw', 'eng_value')))
-        self.printf(('-' * 70))
-        self.pprint_parameters(parameters)
-        self.printf(('*' * 80))
 
     def debug(self, msg):
         if self.verbose < 4:
