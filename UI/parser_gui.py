@@ -1,4 +1,4 @@
-# March 25,2019
+#!/usr/bin/python3 
 import sys
 sys.path.append('..')
 sys.path.append('.')
@@ -509,7 +509,7 @@ class Ui(mainwindow.Ui_MainWindow):
             root.setText(2, run['date'])
             root.setText(3, str(run['start']))
             root.setText(4, str(run['end']))
-        self.showMessage('Runs loaded!')
+        self.showMessage('Data loaded!')
 
     def loadDataFromMongoDB(self, dui, diag):
         selected_runs = []
@@ -665,7 +665,10 @@ class Ui(mainwindow.Ui_MainWindow):
             if data_type == 1:
                 ylabel = 'Engineering  value'
             if xaxis_type == 0:
-                xlabel = "Packet #"
+                if packet_selection == 1:
+                    xlabel = "Packet #"
+                else:
+                    xlabel = "Repeat #"
                 self.x = range(0, len(self.y))
             if xaxis_type == 1:
                 self.x = [t - timestamp[0] for t in timestamp]
