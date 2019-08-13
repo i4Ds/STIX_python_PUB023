@@ -7,6 +7,7 @@
 
 import sys
 import socket
+import binascii
 HOST = 'localhost'  # Standard loopback interface address (localhost)
 PORTS = [9000,9001] # Port to listen on (non-privileged ports are > 1023)
 SPEARATOR='<-->'
@@ -23,11 +24,12 @@ def run(filename):
         s = connect_socket(HOST, port)
         if s:
             break
-
     if not s:
         print('Failed to connect to the socket...')
         return 
-    print('waiting for packet...')
+
+    print('socket connection established.')
+    print('waiting for packets ...')
     with open(filename,'wb') as f:
         num = 0
         try:
@@ -44,7 +46,8 @@ def run(filename):
                         data_binary = binascii.unhexlify(data_hex)
                         f.write(data_binary)
                         num += 1
-                        print(data2[0:6])
+                        print('Received: TM ({}, {})(SPID {})  at {} '.format(data2[3].decode(), 
+                            data2[4].decode(), data2[1].decode(),data2[2].decode()))
                     buf=b''
         except KeyboardInterrupt:
             f.close()
