@@ -13,7 +13,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.setWindowModality(QtCore.Qt.WindowModal)
-        MainWindow.resize(1148, 785)
+        MainWindow.resize(1152, 785)
         MainWindow.setMaximumSize(QtCore.QSize(323232, 323232))
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(":/Icons/images/app.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -134,7 +134,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.tabWidget)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1148, 22))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1152, 22))
         self.menubar.setObjectName("menubar")
         self.menu_File = QtWidgets.QMenu(self.menubar)
         self.menu_File.setObjectName("menu_File")
@@ -203,6 +203,11 @@ class Ui_MainWindow(object):
         icon4.addPixmap(QtGui.QPixmap(":/Icons/images/copy.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionCopy.setIcon(icon4)
         self.actionCopy.setObjectName("actionCopy")
+        self.actionConnect_TSC = QtWidgets.QAction(MainWindow)
+        icon5 = QtGui.QIcon()
+        icon5.addPixmap(QtGui.QPixmap(":/Icons/images/link.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionConnect_TSC.setIcon(icon5)
+        self.actionConnect_TSC.setObjectName("actionConnect_TSC")
         self.menu_File.addAction(self.action_Open)
         self.menu_File.addAction(self.actionSave)
         self.menu_File.addAction(self.actionExit)
@@ -210,6 +215,7 @@ class Ui_MainWindow(object):
         self.menuSetting.addAction(self.actionSet_IDB)
         self.menu_Tools.addAction(self.action_Plot)
         self.menu_Tools.addAction(self.actionLoad_mongodb)
+        self.menu_Tools.addAction(self.actionConnect_TSC)
         self.menuAction.addAction(self.actionPrevious)
         self.menuAction.addAction(self.actionNext)
         self.menuAction.addAction(self.actionLog)
@@ -232,6 +238,7 @@ class Ui_MainWindow(object):
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.action_Plot)
         self.toolBar.addAction(self.actionLoad_mongodb)
+        self.toolBar.addAction(self.actionConnect_TSC)
 
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(0)
@@ -248,9 +255,9 @@ class Ui_MainWindow(object):
         self.tab_2.setToolTip(_translate("MainWindow", "plot parameters\n"
 ""))
         self.xaxisComboBox.setItemText(0, _translate("MainWindow", "Parameter repeat # as X"))
-        self.xaxisComboBox.setItemText(1, _translate("MainWindow", "Timestamps - T0 as X"))
+        self.xaxisComboBox.setItemText(1, _translate("MainWindow", "Timestamp - T0 as X"))
         self.xaxisComboBox.setItemText(2, _translate("MainWindow", "Histogram"))
-        self.label.setText(_translate("MainWindow", "Parameter:"))
+        self.label.setText(_translate("MainWindow", "Data source:"))
         self.label_2.setText(_translate("MainWindow", "In"))
         self.styleEdit.setText(_translate("MainWindow", "-"))
         self.label_4.setText(_translate("MainWindow", "Type:"))
@@ -284,6 +291,7 @@ class Ui_MainWindow(object):
         self.actionPaste.setToolTip(_translate("MainWindow", "Read raw data from the clipboard"))
         self.actionLoad_mongodb.setText(_translate("MainWindow", "Connect MonogoDB"))
         self.actionCopy.setText(_translate("MainWindow", "&Copy"))
+        self.actionConnect_TSC.setText(_translate("MainWindow", "Connect to TSC"))
 
 
 import mainwindow_rc5

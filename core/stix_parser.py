@@ -3,7 +3,7 @@
 # @title        : parser.py
 # @date         : Feb. 11, 2019
 # @description:
-#               STIX telemetry raw data parser 
+#               STIX telemetry raw data parser
 # @TODO
 import os
 import math
@@ -27,11 +27,13 @@ _stix_logger = stix_logger._stix_logger
 def slice_bits(data, offset, length):
     return (data >> offset) & ((1 << length) - 1)
 
+
 def unpack_integer(raw, structure):
     result = {}
     for name, bits in structure.items():
         result[name] = slice_bits(raw, bits[0], bits[1])
     return result
+
 
 def substr(buf, i, width=1):
     data = buf[i:i + width]
@@ -40,6 +42,8 @@ def substr(buf, i, width=1):
         return False, i + length, data
     else:
         return True, i + length, data
+
+
 def find_next_header(buf, i):
     length = len(buf)
     while i < length:
@@ -49,11 +53,13 @@ def find_next_header(buf, i):
         else:
             i += 1
     return stix_global._eof
+
+
 class StixParameterParser:
     def __init__(self):
         pass
-    def decode(self,
-               in_data,
+
+    def decode(self, in_data,
                param_type,
                offset,
                offset_bits,
@@ -153,7 +159,7 @@ class StixParameterParser:
                 x_points = ([math.pow(raw_value, i) for i in range(0, 5)])
                 sum_value = 0
                 for coeff, xval in zip(pol_coeff, x_points):
-                    sum_value += coeff * xval 
+                    sum_value += coeff * xval
                 return sum_value
 
             _stix_logger.warn('No calibration factors for {}'.format(ref))
@@ -161,15 +167,11 @@ class StixParameterParser:
         return ''
 
     def parse_parameters(self, app_data, par, calibration=True, TMTC='TM'):
-        s2k_LUT= _stix_idb.get_s2k_parameter_types(par['ptc'], par['pfc'])
+        s2k_LUT = _stix_idb.get_s2k_parameter_types(par['ptc'], par['pfc'])
         param_type = s2k_LUT['S2K_TYPE']
-        raw_values = self.decode(
-            app_data,
-            param_type,
-            int(par['offset']),
-            int(par['offset_bits']),
-            par['width'],
-            param_name=par['name'])
+        raw_values = self.decode(app_data, param_type, int(par['offset']),
+                                 int(par['offset_bits']), par['width'],
+                                 param_name=par['name'])
         eng_values = ''
         if not calibration:
             eng_values = ''
@@ -183,6 +185,7 @@ class StixParameterParser:
             'value': eng_values
         }
 
+
 class StixVariablePacketParser(StixParameterParser):
     """
     Variable length packet parser
@@ -192,8 +195,10 @@ class StixVariablePacketParser(StixParameterParser):
         self.debug = False
         self.last_spid = -1
         self.last_num_bits = 0
+
     def debug_enabled(self):
         self.debug = True
+
     def init_nodes(self):
         self.nodes = []
         self.nodes.append(
@@ -288,6 +293,7 @@ class StixVariablePacketParser(StixParameterParser):
             if rpsize > 0:
                 mother = node
                 repeater.append({'node': node, 'counter': rpsize})
+
     def walk(self, mother, param):
         if not mother:
             return
@@ -487,6 +493,7 @@ class StixTCTMParser(StixParameterParser):
                 buf, par, calibration=True, TMTC='TC')
             params.append(parameter)
         return params
+
     def parse_file(self, in_filename,
                    out_filename=None,
                    selected_spid=0,
@@ -531,7 +538,7 @@ class StixTCTMParser(StixParameterParser):
         else:
             return packets
 
-    def parse_binary(self, buf, i=0,selected_spid=0,
+    def parse_binary(self, buf, i=0, selected_spid=0,
                      summary=None):
         length = len(buf)
         if i >= length:
@@ -561,7 +568,7 @@ class StixTCTMParser(StixParameterParser):
                 ret = self.decode_app_header(header, app_raw, app_length)
                 if ret != stix_global._ok:
                     _stix_logger.warn(
-                        'A packet ignored due to lack of' 
+                        'A packet ignored due to lack of'
                         'information in IDB. Cursor at: {} '
                         .format(i))
                     continue
@@ -635,6 +642,7 @@ class StixTCTMParser(StixParameterParser):
                 for k in summary.keys():
                     summary[k] += smr[k]
         return packets
+
     def parse_moc_ascii(self,
                         filename,
                         selected_spid=0,
@@ -648,7 +656,7 @@ class StixTCTMParser(StixParameterParser):
             for line in fd:
                 [utc_timestamp, data_hex] = line.strip().split()
                 data_binary = binascii.unhexlify(data_hex)
-                packet = self.parse_binary(data_binary, 0, 
+                packet = self.parse_binary(data_binary, 0,
                                            selected_spid, summary)
                 if packet:
                     packet[0]['header']['UTC'] = utc_timestamp
@@ -657,10 +665,12 @@ class StixTCTMParser(StixParameterParser):
                     _stix_logger.info('{} packet have been read'.format(idx))
                 idx += 1
         return packets
+
     def parse_hex(self, hex_text,  summary=None):
         raw = binascii.unhexlify(hex_text)
         return self.parse_binary(
             raw, i=0,  summary=summary)
+
     def parse_moc_xml(self,
                       in_filename,
                       selected_spid=0,

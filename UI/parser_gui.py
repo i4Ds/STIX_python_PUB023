@@ -10,8 +10,8 @@ import re
 import binascii
 import xmltodict
 import pprint
+import socket
 
-#from io import BytesIO
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtChart import QChart, QChartView, QLineSeries, QValueAxis, QBarSeries, QBarSet, QScatterSeries
@@ -20,16 +20,69 @@ from core import stix_parser
 from core import stix_global
 from core import stix_writer
 from core import idb
-
+from datetime import datetime
 from UI import mainwindow_rc5
 from UI import mainwindow
 from UI import mongo_dialog
+from UI import tsc_connection
 from functools import partial
 from core import mongo_db as mgdb
 from core import stix_logger
 
+class StixSocketPacketReceiver(QThread):
+    """
+    QThread to receive packets via socket
+    """
+    packetArrival= pyqtSignal(list)
+    error = pyqtSignal(str)
+    info = pyqtSignal(str)
+    warn= pyqtSignal(str)
 
-class StixDataReader(QThread):
+    def __init__(self, host, port):
+        super(StixSocketPacketReceiver, self).__init__()
+        self.port=port
+        self.host=host
+        self.stix_tctm_parser = stix_parser.StixTCTMParser()
+        stix_logger._stix_logger.set_signal(self.info, self.warn,self.error)
+
+    def run(self):
+        try:
+            s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((self.host, self.port))
+            self.info.emit('Receiving packets from {}:{}'.format(self.host, self.port))
+        except Exception as e:
+            self.error.emit(str(e))
+            return
+        try:
+            buf=b''
+            while True:
+                data = s.recv(4096)
+                if not data:
+                    break
+                buf+= data
+                if buf.endswith(b'<-->'):
+                    data2=buf.split()
+                    if buf[0:9]== 'TM_PACKET'.encode():
+                        data_hex=data2[-1][0:-4]
+                        data_binary = binascii.unhexlify(data_hex)
+                        packets=self.stix_tctm_parser.parse_binary(data_binary,0)
+                        if packets:
+                            packets[0]['header']['arrival']=str(datetime.now())
+                            self.packetArrival.emit(packets)
+                    buf=b''
+        except Exception as e:
+            self.error.emit(str(e))
+        finally:
+            s.close()
+
+
+
+
+        
+
+
+
+class StixFileReader(QThread):
     """
     thread
     """
@@ -39,12 +92,11 @@ class StixDataReader(QThread):
     warn= pyqtSignal(str)
 
     def __init__(self, filename):
-        super(StixDataReader, self).__init__()
+        super(StixFileReader, self).__init__()
         self.filename = filename
         self.data = []
         self.stix_tctm_parser = stix_parser.StixTCTMParser()
         stix_logger._stix_logger.set_signal(self.info, self.warn,self.error)
-
     def run(self):
         self.data = []
         filename = self.filename
@@ -174,6 +226,9 @@ class Ui(mainwindow.Ui_MainWindow):
         self.actionSave.setEnabled(False)
         self.action_Plot.setEnabled(False)
         self.actionCopy.triggered.connect(self.onCopyTriggered)
+
+        self.packetTreeWidget.currentItemChanged.connect(self.onPacketSelected)
+
         self.actionCopy.setEnabled(False)
         self.actionPaste.triggered.connect(self.onPasteTriggered)
         self.actionLog.triggered.connect(self.dockWidget.show)
@@ -182,6 +237,8 @@ class Ui(mainwindow.Ui_MainWindow):
         self.exportButton.clicked.connect(self.onExportButtonClicked)
         self.action_Plot.triggered.connect(self.onPlotActionClicked)
         self.actionLoad_mongodb.triggered.connect(self.onLoadMongoDBTriggered)
+        self.actionConnect_TSC.triggered.connect(self.onConnectTSCTriggered)
+
         self.mdb = None
 
         self.current_row = 0
@@ -190,6 +247,8 @@ class Ui(mainwindow.Ui_MainWindow):
         self.y = []
         self.xlabel = 'x'
         self.ylabel = 'y'
+
+        self.buttons_enabled=False
 
         self.chart = QChart()
         self.chart.layout().setContentsMargins(0, 0, 0, 0)
@@ -286,7 +345,7 @@ class Ui(mainwindow.Ui_MainWindow):
             data = [{'header': header, 'parameters': parameters}]
             self.showMessage(
                 ('%d bytes read from the clipboard' % num_bytes_read))
-            self.onDataLoaded(data)
+            self.onDataReady(data)
         except Exception as e:
             self.showMessageBox(str(e), data_hex)
 
@@ -394,9 +453,8 @@ class Ui(mainwindow.Ui_MainWindow):
     def openFile(self, filename):
         msg = 'Loading file %s ...' % filename
         self.showMessage(msg)
-
-        self.dataReader = StixDataReader(filename)
-        self.dataReader.dataLoaded.connect(self.onDataLoaded)
+        self.dataReader = StixFileReader(filename)
+        self.dataReader.dataLoaded.connect(self.onDataReady)
         self.dataReader.error.connect(self.onDataReaderError)
         self.dataReader.info.connect(self.onDataReaderInfo)
         self.dataReader.warn.connect(self.onDataReaderWarn)
@@ -410,46 +468,78 @@ class Ui(mainwindow.Ui_MainWindow):
     def onDataReaderError(self, msg):
         self.showMessage(msg,1)
 
-    def onDataLoaded(self, data, clear=True):
+    def onDataReady(self, data, clear=True, show_stat=True):
         if not clear:
-            self.data.append(data)
+            self.data.extend(data)
         else:
             self.data = data
-        self.displayPackets(clear)
+        if data:
+            self.addPacketsToView(data, clear=clear,show_stat=show_stat)
+            self.enableButtons()
 
-        if self.data:
+    def enableButtons(self):
+        if not self.buttons_enabled:
             self.actionPrevious.setEnabled(True)
             self.actionNext.setEnabled(True)
             self.actionSave.setEnabled(True)
             self.actionCopy.setEnabled(True)
             self.action_Plot.setEnabled(True)
+            self.buttons_enabled=True
 
-    def displayPackets(self, clear=True):
+    def addPacketsToView(self, data, clear=True, show_stat=True):
         if clear:
             self.packetTreeWidget.clear()
-        t0 = 0
-        for p in self.data:
+        #t0 = 0
+        for p in data:
             if type(p) is not dict:
                 continue
             header = p['header']
             root = QtWidgets.QTreeWidgetItem(self.packetTreeWidget)
-            if t0 == 0:
-                t0 = header['time']
+            #if t0 == 0:
+            #    t0 = header['time']
             timestamp_str=''
             try: 
                 timestamp_str=header['utc']
             except KeyError:
-                timestamp_str='{:.2f}'.format(header['time'] - t0)
+                timestamp_str='{:.2f}'.format(header['time'] )
+                #- t0)
 
             root.setText(0, timestamp_str)
             root.setText(1, ('{}({},{}) - {}').format(
                 header['TMTC'], header['service_type'],
                 header['service_subtype'], header['DESCR']))
-        self.total_packets = len(self.data)
-        self.showMessage((('%d packets loaded') % (self.total_packets)))
-        self.packetTreeWidget.currentItemChanged.connect(self.onPacketSelected)
-        self.showPacket(0)
-        self.current_row=0
+
+        if show_stat:
+            total_packets = len(self.data)
+            self.showMessage((('Total packet(s): %d') % (total_packets)))
+
+    def onConnectTSCTriggered(self):
+        diag = QtWidgets.QDialog()
+        diag_ui = tsc_connection.Ui_Dialog()
+        diag_ui.setupUi(diag)
+        self.tsc_host= self.settings.value('tsc_host', [], str)
+        self.tsc_port = self.settings.value('tsc_port', [], str)
+        if self.tsc_host:
+            diag_ui.serverLineEdit.setText(self.tsc_host)
+        if self.tsc_port:
+            diag_ui.portLineEdit.setText(self.tsc_port)
+        diag_ui.buttonBox.accepted.connect(
+            partial(self.connectToTSC, diag_ui))
+        diag.exec_()
+    def connectToTSC(self,dui):
+        host= dui.serverLineEdit.text()
+        port = dui.portLineEdit.text()
+        self.showMessage('Connecting to TSC...')
+
+        self.socketPacketReceiver= StixSocketPacketReceiver(host,int(port))
+        self.socketPacketReceiver.packetArrival.connect(self.onPacketArrival)
+        self.socketPacketReceiver.error.connect(self.onDataReaderError)
+        self.socketPacketReceiver.info.connect(self.onDataReaderInfo)
+        self.socketPacketReceiver.warn.connect(self.onDataReaderWarn)
+        self.socketPacketReceiver.start()
+    def onPacketArrival(self,packets):
+        if packets:
+            self.onDataReady(packets, clear=False, show_stat=True)
 
     def onLoadMongoDBTriggered(self):
         diag = QtWidgets.QDialog()
@@ -477,6 +567,8 @@ class Ui(mainwindow.Ui_MainWindow):
         diag_ui.buttonBox.accepted.connect(
             partial(self.loadDataFromMongoDB, diag_ui, diag))
         diag.exec_()
+
+
 
     def loadRunsFromMongoDB(self, dui):
         server = dui.serverLineEdit.text()
@@ -522,7 +614,7 @@ class Ui(mainwindow.Ui_MainWindow):
             self.showMessage('Loading data ...!')
             data = self.mdb.get_packets(selected_runs[0])
             if data:
-                self.onDataLoaded(data, clear=True)
+                self.onDataReady(data, clear=True)
             else:
                 self.showMessage('No packets found!')
         #close
@@ -537,7 +629,8 @@ class Ui(mainwindow.Ui_MainWindow):
         if not self.data:
             return
         header = self.data[row]['header']
-        self.showMessage((('Packet %d / %d  %s ') % (row, self.total_packets,
+        total_packets=len(self.data)
+        self.showMessage((('Packet %d / %d  %s ') % (row, total_packets,
                                                      header['DESCR'])))
         self.paramTreeWidget.clear()
         header_root = QtWidgets.QTreeWidgetItem(self.paramTreeWidget)

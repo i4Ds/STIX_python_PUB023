@@ -25,7 +25,7 @@ def main():
     file_type='binary'
     comment=''
     ap = argparse.ArgumentParser()
-    ap.add_argument("-i", "--in", required=True, help="input file")
+    ap.add_argument("-i", "--in",  required=True, help="input file")
     ap.add_argument("-o", "--out", required=False, help="output file")
     ap.add_argument("-m", "--comment", required=False, help="Comment")
     ap.add_argument("-t", "--ftype", required=False, help="Input file type: binary, ascii or xml ")

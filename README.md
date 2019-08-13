@@ -55,23 +55,21 @@ for packet in packets:
 ```
 
 
-
-
-
- 
-  
-
 3. Run graphical user interface 
 ````
 python3 UI/parser_gui.py
 ````
-The GUI supports the following data formats:
+
+The GUI could parse/display the following data formats:
 - STIX raw data
 - SOC XML format
 - MOC ascii format
-- data stored in  pkl, pklz, sqlite database, Nosql mongodb
+- data stored in  pkl, pklz and Nosql mongodb
 
 ### Screenshots
 
 ![GU data parser GUI](screenshots/stix_parser_1.jpg)
 ![GU data parser GUI](screenshots/stix_parser_2.jpg)
+
+
+

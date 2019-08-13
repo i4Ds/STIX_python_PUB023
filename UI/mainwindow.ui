@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1148</width>
+    <width>1152</width>
     <height>785</height>
    </rect>
   </property>
@@ -344,7 +344,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1148</width>
+     <width>1152</width>
      <height>22</height>
     </rect>
    </property>
@@ -374,6 +374,7 @@
     </property>
     <addaction name="action_Plot"/>
     <addaction name="actionLoad_mongodb"/>
+    <addaction name="actionConnect_TSC"/>
    </widget>
    <widget class="QMenu" name="menuAction">
     <property name="title">
@@ -419,6 +420,7 @@
    <addaction name="separator"/>
    <addaction name="action_Plot"/>
    <addaction name="actionLoad_mongodb"/>
+   <addaction name="actionConnect_TSC"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
    <property name="windowTitle">
@@ -515,6 +517,15 @@
    </property>
    <property name="text">
     <string>&amp;Copy</string>
+   </property>
+  </action>
+  <action name="actionConnect_TSC">
+   <property name="icon">
+    <iconset resource="resources/viewer.qrc">
+     <normaloff>:/Icons/images/link.svg</normaloff>:/Icons/images/link.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Connect to TSC</string>
    </property>
   </action>
  </widget>
