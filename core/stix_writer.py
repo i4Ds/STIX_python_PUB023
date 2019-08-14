@@ -42,8 +42,7 @@ class StixPickleWriter:
 
 
 class StixMongoWriter:
-    """store data in  MongoDB"""
-
+    """write data to   MongoDB"""
     def __init__(self, server='localhost', username='', password=''):
 
         self.packets = []

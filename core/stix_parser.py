@@ -100,6 +100,7 @@ class StixParameterParser:
             upstr = str(nbytes) + 's'
         results = ()
         raw = st.unpack(upstr, raw_bin)
+
         if upstr == 'BBB':  # 24-bit integer
             value = (raw[0] << 16) | (raw[1] << 8) | raw[2]
             if length < 16 and length % 8 != 0:
@@ -161,7 +162,6 @@ class StixParameterParser:
                 for coeff, xval in zip(pol_coeff, x_points):
                     sum_value += coeff * xval
                 return sum_value
-
             _stix_logger.warn('No calibration factors for {}'.format(ref))
             return ''
         return ''
@@ -336,7 +336,6 @@ class StixVariablePacketParser(StixParameterParser):
             self.current_offset += width / 8
             self.last_num_bits = 0
             self.last_data_width = width
-
         par['offset'] = self.last_offset
         par['offset_bits'] = self.current_offset_bit
         par['width'] = int(par['PCF_WIDTH'])
@@ -345,7 +344,6 @@ class StixVariablePacketParser(StixParameterParser):
         par['name'] = par['PCF_NAME']
         par['desc'] = par['PCF_DESCR']
         par['cal_ref'] = par['PCF_CURTX']
-
         calibration = False
         calibration = True
         return self.parse_parameters(
