@@ -116,12 +116,12 @@ class StixFileReader(QThread):
         elif filename.endswith('.xml'):
             self.parseESOCXmlFile(filename)
         elif filename.endswith('.ascii'):
-            self.parseMocAscii(filename)
+            self.parseMocAsciiFile(filename)
         else:
             self.error.emit('unknown file type: {}'.format(filename))
         self.dataLoaded.emit(self.data)
 
-    def parseMocAscii(self, filename):
+    def parseMocAsciiFile(self, filename):
         self.data = []
         with open(filename) as fd:
             self.info.emit('Reading packets from the file {}'.format(filename))
@@ -183,7 +183,6 @@ class StixFileReader(QThread):
             total_packets = 0
             self.data = []
             last_percent = 0
-
             self.data = self.stix_tctm_parser.parse_binary(buf, 0)
 
 
@@ -308,8 +307,8 @@ class Ui(mainwindow.Ui_MainWindow):
         else:
             msgBox = QtWidgets.QMessageBox()
             msgBox.setIcon(QtWidgets.QMessageBox.Information)
-            msgBox.setText('The canvas is empty!')
-            msgBox.setWindowTitle("STIX DATA VIEWER")
+            msgBox.setText('No figure to save')
+            msgBox.setWindowTitle("STIX raw data viewer")
             msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
             msgBox.exec_()
 
@@ -333,8 +332,6 @@ class Ui(mainwindow.Ui_MainWindow):
         data_hex = re.sub(r"\s+", "", raw_hex)
         try:
             data_binary = binascii.unhexlify(data_hex)
-            # status, header, parameters, param_type, param_desc, num_bytes_read = stix_tctm_parser.parse_one_packet(
-            #    in_file, self)
             packets = self.stix_tctm_parser.parse_binary(data_binary, 0)
             if not packets:
                 return
@@ -774,9 +771,6 @@ class Ui(mainwindow.Ui_MainWindow):
             if xaxis_type != 2:
                 series = QLineSeries()
                 series2 = None
-
-                # print(y)
-                # print(x)
                 for xx, yy in zip(self.x, self.y):
                     series.append(xx, yy)
                 if 'o' in style:
@@ -785,8 +779,6 @@ class Ui(mainwindow.Ui_MainWindow):
                         series2.append(xx, yy)
                     self.chart.addSeries(series2)
                 self.chart.addSeries(series)
-
-                # self.chart.createDefaultAxes()
                 axisX = QValueAxis()
                 axisX.setTitleText(xlabel)
                 axisY = QValueAxis()
@@ -796,8 +788,6 @@ class Ui(mainwindow.Ui_MainWindow):
                 self.chart.setAxisY(axisY)
                 series.attachAxis(axisX)
                 series.attachAxis(axisY)
-
-                # histogram
             else:
                 nbins = len(set(self.y))
                 ycounts, xedges = np.histogram(self.y, bins=nbins)
@@ -805,15 +795,10 @@ class Ui(mainwindow.Ui_MainWindow):
                 for i in range(0, nbins):
                     meanx = (xedges[i] + xedges[i + 1]) / 2.
                     series.append(meanx, ycounts[i])
-                # series.append(dataset)
                 self.chart.addSeries(series)
-                # self.chart.createDefaultAxes()
-
                 axisX = QValueAxis()
-
                 axisX.setTitleText(name)
                 axisY = QValueAxis()
-
                 axisY.setTitleText("Counts")
 
                 self.chart.setAxisY(axisY)
@@ -839,14 +824,11 @@ class Ui(mainwindow.Ui_MainWindow):
             self.paramNameEdit.setText(name)
         if desc:
             self.descLabel.setText(desc)
-
     def onPlotActionClicked(self):
         self.tabWidget.setCurrentIndex(1)
         self.plotParameter()
-
     def onTreeItemClicked(self, it, col):
         self.plotParameter(it.text(0), it.text(1))
-
 
 if __name__ == '__main__':
     filename = None
