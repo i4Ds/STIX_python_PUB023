@@ -8,6 +8,7 @@
 import sys
 import socket
 import binascii
+
 HOST = 'localhost'  # Standard loopback interface address (localhost)
 PORTS = [9000,9001] # Port to listen on (non-privileged ports are > 1023)
 SPEARATOR='<-->'
@@ -18,8 +19,7 @@ def connect_socket(host,port):
         return s
     except:
         return None
-
-def run(filename):
+def run(filename, msg=None):
     for port in PORTS:
         s = connect_socket(HOST, port)
         if s:
@@ -46,8 +46,13 @@ def run(filename):
                         data_binary = binascii.unhexlify(data_hex)
                         f.write(data_binary)
                         num += 1
-                        print('Received: TM ({}, {})(SPID {})  at {} '.format(data2[3].decode(), 
+                        info=('Received: TM ({}, {})(SPID {})  at {} '.format(data2[3].decode(), 
                             data2[4].decode(), data2[1].decode(),data2[2].decode()))
+                        if not msg:
+                            print(info)
+                        else:
+                            msg=info
+
                     buf=b''
         except KeyboardInterrupt:
             f.close()
@@ -57,8 +62,16 @@ def run(filename):
             s.close()
 
 
+from tkinter import filedialog
+from tkinter import *
 if __name__=='__main__':
+    filename=''
     if len(sys.argv) < 2:
-        print('dump_socket_packets  <filename>')
+        root = Tk()
+        root.filename = filedialog.asksaveasfilename(initialdir = ".",
+                title = "Set output filename",filetypes = (("raw data files","*.dat"),("all files","*.*")))
+        filename=root.filename
+        root.withdraw()
     else:
-        run(sys.argv[1])
+        filename=sys.argv[1]
+    run(filename)
