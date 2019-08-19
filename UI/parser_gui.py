@@ -30,7 +30,7 @@ from functools import partial
 from core import mongo_db as mgdb
 from core import stix_logger
 
-SELECTED_SERVICES=[1,3,6, 17,21,22,236,237,238,239]
+SELECTED_SERVICES=[1,3,5,6, 17,21,22,236,237,238,239]
 
 class StixSocketPacketReceiver(QThread):
     """
@@ -245,8 +245,6 @@ class Ui(mainwindow.Ui_MainWindow):
 
         self.current_row = 0
         self.data = []
-        self.data2 = []
-        self.
         self.x = []
         self.y = []
         self.xlabel = 'x'
@@ -517,8 +515,7 @@ class Ui(mainwindow.Ui_MainWindow):
             if type(p) is not dict:
                 continue
             header = p['header']
-            if header['service_type'] not in SELECTED_SERVICES:
-                continue
+
 
             root = QtWidgets.QTreeWidgetItem(self.packetTreeWidget)
             # if t0 == 0:
@@ -534,6 +531,9 @@ class Ui(mainwindow.Ui_MainWindow):
             root.setText(1, ('{}({},{}) - {}').format(
                 header['TMTC'], header['service_type'],
                 header['service_subtype'], header['DESCR']))
+
+            if header['service_type'] not in SELECTED_SERVICES:
+                root.setHidden(True)
 
         if show_stat:
             total_packets = len(self.data)
