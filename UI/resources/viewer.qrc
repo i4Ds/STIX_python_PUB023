@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="/Icons">
+    <file>images/filter.svg</file>
     <file>images/paste.svg</file>
     <file>images/fileopen.png</file>
     <file>images/graph.svg</file>

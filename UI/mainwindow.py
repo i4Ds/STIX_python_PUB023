@@ -208,6 +208,11 @@ class Ui_MainWindow(object):
         icon5.addPixmap(QtGui.QPixmap(":/Icons/images/link.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionConnect_TSC.setIcon(icon5)
         self.actionConnect_TSC.setObjectName("actionConnect_TSC")
+        self.actionPacketFilter = QtWidgets.QAction(MainWindow)
+        icon6 = QtGui.QIcon()
+        icon6.addPixmap(QtGui.QPixmap(":/Icons/images/filter.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.actionPacketFilter.setIcon(icon6)
+        self.actionPacketFilter.setObjectName("actionPacketFilter")
         self.menu_File.addAction(self.action_Open)
         self.menu_File.addAction(self.actionSave)
         self.menu_File.addAction(self.actionExit)
@@ -216,6 +221,7 @@ class Ui_MainWindow(object):
         self.menu_Tools.addAction(self.action_Plot)
         self.menu_Tools.addAction(self.actionLoad_mongodb)
         self.menu_Tools.addAction(self.actionConnect_TSC)
+        self.menu_Tools.addAction(self.actionPacketFilter)
         self.menuAction.addAction(self.actionPrevious)
         self.menuAction.addAction(self.actionNext)
         self.menuAction.addAction(self.actionLog)
@@ -235,8 +241,10 @@ class Ui_MainWindow(object):
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.actionPaste)
         self.toolBar.addAction(self.actionCopy)
+        self.toolBar.addAction(self.actionPacketFilter)
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.action_Plot)
+        self.toolBar.addSeparator()
         self.toolBar.addAction(self.actionLoad_mongodb)
         self.toolBar.addAction(self.actionConnect_TSC)
 
@@ -292,6 +300,7 @@ class Ui_MainWindow(object):
         self.actionLoad_mongodb.setText(_translate("MainWindow", "Connect MonogoDB"))
         self.actionCopy.setText(_translate("MainWindow", "&Copy"))
         self.actionConnect_TSC.setText(_translate("MainWindow", "Connect to TSC"))
+        self.actionPacketFilter.setText(_translate("MainWindow", "Packet Filter"))
 
 
 import mainwindow_rc5

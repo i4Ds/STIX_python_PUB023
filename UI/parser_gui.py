@@ -25,10 +25,12 @@ from UI import mainwindow_rc5
 from UI import mainwindow
 from UI import mongo_dialog
 from UI import tsc_connection
+from UI import service_filter
 from functools import partial
 from core import mongo_db as mgdb
 from core import stix_logger
 
+SELECTED_SERVICES=[1,3,6, 17,21,22,236,237,238,239]
 
 class StixSocketPacketReceiver(QThread):
     """
@@ -95,7 +97,6 @@ class StixFileReader(QThread):
         self.data = []
         self.stix_tctm_parser = stix_parser.StixTCTMParser()
         stix_logger._stix_logger.set_signal(self.info, self.warn, self.error)
-
     def run(self):
         self.data = []
         filename = self.filename
@@ -109,7 +110,7 @@ class StixFileReader(QThread):
             self.info.emit('Loading ...')
             self.data = pickle.load(f)['packet']
             f.close()
-        elif filename.endswith(('.dat', '.binary')) or filename.endswith('.BDF'):
+        elif filename.endswith(('.dat', '.binary','.BDF')):
             self.parseRawFile(filename)
         # elif filename.endswith(('.db', '.sqlite')):
         #    self.readSqliteDB(filename)
@@ -238,11 +239,14 @@ class Ui(mainwindow.Ui_MainWindow):
         self.action_Plot.triggered.connect(self.onPlotActionClicked)
         self.actionLoad_mongodb.triggered.connect(self.onLoadMongoDBTriggered)
         self.actionConnect_TSC.triggered.connect(self.onConnectTSCTriggered)
-
+        self.actionPacketFilter.triggered.connect(self.onPacketFilterTriggered)
         self.mdb = None
+
 
         self.current_row = 0
         self.data = []
+        self.data2 = []
+        self.
         self.x = []
         self.y = []
         self.xlabel = 'x'
@@ -269,6 +273,26 @@ class Ui(mainwindow.Ui_MainWindow):
         else:
             self.showMessage('IDB found: {} '.format(
                 idb._stix_idb.get_idb_filename()), 1)
+
+    def onPacketFilterTriggered(self):
+        diag = QtWidgets.QDialog()
+        diag_ui = service_filter.Ui_Dialog()
+        diag_ui.setupUi(diag)
+        diag_ui.setSelectedServices(SELECTED_SERVICES)
+        diag_ui.buttonBox.accepted.connect(
+            partial(self.applyServiceFilter, diag_ui))
+        diag.exec_()
+    def applyServiceFilter(self,diag_ui):
+        selected_services=diag_ui.getSelectedServices()
+        global SELECTED_SERVICES
+        if SELECTED_SERVICES != selected_services:
+            SELECTED_SERVICES = diag_ui.getSelectedServices()
+            self.showMessage('Applying filter...')
+            self.addPacketsToView(self.data, True, show_stat=False)
+
+
+
+
 
     def onExportButtonClicked(self):
         if self.y:
@@ -378,6 +402,7 @@ class Ui(mainwindow.Ui_MainWindow):
             self.settings.setValue('idb_filename', self.idb_filename)
         self.showMessage('current IDB: {} '.format(
             idb._stix_idb.get_idb_filename()), 1)
+
 
     def save(self):
         self.output_filename = str(
@@ -492,6 +517,9 @@ class Ui(mainwindow.Ui_MainWindow):
             if type(p) is not dict:
                 continue
             header = p['header']
+            if header['service_type'] not in SELECTED_SERVICES:
+                continue
+
             root = QtWidgets.QTreeWidgetItem(self.packetTreeWidget)
             # if t0 == 0:
             #    t0 = header['time']

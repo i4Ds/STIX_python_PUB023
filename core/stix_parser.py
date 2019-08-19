@@ -623,7 +623,7 @@ class StixTCTMParser(StixParameterParser):
                         i, i - old_i))
             current = int(100. * i / length)
             if current > last:
-                _stix_logger.info('{}% loaded!'.format(current))
+                _stix_logger.info('{}% read!'.format(current))
             last = current
 
         if summary is not None:

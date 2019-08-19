@@ -13,7 +13,7 @@ from core import idb
 from core import stix_global
 from core import stix_parser
 
-_stix_telmetry_parser = stix_parser.StixTelemetryParser()
+_stix_telmetry_parser = stix_parser.StixTCTMParser()
 
 
 def packet_filter(in_filename, out_filename, selected_spid):
@@ -36,7 +36,6 @@ def packet_filter(in_filename, out_filename, selected_spid):
             header_raw = result['header_raw']
             app_raw = result['app_raw']
             num_bytes_read = result['num_read']
-
             if status == stix_global._next_packet:
                 continue
             if status == stix_global._eof:
