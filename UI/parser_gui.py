@@ -342,7 +342,13 @@ class Ui(mainwindow.Ui_MainWindow):
             cb = QtWidgets.QApplication.clipboard()
             cb.clear(mode=cb.Clipboard)
             cb.setText(ss, mode=cb.Clipboard)
-            self.showMessage('The packet has been copied to clipboard!', 0)
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Information)
+            msg.setText("The data of the selected packet has been copied to the clipboard.")
+            msg.setWindowTitle("Information")
+            msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            retval = msg.exec_()
+
         except Exception as e:
             self.showMessage(str(e), 0)
 
