@@ -26,6 +26,7 @@ from UI import mainwindow
 from UI import mongo_dialog
 from UI import tsc_connection
 from UI import service_filter
+from UI import plugin
 from functools import partial
 from core import mongo_db as mgdb
 from core import stix_logger
@@ -240,6 +241,7 @@ class Ui(mainwindow.Ui_MainWindow):
         self.actionLoad_mongodb.triggered.connect(self.onLoadMongoDBTriggered)
         self.actionConnect_TSC.triggered.connect(self.onConnectTSCTriggered)
         self.actionPacketFilter.triggered.connect(self.onPacketFilterTriggered)
+        self.actionPlugins.triggered.connect(self.onPluginTriggered)
         self.mdb = None
 
 
@@ -271,6 +273,21 @@ class Ui(mainwindow.Ui_MainWindow):
         else:
             self.showMessage('IDB found: {} '.format(
                 idb._stix_idb.get_idb_filename()), 1)
+    def onPluginTriggered(self):
+        self.plugin_location= self.settings.value('plugin_location', [], str)
+        diag = QtWidgets.QDialog()
+        diag_ui = plugin.Ui_Dialog()
+        diag_ui.setupUi(diag)
+        if self.plugin_location:
+            diag_ui.setPluginLocation(self.plugin_location)
+
+        diag_ui.setData(self.data,self.current_row)
+        diag.exec_()
+        location=diag_ui.getPluginLocation()
+        if location!=self.plugin_location:
+            self.settings.setValue('plugin_location',location)
+
+
 
     def onPacketFilterTriggered(self):
         diag = QtWidgets.QDialog()
