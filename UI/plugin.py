@@ -8,6 +8,7 @@
 
 import os
 import sys
+import importlib
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
@@ -62,10 +63,10 @@ class Ui_Dialog(object):
         self.editPushButton.clicked.connect(self.edit)
         self.newPushButton.clicked.connect(self.createNew)
 
-        self.data=None
+        self.packets=None
         self.current_row=0
-    def setData(self, data,row):
-        self.data=data
+    def setData(self, packets,row):
+        self.packets=packets
         self.current_row=row
 
     def apply(self):
@@ -75,17 +76,15 @@ class Ui_Dialog(object):
         path=self.getPluginLocation()
         abs_fname=os.path.join(path,fname)
         try:
-            from importlib import import_module
             name, ext = os.path.splitext(fname)
             sys.path.insert(0, path)
-            mod = __import__(name)
-            plugin = mod.Plugin(self.data, self.current_row)
-            plugin.run()
+            mod = importlib.import_module(name)
+            importlib.reload(mod)
             sys.path.pop(0)
+            plugin = mod.Plugin(self.packets, self.current_row)
+            plugin.run()
         except Exception as e:
             print(e)
-        
-
     def edit(self):
         path=self.getPluginLocation()
         fname=self.pluginListWidget.currentItem().text()
