@@ -309,7 +309,7 @@ class Ui_MainWindow(object):
         self.actionCopy.setText(_translate("MainWindow", "&Copy"))
         self.actionConnect_TSC.setText(_translate("MainWindow", "Connect to TSC"))
         self.actionPacketFilter.setText(_translate("MainWindow", "Packet Filter"))
-        self.actionPlugins.setText(_translate("MainWindow", "Plugins"))
+        self.actionPlugins.setText(_translate("MainWindow", "Plugin manager"))
 
 
 import mainwindow_rc5

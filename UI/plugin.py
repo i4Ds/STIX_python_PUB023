@@ -9,7 +9,50 @@
 import os
 import sys
 import importlib
+import tempfile
+import webbrowser
 from PyQt5 import QtCore, QtGui, QtWidgets
+
+PLUGIN_TEMPLATE="""
+#!/usr/bin/python3
+#plugin template
+class Plugin:
+    def __init__(self,  packets=[], current_row=0):
+        self.packets=packets
+        self.current_row=current_row
+    def run(self):
+        # your code goes here
+        print('current row: {}'.format(self.current_row))
+        print('Number of packets {}:'.format(len(self.data)))
+        print(len(self.data))
+        for packet in self.packets:
+            print(str(packet))
+
+"""
+def createTemplate(path):
+    filename='Unititled_{}.py'
+    if path:
+        filename=os.path.join(path,'Untitled_{}.py')
+    counter=0
+    while os.path.isfile(filename.format(counter)):
+        counter += 1
+    fname=filename.format(counter)
+    try:
+        f=open(fname,'w')
+        f.write(PLUGIN_TEMPLATE)
+        f.close()
+    except IOError:
+        f=tempfile.NamedTemporaryFile(mode='w', suffix='.py',delete=False) 
+        f.write(PLUGIN_TEMPLATE)
+        fname=f.name
+        f.close()
+    return fname
+    
+
+
+
+
+
 
 
 class Ui_Dialog(object):
@@ -27,6 +70,7 @@ class Ui_Dialog(object):
         self.gridLayout.addWidget(self.label_2, 0, 0, 1, 1)
         self.folderLineEdit = QtWidgets.QLineEdit(Dialog)
         self.folderLineEdit.setObjectName("folderLineEdit")
+        
         self.gridLayout.addWidget(self.folderLineEdit, 0, 1, 1, 4)
         self.folderToolButton = QtWidgets.QToolButton(Dialog)
         self.folderToolButton.setMaximumSize(QtCore.QSize(50, 16777215))
@@ -87,20 +131,36 @@ class Ui_Dialog(object):
             print(e)
     def edit(self):
         path=self.getPluginLocation()
-        fname=self.pluginListWidget.currentItem().text()
-        if fname:
+        try:
+            fname=self.pluginListWidget.currentItem().text()
+        except AttributeError:
+            msg = QtWidgets.QMessageBox()
+            msg.setIcon(QtWidgets.QMessageBox.Critical)
+            msg.setText("Error")
+            msg.setText("No plugin selected!")
+            msg.setWindowTitle("Error")
+            msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            retval = msg.exec_()
             return
+
         abs_fname=os.path.join(path,fname)
-        editor="gedit "
-        ret_val = os.system("{} {}".format(editor,abs_fname))
+        webbrowser.open(abs_fname)
+
     def createNew(self):
-        editor="gedit "
-        ret_val = os.system("{} ".format(editor))
+        try:
+            folder=self.getPluginLocation()
+            new_filename=createTemplate(folder)
+            webbrowser.open(new_filename)
+        except Exception as e:
+            print(e)
+        self.updatePluginList()
 
     def changeFolder(self, default_folder=''):
         folder=default_folder
-        if not default_folder:
-            folder=os.path.expanduser('~')
+        if not folder:
+            folder=self.getPluginLocation()
+            if not folder:
+                folder=os.path.expanduser('~')
         loc= str(QtWidgets.QFileDialog.getExistingDirectory(
             self.Dialog,
             "Open plugin folder",
@@ -111,10 +171,10 @@ class Ui_Dialog(object):
 
     def setPluginLocation(self,loc):
         self.folderLineEdit.setText(loc)
-        self.openPluginFolder()
+        self.updatePluginList()
     def getPluginLocation(self):
         return self.folderLineEdit.text()
-    def openPluginFolder(self):
+    def updatePluginList(self):
         self.pluginListWidget.clear()
         path=self.folderLineEdit.text()
         try:
@@ -127,7 +187,7 @@ class Ui_Dialog(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Plugins"))
+        Dialog.setWindowTitle(_translate("Dialog", "Plugin manager"))
         self.label_2.setText(_translate("Dialog", "Location:"))
         self.folderLineEdit.setText(_translate("Dialog", "../plugins/"))
         self.folderToolButton.setText(_translate("Dialog", "..."))

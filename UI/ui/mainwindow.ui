@@ -549,7 +549,7 @@
      <normaloff>:/Icons/images/plugin.svg</normaloff>:/Icons/images/plugin.svg</iconset>
    </property>
    <property name="text">
-    <string>Plugins</string>
+    <string>Plugin manager</string>
    </property>
   </action>
  </widget>
