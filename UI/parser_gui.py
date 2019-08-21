@@ -650,9 +650,9 @@ class Ui(mainwindow.Ui_MainWindow):
             root.setText(2, run['date'])
             root.setText(3, str(run['start']))
             root.setText(4, str(run['end']))
-        self.showMessage('Data loaded!')
 
     def loadDataFromMongoDB(self, dui, diag):
+        self.showMessage('Loading packets ...')
         selected_runs = []
         for item in dui.treeWidget.selectedItems():
             selected_runs.append(item.text(0))
@@ -729,11 +729,9 @@ class Ui(mainwindow.Ui_MainWindow):
         if not params:
             return
         timestamp = header['time']
-        #parameters=[p for p in params if p['name'] == name]
         for p in params:
             if type(p) is not dict:
                 continue
-        # for p in parameters:
             if name == p['name']:
                 values = None
                 #print('data type:{}'.format(data_type))
@@ -785,7 +783,6 @@ class Ui(mainwindow.Ui_MainWindow):
                 header = packet['header']
                 if packet['header']['SPID'] != current_spid:
                     continue
-                # only look for parameters in the packets of the same type
                 params = packet['parameters']
                 self.walk(name, params, header, timestamp, self.y, xaxis_type,
                           data_type)
