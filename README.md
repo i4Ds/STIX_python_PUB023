@@ -1,11 +1,17 @@
 ## STIX raw data parser and data viewer
 
-A package to parser STIX ground unit raw data and to view the data. It also allows doing some simple analysis. 
-Parsing of raw data is based on IDB.  
+A python package to parser STIX raw packets.  
+Parsing of raw binary packets is based on IDB.  
+Releases: 
+https://github.com/i4Ds/STIX-dataviewer/releases
 
-### Environment Setup
 
+
+
+### 1. Environment Setup
+The packet was tested under linux. It should also work on Windows. 
 #### On Linux 
+
 1. Install python 3
   ```
     sudo  apt-get install python3
@@ -18,19 +24,21 @@ Parsing of raw data is based on IDB.
 ```
 pip3 install numpy xmltodict PyQt5 pyqtchart scipy pymongo
 ```
+### 2. On windows
+  A guide to install python3 and pip3 is available at https://vgkits.org/blog/pip3-windows-howto/
 
-
-### How to use 
-1. Command line parser
+### 3. How to use 
+#### 3.1 Running as a command line parser
 ```
 python3 applications/parser.py -i <RAW_DATA_FILENAME> -o <OUTPUT>  -v  <Verbose level>
 ```
 
-2. Using the parser in your own code.  Here are several examples
 
+### 3.2 Embeding the parser in your own code.  
+Here are several examples.
 Example 1
 
-Parsing a raw data file and writting packets to a python pickle file. 
+Parsing a raw data file and writting packets to a python pickle file
 
 ```
 #!/usr/bin/python3 
@@ -42,7 +50,7 @@ parser.parse_file('raw.binary', 'output.pkl')
 ```
 Example 2
 
-Parse a raw data file and print the packets. 
+Parsing a raw data file and print  the packets. 
 
 ```
 #!/usr/bin/python3 
@@ -71,7 +79,7 @@ packets=parser.parse_hex(hex)
 pprint.pprint(packets)
 
 ```
-Output
+Output 
 ```
 [{'header': {'APID': 1509,
             'APID_packet_category': 5,
@@ -143,7 +151,7 @@ Output
  
   
 
-3. using the graphical user interface 
+### 3.3 Using the GUI 
 ````
 chmod +x run_gui.sh
 ./run_gui.sh
@@ -152,13 +160,45 @@ or
 ````
 python3 UI/parser_gui.py
 ````
-The GUI supports the following data formats:
+#### 3.3.1 GUI basic functions
+The GUI allows parsing/loading and then displaying STIX packets in the following data formats/sources:
 - STIX raw data
 - SOC XML format
 - MOC ascii format
-- packets in  pkl, pklz,  Nosql database Mongodb
+- packets stored in  python pickle files (pkl and pklz)
+- packets stored in Nosql database Mongodb
+- packets received from TSC via socket
+- STIX TM binary hex string copied from clipboard
 
-### Screenshots
+The GUI also allows plotting parameters as a function of timestamp or packet number. 
+#### 3.3.2 GUI plugins
+Plugins are supported for more complex analysis. 
+The plugin manager can be loaded by clicking "Tool->Plugins" or the plugin icon in the toolbar. Here is a plugin example
+````
+#plugin example
+import pprint
+class Plugin:
+    """ don't modify here """
+    def __init__(self,  packets=[], current_row=0):
+        self.packets=packets
+        self.current_row=current_row
+        print("Plugin  loaded ...")
+        
+    def run(self):
+        # your code goes here
+        print('current row')
+        print(self.current_row)
+        if len(self.packets)>1:
+            pprint.pprint(self.packets[self.current_row])
+            
+````
+More plugin examples are available in  plugins/
+
+
+
+### 3.3.3 GUI screenshots
 
 ![GU data parser GUI](screenshots/stix_parser_1.jpg)
 ![GU data parser GUI](screenshots/stix_parser_2.jpg)
+
+
