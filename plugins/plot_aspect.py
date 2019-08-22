@@ -10,6 +10,7 @@ class Plugin:
         self.current_row=current_row
     def run(self):
         # your code goes here
+        plt.ion()
         timestamp=[]
         A0_V=[]
         A1_V=[]

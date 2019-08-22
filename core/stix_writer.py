@@ -43,7 +43,7 @@ class StixPickleWriter:
 
 class StixMongoWriter:
     """write data to   MongoDB"""
-    def __init__(self, server='localhost', username='', password=''):
+    def __init__(self, server='localhost', port=27017, username='', password=''):
 
         self.packets = []
         self.db = None
@@ -55,7 +55,7 @@ class StixMongoWriter:
         self.end = -1
         try:
             self.connect = pymongo.MongoClient(
-                server, username=username, password=password)
+                server, port, username=username, password=password)
             self.db = self.connect["stix"]
 
             self.collection_packets = self.db['packets']
