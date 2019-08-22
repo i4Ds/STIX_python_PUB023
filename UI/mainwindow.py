@@ -218,9 +218,12 @@ class Ui_MainWindow(object):
         icon7.addPixmap(QtGui.QPixmap(":/Icons/images/plugin.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionPlugins.setIcon(icon7)
         self.actionPlugins.setObjectName("actionPlugins")
+        self.actionOnlineHelp = QtWidgets.QAction(MainWindow)
+        self.actionOnlineHelp.setObjectName("actionOnlineHelp")
         self.menu_File.addAction(self.action_Open)
         self.menu_File.addAction(self.actionSave)
         self.menu_File.addAction(self.actionExit)
+        self.menu_Help.addAction(self.actionOnlineHelp)
         self.menu_Help.addAction(self.actionAbout)
         self.menuSetting.addAction(self.actionSet_IDB)
         self.menu_Tools.addAction(self.action_Plot)
@@ -310,6 +313,7 @@ class Ui_MainWindow(object):
         self.actionConnect_TSC.setText(_translate("MainWindow", "Connect to TSC"))
         self.actionPacketFilter.setText(_translate("MainWindow", "Packet Filter"))
         self.actionPlugins.setText(_translate("MainWindow", "Plugin manager"))
+        self.actionOnlineHelp.setText(_translate("MainWindow", "Online help"))
 
 
 import mainwindow_rc5

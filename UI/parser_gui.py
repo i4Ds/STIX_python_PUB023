@@ -11,6 +11,7 @@ import binascii
 import xmltodict
 import pprint
 import socket
+import webbrowser
 
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QThread, pyqtSignal
@@ -242,6 +243,7 @@ class Ui(mainwindow.Ui_MainWindow):
         self.actionConnect_TSC.triggered.connect(self.onConnectTSCTriggered)
         self.actionPacketFilter.triggered.connect(self.onPacketFilterTriggered)
         self.actionPlugins.triggered.connect(self.onPluginTriggered)
+        self.actionOnlineHelp.triggered.connect(self.onOnlineHelpTriggered)
         self.mdb = None
 
 
@@ -273,6 +275,9 @@ class Ui(mainwindow.Ui_MainWindow):
         else:
             self.showMessage('IDB found: {} '.format(
                 idb._stix_idb.get_idb_filename()), 1)
+    def onOnlineHelpTriggered(self):
+        webbrowser.open('https://github.com/i4Ds/STIX-dataviewer', new=2)
+
     def onPluginTriggered(self):
         self.plugin_location= self.settings.value('plugin_location', [], str)
         diag = QtWidgets.QDialog()
@@ -462,6 +467,7 @@ class Ui(mainwindow.Ui_MainWindow):
         msgBox.setIcon(QtWidgets.QMessageBox.Information)
         msgBox.setText("STIX raw data parser and viewer, hualin.xiao@fhnw.ch")
         msgBox.setWindowTitle("Stix data viewer")
+
         msgBox.setStandardButtons(QtWidgets.QMessageBox.Ok)
         msgBox.exec_()
 
