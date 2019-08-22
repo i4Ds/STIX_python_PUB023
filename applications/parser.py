@@ -25,10 +25,11 @@ def main():
     file_type='binary'
     comment=''
     ap = argparse.ArgumentParser()
-    ap.add_argument("-i", "--in",  required=True, help="input file")
-    ap.add_argument("-o", "--out", required=False, help="output file")
-    ap.add_argument("-m", "--comment", required=False, help="Comment")
-    ap.add_argument("-t", "--ftype", required=False, help="Input file type: binary, ascii or xml ")
+    ap.add_argument("-i", "--in",  required=True, nargs='?', help="input filename")
+    ap.add_argument("-o", "--out", required=False, nargs='?',help="output filename")
+    ap.add_argument("-m", "--comment", required=False, help="comment")
+    ap.add_argument("-t", "--ftype", required=False, choices=('binary', 'ascii', 'xml'),
+            help="Input file type: binary, ascii or xml ")
     """
     ascii file structure:
     UTC HEX
@@ -42,6 +43,7 @@ def main():
         "-p",
         "--ptype",
         required=False,
+        choices=('tree','array'),
         help="Parameter structure. Can be tree or array")
 
     ap.add_argument(

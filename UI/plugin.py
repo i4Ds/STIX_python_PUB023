@@ -114,7 +114,11 @@ class Ui_Dialog(object):
         self.current_row=row
 
     def apply(self):
-        fname=self.pluginListWidget.currentItem().text()
+        try:
+            fname=self.pluginListWidget.currentItem().text()
+        except AttributeError:
+            return
+
         if not fname:
             return 
         path=self.getPluginLocation()
