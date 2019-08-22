@@ -28,6 +28,7 @@ from UI import mongo_dialog
 from UI import tsc_connection
 from UI import service_filter
 from UI import plugin
+from UI import raw_viewer
 from functools import partial
 from core import mongo_db as mgdb
 from core import stix_logger
@@ -205,20 +206,20 @@ class Ui(mainwindow.Ui_MainWindow):
     def initialize(self):
         self.tabWidget.setCurrentIndex(0)
         self.actionExit.triggered.connect(self.close)
-        self.action_Plot.setEnabled(False)
+        self.actionPlot.setEnabled(False)
 
         self.actionNext.setIcon(self.style().standardIcon(
             QtWidgets.QStyle.SP_ArrowForward))
         self.actionPrevious.setIcon(self.style().standardIcon(
             QtWidgets.QStyle.SP_ArrowBack))
-        self.action_Open.setIcon(self.style().standardIcon(
+        self.actionOpen.setIcon(self.style().standardIcon(
             QtWidgets.QStyle.SP_DialogOpenButton))
         self.actionSave.setIcon(self.style().standardIcon(
             QtWidgets.QStyle.SP_DriveFDIcon))
 
         self.actionSave.triggered.connect(self.save)
 
-        self.action_Open.triggered.connect(self.getOpenFilename)
+        self.actionOpen.triggered.connect(self.getOpenFilename)
 
         self.actionNext.triggered.connect(self.nextPacket)
         self.actionPrevious.triggered.connect(self.previousPacket)
@@ -227,7 +228,7 @@ class Ui(mainwindow.Ui_MainWindow):
         self.actionPrevious.setEnabled(False)
         self.actionNext.setEnabled(False)
         self.actionSave.setEnabled(False)
-        self.action_Plot.setEnabled(False)
+        self.actionPlot.setEnabled(False)
         self.actionCopy.triggered.connect(self.onCopyTriggered)
 
         self.packetTreeWidget.currentItemChanged.connect(self.onPacketSelected)
@@ -235,15 +236,17 @@ class Ui(mainwindow.Ui_MainWindow):
         self.actionCopy.setEnabled(False)
         self.actionPaste.triggered.connect(self.onPasteTriggered)
         self.actionLog.triggered.connect(self.dockWidget.show)
-        self.actionSet_IDB.triggered.connect(self.onSetIDBClicked)
+        self.actionSetIDB.triggered.connect(self.onSetIDBClicked)
         self.plotButton.clicked.connect(self.onPlotButtonClicked)
         self.exportButton.clicked.connect(self.onExportButtonClicked)
-        self.action_Plot.triggered.connect(self.onPlotActionClicked)
-        self.actionLoad_mongodb.triggered.connect(self.onLoadMongoDBTriggered)
-        self.actionConnect_TSC.triggered.connect(self.onConnectTSCTriggered)
+        self.actionPlot.triggered.connect(self.onPlotActionClicked)
+        self.actionLoadMongodb.triggered.connect(self.onLoadMongoDBTriggered)
+        self.actionConnectTSC.triggered.connect(self.onConnectTSCTriggered)
         self.actionPacketFilter.triggered.connect(self.onPacketFilterTriggered)
         self.actionPlugins.triggered.connect(self.onPluginTriggered)
         self.actionOnlineHelp.triggered.connect(self.onOnlineHelpTriggered)
+        self.actionViewBinary.triggered.connect(self.onViewBinaryTriggered)
+
         self.mdb = None
 
 
@@ -275,6 +278,22 @@ class Ui(mainwindow.Ui_MainWindow):
         else:
             self.showMessage('IDB found: {} '.format(
                 idb._stix_idb.get_idb_filename()), 1)
+
+    def onViewBinaryTriggered(self):
+        diag = QtWidgets.QDialog()
+        diag_ui = raw_viewer.Ui_Dialog()
+        diag_ui.setupUi(diag)
+        if self.data:
+            try:
+                raw=self.data[self.current_row]['bin']
+                header=self.data[self.current_row]['header']
+                diag_ui.setPacketInfo('{}({},{})  {}'.format(header['TMTC'],
+                    header['service_type'],header['service_subtype'],header['DESCR']))
+                diag_ui.displayRaw(raw)
+            except (IndexError, KeyError):
+                diag_ui.setText('Raw data not available.')
+        diag.exec_()
+
     def onOnlineHelpTriggered(self):
         webbrowser.open('https://github.com/i4Ds/STIX-dataviewer', new=2)
 
@@ -385,14 +404,8 @@ class Ui(mainwindow.Ui_MainWindow):
             packets = self.stix_tctm_parser.parse_binary(data_binary, 0,store_binary=True)
             if not packets:
                 return
-            result = packets[0]
-            header = result['header']
-            parameters = result['parameters']
-            num_bytes_read = len(raw_hex)
-            data = [{'header': header, 'parameters': parameters}]
-            self.showMessage(
-                ('%d bytes read from the clipboard' % num_bytes_read))
-            self.onDataReady(data)
+            self.showMessage('%d packets read from the clipboard' % len(packets))
+            self.onDataReady(packets)
         except Exception as e:
             self.showMessageBox(str(e), data_hex)
 
@@ -533,7 +546,8 @@ class Ui(mainwindow.Ui_MainWindow):
             self.actionNext.setEnabled(True)
             self.actionSave.setEnabled(True)
             self.actionCopy.setEnabled(True)
-            self.action_Plot.setEnabled(True)
+            self.actionPlot.setEnabled(True)
+            self.actionViewBinary.setEnabled(True)
             self.buttons_enabled = True
 
     def addPacketsToView(self, data, clear=True, show_stat=True):

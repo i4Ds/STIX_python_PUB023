@@ -9,7 +9,14 @@ class Plugin:
         print('current row: {}'.format(self.current_row))
         print('Number of packets {}:'.format(len(self.packets)))
         print('hex:')
-        binary=self.packets[self.current_row]['bin']
-        bin_str=" ".join(['%02x' %b for b in binary])
-        print(bin_str)
+        raw=self.packets[self.current_row]['bin']
+        text=''
+        for i,h in enumerate(raw):
+            text += '{:02X}  '.format(h)
+            if i > 0 and (i+1)%16 ==0:
+                text += '\n'
+        print(text)
+
+
+
 

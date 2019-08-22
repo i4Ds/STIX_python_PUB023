@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1190</width>
-    <height>827</height>
+    <width>1376</width>
+    <height>1044</height>
    </rect>
   </property>
   <property name="maximumSize">
@@ -39,7 +39,7 @@
       <property name="currentIndex">
        <number>0</number>
       </property>
-      <widget class="QWidget" name="tab">
+      <widget class="QWidget" name="packetTab">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>0</horstretch>
@@ -136,7 +136,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_2">
+      <widget class="QWidget" name="plotTab">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>0</horstretch>
@@ -344,7 +344,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1190</width>
+     <width>1376</width>
      <height>22</height>
     </rect>
    </property>
@@ -352,7 +352,7 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <addaction name="action_Open"/>
+    <addaction name="actionOpen"/>
     <addaction name="actionSave"/>
     <addaction name="actionExit"/>
    </widget>
@@ -367,17 +367,18 @@
     <property name="title">
      <string>&amp;Settings</string>
     </property>
-    <addaction name="actionSet_IDB"/>
+    <addaction name="actionSetIDB"/>
    </widget>
    <widget class="QMenu" name="menu_Tools">
     <property name="title">
      <string>&amp;Tools</string>
     </property>
-    <addaction name="action_Plot"/>
-    <addaction name="actionLoad_mongodb"/>
-    <addaction name="actionConnect_TSC"/>
+    <addaction name="actionPlot"/>
+    <addaction name="actionLoadMongodb"/>
+    <addaction name="actionConnectTSC"/>
     <addaction name="actionPacketFilter"/>
     <addaction name="actionPlugins"/>
+    <addaction name="actionViewBinary"/>
    </widget>
    <widget class="QMenu" name="menuAction">
     <property name="title">
@@ -412,7 +413,7 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="action_Open"/>
+   <addaction name="actionOpen"/>
    <addaction name="actionSave"/>
    <addaction name="separator"/>
    <addaction name="actionPrevious"/>
@@ -424,10 +425,11 @@
    <addaction name="actionPlugins"/>
    <addaction name="actionPacketFilter"/>
    <addaction name="separator"/>
-   <addaction name="action_Plot"/>
+   <addaction name="actionPlot"/>
    <addaction name="separator"/>
-   <addaction name="actionLoad_mongodb"/>
-   <addaction name="actionConnect_TSC"/>
+   <addaction name="actionLoadMongodb"/>
+   <addaction name="actionConnectTSC"/>
+   <addaction name="actionViewBinary"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
    <property name="windowTitle">
@@ -444,7 +446,7 @@
     </layout>
    </widget>
   </widget>
-  <action name="action_Open">
+  <action name="actionOpen">
    <property name="text">
     <string>&amp;Open</string>
    </property>
@@ -472,7 +474,7 @@
     <string>Next</string>
    </property>
   </action>
-  <action name="actionSet_IDB">
+  <action name="actionSetIDB">
    <property name="text">
     <string>Set &amp;IDB</string>
    </property>
@@ -487,7 +489,7 @@
     <string>Show Log</string>
    </property>
   </action>
-  <action name="action_Plot">
+  <action name="actionPlot">
    <property name="icon">
     <iconset resource="../resources/mainwindow_rc5.qrc">
      <normaloff>:/Icons/images/graph.svg</normaloff>:/Icons/images/graph.svg</iconset>
@@ -508,7 +510,7 @@
     <string>Read raw data from the clipboard</string>
    </property>
   </action>
-  <action name="actionLoad_mongodb">
+  <action name="actionLoadMongodb">
    <property name="icon">
     <iconset resource="../resources/mainwindow_rc5.qrc">
      <normaloff>:/Icons/images/mongodb.svg</normaloff>:/Icons/images/mongodb.svg</iconset>
@@ -526,7 +528,7 @@
     <string>&amp;Copy</string>
    </property>
   </action>
-  <action name="actionConnect_TSC">
+  <action name="actionConnectTSC">
    <property name="icon">
     <iconset resource="../resources/mainwindow_rc5.qrc">
      <normaloff>:/Icons/images/link.svg</normaloff>:/Icons/images/link.svg</iconset>
@@ -556,6 +558,21 @@
   <action name="actionOnlineHelp">
    <property name="text">
     <string>Online help</string>
+   </property>
+  </action>
+  <action name="actionViewBinary">
+   <property name="icon">
+    <iconset resource="../resources/mainwindow_rc5.qrc">
+     <normaloff>:/Icons/images/binary.svg</normaloff>:/Icons/images/binary.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Packet binary data</string>
+   </property>
+   <property name="iconText">
+    <string>Binary data viewer</string>
+   </property>
+   <property name="toolTip">
+    <string>Binary data viewer</string>
    </property>
   </action>
  </widget>
