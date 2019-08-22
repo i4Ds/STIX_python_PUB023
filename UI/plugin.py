@@ -23,8 +23,8 @@ class Plugin:
     def run(self):
         # your code goes here
         print('current row: {}'.format(self.current_row))
-        print('Number of packets {}:'.format(len(self.data)))
-        print(len(self.data))
+        print('Number of packets {}:'.format(len(self.packets)))
+        print(len(self.packets))
         for packet in self.packets:
             print(str(packet))
 

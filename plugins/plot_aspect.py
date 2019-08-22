@@ -5,11 +5,9 @@ def get_raw(parameters, name):
     return [int(item['raw'][0]) for item in parameters if item['name']==name][0]
 
 class Plugin:
-    """ don't modify here """
     def __init__(self,  packets=[], current_row=0):
         self.packets=packets
         self.current_row=current_row
-        print("Plugin  loaded ...")
     def run(self):
         # your code goes here
         timestamp=[]

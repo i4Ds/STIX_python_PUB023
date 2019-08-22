@@ -71,7 +71,7 @@ class StixSocketPacketReceiver(QThread):
                         data_hex = data2[-1][0:-4]
                         data_binary = binascii.unhexlify(data_hex)
                         packets = self.stix_tctm_parser.parse_binary(
-                            data_binary, 0)
+                            data_binary, 0,store_binary=True)
                         if packets:
                             packets[0]['header']['arrival'] = str(
                                 datetime.now())
@@ -131,7 +131,7 @@ class StixFileReader(QThread):
             for line in fd:
                 [utc_timestamp, data_hex] = line.strip().split()
                 data_binary = binascii.unhexlify(data_hex)
-                packets = self.stix_tctm_parser.parse_binary(data_binary, 0)
+                packets = self.stix_tctm_parser.parse_binary(data_binary, 0,store_binary=True)
                 if packets:
                     packets[0]['header']['utc'] = utc_timestamp
                 self.data.extend(packets)
@@ -163,7 +163,7 @@ class StixFileReader(QThread):
             data_binary = binascii.unhexlify(data_hex)
             data = data_binary[76:]
 
-            packets = self.stix_tctm_parser.parse_binary(data, 0)
+            packets = self.stix_tctm_parser.parse_binary(data, 0,store_binary=True)
             if i % freq == 0:
                 self.info.emit("{:.0f}% loaded".format(100 * i / num))
 
@@ -185,7 +185,7 @@ class StixFileReader(QThread):
             total_packets = 0
             self.data = []
             last_percent = 0
-            self.data = self.stix_tctm_parser.parse_binary(buf, 0)
+            self.data = self.stix_tctm_parser.parse_binary(buf, 0,store_binary=True)
 
 
 class Ui(mainwindow.Ui_MainWindow):
@@ -377,7 +377,7 @@ class Ui(mainwindow.Ui_MainWindow):
         data_hex = re.sub(r"\s+", "", raw_hex)
         try:
             data_binary = binascii.unhexlify(data_hex)
-            packets = self.stix_tctm_parser.parse_binary(data_binary, 0)
+            packets = self.stix_tctm_parser.parse_binary(data_binary, 0,store_binary=True)
             if not packets:
                 return
             result = packets[0]

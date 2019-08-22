@@ -537,7 +537,8 @@ class StixTCTMParser(StixParameterParser):
             return packets
 
     def parse_binary(self, buf, i=0, selected_spid=0,
-                     summary=None):
+                     summary=None, store_binary=False):
+            
         length = len(buf)
         if i >= length:
             return None, None
@@ -587,7 +588,11 @@ class StixTCTMParser(StixParameterParser):
                             ' Packet length inconsistent! '
                             ' SPID: {}, Actual: {}, IDB: {} '
                             .format(spid, num_read, app_length))
-                packets.append({'header': header, 'parameters': parameters})
+                packet={'header': header, 'parameters': parameters}
+                if store_binary:
+                    packet['bin']=header_raw+app_raw
+                packets.append(packet)
+
 
             elif buf[i] == 0x1D:
                 # telecommand
@@ -610,7 +615,12 @@ class StixTCTMParser(StixParameterParser):
                 if status == stix_global._eof:
                     break
                 parameters = self.get_telecommand_parameters(header, app_raw)
-                packets.append({'header': header, 'parameters': parameters})
+                packet={'header': header, 'parameters': parameters}
+                if store_binary:
+                    packet['bin']=header_raw+app_raw
+                packets.append(packet)
+
+
             else:
                 old_i = i
                 _stix_logger.warn('Unknown packet {} at {}'.format(buf[i], i))
