@@ -1,6 +1,7 @@
-#plugin example
+#plot HV depolarization states
 import pprint
 from matplotlib import pyplot as plt
+
 def get_raw(parameters, name):
     return [int(item['raw'][0]) for item in parameters if item['name']==name][0]
 def get_eng_text(parameters, name):

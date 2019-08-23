@@ -175,7 +175,9 @@ def main():
             stix_logger._stix_logger.set_logger('log/process.log', 2)
 
             parser = stix_parser.StixTCTMParser()
-            parser.parse_file(raw_filename, l0_filename, 54124, 'tree','binary', 'calibration run')
+            parser.parse_file(raw_filename, 
+                    l0_filename, 54124, 
+                    'binary', 'calibration run')
             analysis(l0_filename, l1_filename,l2_filename, spec_log)
 
 

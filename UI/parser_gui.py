@@ -26,7 +26,7 @@ from UI import mainwindow_rc5
 from UI import mainwindow
 from UI import mongo_dialog
 from UI import tsc_connection
-from UI import service_filter
+from UI import packet_filter
 from UI import plugin
 from UI import raw_viewer
 from functools import partial
@@ -266,6 +266,9 @@ class Ui(mainwindow.Ui_MainWindow):
 
         self.chartView = QChartView(self.chart)
         self.gridLayout.addWidget(self.chartView, 1, 0, 1, 15)
+        self.packetTreeWidget.itemDoubleClicked.connect(self.onPacketTreeItemDoubleClicked)
+        self.selected_services=SELECTED_SERVICES
+        self.selected_SPID=[]
 
         # IDB location
 
@@ -276,8 +279,10 @@ class Ui(mainwindow.Ui_MainWindow):
         if not idb._stix_idb.is_connected():
             self.showMessage('IDB has not been set!')
         else:
-            self.showMessage('IDB found: {} '.format(
+            self.showMessage('IDB location: {} '.format(
                 idb._stix_idb.get_idb_filename()), 1)
+    def onPacketTreeItemDoubleClicked(self):
+        self.onViewBinaryTriggered()
 
     def onViewBinaryTriggered(self):
         diag = QtWidgets.QDialog()
@@ -315,19 +320,18 @@ class Ui(mainwindow.Ui_MainWindow):
 
     def onPacketFilterTriggered(self):
         diag = QtWidgets.QDialog()
-        diag_ui = service_filter.Ui_Dialog()
+        diag_ui = packet_filter.Ui_Dialog()
         diag_ui.setupUi(diag)
-        diag_ui.setSelectedServices(SELECTED_SERVICES)
+        diag_ui.setSelectedServices(self.selected_services)
         diag_ui.buttonBox.accepted.connect(
             partial(self.applyServiceFilter, diag_ui))
         diag.exec_()
     def applyServiceFilter(self,diag_ui):
-        selected_services=diag_ui.getSelectedServices()
-        global SELECTED_SERVICES
-        if SELECTED_SERVICES != selected_services:
-            SELECTED_SERVICES = diag_ui.getSelectedServices()
-            self.showMessage('Applying filter...')
-            self.addPacketsToView(self.data, True, show_stat=False)
+        self.selected_SPID=diag_ui.getSelectedSPID()
+        self.selected_services=diag_ui.getSelectedServices()
+        self.showMessage('Applying filter...')
+
+        self.addPacketsToView(self.data, True, show_stat=False)
 
 
 
@@ -575,8 +579,14 @@ class Ui(mainwindow.Ui_MainWindow):
                 header['TMTC'], header['service_type'],
                 header['service_subtype'], header['DESCR']))
 
-            if header['service_type'] not in SELECTED_SERVICES:
-                root.setHidden(True)
+            if not self.selected_SPID:
+                #not set then apply service 
+                if header['service_type'] not in self.selected_services:
+                    root.setHidden(True)
+            else:
+                if header['SPID'] not in self.selected_SPID:
+                    root.setHidden(True)
+
 
         if show_stat:
             total_packets = len(self.data)
