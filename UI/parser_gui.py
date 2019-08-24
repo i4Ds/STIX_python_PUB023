@@ -177,7 +177,7 @@ class StixFileReader(QThread):
         try:
             in_file = open(filename, 'rb')
         except Exception as e:
-            self.error.emit('Failed to open {}'.format(str(e)))
+            self.error.emit('Failed to open the file due to {}'.format(str(e)))
         else:
             buf = in_file.read()
             size = os.stat(filename).st_size
