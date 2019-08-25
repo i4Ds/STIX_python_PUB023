@@ -15,6 +15,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowModality(QtCore.Qt.WindowModal)
         MainWindow.resize(1376, 1044)
         MainWindow.setMaximumSize(QtCore.QSize(323232, 323232))
+        MainWindow.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(":/Icons/images/app.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
@@ -43,6 +44,7 @@ class Ui_MainWindow(object):
         self.packetTreeWidget = QtWidgets.QTreeWidget(self.splitter_2)
         self.packetTreeWidget.setMinimumSize(QtCore.QSize(0, 0))
         self.packetTreeWidget.setMaximumSize(QtCore.QSize(1000000, 16777215))
+        self.packetTreeWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.packetTreeWidget.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
         self.packetTreeWidget.setWordWrap(False)
         self.packetTreeWidget.setObjectName("packetTreeWidget")
@@ -153,6 +155,7 @@ class Ui_MainWindow(object):
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
         self.toolBar = QtWidgets.QToolBar(MainWindow)
+        self.toolBar.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
         self.toolBar.setObjectName("toolBar")
         MainWindow.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
         self.dockWidget = QtWidgets.QDockWidget(MainWindow)
@@ -324,6 +327,7 @@ class Ui_MainWindow(object):
         self.actionViewBinary.setText(_translate("MainWindow", "Packet binary data"))
         self.actionViewBinary.setIconText(_translate("MainWindow", "Binary data viewer"))
         self.actionViewBinary.setToolTip(_translate("MainWindow", "Binary data viewer"))
+
 
 
 import mainwindow_rc5

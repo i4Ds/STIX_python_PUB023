@@ -66,7 +66,7 @@ void makeLUT(uint8_t K, uint8_t M, int max_value, float *x, float *y)
 	unsigned int mean_x=0;
 	unsigned int value=0;
 
-	cout<<"_compression_LUT_SKM_0"<<(unsigned int)K<<(unsigned int)M<<"={"<<endl;
+	cout<<"_decompression_LUT_SKM_0"<<(unsigned int)K<<(unsigned int)M<<"={"<<endl;
 
 	for(uint32_t i=0;i<max_value;i++)
 	{

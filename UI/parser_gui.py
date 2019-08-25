@@ -247,6 +247,8 @@ class Ui(mainwindow.Ui_MainWindow):
         self.actionOnlineHelp.triggered.connect(self.onOnlineHelpTriggered)
         self.actionViewBinary.triggered.connect(self.onViewBinaryTriggered)
 
+        self.packetTreeWidget.customContextMenuRequested.connect(self.packetTreeContextMenuEvent)
+
         self.mdb = None
 
 
@@ -266,7 +268,7 @@ class Ui(mainwindow.Ui_MainWindow):
 
         self.chartView = QChartView(self.chart)
         self.gridLayout.addWidget(self.chartView, 1, 0, 1, 15)
-        self.packetTreeWidget.itemDoubleClicked.connect(self.onPacketTreeItemDoubleClicked)
+        #self.packetTreeWidget.itemDoubleClicked.connect(self.onPacketTreeItemDoubleClicked)
         self.selected_services=SELECTED_SERVICES
         self.selected_SPID=[]
 
@@ -281,8 +283,30 @@ class Ui(mainwindow.Ui_MainWindow):
         else:
             self.showMessage('IDB location: {} '.format(
                 idb._stix_idb.get_idb_filename()), 1)
-    def onPacketTreeItemDoubleClicked(self):
-        self.onViewBinaryTriggered()
+
+    def packetTreeContextMenuEvent(self,pos):
+        menu=QtWidgets.QMenu()
+        rawDataAction=menu.addAction('Show raw data')
+        menu.addSeparator()
+        filterAction=menu.addAction('Filter packets')
+        copyPacketAction=menu.addAction('Copy packet')
+        menu.addSeparator()
+        deleteAllAction=menu.addAction('Delete all packets')
+        self.current_row = self.packetTreeWidget.currentIndex().row()
+
+        rawDataAction.triggered.connect(self.onViewBinaryTriggered)
+        filterAction.triggered.connect(self.onPacketFilterTriggered)
+        copyPacketAction.triggered.connect(self.onCopyTriggered)
+        deleteAllAction.triggered.connect(self.onDeleteAllTriggered)
+        action=menu.exec_(self.packetTreeWidget.viewport().mapToGlobal(pos))
+
+    def onDeleteAllTriggered(self):
+        self.data.clear()
+        self.packetTreeWidget.clear()
+        self.paramTreeWidget.clear()
+
+    #def onPacketTreeItemDoubleClicked(self):
+    #    self.onViewBinaryTriggered()
 
     def onViewBinaryTriggered(self):
         diag = QtWidgets.QDialog()
