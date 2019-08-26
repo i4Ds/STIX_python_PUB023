@@ -329,5 +329,4 @@ class Ui_MainWindow(object):
         self.actionViewBinary.setToolTip(_translate("MainWindow", "Binary data viewer"))
 
 
-
 import mainwindow_rc5

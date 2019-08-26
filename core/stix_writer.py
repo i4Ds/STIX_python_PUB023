@@ -40,6 +40,29 @@ class StixPickleWriter:
             pickle.dump(data, self.fout)
             self.fout.close()
 
+class StixBinaryWriter:
+    def __init__(self, filename):
+        self.filename = filename
+        self.packet_counter = 0
+        self.fout = None
+        self.packets = []
+        self.num_success=0
+    def register_run(self, in_filename, filesize=0, comment=''):
+        pass
+    def get_num_sucess(self):
+        return self.num_success
+    def write_all(self, packets):
+        with open(filename, 'wb') as fout:
+            for packet in packets:
+                try:
+                    raw=packet['raw']
+                    fout.write(raw)
+                    self.num_success += 1
+                except KeyError:
+                    pass
+
+
+
 
 class StixMongoWriter:
     """write data to   MongoDB"""

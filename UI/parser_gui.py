@@ -471,15 +471,17 @@ class Ui(mainwindow.Ui_MainWindow):
             idb._stix_idb.get_idb_filename()), 1)
 
 
+
     def save(self):
         self.output_filename = str(
-            QtWidgets.QFileDialog.getSaveFileName(None, "Save file", "",
-                                                  ".pklz .pkl .db .sqlite")[0])
+            QtWidgets.QFileDialog.getSaveFileName(None, "Save packets to", "",
+                                                  ".pklz .pkl .dat")[0])
 
         if not self.output_filename.endswith(
-                ('.pklz', '.pkl', '.db', '.sqlite')):
+                ('.pklz', '.pkl', '.dat ')):
             msg = ('unsupported file format !')
             return
+
         msg = ('Writing data to file %s') % self.output_filename
         self.showMessage(msg)
 
@@ -487,15 +489,14 @@ class Ui(mainwindow.Ui_MainWindow):
             stw = stix_writer.StixPickleWriter(self.output_filename)
             stw.register_run(str(self.input_filename))
             stw.write_all(self.data)
-            stw.done()
-        elif self.output_filename.endswith('.db'):
-            stw = stix_writer.StixSqliteWriter(self.output_filename)
-            stw.register_run(str(self.input_filename))
+            #stw.done()
+        elif self.output_filename.endswith('.dat'):
+            stw = stix_writer.StixBinaryWriter(self.output_filename)
             stw.write_all(self.data)
-            stw.done()
-
-        self.showMessage(
-            (('Data has been written to %s ') % self.output_filename))
+            num_ok=stw.get_num_sucess()
+            msg=('The binary data of {} packets written to file {}, total packets {}'.format(num_ok,
+                self.output_filename,len(self.data)) 
+            self.showMessage(msg)
 
     def setListViewSelected(self, row):
         #index = self.model.createIndex(row, 0);
