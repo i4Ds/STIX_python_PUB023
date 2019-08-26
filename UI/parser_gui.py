@@ -359,7 +359,7 @@ class Ui(mainwindow.Ui_MainWindow):
     def onExportButtonClicked(self):
         if self.y:
             filename = str(
-                QtWidgets.QFileDialog.getSaveFileName(None, "Save file", "",
+                QtWidgets.QFileDialog.getSaveFileName(None, "Save data to file", "",
                                                       "CSV(*.csv)")[0])
             if filename:
                 with open(filename, 'w') as f:
@@ -381,7 +381,7 @@ class Ui(mainwindow.Ui_MainWindow):
         if self.chart:
             filetypes="PNG (*.png);;JPEG (*.jpg)"
             filename = str(
-                QtWidgets.QFileDialog.getSaveFileName(None, "Save file", "",filetypes)[0])
+                QtWidgets.QFileDialog.getSaveFileName(None, "Save plot to file", "",filetypes)[0])
             if filename:
                 if not filename.endswith(('.png', '.jpg')):
                     filename += '.png'
