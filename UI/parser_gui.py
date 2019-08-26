@@ -478,8 +478,9 @@ class Ui(mainwindow.Ui_MainWindow):
                                                   ".pklz .pkl .dat")[0])
 
         if not self.output_filename.endswith(
-                ('.pklz', '.pkl', '.dat ')):
+                ('.pklz', '.pkl', '.dat')):
             msg = ('unsupported file format !')
+            self.showMessage(msg)
             return
 
         msg = ('Writing data to file %s') % self.output_filename
@@ -495,7 +496,7 @@ class Ui(mainwindow.Ui_MainWindow):
             stw.write_all(self.data)
             num_ok=stw.get_num_sucess()
             msg=('The binary data of {} packets written to file {}, total packets {}'.format(num_ok,
-                self.output_filename,len(self.data)) 
+                self.output_filename,len(self.data)))
             self.showMessage(msg)
 
     def setListViewSelected(self, row):

@@ -52,10 +52,10 @@ class StixBinaryWriter:
     def get_num_sucess(self):
         return self.num_success
     def write_all(self, packets):
-        with open(filename, 'wb') as fout:
+        with open(self.filename, 'wb') as fout:
             for packet in packets:
                 try:
-                    raw=packet['raw']
+                    raw=packet['bin']
                     fout.write(raw)
                     self.num_success += 1
                 except KeyError:
