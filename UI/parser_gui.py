@@ -634,7 +634,6 @@ class Ui(mainwindow.Ui_MainWindow):
         host = dui.serverLineEdit.text()
         port = dui.portLineEdit.text()
         self.showMessage('Connecting to TSC...')
-
         self.socketPacketReceiver = StixSocketPacketReceiver(host, int(port))
         self.socketPacketReceiver.packetArrival.connect(self.onPacketArrival)
         self.socketPacketReceiver.error.connect(self.onDataReaderError)
@@ -653,7 +652,6 @@ class Ui(mainwindow.Ui_MainWindow):
         #self.settings = QtCore.QSettings('FHNW', 'stix_parser')
         self.mongo_server = self.settings.value('mongo_server', [], str)
         self.mongo_port = self.settings.value('mongo_port', [], str)
-
         self.mongo_user = self.settings.value('mongo_user', [], str)
         self.mongo_pwd = self.settings.value('mongo_pwd', [], str)
 

@@ -70,7 +70,7 @@ class Ui_Dialog(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        Dialog.setWindowTitle(_translate("Dialog", "Connect to MongoDB"))
         self.label_2.setText(_translate("Dialog", "Port"))
         self.label_4.setText(_translate("Dialog", "Password"))
         self.pushButton.setText(_translate("Dialog", "Connect"))

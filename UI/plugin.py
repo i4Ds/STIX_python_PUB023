@@ -7,6 +7,7 @@
 # WARNING! All changes made in this file will be lost!
 
 import os
+from io import StringIO
 import sys
 import importlib
 import tempfile
@@ -27,8 +28,8 @@ class Plugin:
         print(len(self.packets))
         for packet in self.packets:
             print(str(packet))
-
 """
+
 def createTemplate(path):
     filename='Unititled_{}.py'
     if path:
@@ -50,17 +51,13 @@ def createTemplate(path):
     
 
 
-
-
-
-
-
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(493, 264)
-        self.Dialog=Dialog
-        self.verticalLayout = QtWidgets.QVBoxLayout(Dialog)
+        Dialog.resize(583, 506)
+        self.horizontalLayout = QtWidgets.QHBoxLayout(Dialog)
+        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.verticalLayout = QtWidgets.QVBoxLayout()
         self.verticalLayout.setObjectName("verticalLayout")
         self.gridLayout = QtWidgets.QGridLayout()
         self.gridLayout.setObjectName("gridLayout")
@@ -70,7 +67,6 @@ class Ui_Dialog(object):
         self.gridLayout.addWidget(self.label_2, 0, 0, 1, 1)
         self.folderLineEdit = QtWidgets.QLineEdit(Dialog)
         self.folderLineEdit.setObjectName("folderLineEdit")
-        
         self.gridLayout.addWidget(self.folderLineEdit, 0, 1, 1, 4)
         self.folderToolButton = QtWidgets.QToolButton(Dialog)
         self.folderToolButton.setMaximumSize(QtCore.QSize(50, 16777215))
@@ -95,10 +91,18 @@ class Ui_Dialog(object):
         self.pluginListWidget.setObjectName("pluginListWidget")
         self.gridLayout.addWidget(self.pluginListWidget, 2, 0, 1, 6)
         self.verticalLayout.addLayout(self.gridLayout)
+        self.label_3 = QtWidgets.QLabel(Dialog)
+        self.label_3.setObjectName("label_3")
+        self.verticalLayout.addWidget(self.label_3)
+        self.textBrowser = QtWidgets.QTextBrowser(Dialog)
+        self.textBrowser.setObjectName("textBrowser")
+        self.verticalLayout.addWidget(self.textBrowser)
+        self.horizontalLayout.addLayout(self.verticalLayout)
 
         self.retranslateUi(Dialog)
         self.buttonBox.rejected.connect(Dialog.reject)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
+
 
         self.folderToolButton.clicked.connect(self.changeFolder)
         self.buttonBox.rejected.connect(Dialog.reject)
@@ -114,6 +118,7 @@ class Ui_Dialog(object):
         self.current_row=row
 
     def apply(self):
+        self.textBrowser.clear()
         try:
             fname=self.pluginListWidget.currentItem().text()
         except AttributeError:
@@ -130,9 +135,19 @@ class Ui_Dialog(object):
             importlib.reload(mod)
             sys.path.pop(0)
             plugin = mod.Plugin(self.packets, self.current_row)
+            old_stdout=sys.stdout
+            print_out=StringIO()
+            sys.stdout=print_out
             plugin.run()
+            msg=print_out.getvalue()
+            if msg:
+                self.textBrowser.setText(msg)
+            sys.stdout=old_stdout
         except Exception as e:
             print(e)
+
+
+        
     def edit(self):
         path=self.getPluginLocation()
         try:
@@ -191,12 +206,13 @@ class Ui_Dialog(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Plugin manager"))
+        Dialog.setWindowTitle(_translate("Dialog", "Plugins"))
         self.label_2.setText(_translate("Dialog", "Location:"))
         self.folderLineEdit.setText(_translate("Dialog", "../plugins/"))
         self.folderToolButton.setText(_translate("Dialog", "..."))
         self.label.setText(_translate("Dialog", "Available plugins:"))
         self.editPushButton.setText(_translate("Dialog", "Edit"))
         self.newPushButton.setText(_translate("Dialog", "New"))
+        self.label_3.setText(_translate("Dialog", "Outputs:"))
 
 
