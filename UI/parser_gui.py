@@ -356,16 +356,11 @@ class Ui(mainwindow.Ui_MainWindow):
         self.showMessage('Applying filter...')
 
         self.addPacketsToView(self.data, True, show_stat=False)
-
-
-
-
-
     def onExportButtonClicked(self):
         if self.y:
             filename = str(
                 QtWidgets.QFileDialog.getSaveFileName(None, "Save file", "",
-                                                      "*.csv")[0])
+                                                      "CSV(*.csv)")[0])
             if filename:
                 with open(filename, 'w') as f:
                     f.write('{},{}\n'.format(self.xlabel, self.ylabel))
@@ -384,9 +379,9 @@ class Ui(mainwindow.Ui_MainWindow):
     def savePlot(self):
         # if self.figure.get_axes():
         if self.chart:
+            filetypes="PNG (*.png);;JPEG (*.jpg)"
             filename = str(
-                QtWidgets.QFileDialog.getSaveFileName(None, "Save file", "",
-                                                      "*.png *.jpg")[0])
+                QtWidgets.QFileDialog.getSaveFileName(None, "Save file", "",filetypes)[0])
             if filename:
                 if not filename.endswith(('.png', '.jpg')):
                     filename += '.png'
@@ -473,9 +468,10 @@ class Ui(mainwindow.Ui_MainWindow):
 
 
     def save(self):
+        filetypes='python compressed pickle (*.pklz);; python pickle file (*.pkl);; binary data (*.dat)'
         self.output_filename = str(
             QtWidgets.QFileDialog.getSaveFileName(None, "Save packets to", "",
-                                                  ".pklz .pkl .dat")[0])
+                                                  filetypes)[0])
 
         if not self.output_filename.endswith(
                 ('.pklz', '.pkl', '.dat')):
@@ -535,9 +531,11 @@ class Ui(mainwindow.Ui_MainWindow):
         self.setListViewSelected(self.current_row)
 
     def getOpenFilename(self):
+        filetypes=('STIX raw data(*.dat *.bin *.binary);; python pickle files (*.pkl *pklz);;'
+                'ESA xml files (*xml);;'
+                'ESA ascii files(*.ascii);; CMDVS archive files (*.BDF)')
         self.input_filename = QtWidgets.QFileDialog.getOpenFileName(
-            None, 'Select file', '.',
-            'STIX data file (* *.dat *.pkl *.pklz *xml *.db)')[0]
+            None, 'Select file', '.',filetypes)[0]
         if not self.input_filename:
             return
         self.openFile(self.input_filename)
