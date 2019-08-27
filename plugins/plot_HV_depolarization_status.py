@@ -25,6 +25,7 @@ class Plugin:
         last_time=0
 
         T0=0
+        print('searching for packet:{}'.format(SPID))
         for packet in self.packets:
             if int(packet['header']['SPID']) != SPID:
                 continue
@@ -51,8 +52,7 @@ class Plugin:
                 line1_timestamp.append(time-T0)
                 line1_old_state.append(old_stat_raw)
                 line1_new_state.append(new_stat_raw)
-
-                field_time=header['utc']
+                field_time=header['time']
                 print('{}, {}, {}, {}, {}'.format(HV_line, field_time,old_stat_text,new_stat_text,time-last_time))
                 last_time=time
 

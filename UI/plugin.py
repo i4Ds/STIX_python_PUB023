@@ -142,11 +142,11 @@ class Ui_Dialog(object):
             sys.stdout=print_out
             plugin.run()
             msg=print_out.getvalue()
+            sys.stdout=old_stdout
             if msg:
                 self.textBrowser.setText(msg)
-            sys.stdout=old_stdout
         except Exception as e:
-            print(e)
+            self.textBrowser.setText(str(e))
 
 
         
