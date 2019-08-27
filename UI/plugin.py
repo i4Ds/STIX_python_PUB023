@@ -104,6 +104,8 @@ class Ui_Dialog(object):
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
 
+        self.Dialog=Dialog
+
         self.folderToolButton.clicked.connect(self.changeFolder)
         self.buttonBox.rejected.connect(Dialog.reject)
         self.applyButton=self.buttonBox.button(QtWidgets.QDialogButtonBox.Apply)
