@@ -35,7 +35,7 @@ def unpack_integer(raw, structure):
     return result
 
 
-def substr(buf, i, width=1):
+def sub_bytearray(buf, i, width=1):
     data = buf[i:i + width]
     length = len(data)
     if length != width:
@@ -494,7 +494,7 @@ class StixTCTMParser(StixParameterParser):
 
     def parse_file(self, in_filename,
                    out_filename=None,
-                   selected_spid=0,
+                   selected_spids=[],
                    file_type='binary',
                    comment=''):
         _stix_logger.info('Processing file: {}'.format(in_filename))
@@ -505,14 +505,14 @@ class StixTCTMParser(StixParameterParser):
             with open(in_filename, 'rb') as in_file:
                 data = in_file.read()
                 _stix_logger.info("File size:{} kB ".format(len(data) / 1024))
-                packets = self.parse_binary(data, 0,  selected_spid,
+                packets = self.parse_binary(data, 0,  selected_spids,
                                             summary)
 
         elif file_type == 'ascii':
-            packets = self.parse_moc_ascii(in_filename,  selected_spid,
+            packets = self.parse_moc_ascii(in_filename,  selected_spids,
                                            summary)
         elif file_type == 'xml':
-            packets = self.parse_moc_xml(in_filename,  selected_spid,
+            packets = self.parse_moc_xml(in_filename,  selected_spids,
                                          summary)
         else:
             _stix_logger.error(
@@ -536,7 +536,7 @@ class StixTCTMParser(StixParameterParser):
         else:
             return packets
 
-    def parse_binary(self, buf, i=0, selected_spid=0,
+    def parse_binary(self, buf, i=0, selected_spids=[],
                      summary=None, store_binary=False):
             
         length = len(buf)
@@ -551,7 +551,7 @@ class StixTCTMParser(StixParameterParser):
         while i < length:
             if buf[i] == 0x0D:
                 # telemetry
-                status, i, header_raw = substr(buf, i, 16)
+                status, i, header_raw = sub_bytearray(buf, i, 16)
                 if status == stix_global._eof:
                     break
                 header_status, header = self.parse_telemetry_header(header_raw)
@@ -561,7 +561,7 @@ class StixTCTMParser(StixParameterParser):
                     num_bad_headers += 1
                     continue
                 app_length = header['length'] - 9
-                status, i, app_raw = substr(buf, i, app_length)
+                status, i, app_raw = sub_bytearray(buf, i, app_length)
                 if status == stix_global._eof:
                     break
                 ret = self.decode_app_header(header, app_raw, app_length)
@@ -573,8 +573,9 @@ class StixTCTMParser(StixParameterParser):
                     continue
                 tpsd = header['TPSD']
                 spid = header['SPID']
-                if selected_spid > 0 and selected_spid != spid:
-                    continue
+                if selected_spids:
+                    if spid not in selected_spids:
+                        continue
                 parameters = None
                 num_tm += 1
                 if tpsd == -1:
@@ -597,7 +598,7 @@ class StixTCTMParser(StixParameterParser):
             elif buf[i] == 0x1D:
                 # telecommand
                 num_tc += 1
-                status, i, header_raw = substr(buf, i, 10)
+                status, i, header_raw = sub_bytearray(buf, i, 10)
                 # header 10 bytes, the last two bytes are crc
                 if status == stix_global._eof:
                     break
@@ -611,7 +612,7 @@ class StixTCTMParser(StixParameterParser):
                                                                            12))
                     continue
                 app_length = header['length'] + 1 - 4
-                status, i, app_raw = substr(buf, i, app_length)
+                status, i, app_raw = sub_bytearray(buf, i, app_length)
                 if status == stix_global._eof:
                     break
                 parameters = self.get_telecommand_parameters(header, app_raw)

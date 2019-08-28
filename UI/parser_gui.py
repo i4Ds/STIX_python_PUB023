@@ -164,7 +164,6 @@ class StixFileReader(QThread):
             data_hex = packet['raw']
             data_binary = binascii.unhexlify(data_hex)
             data = data_binary[76:]
-
             packets = self.stix_tctm_parser.parse_binary(data, 0,store_binary=True)
             if i % freq == 0:
                 self.info.emit("{:.0f}% loaded".format(100 * i / num))
@@ -172,6 +171,7 @@ class StixFileReader(QThread):
             if not packets:
                 continue
             self.data.extend(packets)
+
 
     def parseRawFile(self, filename):
         try:
@@ -339,8 +339,6 @@ class Ui(mainwindow.Ui_MainWindow):
         location=diag_ui.getPluginLocation()
         if location!=self.plugin_location:
             self.settings.setValue('plugin_location',location)
-
-
 
     def onPacketFilterTriggered(self):
         diag = QtWidgets.QDialog()

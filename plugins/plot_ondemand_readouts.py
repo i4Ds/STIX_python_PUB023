@@ -41,6 +41,7 @@ class Plugin:
             y2.append(int(stds[i]))
 
         plt.step(x,y1,where='mid',label='On demand readout mean ADC values')
+        plt.step(x,y1,where='mid',label='On demand readout mean ADC values')
         plt.step(x,y2,where='mid',label='On demand readout ADC std dev.')
         plt.xlabel('Detector ID')
         plt.ylabel('ADC')
