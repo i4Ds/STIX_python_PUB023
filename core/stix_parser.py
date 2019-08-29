@@ -352,10 +352,50 @@ class StixVariablePacketParser(StixParameterParser):
         return self.parse_parameters(
             self.source_data, par, calibration, TMTC='TM')
 
+class StixContextParser(StixParameterParser):
+    '''Context file parser
+    '''
+    def __init__(self):
+        pass
+    def parse(self,buf):
+        #based on the FSW source code  ContextMgmt
+        #Tests needed!
+        offset=0
+        parameters=[]
+        for name, width in stix_context._context_parameter_bit_size.items():
+            offset_bytes=int(offset/8)
+            offset_bits=offset%8
+            children=[]
+            raw_values=None
+            if name in stix_context._asic_registers:
+                children=self.parse_asic_registers(buf,offset)
+                raw_values=(len(children),) #as a repeater
+            else:
+                raw_values=self.decode(buf, 'U',offset_bytes, offset_bits,width)
+            if raw_values:
+                parameters.append({'name':name,'desc':name,
+                    'raw':raw_values, 'value':'', 'children':children})
+            offset+= width
+
+        return parameters
+    def parse_asic_registers(self,buf,offset):
+        parameters=[]
+        for name, width in stix_context._context_register_bit_size.items():
+            offset_bytes=int(offset/8)
+            offset_bits=offset%8
+            raw_values=self.decode(buf, 'U',offset_bytes, offset_bits,width)
+            offset += width
+            if raw_values:
+                parameters.append({'name':name,
+                    'desc':stix_context._context_register_desc[name],
+                    'raw':raw_values, 'value':'','children':[]})
+        return parameters
+
 
 class StixTCTMParser(StixParameterParser):
     def __init__(self):
         self.vp_parser = StixVariablePacketParser()
+        self.context_parser=StixContextParser()
 
     def parse_telemetry_header(self, packet):
         """ see STIX ICD-0812-ESC  (Page # 57) """
@@ -417,34 +457,14 @@ class StixTCTMParser(StixParameterParser):
         header['length'] = length
         header['SSID'] = SSID
         return stix_global._ok
-    def parse_context(self,buf):
-        #based on the FSW source code  ContextMgmt
-        #Tests needed!
-        offset=0
-        parameters=[]
-        for name, width in stix_context._context_parameters.items():
-            offset_bytes=int(offset/8)
-            offset_bits=offset%8
-            raw_values=self.decode(buf, 'U',offset_bytes, offset_bits,width)
-            offset+= width
-            if raw_values:
-                parameters.append({'name':name,'desc':name,
-                    'raw':raw_values, 'value':''})
-        for i in range(0,32):
-            for name, width in stix_context._context_registers.items():
-                offset_bytes=int(offset/8)
-                offset_bits=offset%8
-                raw_values=self.decode(buf, 'U',offset_bytes, offset_bits,width)
-                offset += width
-                if raw_values:
-                    parameters.append({'name':name,'desc':'{} of ASIC'.format(i),
-                        'raw':raw_values, 'value':''})
-        return parameters
+
 
     def parse_fixed_packet(self, buf, spid):
         if spid==54331:
-            #it is a context report
-            return self.parse_context(buf)
+            #it is a context report. 
+            #The structure is not defined in IDB
+            return self.context_parser.parse(buf)
+
         param_struct = _stix_idb.get_fixed_packet_structure(spid)
         return self.get_fixed_packet_parameters(
             buf, param_struct, calibration=True)

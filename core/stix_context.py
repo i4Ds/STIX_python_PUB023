@@ -5,39 +5,66 @@ Context structure definition
 Created on Thu Aug 29 15:54:01 2019
 
 @author: Hualin Xiao
-    
+
 @TODO: 
-    Context registers need to be further parsed 
 
 """
 
-_context_registers={
-'REG01':    2,
-'REG02':    3,
-'REG03_TH_1':    6, #6x12=72
-'REG03_TH_2':    6,
-'REG03_TH_3':    6,
-'REG03_TH_4':    6,
-'REG03_TH_5':    6,
-'REG03_TH_6':    6,
-'REG03_TH_7':    6,
-'REG03_TH_8':    6,
-'REG03_TH_9':    6,
-'REG03_TH_10':   6,
-'REG03_TH_11':   6,
-'REG03_TH_12':   6,
-'REG04':    12,
-'REG05':    4,
-'REG06':    2,
-'REG07':    5,
-'REG08':    2,
-'REG09':    2,
-'REG10':    3,
-'REG11':    3,
-'REG12':    12
-}
 
-_context_parameters={
+_context_register_bit_size={ #register bitsize
+        'REG01':    2,
+        'REG02':    3,
+        'REG03_TH_1':    6, #6x12=72
+        'REG03_TH_2':    6,
+        'REG03_TH_3':    6,
+        'REG03_TH_4':    6,
+        'REG03_TH_5':    6,
+        'REG03_TH_6':    6,
+        'REG03_TH_7':    6,
+        'REG03_TH_8':    6,
+        'REG03_TH_9':    6,
+        'REG03_TH_10':   6,
+        'REG03_TH_11':   6,
+        'REG03_TH_12':   6,
+        'REG04':    12,
+        'REG05':    4,
+        'REG06':    2,
+        'REG07':    5,
+        'REG08':    2,
+        'REG09':    2,
+        'REG10':    3,
+        'REG11':    3,
+        'REG12':    12
+        }
+_context_register_desc={
+        'REG01':'Register 1	ICOMP',
+        'REG02':'Register 2	IREQ',
+        'REG03_TH_1':'Register 3	TH 1',
+        'REG03_TH_2':'Register 3	TH 2',
+        'REG03_TH_3':'Register 3	TH 3',
+        'REG03_TH_4':'Register 3	TH 4',
+        'REG03_TH_5':'Register 3	TH 5',
+        'REG03_TH_6':'Register 3	TH 6',
+        'REG03_TH_7':'Register 3	TH 7',
+        'REG03_TH_8':'Register 3	TH 8',
+        'REG03_TH_9':'Register 3	TH 9',
+        'REG03_TH_10':'Register 3	TH 10',
+        'REG03_TH_11':'Register 3	TH 11',
+        'REG03_TH_12':'Register 3	TH 12',
+        'REG04':'Register 4	SEL_TEST',
+        'REG05':'Register 5	TPEAK',
+        'REG06':'Register 6	I0',
+        'REG07':'Register 7	RDELAY',
+        'REG08':'Register 8	GAIN',
+        'REG09':'Register 9	SPY',
+        'REG10':'Register 10	VREFF2P',
+        'REG11':'Register 11	TNUE',
+        'REG12':'Register 12	ALIMON'        
+        }
+
+
+
+_context_parameter_bit_size={
         'fdir_sw_1v5c_min':	12,
         'fdir_sw_1v5c_max':	12,
         'fdir_hw_1v5c':	12,
@@ -556,8 +583,39 @@ _context_parameters={
 'flare_sel_start':	32,
 'flare_sel_stop':	32,
 'fs_rewrite_files_after_n_seus':	8,
-'ContextMgmt_params_att_global_disable_flag':8}
+'ContextMgmt_params_att_global_disable_flag':8
+}
 
-
-
-
+_asic_registers=[
+'xray01_registers',
+'xray02_registers',
+'xray03_registers',
+'xray04_registers',
+'xray05_registers',
+'xray06_registers',
+'xray07_registers',
+'xray08_registers',
+'xray09_registers',
+'xray10_registers',
+'xray11_registers',
+'xray12_registers',
+'xray13_registers',
+'xray14_registers',
+'xray15_registers',
+'xray16_registers',
+'xray17_registers',
+'xray18_registers',
+'xray19_registers',
+'xray20_registers',
+'xray21_registers',
+'xray22_registers',
+'xray23_registers',
+'xray24_registers',
+'xray25_registers',
+'xray26_registers',
+'xray27_registers',
+'xray28_registers',
+'xray29_registers',
+'xray30_registers',
+'xray31_registers',
+'xray32_registers']
