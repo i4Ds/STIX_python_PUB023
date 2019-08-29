@@ -76,8 +76,8 @@ def analysis(file_in, file_out):
                 alog.write('%d events in Detector %s Pixel %s\n' %(c, detectors[n], pixels[n]))
                 print('%d events in Detector %s Pixel %s\n' %(c, detectors[n], pixels[n]))
                 #plt.subplot(nrow,1, ip)
-                xlabel=('ADC channel')
-                ylabel=('Counts')
+                xlabel= 'ADC channel'
+                ylabel= 'Counts'
                 title=('Detector %s Pixel %s'%(detectors[n], pixels[n]))
                 g=graph(sub_spectra[n],title,xlabel,ylabel)
 

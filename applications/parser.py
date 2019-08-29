@@ -76,7 +76,9 @@ def main():
 
     stix_logger._stix_logger.set_logger(logfile, verbose)
     parser = stix_parser.StixTCTMParser()
-    parser.parse_file(in_filename, out_filename, sel_spid, file_type, comment)
+    selected_spids=[sel_spid,]
+    parser.parse_file(in_filename, out_filename, selected_spids=selected_spids, 
+            file_type=file_type, comment=comment)
 
 
 if __name__ == '__main__':

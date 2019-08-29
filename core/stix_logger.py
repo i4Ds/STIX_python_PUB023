@@ -39,8 +39,7 @@ class StixLogger:
             try:
                 self.logfile = open(filename, 'w+')
             except IOError:
-                print('Can not open log file {}'.format(filename),
-                      file=sys.stderr)
+                print('Can not open log file {}'.format(filename))
 
     def set_verbose(self, verbose):
         self.verbose = verbose

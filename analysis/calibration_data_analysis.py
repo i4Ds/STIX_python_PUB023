@@ -114,8 +114,8 @@ def analysis(file_in, root_filename,
             if row['counts']>0:
                 alog.write('packet %d: %d events in Detector %d Pixel %d\n' %(i, row['counts'], row['detector'], row['pixel']))
                 print('Detector %02d Pixel %02d: %0d event(s)' %(row['detector'], row['pixel'],row['counts']))
-                xlabel=('ADC channel')
-                ylabel=('Counts')
+                xlabel= 'ADC channel'
+                ylabel= 'Counts'
                 title=('Detector %d Pixel %d'%(row['detector'], row['pixel']))
                 g=hist(ip, row['spec'],title,xlabel,ylabel)
                 cc.cd()
@@ -127,7 +127,7 @@ def analysis(file_in, root_filename,
                     cc.Print(pdf_filename)
                 ipage += 1
                 fr.cd()
-                cc.Write(("c_d_{}_{}_p_{}").format(ip,row['detector'],row['pixel']))
+                cc.Write("c_d_{}_{}_p_{}".format(ip, row['detector'], row['pixel']))
                 h.Fill(12*row['detector']+row['pixel'], row['counts'])
                      
 
@@ -176,7 +176,7 @@ def main():
 
             parser = stix_parser.StixTCTMParser()
             parser.parse_file(raw_filename, 
-                    l0_filename, 54124, 
+                    l0_filename, [54124], 
                     'binary', 'calibration run')
             analysis(l0_filename, l1_filename,l2_filename, spec_log)
 

@@ -105,7 +105,7 @@ class IDB:
                 res = rows[0][0]
                 self.soc_descriptions[name] = res
                 return res
-            return 'NO_SCOS_DESC'
+            return ''
 
     def get_telemetry_description(self, spid):
         """get telemetry data information """
@@ -253,7 +253,7 @@ class IDB:
         """
          interpret telecommand parameter by using the table PAS  
         """
-        sql=('select PAS_ALTXT from PAS where PAS_NUMBR=? and PAS_ALVAL=?')
+        sql= 'select PAS_ALTXT from PAS where PAS_NUMBR=? and PAS_ALVAL=?'
         args = (ref, raw)
         rows = self.execute(sql, args)
         try:

@@ -23,9 +23,7 @@ def graph2(x,y, title, xlabel, ylabel):
     return g
 
 def hist(k,y, title, xlabel, ylabel):
-    n=len(y)
-    total=sum(y)
-    h2=TH1F("h%d"%k,"%s; %s; %s"%(title,xlabel,ylabel),n,0,n)
+    h2=TH1F("h%d"%k,"%s; %s; %s"%(title,xlabel,ylabel),len(y),0,max(y))
     for i,val in enumerate(y):
         for j in range(val):
             h2.Fill(i)
@@ -93,28 +91,28 @@ class Plugin:
 
 
         tot_num_spec = len(spectra)
-        cc=None
+        #cc=None
         current_idx=0
         idx_cc=0
         for i,spec in enumerate(spectra):
             if spec['counts']>0:
-                if current_idx>=12 or not cc:
-                    current_idx=0
-                    if cc:
-                        cc.Write('cc_{}'.format(idx_cc))
-                        idx_cc+=1
-                    cc=TCanvas()
-                    cc.Divide(3,4)
+                #if current_idx>=12 or not cc:
+                #    current_idx=0
+                #    if cc:
+                #        cc.Write('cc_{}'.format(idx_cc))
+                #        idx_cc+=1
+                #    cc=TCanvas()
+                #    cc.Divide(3,4)
                 print('Detector %d Pixel %d, counts: %d '%(spec['detector'], spec['pixel'], spec['counts']))
-                xlabel=('ADC channel')
-                ylabel=('Counts')
+                xlabel= 'Energy channel'
+                ylabel= 'Counts'
                 title=('Detector %d Pixel %d '%(spec['detector'], spec['pixel']))
                 g=hist(i, spec['spec'],title,xlabel,ylabel)
-                cc.cd(current_idx+1)
+                #cc.cd(current_idx+1)
                 g.Draw("hist")
                 g.Write()
                 hcounts.Fill(12*spec['detector']+spec['pixel'], spec['counts'])
-                current_idx+=1
+                #current_idx+=1
         hcounts.Write('hcounts')
         print('Total number of non-empty spectra:%d'%tot_num_spec)
         print('spectra saved to calibration.root')

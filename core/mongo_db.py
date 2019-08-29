@@ -31,7 +31,7 @@ class MongoDB(object):
             self.collection_headers = self.db['headers']
             self.collection_runs = self.db['runs']
         except Exception as e:
-            raise(e)
+            raise e
             print('can not connect to mongodb')
     def is_connected(self):
         if self.connect:

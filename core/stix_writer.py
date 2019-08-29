@@ -33,6 +33,8 @@ class StixPickleWriter:
             'comment': comment,
             'Date': datetime.datetime.now().isoformat()
         }
+    def write_one(self,packet):
+        pass
 
     def write_all(self, packets):
         if self.fout:
@@ -47,19 +49,28 @@ class StixBinaryWriter:
         self.fout = None
         self.packets = []
         self.num_success=0
+        try:
+            self.fout=open(self.filename, 'wb')
+        except IOError:
+            _stix_logger.error('IO error. Can not create file:{}'.format(
+                filename))
     def register_run(self, in_filename, filesize=0, comment=''):
         pass
+        #not write them to binary file
     def get_num_sucess(self):
         return self.num_success
+    def write_one(self,packet):
+        if self.fout:
+            try:
+                raw=packet['bin']
+                self.fout.write(raw)
+                self.num_success += 1
+            except KeyError:
+                _stix_logger.warn('binary data not available')
     def write_all(self, packets):
-        with open(self.filename, 'wb') as fout:
+        if self.fout:
             for packet in packets:
-                try:
-                    raw=packet['bin']
-                    fout.write(raw)
-                    self.num_success += 1
-                except KeyError:
-                    pass
+                self.write_one(packet)
 
 
 
@@ -86,7 +97,7 @@ class StixMongoWriter:
             self.collection_runs = self.db['runs']
             self.create_indexes()
         except Exception as e:
-            raise (e)
+            raise e
             print('can not connect to mongodb')
 
     def create_indexes(self):
@@ -140,14 +151,12 @@ class StixMongoWriter:
             'date': datetime.datetime.now().isoformat(),
             'filesize': filesize
         }
-
     def write_all(self, packets):
         if self.db and packets:
             self.run_info['start'] = packets[0]['header']['time']
             self.run_info['end'] = packets[-1]['header']['time']
             self.run_info['_id'] = self.current_run_id
             run_id = self.collection_runs.insert_one(self.run_info).inserted_id
-
             for packet in packets:
                 header = packet['header']
                 parameters = packet['parameters']
@@ -161,7 +170,10 @@ class StixMongoWriter:
                 packet['header_id'] = header_id
                 packet['run_id'] = self.current_run_id
                 packet['_id'] = self.current_packet_id
-
                 result = self.collection_packets.insert_one(packet)
                 self.current_packet_id += 1
+
+    def write_one(self,packet):
+        pass
+
 

@@ -112,7 +112,7 @@ def main():
             l0_filename=os.path.join(l0_dir,filename)
             filename=os.path.splitext(f)[0]+'.root'
             l1_filename=os.path.join(l1_dir,filename)
-            print(('Parsing file %s -> %s')%( raw_filename, l0_filename))
+            print('Parsing file %s -> %s' % (raw_filename, l0_filename))
             #log.write(str(raw_filename+'\n'))
 
             stix_telemetry_parser.parse_stix_raw_file(raw_filename,LOGGER, 

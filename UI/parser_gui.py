@@ -104,7 +104,7 @@ class StixFileReader(QThread):
         self.data = []
         filename = self.filename
         if filename.endswith('.pklz'):
-            self.info.emit(('Loading {} ...').format(filename))
+            self.info.emit('Loading {} ...'.format(filename))
             f = gzip.open(filename, 'rb')
             self.data = pickle.load(f)['packet']
             f.close()
@@ -122,7 +122,8 @@ class StixFileReader(QThread):
         elif filename.endswith('.ascii'):
             self.parseMocAsciiFile(filename)
         else:
-            self.error.emit('unknown file type: {}'.format(filename))
+            self.parseRawFile(filename)
+            self.warn.emit('unknown file type: {}'.format(filename))
         self.dataLoaded.emit(self.data)
 
     def parseMocAsciiFile(self, filename):
@@ -149,7 +150,7 @@ class StixFileReader(QThread):
             self.error.emit('Failed to open {}'.format(str(e)))
         else:
 
-            self.info.emit(('Parsing {}').format(in_filename))
+            self.info.emit('Parsing {}'.format(in_filename))
             doc = xmltodict.parse(fd.read())
             for e in doc['ns2:ResponsePart']['Response']['PktRawResponse'][
                     'PktRawResponseElement']:
@@ -473,11 +474,11 @@ class Ui(mainwindow.Ui_MainWindow):
 
         if not self.output_filename.endswith(
                 ('.pklz', '.pkl', '.dat')):
-            msg = ('unsupported file format !')
+            msg = 'unsupported file format !'
             self.showMessage(msg)
             return
 
-        msg = ('Writing data to file %s') % self.output_filename
+        msg = 'Writing data to file %s' % self.output_filename
         self.showMessage(msg)
 
         if self.output_filename.endswith(('.pklz', '.pkl')):
@@ -530,8 +531,9 @@ class Ui(mainwindow.Ui_MainWindow):
 
     def getOpenFilename(self):
         filetypes=('STIX raw data(*.dat *.bin *.binary);; python pickle files (*.pkl *pklz);;'
-                'ESA xml files (*xml);;'
-                'ESA ascii files(*.ascii);; CMDVS archive files (*.BDF)')
+                'ESA xml files (*xml);;' 
+                'ESA ascii files(*.ascii);; CMDVS archive files (*.BDF);; All(*)'
+                )
         self.input_filename = QtWidgets.QFileDialog.getOpenFileName(
             None, 'Select file', '.',filetypes)[0]
         if not self.input_filename:
@@ -597,7 +599,7 @@ class Ui(mainwindow.Ui_MainWindow):
                 #- t0)
 
             root.setText(0, timestamp_str)
-            root.setText(1, ('{}({},{}) - {}').format(
+            root.setText(1, '{}({},{}) - {}'.format(
                 header['TMTC'], header['service_type'],
                 header['service_subtype'], header['DESCR']))
 
@@ -612,7 +614,7 @@ class Ui(mainwindow.Ui_MainWindow):
 
         if show_stat:
             total_packets = len(self.data)
-            self.showMessage((('Total packet(s): %d') % (total_packets)))
+            self.showMessage(('Total packet(s): %d' % total_packets))
 
     def onConnectTSCTriggered(self):
         diag = QtWidgets.QDialog()
@@ -720,7 +722,7 @@ class Ui(mainwindow.Ui_MainWindow):
 
     def onPacketSelected(self, cur, pre):
         self.current_row = self.packetTreeWidget.currentIndex().row()
-        self.showMessage((('Packet #%d selected') % self.current_row))
+        self.showMessage(('Packet #%d selected' % self.current_row))
         self.showPacket(self.current_row)
 
     def showPacket(self, row):
@@ -728,8 +730,8 @@ class Ui(mainwindow.Ui_MainWindow):
             return
         header = self.data[row]['header']
         total_packets = len(self.data)
-        self.showMessage((('Packet %d / %d  %s ') % (row, total_packets,
-                                                     header['DESCR'])))
+        self.showMessage(('Packet %d / %d  %s ' % (row, total_packets,
+                                                   header['DESCR'])))
         self.paramTreeWidget.clear()
         header_root = QtWidgets.QTreeWidgetItem(self.paramTreeWidget)
         header_root.setText(0, "Header")
@@ -756,9 +758,14 @@ class Ui(mainwindow.Ui_MainWindow):
                 continue
             try:
                 param_name = p['name']
-                desc = idb._stix_idb.get_PCF_description(param_name)
+                desc='' #description of parameter
+                if 'desc' in p:
+                    desc=p['desc']
+                if not desc:
+                    desc = idb._stix_idb.get_PCF_description(param_name)
                 scos_desc = idb._stix_idb.get_scos_description(param_name)
-                root.setToolTip(1, scos_desc)
+                if scos_desc:
+                    root.setToolTip(1, scos_desc)
                 root.setText(0, param_name)
                 root.setText(1, desc)
                 root.setText(2, str(p['raw']))
@@ -772,7 +779,7 @@ class Ui(mainwindow.Ui_MainWindow):
                         self.showParameterTree(p['children'], root)
             except KeyError:
                 self.showMessage(
-                    ('[Error  ]: keyError occurred when adding parameter'))
+                    '[Error  ]: keyError occurred when adding parameter')
         self.paramTreeWidget.itemDoubleClicked.connect(self.onTreeItemClicked)
 
     def walk(self, name, params, header, ret_x, ret_y, xaxis=0, data_type=0):
@@ -799,9 +806,9 @@ class Ui(mainwindow.Ui_MainWindow):
                     if xaxis == 1:
                         ret_x.append(timestamp)
                     else:
-                        self.showMessage((('Can not plot %s  ') % str(yvalue)))
+                        self.showMessage(('Can not plot %s  ' % str(yvalue)))
                 except Exception as e:
-                    self.showMessage((('%s ') % str(e)))
+                    self.showMessage(('%s ' % str(e)))
 
             if 'children' in p:
                 if p['children']:
