@@ -120,6 +120,7 @@ class StixParameterParser:
             return ''
         if not ref:
             if param_type == 'T':  # timestamp
+                #coarse time + fine time/2^16
                 return float(raw[0]) + float(raw[1]) / 65536.
             return ''
         if TMTC == 'TC':
@@ -135,6 +136,7 @@ class StixParameterParser:
             _stix_logger.warn('No textual calibration for {}'.format(ref))
             return ''
         elif prefix == 'CIXP':
+            #calibration
             rows = _stix_idb.get_calibration_curve(ref)
             if rows:
                 x_points = [float(row[0]) for row in rows]

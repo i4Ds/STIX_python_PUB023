@@ -427,7 +427,7 @@ class Ui(mainwindow.Ui_MainWindow):
             if not packets:
                 return
             self.showMessage('%d packets read from the clipboard' % len(packets))
-            self.onDataReady(packets)
+            self.onDataReady(packets,clear=False, show_stat=False)
         except Exception as e:
             self.showMessageBox(str(e), data_hex)
 
@@ -915,7 +915,6 @@ class Ui(mainwindow.Ui_MainWindow):
             self.ylabel = ylabel
             self.chartView.setRubberBand(QChartView.RectangleRubberBand)
             self.chartView.setRenderHint(QtGui.QPainter.Antialiasing)
-
             msg = 'Y length: {}, min-Y:  {}, max-Y: {}'.format(
                 len(self.y), min(self.y), max(self.y))
 

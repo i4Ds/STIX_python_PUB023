@@ -10,21 +10,21 @@ import os
 import pprint
 import sqlite3
 import sys
-_stix_idb_filename = 'idb/idb.sqlite'
-_search_locations = [
+STIX_IDB_FILENAME= 'idb/idb.sqlite'
+IDB_LOCATIONS= [
     '../idb/idb.sqlite', '../idb/idb.db', 
     '../idb.sqlite', '../idb.db']
 def find_idb(filename):
     if os.path.exists(filename):
         return filename
     else:
-        for fname in _search_locations:
+        for fname in IDB_LOCATIONS:
             if os.path.exists(fname):
                 return fname
         return None
 
 class IDB:
-    def __init__(self, filename=_stix_idb_filename):
+    def __init__(self, filename=STIX_IDB_FILENAME):
 
         self.filename = find_idb(filename)
         self.conn = None
@@ -275,6 +275,7 @@ class IDB:
             return rows
     def textual_interpret(self, pcf_curtx, raw_value):
         if (pcf_curtx, raw_value) in self.textual_parameter_LUT:
+            #build the lookup table
             return self.textual_parameter_LUT[(pcf_curtx, raw_value)]
         else:
             sql = (
