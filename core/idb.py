@@ -10,22 +10,19 @@ import os
 import pprint
 import sqlite3
 import sys
-STIX_IDB_FILENAME= 'idb/idb.sqlite'
-IDB_LOCATIONS= [
-    '../idb/idb.sqlite', '../idb/idb.db', 
+IDB_LOCATIONS= ['idb/idb.sqlite','../idb/idb.sqlite', '../idb/idb.db', 
     '../idb.sqlite', '../idb.db']
 def find_idb(filename):
-    if os.path.exists(filename):
-        return filename
-    else:
-        for fname in IDB_LOCATIONS:
-            if os.path.exists(fname):
-                return fname
-        return None
+    if filename:
+        if os.path.exists(filename):
+            return filename
+    for fname in IDB_LOCATIONS:
+        if os.path.exists(fname):
+            return fname
+    return None
 
 class IDB:
-    def __init__(self, filename=STIX_IDB_FILENAME):
-
+    def __init__(self, filename=''):
         self.filename = find_idb(filename)
         self.conn = None
         self.cur = None
@@ -44,16 +41,22 @@ class IDB:
             return True
         else:
             return False
+    def reload(self,filename):
+        self.filename=filename
+        self.close()
+        if self.filename:
+            self.connect_database(self.filename)
 
     def get_idb_filename(self):
         return os.path.abspath(self.filename)
+
     def connect_database(self, filename):
         try:
             self.conn = sqlite3.connect(filename, check_same_thread=False)
         except sqlite3.Error as er:
+            print(str(er))
             raise Exception('Failed to connect to IDB !')
-        else:
-            self.cur = self.conn.cursor()
+        self.cur = self.conn.cursor()
 
     def close(self):
         if self.conn:
@@ -65,6 +68,7 @@ class IDB:
         """
         if not self.cur:
             raise Exception('IDB is not initialized!')
+
         else:
             rows = None
             if arguments:
@@ -296,11 +300,10 @@ class IDB:
             rows = self.execute(sql, args)
             self.calibration_polynomial[pcf_curtx] = rows
             return rows
-_stix_idb = IDB()
-def test():
-    """ test  the database interface"""
-    _stix_idb.print_all_spid_desc()
 
+_stix_idb = IDB()
 
 if __name__ == '__main__':
+    """ test  the database interface"""
+    _stix_idb.print_all_spid_desc()
     test()

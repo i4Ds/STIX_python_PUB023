@@ -278,7 +278,7 @@ class Ui(mainwindow.Ui_MainWindow):
         self.settings = QtCore.QSettings('FHNW', 'stix_parser')
         self.idb_filename = self.settings.value('idb_filename', [], str)
         if self.idb_filename:
-            idb._stix_idb = idb.IDB(self.idb_filename)
+            idb._stix_idb.reload(self.idb_filename)
         if not idb._stix_idb.is_connected():
             self.showMessage('IDB has not been set!')
         else:
@@ -457,11 +457,11 @@ class Ui(mainwindow.Ui_MainWindow):
         if not self.idb_filename:
             return
 
-        idb._stix_idb = idb.IDB(self.idb_filename)
+        idb._stix_idb.reload(self.idb_filename)
         if idb._stix_idb.is_connected():
             #settings = QtCore.QSettings('FHNW', 'stix_parser')
             self.settings.setValue('idb_filename', self.idb_filename)
-        self.showMessage('current IDB: {} '.format(
+        self.showMessage('IDB location: {} '.format(
             idb._stix_idb.get_idb_filename()), 1)
 
 

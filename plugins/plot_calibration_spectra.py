@@ -71,7 +71,10 @@ class Plugin:
         timestamp=[]
         spectra=[]
         for packet in self.packets:
-            if int(packet['header']['SPID']) != SPID:
+            try:
+                if int(packet['header']['SPID']) != SPID:
+                    continue
+            except ValueError:
                 continue
             header=packet['header']
             spectra.extend(get_calibration_spectra(packet))
