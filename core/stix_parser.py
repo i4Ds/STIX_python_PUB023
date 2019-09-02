@@ -114,19 +114,43 @@ class StixParameterParser:
             results = raw
         return results
 
-    def convert_raw_to_eng(self, ref, param_type, raw, TMTC='TM'):
+
+    def convert_raw_to_eng(self,param_name, ref, param_type, raw, TMTC='TM'):
         """convert parameter raw values to engineer values"""
+        """
+        Inputs:
+            param_name:  
+                parameter name
+            ref:
+                calibration reference name
+            param_type:
+                parameter type
+            raw:
+                parameter raw value
+            TMTC:
+                TC or TM
+        Returns:
+            engineering value
+        """
+        raw_value = raw[0]
+
         if not raw:
             return ''
-        if not ref:
+        elif TMTC == 'TC':
+            return _stix_idb.tcparam_interpret(ref, raw[0])
+        elif  param_name == 'NIX00101':
+            #conversion based on the equation in SIRIUS source code
+            return (raw_value*1.1*3.0/4095-1.281)*213.17
+        elif param_name == 'NIX00102':
+            #temperature std. deviations
+            return (raw_value*1.1*3.0/4095)*213.17
+        elif not ref:
             if param_type == 'T':  # timestamp
                 #coarse time + fine time/2^16
                 return float(raw[0]) + float(raw[1]) / 65536.
             return ''
-        if TMTC == 'TC':
-            return _stix_idb.tcparam_interpret(ref, raw[0])
 
-        raw_value = raw[0]
+        #other parameters
         prefix = re.split(r'\d+', ref)[0]
         if prefix in ['CIXTS', 'CAAT', 'CIXT']:
             # textual interpret
@@ -146,7 +170,6 @@ class StixParameterParser:
                 return val
             _stix_logger.warn('No calibration factors for {}'.format(ref))
             return ''
-
         elif prefix == 'NIX':
             _stix_logger.warn('{} not interpreted. '.format(ref))
             return ''
@@ -162,6 +185,7 @@ class StixParameterParser:
             _stix_logger.warn('No calibration factors for {}'.format(ref))
             return ''
         return ''
+    
 
     def parse_one_parameter(self, app_data, par, calibration=True, TMTC='TM'):
         s2k_LUT = _stix_idb.get_s2k_parameter_types(par['ptc'], par['pfc'])
@@ -177,7 +201,7 @@ class StixParameterParser:
         if not calibration:
             eng_values = ''
         else:
-            eng_values = self.convert_raw_to_eng(par['cal_ref'], param_type,
+            eng_values = self.convert_raw_to_eng(par['name'], par['cal_ref'], param_type,
                                                  raw_values, TMTC)
         return {
             'name': par['name'],
