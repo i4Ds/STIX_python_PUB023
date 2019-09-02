@@ -773,7 +773,7 @@ class Ui(mainwindow.Ui_MainWindow):
                     root.setToolTip(2, hex(p['raw'][0]))
                 except:
                     pass
-                root.setText(3, str(p['value']))
+                root.setText(3, str(p['eng']))
                 if 'children' in p:
                     if p['children']:
                         self.showParameterTree(p['children'], root)
@@ -795,7 +795,7 @@ class Ui(mainwindow.Ui_MainWindow):
                 if data_type == 0:
                     values = p['raw']
                 else:
-                    values = p['value']
+                    values = p['eng']
                 try:
                     yvalue = None
                     if (type(values) is tuple) or (type(values) is list):

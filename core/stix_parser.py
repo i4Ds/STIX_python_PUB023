@@ -183,7 +183,7 @@ class StixParameterParser:
             'name': par['name'],
             'raw': raw_values,
             'desc': par['desc'],
-            'value': eng_values
+            'eng': eng_values
         }
 
 
@@ -309,7 +309,7 @@ class StixVariablePacketParser(StixParameterParser):
                     'name': node['name'],
                     'raw': result['raw'],
                     'desc': result['desc'],
-                    'value': result['value'],
+                    'eng': result['eng'],
                     'children': []
                 }
                 if node['children']:
@@ -373,7 +373,7 @@ class StixContextParser(StixParameterParser):
                 raw_values=self.decode(buf, 'CONTEXT',offset_bytes, offset_bits,width)
             if raw_values:
                 parameters.append({'name':'CONP%03d'%param_id,'desc':name,
-                    'raw':raw_values, 'value':'', 'children':children})
+                    'raw':raw_values, 'eng':'', 'children':children})
                 #No  names for context parameters in the IDB
             offset+= width
             param_id+=1
@@ -389,7 +389,7 @@ class StixContextParser(StixParameterParser):
             if raw_values:
                 parameters.append({'name':name,
                     'desc':stix_context._context_register_desc[name],
-                    'raw':raw_values, 'value':'','children':[]})
+                    'raw':raw_values, 'eng':'','children':[]})
         return parameters
 
 class StixTCTMParser(StixParameterParser):

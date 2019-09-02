@@ -81,11 +81,11 @@ class StixLogger:
                 if par:
                     try:
                         # for tree-like structure
-                        value = ''
-                        if par['value'] != par['raw']:
-                            value = par['value']
+                        eng= ''
+                        if par['eng'] != par['raw']:
+                            eng= par['eng']
                         self.printf(('{:<10} {:<30} {:<15} {:15}'.format(
-                            par['name'], par['descr'], par['raw'], value)))
+                            par['name'], par['descr'], par['raw'], eng)))
                         if 'children' in par:
                             if par['children']:
                                 self.pprint_parameters(par['children'])

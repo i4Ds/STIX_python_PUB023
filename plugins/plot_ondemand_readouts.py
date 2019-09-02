@@ -6,7 +6,7 @@ from data_utils  import *
 from matplotlib import pyplot as plt
 
 
-SPID=54132
+SPIDs=[54132,54133]
 
 class Plugin:
     def __init__(self,  packets=[], current_row=0):
@@ -17,7 +17,7 @@ class Plugin:
         timestamp=[]
         spectra=[]
         packet=self.packets[self.current_row]
-        if int(packet['header']['SPID']) != SPID:
+        if int(packet['header']['SPID']) not in SPIDs:
             print('wrong packet type')
             return
         header=packet['header']
