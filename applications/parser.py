@@ -40,13 +40,6 @@ def main():
         required=False,
         help="only select packets of the given SPID")
     ap.add_argument(
-        "-p",
-        "--ptype",
-        required=False,
-        choices=('tree','array'),
-        help="Parameter structure. Can be tree or array")
-
-    ap.add_argument(
         "-v", "--verbose", required=False, help="Logger verbose level")
 
     ap.add_argument("-l", "--log", required=False, help="Log filename")

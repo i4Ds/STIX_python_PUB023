@@ -132,11 +132,12 @@ class StixParameterParser:
         Returns:
             engineering value
         """
-        raw_value = raw[0]
 
         if not raw:
             return ''
-        elif TMTC == 'TC':
+
+        raw_value = raw[0]
+        if TMTC == 'TC':
             return _stix_idb.tcparam_interpret(ref, raw[0])
         elif  param_name == 'NIX00101':
             #conversion based on the equation in SIRIUS source code
@@ -206,7 +207,7 @@ class StixParameterParser:
         return {
             'name': par['name'],
             'raw': raw_values,
-            'desc': par['desc'],
+            #'desc': par['desc'],
             'eng': eng_values
         }
 
@@ -332,7 +333,7 @@ class StixVariablePacketParser(StixParameterParser):
                 result_node = {
                     'name': node['name'],
                     'raw': result['raw'],
-                    'desc': result['desc'],
+                    #'desc': result['desc'],
                     'eng': result['eng'],
                     'children': []
                 }
@@ -396,7 +397,8 @@ class StixContextParser(StixParameterParser):
             else:
                 raw_values=self.decode(buf, 'CONTEXT',offset_bytes, offset_bits,width)
             if raw_values:
-                parameters.append({'name':'CONP%03d'%param_id,'desc':name,
+                parameters.append({'name':'CONP%03d'%param_id,
+                    #'desc':name,
                     'raw':raw_values, 'eng':'', 'children':children})
                 #No  names for context parameters in the IDB
             offset+= width
@@ -412,7 +414,7 @@ class StixContextParser(StixParameterParser):
             offset += width
             if raw_values:
                 parameters.append({'name':name,
-                    'desc':stix_context._context_register_desc[name],
+                    #'desc':stix_context._context_register_desc[name],
                     'raw':raw_values, 'eng':'','children':[]})
         return parameters
 
