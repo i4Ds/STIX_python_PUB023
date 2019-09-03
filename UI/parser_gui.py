@@ -32,6 +32,7 @@ from UI import raw_viewer
 from functools import partial
 from core import mongo_db as mgdb
 from core import stix_logger
+from core import stix_parameter
 
 SELECTED_SERVICES=[1,3,5,6, 17,21,22,236,237,238,239]
 
@@ -756,30 +757,23 @@ class Ui(mainwindow.Ui_MainWindow):
             root = QtWidgets.QTreeWidgetItem(parent)
             if not p:
                 continue
+            param=stix_parameter.StixParameterNode()
+            param.set(p)
+            param_name=param.name
+            desc = param.desc
+            scos_desc = idb._stix_idb.get_scos_description(param_name)
+            if scos_desc:
+                root.setToolTip(1, scos_desc)
+            root.setText(0, param_name)
+            root.setText(1, desc)
+            root.setText(2, str(param.raw))
             try:
-                param_name = p['name']
-                desc='' #description of parameter
-                if 'desc' in p:
-                    desc=p['desc']
-                if not desc:
-                    desc = idb._stix_idb.get_PCF_description(param_name)
-                scos_desc = idb._stix_idb.get_scos_description(param_name)
-                if scos_desc:
-                    root.setToolTip(1, scos_desc)
-                root.setText(0, param_name)
-                root.setText(1, desc)
-                root.setText(2, str(p['raw']))
-                try:
-                    root.setToolTip(2, hex(p['raw'][0]))
-                except:
-                    pass
-                root.setText(3, str(p['eng']))
-                if 'children' in p:
-                    if p['children']:
-                        self.showParameterTree(p['children'], root)
-            except KeyError:
-                self.showMessage(
-                    '[Error  ]: keyError occurred when adding parameter')
+                root.setToolTip(2, hex(param.get('raw')[0]))
+            except:
+                pass
+            root.setText(3, str(param.eng))
+            if param.children:
+                self.showParameterTree(param.children, root)
         self.paramTreeWidget.itemDoubleClicked.connect(self.onTreeItemClicked)
 
     def walk(self, name, params, header, ret_x, ret_y, xaxis=0, data_type=0):
@@ -787,15 +781,17 @@ class Ui(mainwindow.Ui_MainWindow):
             return
         timestamp = header['time']
         for p in params:
-            if type(p) is not dict:
+            if not p:
                 continue
-            if name == p['name']:
+            param=stix_parameter.StixParameterNode()
+            param.set(p)
+            if name == param.name:
                 values = None
                 #print('data type:{}'.format(data_type))
                 if data_type == 0:
-                    values = p['raw']
+                    values = param.raw
                 else:
-                    values = p['eng']
+                    values = param.eng
                 try:
                     yvalue = None
                     if (type(values) is tuple) or (type(values) is list):
@@ -810,10 +806,9 @@ class Ui(mainwindow.Ui_MainWindow):
                 except Exception as e:
                     self.showMessage(('%s ' % str(e)))
 
-            if 'children' in p:
-                if p['children']:
-                    self.walk(name, p['children'], header, ret_x, ret_y, xaxis,
-                              data_type)
+            if param.children:
+                self.walk(name, param.children, header, ret_x, ret_y, xaxis,
+                          data_type)
 
     def onPlotButtonClicked(self):
         if self.chart:

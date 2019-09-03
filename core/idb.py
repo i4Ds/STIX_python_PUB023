@@ -138,7 +138,7 @@ class IDB:
                 res = rows[0][0]
                 self.pcf_descriptions[name] = res
                 return res
-            return 'NO_SCOS_DESC'
+            return ''
 
     def get_packet_type_info(self, packet_type, packet_subtype, pi1_val=-1):
         """
