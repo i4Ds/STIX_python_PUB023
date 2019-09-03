@@ -12,8 +12,6 @@ def search(data, name):
 def get_raw(data, name):
     return [int(item['raw'][0]) for item in data if item['name']==name]
 
-
-
 def graph2(x,y, title, xlabel, ylabel):
     n=len(x)
     g=TGraph(n,array('d',x),array('d',y))
@@ -91,21 +89,12 @@ class Plugin:
         fout=TFile(filename,'recreate')
         hcounts=TH1F("hcounts","Channel counts; Pixel #; Counts",12*32,0,12*32)
         fout.cd()
-
-
         tot_num_spec = len(spectra)
         #cc=None
         current_idx=0
         idx_cc=0
         for i,spec in enumerate(spectra):
             if spec['counts']>0:
-                #if current_idx>=12 or not cc:
-                #    current_idx=0
-                #    if cc:
-                #        cc.Write('cc_{}'.format(idx_cc))
-                #        idx_cc+=1
-                #    cc=TCanvas()
-                #    cc.Divide(3,4)
                 print('Detector %d Pixel %d, counts: %d '%(spec['detector'], spec['pixel'], spec['counts']))
                 xlabel= 'Energy channel'
                 ylabel= 'Counts'

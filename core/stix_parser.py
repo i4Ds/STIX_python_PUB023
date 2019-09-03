@@ -30,18 +30,13 @@ _stix_idb = idb._stix_idb
 _stix_logger = stix_logger._stix_logger
 
 
-
 def get_bits(data, offset, length):
     return (data >> offset) & ((1 << length) - 1)
-
-
 def unpack_integer(raw, structure):
     result = {}
     for name, bits in structure.items():
         result[name] = get_bits(raw, bits[0], bits[1])
     return result
-
-
 def get_from_bytearray(buf, i, width=1):
     data = buf[i:i + width]
     length = len(data)
@@ -49,8 +44,6 @@ def get_from_bytearray(buf, i, width=1):
         return False, i + length, data
     else:
         return True, i + length, data
-
-
 def find_next_header(buf, i):
     length = len(buf)
     while i < length:
@@ -60,12 +53,6 @@ def find_next_header(buf, i):
         else:
             i += 1
     return stix_global._eof
-
-
-
-
-
-
 class StixParameterParser:
     def __init__(self):
         pass
@@ -120,8 +107,6 @@ class StixParameterParser:
         else:
             results = raw
         return results
-
-
     def convert_raw_to_eng(self,param_name, ref, param_type, raw, TMTC='TM'):
         """convert parameter raw values to engineer values"""
         """
@@ -332,15 +317,6 @@ class StixVariablePacketParser(StixParameterParser):
                 if not node or self.current_offset > len(self.source_data):
                     return
                 result = self.parse_parameter(node)
-
-
-                #result_node = {
-                #    'name': node['name'],
-                #    'raw': result['raw'],
-                #    #'desc': result['desc'],
-                #    'eng': result['eng'],
-                #    'children': []
-                #}
                 result_node=stix_parameter.StixParameterNode()
                 result_node.set(result)
                 if node['children']:
@@ -403,9 +379,8 @@ class StixContextParser(StixParameterParser):
             else:
                 raw_values=self.decode(buf, 'CONTEXT',offset_bytes, offset_bits,width)
             if raw_values:
-                parameters.append({'name':name,
-                    'raw':raw_values, 'eng':'', 'children':children})
-                #No  names for context parameters in the IDB
+                param=stix_parameter.StixParameterNode(name, raw_values,'',children)
+                parameters.append(param.node)
             offset+= width
             param_id+=1
         return parameters
@@ -418,8 +393,8 @@ class StixContextParser(StixParameterParser):
             raw_values=self.decode(buf, 'CONTEXT',offset_bytes, offset_bits,width)
             offset += width
             if raw_values:
-                parameters.append({'name':stix_context._context_register_desc[name],
-                    'raw':raw_values, 'eng':'','children':[]})
+                param=stix_parameter.StixParameterNode(stix_context._context_register_desc[name],raw_values)
+                parameters.append(param.node)
         return parameters
 
 class StixTCTMParser(StixParameterParser):
@@ -494,6 +469,7 @@ class StixTCTMParser(StixParameterParser):
             #it is a context report. 
             #The structure is not defined in IDB
             return self.context_parser.parse(buf)
+
         param_struct = _stix_idb.get_fixed_packet_structure(spid)
         return self.get_fixed_packet_parameters(
             buf, param_struct, calibration=True)

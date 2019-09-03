@@ -42,6 +42,7 @@ class Plugin:
         print('searching for calibration packets')
         for packet in self.packets:
 
+            spid=0
             try:
                 spid=int(packet['header']['SPID'])
             except ValueError:
@@ -49,11 +50,9 @@ class Plugin:
                 continue
             if spid != SPID:
                 continue
+            spec=get_calibration_spectra(packet)
+            spectra.extend(spec)
 
-            spectra=get_calibration_spectra(packet)
-            spectra.extend(spectra)
-
-        num_spectra=len(spectra)
         tot_num_spec = 0
         for i,spec in enumerate(spectra):
             if spec['counts']>0:
