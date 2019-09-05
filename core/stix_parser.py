@@ -192,23 +192,17 @@ class StixParameterParser(object):
             return ''
         return ''
 
-    def decode_parameter(self, app_data, par, calibration=True, tmtc='TM'):
-    #def decode_parameter(self,name, offset,offset_bits, width, 
-    #        ptc, pfc, cal_ref='', tmtc='TM', calibration=True):
+    def decode_parameter(self, app_data, name, offset,offset_bits, width, 
+            ptc, pfc, cal_ref='', tmtc='TM', calibration=True):
 
-        param_type= STIX_IDB.get_s2k_parameter_types(par['ptc'], par['pfc'])
-        raw_values = self.decode_buffer(
-            app_data,
-            param_type,
-            int(par['offset']),
-            int(par['offset_bits']),
-            par['width'],
-            param_name=par['name'])
+        param_type= STIX_IDB.get_s2k_parameter_types(ptc, pfc)
+        raw_values = self.decode_buffer( app_data,  param_type,
+                offset,  offset_bits,  width,  name)
         eng_values = ''
         if calibration:
-            eng_values = self.convert_raw_to_eng(par['name'], par['cal_ref'],
+            eng_values = self.convert_raw_to_eng(name, cal_ref,
                                                  param_type, raw_values, tmtc)
-        return stix_parameter.StixParameterNode(par['name'], raw_values, eng_values).node
+        return stix_parameter.StixParameterNode(name, raw_values, eng_values).node
 
 
 class StixVariablePacketParser(StixParameterParser):
@@ -228,9 +222,8 @@ class StixVariablePacketParser(StixParameterParser):
 
     def init_parser_nodes(self):
         self.nodes = []
-        self.nodes.append(
-            self.create_parse_node('top', 0, 0, stix_global.MAX_NUM_PARAMETERS, None,
-                             1))
+        self.nodes.append(self.create_parse_node('top', 
+            counter=1))
         self.nodes[0]['children'] = []
         self.length_min = 0
 
@@ -260,10 +253,7 @@ class StixVariablePacketParser(StixParameterParser):
 
     def create_parse_node(self,
                     name,
-                    position,
-                    offset_bits,
-                    repeat_size,
-                    parameter,
+                    parameter=None,
                     counter=0,
                     children=None):
 
@@ -271,9 +261,6 @@ class StixVariablePacketParser(StixParameterParser):
             children = []
         node = {
             'name': name,
-            'offset_bits': offset_bits,
-            'position': position,
-            'repeat_size': repeat_size,
             'counter': counter,
             'parameter': parameter,
             'children': children
@@ -282,8 +269,8 @@ class StixVariablePacketParser(StixParameterParser):
 
     def register_parameter(self, mother,param_PCF):
         children=[]
-        node = self.create_parse_node(param_PCF['PCF_NAME'], param_PCF['VPD_POS'],
-         param_PCF['VPD_OFFSET'], param_PCF['VPD_GRPSIZE'], param_PCF, 0, children)
+        name=param_PCF['PCF_NAME']
+        node = self.create_parse_node(name, param_PCF, 0, children)
         width=param_PCF['PCF_WIDTH']
         if width % 8 == 0:
             self.length_min += width / 8
@@ -348,6 +335,12 @@ class StixVariablePacketParser(StixParameterParser):
         par = node['parameter']
         width = int(par['PCF_WIDTH'])
         vpd_offset = int(par['VPD_OFFSET'])
+        width = int(par['PCF_WIDTH'])
+        ptc = int(par['PCF_PTC'])
+        pfc = int(par['PCF_PFC'])
+        cal_ref = par['PCF_CURTX']
+        name = node['name']
+
         if width % 8 != 0:
             if vpd_offset < 0:
                 self.current_offset_bit = self.last_data_width + vpd_offset
@@ -360,16 +353,13 @@ class StixVariablePacketParser(StixParameterParser):
             self.current_offset += width / 8
             self.last_num_bits = 0
             self.last_data_width = width
-        par['offset'] = self.last_offset
-        par['offset_bits'] = self.current_offset_bit
-        par['width'] = int(par['PCF_WIDTH'])
-        par['ptc'] = int(par['PCF_PTC'])
-        par['pfc'] = int(par['PCF_PFC'])
-        par['name'] = par['PCF_NAME']
-        par['desc'] = par['PCF_DESCR']
-        par['cal_ref'] = par['PCF_CURTX']
-        return self.decode_parameter(
-            self.source_data, par, calibration=False, tmtc='TM')
+
+        offset = self.last_offset
+        offset_bits = self.current_offset_bit
+        calibration=False
+        return self.decode_parameter(self.source_data,
+                name, offset,offset_bits, width, ptc, pfc, cal_ref, 
+                'TM', calibration)
 
 
 class StixContextParser(StixParameterParser):
@@ -531,31 +521,28 @@ class StixTCTMParser(StixParameterParser):
         return stix_global.OK
 
     def parse_fixed_packet(self, buf, spid):
+        """ Extract parameters from a fixed data packet see Solar orbit IDB.ICD section 3.3.2.5.1
+        """
         if spid == 54331:
             #context file report.
             return self.context_parser.parse(buf)
-        param_struct = STIX_IDB.get_fixed_packet_structure(spid)
-        return self.get_fixed_packet_parameters(
-            buf, param_struct)
 
-    def get_fixed_packet_parameters(self, buf, param_struct):
-        """ Extract parameters from a fixed data packet see Solar orbit IDB.ICD section 3.3.2.5.1
-        """
-        params = []
-        for par in param_struct:
-            par['offset'] = int(par['PLF_OFFBY']) - 16
-            par['offset_bits'] = int(par['PLF_OFFBI'])
-            par['type'] = 'fixed'
-            par['width'] = int(par['PCF_WIDTH'])
-            par['ptc'] = int(par['PCF_PTC'])
-            par['pfc'] = int(par['PCF_PFC'])
-            par['name'] = par['PCF_NAME']
-            par['desc'] = par['PCF_DESCR']
-            par['cal_ref'] = par['PCF_CURTX']
-            parameter = self.decode_parameter(
-                buf, par, calibration=True, tmtc='TM')
-            params.append(parameter)
-        return params
+        parameters = []
+        param_structures = STIX_IDB.get_fixed_packet_structure(spid)
+        for par in param_structures:
+            offset = int(par['PLF_OFFBY']) - 16
+            offset_bits = int(par['PLF_OFFBI'])
+            width = int(par['PCF_WIDTH'])
+            ptc = int(par['PCF_PTC'])
+            pfc = int(par['PCF_PFC'])
+            name = par['PCF_NAME']
+            cal_ref = par['PCF_CURTX']
+            param=self.decode_parameter(buf, name, 
+                offset,offset_bits, width, ptc, pfc, cal_ref, 'TM', True)
+
+            parameters.append(param)
+
+        return parameters
 
     def parse_telecommand_header(self, packet):
         # see STIX ICD-0812-ESC  (Page 56)
@@ -597,17 +584,15 @@ class StixTCTMParser(StixParameterParser):
             if int(par['CDF_GRPSIZE']) > 0:
                 STIX_LOGGER.info('variable length TC skipped')
                 break
-            par['offset'] = int(int(par['CDF_BIT']) / 8)
-            par['offset_bits'] = int(par['CDF_BIT']) % 8
-            par['type'] = 'fixed'
-            par['width'] = int(par['CDF_ELLEN'])
-            par['ptc'] = int(par['CPC_PTC'])
-            par['pfc'] = int(par['CPC_PFC'])
-            par['name'] = par['CDF_PNAME']
-            par['desc'] = par['CPC_DESCR']
-            par['cal_ref'] = par['CPC_PAFREF']
-            parameter = self.decode_parameter(
-                buf, par, calibration=True, tmtc='TC')
+            offset = int(int(par['CDF_BIT']) / 8)
+            offset_bits = int(par['CDF_BIT']) % 8
+            width = int(par['CDF_ELLEN'])
+            ptc = int(par['CPC_PTC'])
+            pfc = int(par['CPC_PFC'])
+            name = par['CDF_PNAME']
+            cal_ref = par['CPC_PAFREF']
+            parameter =self.decode_parameter(buf, name, 
+                offset,offset_bits, width, ptc, pfc, cal_ref, 'TM', False)
             params.append(parameter)
         return params
 
