@@ -10,7 +10,7 @@ Created on Thu Aug 29 15:54:01 2019
 
 """
 
-_context_register_bit_size = {  #register bitsize
+CONTEXT_REGISTER_BIT_SIZE = {  #register bitsize
     'REG01': 2,
     'REG02': 3,
     'REG03_TH_1': 6,  #6x12=72
@@ -35,7 +35,7 @@ _context_register_bit_size = {  #register bitsize
     'REG11': 3,
     'REG12': 12
 }
-_context_register_desc = {
+CONTEXT_REGISTER_DESC = {
     'REG01': 'Register 1	ICOMP',
     'REG02': 'Register 2	IREQ',
     'REG03_TH_1': 'Register 3	TH 1',
@@ -61,7 +61,7 @@ _context_register_desc = {
     'REG12': 'Register 12	ALIMON'
 }
 
-_context_parameter_bit_size = {
+CONTEXT_PARAMETER_BIT_SIZE = {
     'fdir_sw_1v5c_min': 12,
     'fdir_sw_1v5c_max': 12,
     'fdir_hw_1v5c': 12,
@@ -583,7 +583,7 @@ _context_parameter_bit_size = {
     'ContextMgmt_params_att_global_disable_flag': 8
 }
 
-_asic_registers = [
+ASIC_REGISTERS = [
     'xray01_registers', 'xray02_registers', 'xray03_registers',
     'xray04_registers', 'xray05_registers', 'xray06_registers',
     'xray07_registers', 'xray08_registers', 'xray09_registers',

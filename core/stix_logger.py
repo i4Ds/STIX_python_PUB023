@@ -7,8 +7,24 @@ import pprint
 import sys
 
 
-class StixLogger:
+class StixLogger(object):
+    __instance=None
+    @staticmethod
+    def get_instance( filename=None, verbose=10):
+        if not StixLogger.__instance:
+            StixLogger(filename,verbose)
+        return StixLogger.__instance
+    #singleton
+            
+
     def __init__(self, filename=None, verbose=10):
+
+        if StixLogger.__instance:
+            raise Exception('Logger already initialized')
+        else:
+            StixLogger.__instance=self
+
+
         self.logfile = None
         self.signal_info = None
         self.signal_warn = None
@@ -116,4 +132,6 @@ class StixLogger:
                 summary['num_filtered'], summary['num_bad_headers']))
 
 
-_stix_logger = StixLogger()
+def stix_logger():
+    return StixLogger.get_instance()
+

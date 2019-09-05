@@ -11,10 +11,10 @@ import pymongo
 import datetime
 import os
 from core import stix_logger
-_stix_logger = stix_logger._stix_logger
+STIX_LOGGER= stix_logger.stix_logger()
 
 
-class StixPickleWriter:
+class StixPickleWriter(object):
     def __init__(self, filename):
         self.filename = filename
         self.packet_counter = 0
@@ -44,7 +44,7 @@ class StixPickleWriter:
             self.fout.close()
 
 
-class StixBinaryWriter:
+class StixBinaryWriter(object):
     def __init__(self, filename):
         self.filename = filename
         self.packet_counter = 0
@@ -54,7 +54,7 @@ class StixBinaryWriter:
         try:
             self.fout = open(self.filename, 'wb')
         except IOError:
-            _stix_logger.error(
+            STIX_LOGGER.error(
                 'IO error. Can not create file:{}'.format(filename))
 
     def register_run(self, in_filename, filesize=0, comment=''):
@@ -70,7 +70,7 @@ class StixBinaryWriter:
                 self.fout.write(raw)
                 self.num_success += 1
             except KeyError:
-                _stix_logger.warn('binary data not available')
+                STIX_LOGGER.warn('binary data not available')
 
     def write_all(self, packets):
         if self.fout:
@@ -78,7 +78,7 @@ class StixBinaryWriter:
                 self.write_one(packet)
 
 
-class StixMongoWriter:
+class StixMongoWriter(object):
     """write data to   MongoDB"""
 
     def __init__(self,
@@ -150,7 +150,7 @@ class StixMongoWriter:
         except IndexError:
             self.current_packet_id = 0
 
-        log_filename = _stix_logger.get_log_filename()
+        log_filename = STIX_LOGGER.get_log_filename()
         self.run_info = {
             'filename': os.path.basename(in_filename),
             'path': os.path.dirname(in_filename),

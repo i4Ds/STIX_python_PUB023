@@ -19,9 +19,8 @@ from PyQt5.QtCore import QThread, pyqtSignal, QTimer
 from PyQt5.QtChart import QChart, QChartView, QLineSeries, QValueAxis, QBarSeries, QBarSet, QScatterSeries
 
 from core import stix_parser
-from core import stix_global
 from core import stix_writer
-from core import idb
+from core import stix_idb
 from datetime import datetime
 from UI import mainwindow_rc5
 from UI import mainwindow
@@ -36,6 +35,9 @@ from core import stix_logger
 #from core import stix_parameter
 
 SELECTED_SERVICES = [1, 3, 5, 6, 17, 21, 22, 236, 237, 238, 239]
+
+STIX_IDB=stix_idb.stix_idb()
+STIX_LOGGER=stix_logger.stix_logger()
 
 
 class StixSocketPacketReceiver(QThread):
@@ -55,7 +57,7 @@ class StixSocketPacketReceiver(QThread):
         self.stix_tctm_parser = stix_parser.StixTCTMParser()
         self.stix_tctm_parser.set_store_binary_enabled(True)
         self.stix_tctm_parser.set_report_progress_enabled(False)
-        stix_logger._stix_logger.set_signal(self.info, self.warn, self.error)
+        STIX_LOGGER.set_signal(self.info, self.warn, self.error)
 
     def run(self):
         try:
@@ -104,7 +106,7 @@ class StixFileReader(QThread):
         self.data = []
         self.stix_tctm_parser = stix_parser.StixTCTMParser()
         self.stix_tctm_parser.set_store_binary_enabled(True)
-        stix_logger._stix_logger.set_signal(self.info, self.importantInfo,
+        STIX_LOGGER.set_signal(self.info, self.importantInfo,
                                             self.warn, self.error)
 
     def setPacketFilter(self, selected_services, selected_SPID):
@@ -133,7 +135,7 @@ class StixFileReader(QThread):
         else:
             self.parseRawFile(filename)
             self.warn.emit('unknown file type: {}'.format(filename))
-        stix_logger._stix_logger.print_summary(
+        STIX_LOGGER.print_summary(
             self.stix_tctm_parser.get_summary())
         #print('self.data size:')
         #print(sys.getsizeof(self.data))
@@ -293,12 +295,12 @@ class Ui(mainwindow.Ui_MainWindow):
         self.settings = QtCore.QSettings('FHNW', 'stix_parser')
         self.idb_filename = self.settings.value('idb_filename', [], str)
         if self.idb_filename:
-            idb._stix_idb.reload(self.idb_filename)
-        if not idb._stix_idb.is_connected():
+            STIX_IDB.reload(self.idb_filename)
+        if not STIX_IDB.is_connected():
             self.showMessage('IDB has not been set!')
         else:
             self.showMessage(
-                'IDB location: {} '.format(idb._stix_idb.get_idb_filename()),
+                'IDB location: {} '.format(STIX_IDB.get_idb_filename()),
                 1)
 
     def packetTreeContextMenuEvent(self, pos):
@@ -335,7 +337,7 @@ class Ui(mainwindow.Ui_MainWindow):
                 header = self.data[self.current_row]['header']
                 diag_ui.setPacketInfo('{}({},{})  {}'.format(
                     header['TMTC'], header['service_type'],
-                    header['service_subtype'], header['DESCR']))
+                    header['service_subtype'], header['descr']))
                 diag_ui.displayRaw(raw)
             except (IndexError, KeyError):
                 diag_ui.setText('Raw data not available.')
@@ -480,12 +482,12 @@ class Ui(mainwindow.Ui_MainWindow):
         if not self.idb_filename:
             return
 
-        idb._stix_idb.reload(self.idb_filename)
-        if idb._stix_idb.is_connected():
+        STIX_IDB.reload(self.idb_filename)
+        if STIX_IDB.is_connected():
             #settings = QtCore.QSettings('FHNW', 'stix_parser')
             self.settings.setValue('idb_filename', self.idb_filename)
         self.showMessage(
-            'IDB location: {} '.format(idb._stix_idb.get_idb_filename()), 1)
+            'IDB location: {} '.format(STIX_IDB.get_idb_filename()), 1)
 
     def save(self):
         filetypes = 'python compressed pickle (*.pklz);; python pickle file (*.pkl);; binary data (*.dat)'
@@ -636,7 +638,7 @@ class Ui(mainwindow.Ui_MainWindow):
             root.setText(
                 1, '{}({},{}) - {}'.format(
                     header['TMTC'], header['service_type'],
-                    header['service_subtype'], header['DESCR']))
+                    header['service_subtype'], header['descr']))
             if not self.selected_SPID:
                 if header['service_type'] not in self.selected_services:
                     root.setHidden(True)
@@ -761,7 +763,7 @@ class Ui(mainwindow.Ui_MainWindow):
         header = self.data[row]['header']
         total_packets = len(self.data)
         self.showMessage(
-            ('Packet %d / %d  %s ' % (row, total_packets, header['DESCR'])))
+            ('Packet %d / %d  %s ' % (row, total_packets, header['descr'])))
         self.paramTreeWidget.clear()
         header_root = QtWidgets.QTreeWidgetItem(self.paramTreeWidget)
         header_root.setText(0, "Header")
@@ -790,7 +792,7 @@ class Ui(mainwindow.Ui_MainWindow):
             param.from_node(p)
             param_name = param.name
             desc = param.desc
-            scos_desc = idb._stix_idb.get_scos_description(param_name)
+            scos_desc = STIX_IDB.get_scos_description(param_name)
             if scos_desc:
                 root.setToolTip(1, scos_desc)
             root.setText(0, param_name)

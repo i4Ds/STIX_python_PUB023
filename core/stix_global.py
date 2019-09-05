@@ -1,23 +1,18 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#  File: stix_global
-#  a module to keep global variables
+#  FILE: STIX_GLOBAL
+#  A MODULE TO KEEP GLOBAL VARIABLES
 #
-_fix_length_packet_type = 1001
-_variable_length_packet_type = 1002
-_tm_packet = 1004
-_tc_packet = 1003
-_success = 1
-_ok = True
-_next_packet = 2
-_header_first_byte_invalid = -1
-_header_invalid = -2
-_eof = -3
-_max_parameters = 1024
-_header_key_error = -4
-_bad_packet = -5
-_variable_packet_length_mismatch = -6
-_unknown_packet_type = -7
-_header_raw_length_valid = -8
-_no_PID_info_in_IDB = -9
-_packet_too_short = -10
+OK = True
+NEXT_PACKET = 2
+HEADER_FIRST_BYTE_INVALID = -1
+HEADER_INVALID = -2
+EOF = -3
+MAX_NUM_PARAMETERS = 1024
+HEADER_KEY_ERROR = -4
+BAD_PACKET = -5
+VARIABLE_PACKET_LENGTH_MISMATCH = -6
+UNKNOWN_PACKET_TYPE = -7
+HEADER_RAW_LENGTH_VALID = -8
+NO_PID_INFO_IN_IDB = -9
+PACKET_TOO_SHORT = -10
