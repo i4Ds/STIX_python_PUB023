@@ -5,10 +5,10 @@
 # @description:
 #               definitions of structures of decoded parameters
 
-from core import idb
+#from core import idb
 
 #PARAMETER_NODE_TYPE = 'dict'
-PARAMETER_NODE_TYPE = 'tuple'
+#PARAMETER_NODE_TYPE = 'tuple'
 """
 Output parameters store in tuples or dictionaries
 storing in tuples could save system memory
@@ -121,6 +121,7 @@ class StixParameterNode:
 
 
 class StixParameterTree:
+    """not used at the moment"""
     def __init__(self, parameters=None):
         self._parameters = []
         if parameters:

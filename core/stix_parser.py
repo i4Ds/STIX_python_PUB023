@@ -15,7 +15,6 @@ import re
 import struct as st
 import xmltodict
 from scipy import interpolate
-#import pprint
 
 from core import header as stix_header
 from core import idb
@@ -23,11 +22,11 @@ from core import stix_global
 from core import stix_logger
 from core import stix_writer
 from core import stix_context
-from core import stix_parameter
 
 _context_format = ['B', '>H', 'BBB', '>I']
 _unsigned_format = ['B', '>H', 'BBB', '>I', 'BBBBB', '>IH']
 _signed_format = ['b', '>h', 'bbb', '>i', 'bbbbb', '>ih']
+
 #binary structure used to unpack binaryarray
 _stix_idb = idb._stix_idb
 _stix_logger = stix_logger._stix_logger
@@ -56,6 +55,113 @@ def find_next_header(buf, i):
         else:
             i += 1
     return stix_global._eof
+
+
+class StixParameterNode:
+    """ define decoded parameter structure """
+    def __init__(self,
+                 name='',
+                 raw='',
+                 eng='',
+                 children=None,
+                 node_type='tuple'):
+        #node_type can be tuple or dict
+        self._name = name
+        self._raw = raw
+        self._eng = eng
+        self._children = []
+        if children:
+            self._children = children
+        self._node_type = node_type
+
+    def set_node_type(self, node_type):
+        """can be dictionary or tuple"""
+        self._node_type = node_type
+    def get_node_type(self):
+        return self._node_type
+    def get(self, item=None):
+        if item == 'name':
+            return self._name
+        elif item == 'raw':
+            return self._raw
+        elif item == 'eng':
+            return self._eng
+        elif item == 'children':
+            return self._children
+        elif item == 'desc':
+            return _stix_idb.get_PCF_description(param_name)
+        else:
+            return self.get_node(self._node_type)
+    def get_node(self, node_type):
+        if node_type == 'tuple':
+            return (self._name, self._raw, self._eng, self._children)
+        else:
+            return {
+                'name': self._name,
+                'raw': self._raw,
+                'eng': self._eng,
+                'children': self._children
+            }
+
+    def isa(self, name):
+        if self._name == name:
+            return True
+        else:
+            return False
+
+    def from_node(self, node):
+        if type(node) is dict:
+            self._name = node['name']
+            self._raw = node['raw']
+            self._eng = node['eng']
+            self._children = node['children']
+        elif type(node) is tuple:
+            self._name = node[0]
+            self._raw = node[1]
+            self._eng = node[2]
+            self._children = node[3]
+
+    def to_dict(self, node=None):
+        self.from_node(node)
+        return get_node('dict')
+
+    def to_tuple(self, node=None):
+        self.from_node(node)
+        return get_node('tuple')
+
+    def set_children(self, children=[]):
+        self._children[:] = children
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def raw(self):
+        return self._raw
+
+    @property
+    def eng(self):
+        return self._eng
+
+    @property
+    def children(self):
+        return self._children
+
+    @property
+    def desc(self):
+        if self._name:
+            return _stix_idb.get_PCF_description(self._name)
+        else:
+            return ''
+
+    @property
+    def node(self):
+        return self.get_node(self._node_type)
+
+
+
+
 class StixParameterParser:
     def __init__(self):
         pass
@@ -92,7 +198,6 @@ class StixParameterParser:
             bin_struct = '>IH'
         elif param_type=='CONTEXT' and nbytes<=4:
             bin_struct=_context_format[nbytes-1]
-
         #elif param_type == 'O':
         #    bin_struct = str(nbytes) + 's'
         results = ()
@@ -199,7 +304,7 @@ class StixParameterParser:
         else:
             eng_values = self.convert_raw_to_eng(par['name'], par['cal_ref'], param_type,
                                                  raw_values, TMTC)
-        return stix_parameter.StixParameterNode(par['name'],raw_values,eng_values).node
+        return StixParameterNode(par['name'],raw_values,eng_values).node
 
 
 class StixVariablePacketParser(StixParameterParser):
@@ -320,7 +425,7 @@ class StixVariablePacketParser(StixParameterParser):
                 if not node or self.current_offset > len(self.source_data):
                     return
                 result = self.parse_parameter(node)
-                result_node=stix_parameter.StixParameterNode()
+                result_node=StixParameterNode()
                 result_node.from_node(result)
                 if node['children']:
                     raw=result_node.get('raw')
@@ -386,7 +491,7 @@ class StixContextParser(StixParameterParser):
             else:
                 raw_values=self.decode(buf, 'CONTEXT',offset_bytes, offset_bits,width)
             if raw_values:
-                param=stix_parameter.StixParameterNode(name, raw_values,'',children)
+                param=StixParameterNode(name, raw_values,'',children)
                 parameters.append(param.node)
             offset+= width
             param_id+=1
@@ -400,7 +505,7 @@ class StixContextParser(StixParameterParser):
             raw_values=self.decode(buf, 'CONTEXT',offset_bytes, offset_bits,width)
             offset += width
             if raw_values:
-                param=stix_parameter.StixParameterNode(stix_context._context_register_desc[name],raw_values)
+                param=StixParameterNode(stix_context._context_register_desc[name],raw_values)
                 parameters.append(param.node)
         return parameters
 
