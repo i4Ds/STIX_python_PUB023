@@ -7,6 +7,7 @@ import pickle
 import gzip
 import numpy as np
 import re
+import io
 import binascii
 import xmltodict
 import pprint
@@ -14,7 +15,7 @@ import socket
 import webbrowser
 
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QThread, pyqtSignal,QTimer
 from PyQt5.QtChart import QChart, QChartView, QLineSeries, QValueAxis, QBarSeries, QBarSet, QScatterSeries
 
 from core import stix_parser
@@ -47,43 +48,44 @@ class StixSocketPacketReceiver(QThread):
 
     def __init__(self, host, port):
         super(StixSocketPacketReceiver, self).__init__()
+        self.working=True
         self.port = port
         self.host = host
         self.stix_tctm_parser = stix_parser.StixTCTMParser()
+        self.stix_tctm_parser.set_store_binary_enabled(True)
+        self.stix_tctm_parser.set_report_progress_enabled(False)
         stix_logger._stix_logger.set_signal(self.info, self.warn, self.error)
-
     def run(self):
         try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect((self.host, self.port))
             self.info.emit('Receiving packets from {}:{}'.format(
                 self.host, self.port))
         except Exception as e:
             self.error.emit(str(e))
             return
-        try:
-            buf = b''
+        while True:
+            buf=b''
             while True:
-                data = s.recv(4096)
-                if not data:
-                    break
-                buf += data
-                if buf.endswith(b'<-->'):
-                    data2 = buf.split()
-                    if buf[0:9] == 'TM_PACKET'.encode():
-                        data_hex = data2[-1][0:-4]
-                        data_binary = binascii.unhexlify(data_hex)
-                        packets = self.stix_tctm_parser.parse_binary(
-                            data_binary, 0,store_binary=True)
-                        if packets:
-                            packets[0]['header']['arrival'] = str(
-                                datetime.now())
-                            self.packetArrival.emit(packets)
-                    buf = b''
-        except Exception as e:
-            self.error.emit(str(e))
-        finally:
-            s.close()
+                data = s.recv(1)
+                buf+=data
+                if data == b'>':
+                    if buf.endswith(b'<-->'):
+                        break
+            data2 = buf.split()
+            if buf[0:9] == 'TM_PACKET'.encode():
+                data_hex = data2[-1][0:-4]
+                data_binary = binascii.unhexlify(data_hex)
+                packets = self.stix_tctm_parser.parse_binary(
+                    data_binary, 0,store_binary=True)
+                if packets:
+                    packets[0]['header']['arrival'] = str(
+                        datetime.now())
+                    self.packetArrival.emit(packets)
+            
+        else:
+           s.close()
+            
 
 
 class StixFileReader(QThread):
@@ -93,6 +95,7 @@ class StixFileReader(QThread):
     dataLoaded = pyqtSignal(list)
     error = pyqtSignal(str)
     info = pyqtSignal(str)
+    importantInfo=pyqtSignal(str)
     warn = pyqtSignal(str)
 
     def __init__(self, filename):
@@ -100,7 +103,10 @@ class StixFileReader(QThread):
         self.filename = filename
         self.data = []
         self.stix_tctm_parser = stix_parser.StixTCTMParser()
-        stix_logger._stix_logger.set_signal(self.info, self.warn, self.error)
+        self.stix_tctm_parser.set_store_binary_enabled(True)
+        stix_logger._stix_logger.set_signal(self.info, self.importantInfo, self.warn, self.error)
+    def setPacketFilter(self,selected_services,selected_SPID):
+        self.stix_tctm_parser.set_packet_filter(selected_services,selected_SPID)
     def run(self):
         self.data = []
         filename = self.filename
@@ -116,8 +122,6 @@ class StixFileReader(QThread):
             f.close()
         elif filename.endswith(('.dat', '.binary','.BDF')):
             self.parseRawFile(filename)
-        # elif filename.endswith(('.db', '.sqlite')):
-        #    self.readSqliteDB(filename)
         elif filename.endswith('.xml'):
             self.parseESOCXmlFile(filename)
         elif filename.endswith('.ascii'):
@@ -125,32 +129,36 @@ class StixFileReader(QThread):
         else:
             self.parseRawFile(filename)
             self.warn.emit('unknown file type: {}'.format(filename))
+        stix_logger._stix_logger.print_summary(self.stix_tctm_parser.get_summary())
+        #print('self.data size:')
+        #print(sys.getsizeof(self.data))
         self.dataLoaded.emit(self.data)
 
     def parseMocAsciiFile(self, filename):
         self.data = []
+        self.stix_tctm_parser.set_report_progress_enabled(False)
         with open(filename) as fd:
             self.info.emit('Reading packets from the file {}'.format(filename))
             idx = 0
             for line in fd:
                 [utc_timestamp, data_hex] = line.strip().split()
                 data_binary = binascii.unhexlify(data_hex)
-                packets = self.stix_tctm_parser.parse_binary(data_binary, 0,store_binary=True)
+                packets = self.stix_tctm_parser.parse_binary(data_binary)
                 if packets:
                     packets[0]['header']['utc'] = utc_timestamp
                 self.data.extend(packets)
                 if idx % 10 == 0:
-                    self.info.emit('{} packet have been read'.format(idx))
+                    self.info.emit('{} packet(s) loaded.'.format(idx))
                 idx += 1
 
     def parseESOCXmlFile(self, in_filename):
         packets = []
+        self.stix_tctm_parser.set_report_progress_enabled(False)
         try:
             fd = open(in_filename)
         except Exception as e:
             self.error.emit('Failed to open {}'.format(str(e)))
         else:
-
             self.info.emit('Parsing {}'.format(in_filename))
             doc = xmltodict.parse(fd.read())
             for e in doc['ns2:ResponsePart']['Response']['PktRawResponse'][
@@ -166,7 +174,7 @@ class StixFileReader(QThread):
             data_hex = packet['raw']
             data_binary = binascii.unhexlify(data_hex)
             data = data_binary[76:]
-            packets = self.stix_tctm_parser.parse_binary(data, 0,store_binary=True)
+            packets = self.stix_tctm_parser.parse_binary(data)
             if i % freq == 0:
                 self.info.emit("{:.0f}% loaded".format(100 * i / num))
 
@@ -176,6 +184,7 @@ class StixFileReader(QThread):
 
 
     def parseRawFile(self, filename):
+        self.stix_tctm_parser.set_report_progress_enabled(True)
         try:
             in_file = open(filename, 'rb')
         except Exception as e:
@@ -189,7 +198,8 @@ class StixFileReader(QThread):
             total_packets = 0
             self.data = []
             last_percent = 0
-            self.data = self.stix_tctm_parser.parse_binary(buf, 0,store_binary=True)
+            self.data = self.stix_tctm_parser.parse_binary(buf)
+
 
 
 class Ui(mainwindow.Ui_MainWindow):
@@ -197,6 +207,7 @@ class Ui(mainwindow.Ui_MainWindow):
         super(Ui, self).setupUi(MainWindow)
         self.MainWindow = MainWindow
         self.stix_tctm_parser = stix_parser.StixTCTMParser()
+        self.socketPacketReceiver=None
         self.initialize()
 
     def close(self):
@@ -388,7 +399,7 @@ class Ui(mainwindow.Ui_MainWindow):
                 # self.figure.savefig(filename)
                 p = self.chartView.grab()
                 p.save(filename)
-                self.showMessage(('Saved to %s.' % filename))
+                self.showMessage(('Has been saved to %s.' % filename))
 
         else:
             msgBox = QtWidgets.QMessageBox()
@@ -424,7 +435,7 @@ class Ui(mainwindow.Ui_MainWindow):
         data_hex = re.sub(r"\s+", "", raw_hex)
         try:
             data_binary = binascii.unhexlify(data_hex)
-            packets = self.stix_tctm_parser.parse_binary(data_binary, 0,store_binary=True)
+            packets = self.stix_tctm_parser.parse_binary(data_binary)
             if not packets:
                 return
             self.showMessage('%d packets read from the clipboard' % len(packets))
@@ -486,7 +497,6 @@ class Ui(mainwindow.Ui_MainWindow):
             stw = stix_writer.StixPickleWriter(self.output_filename)
             stw.register_run(str(self.input_filename))
             stw.write_all(self.data)
-            #stw.done()
         elif self.output_filename.endswith('.dat'):
             stw = stix_writer.StixBinaryWriter(self.output_filename)
             stw.write_all(self.data)
@@ -539,17 +549,33 @@ class Ui(mainwindow.Ui_MainWindow):
             None, 'Select file', '.',filetypes)[0]
         if not self.input_filename:
             return
-        self.openFile(self.input_filename)
 
-    def openFile(self, filename):
+        diag = QtWidgets.QDialog()
+        diag_ui = packet_filter.Ui_Dialog()
+        diag_ui.setupUi(diag)
+        diag_ui.setSelectedServices(SELECTED_SERVICES)
+        diag_ui.buttonBox.accepted.connect(
+            partial(self.onOpenFile, self.input_filename, diag_ui))
+        diag.exec_()
+
+    def onOpenFile(self,input_filename,diag):
+        self.selected_SPID=diag.getSelectedSPID()
+        self.selected_services=diag.getSelectedServices()
+        self.openFile(input_filename,self.selected_services,self.selected_SPID)
+
+    def openFile(self, filename, selected_services=None, selected_SPID=None):
         msg = 'Loading file %s ...' % filename
         self.showMessage(msg)
         self.dataReader = StixFileReader(filename)
         self.dataReader.dataLoaded.connect(self.onDataReady)
         self.dataReader.error.connect(self.onDataReaderError)
         self.dataReader.info.connect(self.onDataReaderInfo)
+        self.dataReader.importantInfo.connect(self.onDataReaderImportantInfo)
         self.dataReader.warn.connect(self.onDataReaderWarn)
+        self.dataReader.setPacketFilter(selected_services,selected_SPID)
         self.dataReader.start()
+    def onDataReaderImportantInfo(self,msg):
+        self.showMessage(msg, 1)
 
     def onDataReaderInfo(self, msg):
         self.showMessage(msg, 0)
@@ -568,6 +594,8 @@ class Ui(mainwindow.Ui_MainWindow):
         if data:
             self.addPacketsToView(data, clear=clear, show_stat=show_stat)
             self.enableButtons()
+        else:
+            self.showMessage('No packet loaded')
 
     def enableButtons(self):
         if not self.buttons_enabled:
@@ -582,37 +610,27 @@ class Ui(mainwindow.Ui_MainWindow):
     def addPacketsToView(self, data, clear=True, show_stat=True):
         if clear:
             self.packetTreeWidget.clear()
-        #t0 = 0
         for p in data:
             if type(p) is not dict:
                 continue
             header = p['header']
-
-
             root = QtWidgets.QTreeWidgetItem(self.packetTreeWidget)
-            # if t0 == 0:
-            #    t0 = header['time']
             timestamp_str = ''
             try:
                 timestamp_str = header['utc']
             except KeyError:
                 timestamp_str = '{:.2f}'.format(header['time'])
-                #- t0)
 
             root.setText(0, timestamp_str)
             root.setText(1, '{}({},{}) - {}'.format(
                 header['TMTC'], header['service_type'],
                 header['service_subtype'], header['DESCR']))
-
             if not self.selected_SPID:
-                #not set then apply service 
                 if header['service_type'] not in self.selected_services:
                     root.setHidden(True)
             else:
                 if header['SPID'] not in self.selected_SPID:
                     root.setHidden(True)
-
-
         if show_stat:
             total_packets = len(self.data)
             self.showMessage(('Total packet(s): %d' % total_packets))
@@ -758,7 +776,7 @@ class Ui(mainwindow.Ui_MainWindow):
             if not p:
                 continue
             param=stix_parameter.StixParameterNode()
-            param.set(p)
+            param.from_node(p)
             param_name=param.name
             desc = param.desc
             scos_desc = idb._stix_idb.get_scos_description(param_name)
@@ -784,7 +802,7 @@ class Ui(mainwindow.Ui_MainWindow):
             if not p:
                 continue
             param=stix_parameter.StixParameterNode()
-            param.set(p)
+            param.from_node(p)
             if name == param.name:
                 values = None
                 #print('data type:{}'.format(data_type))

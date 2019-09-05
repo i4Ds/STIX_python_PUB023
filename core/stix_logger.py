@@ -17,8 +17,9 @@ class StixLogger:
         self.filename = filename
         self.set_logger(filename, verbose)
 
-    def set_signal(self, sig_info, sig_warn, sig_error):
+    def set_signal(self, sig_info, sig_important_info, sig_warn, sig_error):
         self.signal_info = sig_info
+        self.signal_important_info= sig_important_info
         self.signal_warn = sig_warn
         self.signal_error = sig_error
         self.signal_enabled = True
@@ -52,11 +53,15 @@ class StixLogger:
                 self.signal_warn.emit(msg)
             elif msg_type == 'error':
                 self.signal_error.emit(msg)
+            elif msg_type =='important':
+                self.signal_important_info.emit(msg)
         elif self.logfile:
             self.logfile.write(msg + '\n')
         else:
             print(msg)
 
+    def important_info(self, msg):
+        self.printf(('[Info ] : {}'.format(msg)), 'important')
     def error(self, msg):
         self.printf(('[ERROR  ] : {}'.format(msg)), 'error')
 
@@ -98,13 +103,13 @@ class StixLogger:
         if self.verbose < 4:
             return
         self.printf(msg)
-    def parser_summary(self,summary):
-         self.info(
-                    'Total number of packets: {} ('
-                    'TM: {}, TC:{}), bad bytes: {}, bad headers: {} .'.format(
-                        summary['TM'] +
-                        summary['TC'],
-                        summary['TM'],
-                        summary['TC'], summary['bad_bytes'], 
-                        summary['bad_headers']))
+    def print_summary(self,summary):
+         self.important_info('Total size: {} bytes (bad:{});'
+                    ' Total Nb. of packets: {} ('
+                    'TM: {}, TC:{}, Filtered: {}); Bad headers:{} .'.format(
+                        summary['total_length'],
+                        summary['num_bad_bytes'],
+                        summary['num_tm']+summary['num_tc']+summary['num_filtered'], summary['num_tm'],
+                        summary['num_tc'], summary['num_filtered'],
+                        summary['num_bad_headers']))
 _stix_logger = StixLogger()

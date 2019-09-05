@@ -4,6 +4,9 @@
 # @date         : Feb. 11, 2019
 # @description:
 #               STIX telemetry raw data parser
+# @TODO
+#              checks for CRC for each packet
+#              parse variable length TC
 
 import binascii
 import math
@@ -77,7 +80,7 @@ class StixParameterParser:
         raw_bin = in_data[int(offset):int(offset + nbytes)]
         if nbytes != len(raw_bin):
             _stix_logger.error(
-                'Data length mismatch when unpacking parameter {}.  Expect: {} real: {}'
+                    'Parameter {} length mismatch.  Expect: {} real: {}'
                 .format(param_name, nbytes, len(raw_bin)))
             return None
         bin_struct = str(nbytes) + 's'
@@ -318,10 +321,14 @@ class StixVariablePacketParser(StixParameterParser):
                     return
                 result = self.parse_parameter(node)
                 result_node=stix_parameter.StixParameterNode()
-                result_node.set(result)
+                result_node.from_node(result)
                 if node['children']:
-                    node['counter'] = result_node.get('raw')[0]
-                    self.walk(node, result_node.children)
+                    raw=result_node.get('raw')
+                    if raw:
+                        node['counter'] = raw[0]
+                        self.walk(node, result_node.children)
+                    else:
+                        _stix_logger.warn('A repeater {} is not decoded.'.format(node['name']))
                 param.append(result_node.node)
 
     def parse_parameter(self, node):
@@ -402,6 +409,37 @@ class StixTCTMParser(StixParameterParser):
         self.vp_parser = StixVariablePacketParser()
         self.context_parser=StixContextParser()
 
+        self.selected_services=[]
+        self.selected_spids=[]
+        self.store_binary=True
+
+        self.num_tm=0
+        self.num_tc=0
+        self.num_bad_bytes=0
+        self.num_bad_headers=0
+        self.total_length=0
+        self.num_filtered=0
+        self.report_progress_enabled=True
+        #counters
+    def set_report_progress_enabled(self,status):
+        self.report_progress_enabled=status
+    def set_packet_filter(self,selected_services=[], selected_spids=[]):
+        """ only decoded packets with the given services or spids
+        """
+        self.selected_services=selected_services
+        self.selected_spids=selected_spids
+    def set_store_binary_enabled(self, status):
+        """
+          store raw binary  in the outputs 
+        """
+        self.store_binary=status
+    def get_summary(self):
+        return {'total_length':self.total_length,
+                'num_tc':self.num_tc,'num_tm':self.num_tm,
+                'num_filtered':self.num_filtered,
+                'num_bad_bytes':self.num_bad_bytes,
+                'num_bad_headers':self.num_bad_headers}
+
     def parse_telemetry_header(self, packet):
         """ see STIX ICD-0812-ESC  (Page # 57) """
         if len(packet) < 16:
@@ -451,7 +489,6 @@ class StixTCTMParser(StixParameterParser):
                 bin_struct = '>H'
             res = st.unpack(bin_struct, data[int(start):int(end)])
             SSID = res[0]
-
         info = _stix_idb.get_packet_type_info(service_type, service_subtype,
                                               SSID)
         if not info:
@@ -466,10 +503,8 @@ class StixTCTMParser(StixParameterParser):
 
     def parse_fixed_packet(self, buf, spid):
         if spid==54331:
-            #it is a context report. 
-            #The structure is not defined in IDB
+            #context file report. 
             return self.context_parser.parse(buf)
-
         param_struct = _stix_idb.get_fixed_packet_structure(spid)
         return self.get_fixed_packet_parameters(
             buf, param_struct, calibration=True)
@@ -530,7 +565,7 @@ class StixTCTMParser(StixParameterParser):
         params = []
         for par in param_structure:
             if int(par['CDF_GRPSIZE']) > 0:
-                _stix_logger.info('variable TC skipped')
+                _stix_logger.info('variable length TC skipped')
                 break
             par['offset'] = int(int(par['CDF_BIT']) / 8)
             par['offset_bits'] = int(par['CDF_BIT']) % 8
@@ -549,13 +584,13 @@ class StixTCTMParser(StixParameterParser):
     def parse_file(self,
                    in_filename,
                    out_filename=None,
-                   selected_spids=[],
                    file_type='binary',
                    comment=''):
         _stix_logger.info('Processing file: {}'.format(in_filename))
+
+
         packets = []
         file_size = os.path.getsize(in_filename)
-        summary = dict()
         st_writer = None
         if out_filename.endswith(('.pkl', '.pklz')):
             st_writer = stix_writer.StixPickleWriter(out_filename)
@@ -568,18 +603,17 @@ class StixTCTMParser(StixParameterParser):
             with open(in_filename, 'rb') as in_file:
                 data = in_file.read()
                 _stix_logger.info("File size:{} kB ".format(len(data) / 1024))
-                packets = self.parse_binary(data, 0, selected_spids, summary)
-                #pprint.pprint(packets)
-
+                packets = self.parse_binary(data, 0)
         elif file_type == 'ascii':
-            packets = self.parse_moc_ascii(in_filename, selected_spids,
-                                           summary)
+            packets = self.parse_moc_ascii(in_filename)
         elif file_type == 'xml':
-            packets = self.parse_moc_xml(in_filename, selected_spids, summary)
+            packets = self.parse_moc_xml(in_filename)
         else:
             _stix_logger.error(
                 '{} has unknown input file type'.format(in_filename))
-        _stix_logger.parser_summary(summary)
+
+        _stix_logger.print_summary(self.get_summary())
+
         if st_writer:
             st_writer.register_run(in_filename, file_size, comment)
             _stix_logger.info(
@@ -591,23 +625,24 @@ class StixTCTMParser(StixParameterParser):
 
     def parse_binary(self,
                      buf,
-                     i=0,
-                     selected_spids=[],
-                     summary=None,
-                     store_binary=False):
+                     i=0):
+        """
+        Inputs:
+            buffer, i.e., the input binary array
+            i: starting offset
+        Returns:
+            decoded packets in python list
+        """
 
         length = len(buf)
+        self.total_length+=length
         if i >= length:
-            return None, None
+            return []
+
         packets = []
-        num_tc = 0
-        num_tm = 0
         last = 0
-        num_bad_bytes = 0
-        num_bad_headers = 0
         while i < length:
             if buf[i] == 0x0D:
-                # telemetry
                 status, i, header_raw = get_from_bytearray(buf, i, 16)
                 if status == stix_global._eof:
                     break
@@ -615,7 +650,7 @@ class StixTCTMParser(StixParameterParser):
                 if header_status != stix_global._ok:
                     _stix_logger.warn('Bad header at {}, code {} '.format(
                         i, header_status))
-                    num_bad_headers += 1
+                    self.num_bad_headers += 1
                     continue
                 app_length = header['length'] - 9
                 status, i, app_raw = get_from_bytearray(buf, i, app_length)
@@ -624,17 +659,22 @@ class StixTCTMParser(StixParameterParser):
                 ret = self.decode_app_header(header, app_raw, app_length)
                 if ret != stix_global._ok:
                     _stix_logger.warn(
-                        'Lack of information in the IDB to decoded the packet at: {} '
+                        'Missing information in the IDB to decoded the data starting at {} '
                         .format(i))
                     continue
                 tpsd = header['TPSD']
                 spid = header['SPID']
-                if selected_spids:
-                    if selected_spids:
-                        if spid not in selected_spids:
-                            continue
+                #packet filter
+                if self.selected_services:
+                    if header['service_type'] not in self.selected_services:
+                        self.num_filtered+=1
+                        continue
+                if self.selected_spids:
+                    if spid not in self.selected_spids:
+                        self.num_filtered+=1
+                        continue
+                self.num_tm += 1
                 parameters = None
-                num_tm += 1
                 if tpsd == -1:
                     parameters = self.parse_fixed_packet(app_raw, spid)
                 else:
@@ -643,24 +683,23 @@ class StixTCTMParser(StixParameterParser):
                     )
                     if num_read != app_length:
                         _stix_logger.warn(
-                            ' Packet length inconsistent!  SPID: {}, Actual: {}, IDB: {}'
+                            ' Packet (SPID {}) length mismatch. Actual length: {}, IDB: {}'
                             .format(spid, num_read, app_length))
                 packet = {'header': header, 'parameters': parameters}
-                if store_binary:
+                if self.store_binary:
                     packet['bin'] = header_raw + app_raw
                 packets.append(packet)
             elif buf[i] == 0x1D:
                 # telecommand
-                num_tc += 1
+                self.num_tc += 1
                 status, i, header_raw = get_from_bytearray(buf, i, 10)
                 # header 10 bytes, the last two bytes are crc
                 if status == stix_global._eof:
                     break
                 header_status, header = self.parse_telecommand_header(
                     header_raw)
-
                 if header_status != stix_global._ok:
-                    num_bad_headers += 1
+                    self.num_bad_headers += 1
                     _stix_logger.warn(
                         "Invalid telecommand header. Cursor at {} ".format(i -
                                                                            12))
@@ -671,41 +710,30 @@ class StixTCTMParser(StixParameterParser):
                     break
                 parameters = self.get_telecommand_parameters(header, app_raw)
                 packet = {'header': header, 'parameters': parameters}
-                if store_binary:
+                if self.store_binary:
                     packet['bin'] = header_raw + app_raw
                 packets.append(packet)
-                #pprint.pprint(packet)
             else:
                 old_i = i
                 _stix_logger.warn('Unknown packet {} at {}'.format(buf[i], i))
                 i = find_next_header(buf, i)
                 if i == stix_global._eof:
                     break
-                num_bad_bytes += i - old_i
+                self.num_bad_bytes += i - old_i
                 _stix_logger.warn(
                     'New header found at {}, {} bytes skipped!'.format(
                         i, i - old_i))
-            current = int(100. * i / length)
-            if current > last:
-                _stix_logger.info('{}% processed!'.format(current))
-            last = current
 
-        if summary is not None:
-            smr = {
-                'TM': num_tm,
-                'TC': num_tc,
-                'size': length - i,
-                'bad_bytes': num_bad_bytes,
-                'bad_headers': num_bad_headers
-            }
-            if not summary:
-                summary.update(smr)
-            else:
-                for k in summary.keys():
-                    summary[k] += smr[k]
+            if self.report_progress_enabled:
+                current = int(100. * i / length)
+                if current > last:
+                    _stix_logger.info('{}% processed!'.format(current))
+                last = current
+
         return packets
-    def parse_moc_ascii(self, filename, selected_spids=[], summary=None):
+    def parse_moc_ascii(self, filename):
         packets = []
+        self.set_report_progress_enabled(False)
         with open(filename) as fd:
             _stix_logger.info(
                 'Reading packets from the file {}'.format(filename))
@@ -713,8 +741,7 @@ class StixTCTMParser(StixParameterParser):
             for line in fd:
                 [utc_timestamp, data_hex] = line.strip().split()
                 data_binary = binascii.unhexlify(data_hex)
-                packet = self.parse_binary(data_binary, 0, selected_spids,
-                                           summary)
+                packet = self.parse_binary(data_binary, 0)
                 if packet:
                     packet[0]['header']['UTC'] = utc_timestamp
                     packets.extend(packet)
@@ -722,17 +749,15 @@ class StixTCTMParser(StixParameterParser):
                     _stix_logger.info('{} packet have been read'.format(idx))
                 idx += 1
         return packets
-    def parse_hex(self, hex_text, summary=None):
-        raw = binascii.unhexlify(hex_text)
-        return self.parse_binary(raw, i=0, summary=summary)
-    def parse_moc_xml(self, in_filename, selected_spids=[], summary=None):
+    def parse_hex(self, hex_string):
+        raw = binascii.unhexlify(hex_string)
+        return self.parse_binary(raw, i=0 )
+    def parse_moc_xml(self, in_filename):
         packets = []
         results = []
-        try:
-            fd = open(in_filename)
-        except Exception as e:
-            _stix_logger.error('Failed to open {}'.format(str(e)))
-        else:
+        self.set_report_progress_enabled(False)
+
+        with open(in_filename) as fd:
             _stix_logger.info('Parsing {}'.format(in_filename))
             doc = xmltodict.parse(fd.read())
             for e in doc['ns2:ResponsePart']['Response']['PktRawResponse'][
@@ -747,7 +772,7 @@ class StixTCTMParser(StixParameterParser):
             data_hex = packet['raw']
             data_binary = binascii.unhexlify(data_hex)
             data = data_binary[76:]
-            result = self.parse_binary(data, 0, selected_spids, summary)
+            result = self.parse_binary(data, 0)
             if i % freq == 0:
                 _stix_logger.info("{:.0f}% loaded".format(100 * i / num))
             if not result:

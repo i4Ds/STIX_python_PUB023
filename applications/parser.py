@@ -19,7 +19,8 @@ from core import stix_parser
 def main():
     in_filename = ''
     out_filename = ''
-    sel_spid = 0
+    selected_spid = 0
+    selected_service= 0
     verbose = 10
     logfile = None
     file_type='binary'
@@ -35,10 +36,15 @@ def main():
     UTC HEX
     """
     ap.add_argument(
-        "-s",
-        "--sel",
+        "--spid",
         required=False,
-        help="only select packets of the given SPID")
+        help="only select the packets of the given SPID")
+
+    ap.add_argument(
+        "--service",
+        required=False,
+        help="only select the packets of the given service")
+
     ap.add_argument(
         "-v", "--verbose", required=False, help="Logger verbose level")
 
@@ -46,8 +52,8 @@ def main():
 
     args = vars(ap.parse_args())
 
-    if args['sel'] is not None:
-        sel_spid = int(args['sel'])
+    if args['SPID'] is not None:
+        selected_spid = int(args['SPID'])
 
     if args['verbose'] is not None:
         verbose = int(args['verbose'])
@@ -69,12 +75,15 @@ def main():
 
     stix_logger._stix_logger.set_logger(logfile, verbose)
     parser = stix_parser.StixTCTMParser()
-    selected_spids=[]
-    if sel_spid!=0:
-        selected_spids=[sel_spid,]
 
-    parser.parse_file(in_filename, out_filename, selected_spids=selected_spids, 
-            file_type=file_type, comment=comment)
+    selected_spids=[]
+    selected_services=[]
+    if selected_spid!=0:
+        selected_spids=[selected_spid,]
+    if selected_service!=0:
+        selected_services=[selected_service,]
+    parser.set_packet_filter(selected_services, selected_spids)
+    parser.parse_file(in_filename, out_filename,file_type=file_type, comment=comment)
 
 
 if __name__ == '__main__':

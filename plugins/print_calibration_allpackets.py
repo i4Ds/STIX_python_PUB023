@@ -10,7 +10,7 @@ def get_raw(data, name):
 
 def get_calibration_spectra(packet):
     param=packet['parameters']
-    search_res=search(param, 'NIX00159')
+    search_res=get_nodes(param, 'NIX00159')
     if not search_res:
         return []
     num_struct=int(search_res[0]['raw'][0])

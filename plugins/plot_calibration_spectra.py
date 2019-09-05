@@ -3,14 +3,23 @@
 import os
 from ROOT import TGraph, TFile,TCanvas,TH1F, gROOT,TBrowser,gSystem
 from PyQt5 import QtWidgets, QtCore, QtGui
+from data_utils import *
 
 def search(data, name):
+    if not data:
+        return None
     if type(data) is list:
-        return [element for element in data if element['name'] == name]
+        if type(data[0]) is dict:
+            return [element for element in data if element['name'] == name]
+        elif type(data[0]) is tuple: 
+            return [element for element in data if element[0] == name]
     return None
 
 def get_raw(data, name):
-    return [int(item['raw'][0]) for item in data if item['name']==name]
+        if type(data[0]) is dict:
+            return [int(item['raw'][0]) for item in data if item['name']==name]
+        elif type(data[0]) is tuple: 
+            return [int(item[1][0]) for item in data if item[0]==name]
 
 def graph2(x,y, title, xlabel, ylabel):
     n=len(x)
@@ -37,10 +46,17 @@ def hist(k,y, title, xlabel, ylabel):
 
 def get_calibration_spectra(packet):
     param=packet['parameters']
-    search_res=search(param, 'NIX00159')
+    search_res=get_nodes(param, 'NIX00159')
     if not search_res:
         return []
-    num_struct=int(search_res[0]['raw'][0])
+    num_struct=0
+    try:
+        num_struct=int(search_res[0]['raw'][0])
+    except TypeError:
+        num_struct=int(search_res[0][1][0])
+
+
+
     #number of structure
     cal=search_res[0]['children']
     detectors=get_raw(cal, 'NIXD0155')
