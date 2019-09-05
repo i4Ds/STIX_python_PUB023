@@ -25,7 +25,11 @@ class MongoDB(object):
                 self.connect = pymongo.MongoClient(server, port)
             else:
                 self.connect = pymongo.MongoClient(
-                    server, port, username=user, password=pwd, authSource='stix')
+                    server,
+                    port,
+                    username=user,
+                    password=pwd,
+                    authSource='stix')
             self.db = self.connect["stix"]
             self.collection_packets = self.db['packets']
             self.collection_headers = self.db['headers']
@@ -33,16 +37,17 @@ class MongoDB(object):
         except Exception as e:
             raise e
             print('can not connect to mongodb')
+
     def is_connected(self):
         if self.connect:
             return True
         return False
 
-
     def get_headers(self, run_id):
         if self.collection_headers:
-            cursor = self.collection_headers.find(
-                {'run_id': int(run_id)}).sort('_id', 1)
+            cursor = self.collection_headers.find({
+                'run_id': int(run_id)
+            }).sort('_id', 1)
             data = [x for x in cursor]
             return data
         else:
@@ -84,9 +89,8 @@ class MongoDB(object):
 
     def get_last_run_packet(self):
         if self.collection_runs:
-            last_run_id = (
-                self.collection_runs.find().sort(
-                    '_id', -1).limit(1)[0]['_id'])
+            last_run_id = (self.collection_runs.find().sort(
+                '_id', -1).limit(1)[0]['_id'])
             self.get_packet(last_run_id)
 
     def get_runs(self):

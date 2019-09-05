@@ -17,7 +17,9 @@ class Ui_MainWindow(object):
         MainWindow.setMaximumSize(QtCore.QSize(323232, 323232))
         MainWindow.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/Icons/images/app.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(
+            QtGui.QPixmap(":/Icons/images/app.svg"), QtGui.QIcon.Normal,
+            QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -27,10 +29,12 @@ class Ui_MainWindow(object):
         self.tabWidget.setBaseSize(QtCore.QSize(0, 0))
         self.tabWidget.setObjectName("tabWidget")
         self.packetTab = QtWidgets.QWidget()
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                           QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.packetTab.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.packetTab.sizePolicy().hasHeightForWidth())
         self.packetTab.setSizePolicy(sizePolicy)
         self.packetTab.setObjectName("packetTab")
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout(self.packetTab)
@@ -45,7 +49,8 @@ class Ui_MainWindow(object):
         self.packetTreeWidget.setMinimumSize(QtCore.QSize(0, 0))
         self.packetTreeWidget.setMaximumSize(QtCore.QSize(1000000, 16777215))
         self.packetTreeWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.packetTreeWidget.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
+        self.packetTreeWidget.setSizeAdjustPolicy(
+            QtWidgets.QAbstractScrollArea.AdjustToContents)
         self.packetTreeWidget.setWordWrap(False)
         self.packetTreeWidget.setObjectName("packetTreeWidget")
         self.packetTreeWidget.headerItem().setText(0, "Timestamp")
@@ -63,10 +68,12 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2.addWidget(self.splitter_3)
         self.tabWidget.addTab(self.packetTab, "")
         self.plotTab = QtWidgets.QWidget()
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding,
+                                           QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.plotTab.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.plotTab.sizePolicy().hasHeightForWidth())
         self.plotTab.setSizePolicy(sizePolicy)
         self.plotTab.setObjectName("plotTab")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.plotTab)
@@ -89,7 +96,9 @@ class Ui_MainWindow(object):
         self.styleEdit.setMaximumSize(QtCore.QSize(40, 16777215))
         self.styleEdit.setObjectName("styleEdit")
         self.gridLayout.addWidget(self.styleEdit, 0, 9, 1, 1)
-        spacerItem = QtWidgets.QSpacerItem(25, 17, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        spacerItem = QtWidgets.QSpacerItem(25, 17,
+                                           QtWidgets.QSizePolicy.Expanding,
+                                           QtWidgets.QSizePolicy.Minimum)
         self.gridLayout.addItem(spacerItem, 0, 10, 1, 1)
         self.label_4 = QtWidgets.QLabel(self.plotTab)
         self.label_4.setObjectName("label_4")
@@ -162,9 +171,11 @@ class Ui_MainWindow(object):
         self.dockWidget.setObjectName("dockWidget")
         self.dockWidgetContents_2 = QtWidgets.QWidget()
         self.dockWidgetContents_2.setObjectName("dockWidgetContents_2")
-        self.horizontalLayout_3 = QtWidgets.QHBoxLayout(self.dockWidgetContents_2)
+        self.horizontalLayout_3 = QtWidgets.QHBoxLayout(
+            self.dockWidgetContents_2)
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
-        self.statusListWidget = QtWidgets.QListWidget(self.dockWidgetContents_2)
+        self.statusListWidget = QtWidgets.QListWidget(
+            self.dockWidgetContents_2)
         self.statusListWidget.setObjectName("statusListWidget")
         self.horizontalLayout_3.addWidget(self.statusListWidget)
         self.dockWidget.setWidget(self.dockWidgetContents_2)
@@ -188,44 +199,60 @@ class Ui_MainWindow(object):
         self.actionLog.setObjectName("actionLog")
         self.actionPlot = QtWidgets.QAction(MainWindow)
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap(":/Icons/images/graph.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon1.addPixmap(
+            QtGui.QPixmap(":/Icons/images/graph.svg"), QtGui.QIcon.Normal,
+            QtGui.QIcon.Off)
         self.actionPlot.setIcon(icon1)
         self.actionPlot.setObjectName("actionPlot")
         self.actionPaste = QtWidgets.QAction(MainWindow)
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap(":/Icons/images/paste.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon2.addPixmap(
+            QtGui.QPixmap(":/Icons/images/paste.svg"), QtGui.QIcon.Normal,
+            QtGui.QIcon.Off)
         self.actionPaste.setIcon(icon2)
         self.actionPaste.setObjectName("actionPaste")
         self.actionLoadMongodb = QtWidgets.QAction(MainWindow)
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap(":/Icons/images/mongodb.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon3.addPixmap(
+            QtGui.QPixmap(":/Icons/images/mongodb.svg"), QtGui.QIcon.Normal,
+            QtGui.QIcon.Off)
         self.actionLoadMongodb.setIcon(icon3)
         self.actionLoadMongodb.setObjectName("actionLoadMongodb")
         self.actionCopy = QtWidgets.QAction(MainWindow)
         icon4 = QtGui.QIcon()
-        icon4.addPixmap(QtGui.QPixmap(":/Icons/images/copy.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon4.addPixmap(
+            QtGui.QPixmap(":/Icons/images/copy.svg"), QtGui.QIcon.Normal,
+            QtGui.QIcon.Off)
         self.actionCopy.setIcon(icon4)
         self.actionCopy.setObjectName("actionCopy")
         self.actionConnectTSC = QtWidgets.QAction(MainWindow)
         icon5 = QtGui.QIcon()
-        icon5.addPixmap(QtGui.QPixmap(":/Icons/images/link.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon5.addPixmap(
+            QtGui.QPixmap(":/Icons/images/link.svg"), QtGui.QIcon.Normal,
+            QtGui.QIcon.Off)
         self.actionConnectTSC.setIcon(icon5)
         self.actionConnectTSC.setObjectName("actionConnectTSC")
         self.actionPacketFilter = QtWidgets.QAction(MainWindow)
         icon6 = QtGui.QIcon()
-        icon6.addPixmap(QtGui.QPixmap(":/Icons/images/filter.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon6.addPixmap(
+            QtGui.QPixmap(":/Icons/images/filter.svg"), QtGui.QIcon.Normal,
+            QtGui.QIcon.Off)
         self.actionPacketFilter.setIcon(icon6)
         self.actionPacketFilter.setObjectName("actionPacketFilter")
         self.actionPlugins = QtWidgets.QAction(MainWindow)
         icon7 = QtGui.QIcon()
-        icon7.addPixmap(QtGui.QPixmap(":/Icons/images/plugin.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon7.addPixmap(
+            QtGui.QPixmap(":/Icons/images/plugin.svg"), QtGui.QIcon.Normal,
+            QtGui.QIcon.Off)
         self.actionPlugins.setIcon(icon7)
         self.actionPlugins.setObjectName("actionPlugins")
         self.actionOnlineHelp = QtWidgets.QAction(MainWindow)
         self.actionOnlineHelp.setObjectName("actionOnlineHelp")
         self.actionViewBinary = QtWidgets.QAction(MainWindow)
         icon8 = QtGui.QIcon()
-        icon8.addPixmap(QtGui.QPixmap(":/Icons/images/binary.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon8.addPixmap(
+            QtGui.QPixmap(":/Icons/images/binary.svg"), QtGui.QIcon.Normal,
+            QtGui.QIcon.Off)
         self.actionViewBinary.setIcon(icon8)
         self.actionViewBinary.setObjectName("actionViewBinary")
         self.menu_File.addAction(self.actionOpen)
@@ -275,30 +302,47 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "STIX data parser and viewer"))
-        self.packetTreeWidget.headerItem().setText(1, _translate("MainWindow", "Description"))
-        self.paramTreeWidget.headerItem().setText(1, _translate("MainWindow", "Description"))
-        self.paramTreeWidget.headerItem().setText(2, _translate("MainWindow", "Raw"))
-        self.paramTreeWidget.headerItem().setText(3, _translate("MainWindow", "Eng. Value"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.packetTab), _translate("MainWindow", "Packets"))
-        self.plotTab.setToolTip(_translate("MainWindow", "plot parameters\n"
-""))
-        self.xaxisComboBox.setItemText(0, _translate("MainWindow", "Parameter repeat # as X"))
-        self.xaxisComboBox.setItemText(1, _translate("MainWindow", "Timestamp - T0 as X"))
-        self.xaxisComboBox.setItemText(2, _translate("MainWindow", "Histogram"))
+        MainWindow.setWindowTitle(
+            _translate("MainWindow", "STIX data parser and viewer"))
+        self.packetTreeWidget.headerItem().setText(
+            1, _translate("MainWindow", "Description"))
+        self.paramTreeWidget.headerItem().setText(
+            1, _translate("MainWindow", "Description"))
+        self.paramTreeWidget.headerItem().setText(
+            2, _translate("MainWindow", "Raw"))
+        self.paramTreeWidget.headerItem().setText(
+            3, _translate("MainWindow", "Eng. Value"))
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.packetTab),
+            _translate("MainWindow", "Packets"))
+        self.plotTab.setToolTip(
+            _translate("MainWindow", "plot parameters\n"
+                       ""))
+        self.xaxisComboBox.setItemText(
+            0, _translate("MainWindow", "Parameter repeat # as X"))
+        self.xaxisComboBox.setItemText(
+            1, _translate("MainWindow", "Timestamp - T0 as X"))
+        self.xaxisComboBox.setItemText(2, _translate("MainWindow",
+                                                     "Histogram"))
         self.label.setText(_translate("MainWindow", "Data source:"))
         self.label_2.setText(_translate("MainWindow", "In"))
         self.styleEdit.setText(_translate("MainWindow", "-"))
         self.label_4.setText(_translate("MainWindow", "Type:"))
-        self.comboBox.setItemText(0, _translate("MainWindow", "the same packet"))
-        self.comboBox.setItemText(1, _translate("MainWindow", "all loaded packets"))
+        self.comboBox.setItemText(0, _translate("MainWindow",
+                                                "the same packet"))
+        self.comboBox.setItemText(
+            1, _translate("MainWindow", "all loaded packets"))
         self.label_3.setText(_translate("MainWindow", "Curve Style:"))
         self.plotButton.setText(_translate("MainWindow", "Plot"))
         self.savePlotButton.setText(_translate("MainWindow", "Save"))
-        self.dataTypeComboBox.setItemText(0, _translate("MainWindow", "Raw values"))
-        self.dataTypeComboBox.setItemText(1, _translate("MainWindow", "Engineering values"))
+        self.dataTypeComboBox.setItemText(
+            0, _translate("MainWindow", "Raw values"))
+        self.dataTypeComboBox.setItemText(
+            1, _translate("MainWindow", "Engineering values"))
         self.exportButton.setText(_translate("MainWindow", "Export data"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.plotTab), _translate("MainWindow", "Plot"))
+        self.tabWidget.setTabText(
+            self.tabWidget.indexOf(self.plotTab),
+            _translate("MainWindow", "Plot"))
         self.menu_File.setTitle(_translate("MainWindow", "&File"))
         self.menu_Help.setTitle(_translate("MainWindow", "&Help"))
         self.menuSetting.setTitle(_translate("MainWindow", "&Settings"))
@@ -317,16 +361,23 @@ class Ui_MainWindow(object):
         self.actionLog.setText(_translate("MainWindow", "Show Log"))
         self.actionPlot.setText(_translate("MainWindow", "&Plot"))
         self.actionPaste.setText(_translate("MainWindow", "P&aste"))
-        self.actionPaste.setToolTip(_translate("MainWindow", "Read raw data from the clipboard"))
-        self.actionLoadMongodb.setText(_translate("MainWindow", "Connect MonogoDB"))
+        self.actionPaste.setToolTip(
+            _translate("MainWindow", "Read raw data from the clipboard"))
+        self.actionLoadMongodb.setText(
+            _translate("MainWindow", "Connect MonogoDB"))
         self.actionCopy.setText(_translate("MainWindow", "&Copy"))
-        self.actionConnectTSC.setText(_translate("MainWindow", "Connect to TSC"))
-        self.actionPacketFilter.setText(_translate("MainWindow", "Packet Filter"))
+        self.actionConnectTSC.setText(
+            _translate("MainWindow", "Connect to TSC"))
+        self.actionPacketFilter.setText(
+            _translate("MainWindow", "Packet Filter"))
         self.actionPlugins.setText(_translate("MainWindow", "Plugin manager"))
         self.actionOnlineHelp.setText(_translate("MainWindow", "Online help"))
-        self.actionViewBinary.setText(_translate("MainWindow", "Packet binary data"))
-        self.actionViewBinary.setIconText(_translate("MainWindow", "Binary data viewer"))
-        self.actionViewBinary.setToolTip(_translate("MainWindow", "Binary data viewer"))
+        self.actionViewBinary.setText(
+            _translate("MainWindow", "Packet binary data"))
+        self.actionViewBinary.setIconText(
+            _translate("MainWindow", "Binary data viewer"))
+        self.actionViewBinary.setToolTip(
+            _translate("MainWindow", "Binary data viewer"))
 
 
 import mainwindow_rc5

@@ -10,8 +10,12 @@ import os
 import pprint
 import sqlite3
 import sys
-IDB_LOCATIONS= ['idb/idb.sqlite','../idb/idb.sqlite', '../idb/idb.db', 
-    '../idb.sqlite', '../idb.db']
+IDB_LOCATIONS = [
+    'idb/idb.sqlite', '../idb/idb.sqlite', '../idb/idb.db', '../idb.sqlite',
+    '../idb.db'
+]
+
+
 def find_idb(filename):
     if filename:
         if os.path.exists(filename):
@@ -20,6 +24,7 @@ def find_idb(filename):
         if os.path.exists(fname):
             return fname
     return None
+
 
 class IDB:
     def __init__(self, filename=''):
@@ -41,8 +46,9 @@ class IDB:
             return True
         else:
             return False
-    def reload(self,filename):
-        self.filename=filename
+
+    def reload(self, filename):
+        self.filename = filename
         self.close()
         if self.filename:
             self.connect_database(self.filename)
@@ -158,8 +164,9 @@ class IDB:
         if rows:
             return rows[0]
         else:
-            print("No information in IDB for service {}, service_subtype {}  and pi1_val: {} "
-                    .format(packet_type, packet_subtype, pi1_val))
+            print(
+                "No information in IDB for service {}, service_subtype {}  and pi1_val: {} "
+                .format(packet_type, packet_subtype, pi1_val))
             return None
 
     def get_s2k_parameter_types(self, ptc, pfc):
@@ -205,16 +212,17 @@ class IDB:
             return res
 
     def get_telecommand_info(self,
-                                        service_type,
-                                        service_subtype,
-                                        command_subtype=-1):
+                             service_type,
+                             service_subtype,
+                             command_subtype=-1):
         """
             get TC description
         """
         sql = (
             # ,CCF_TYPE, CCF_STYPE, CCF_APID,'
             'select  CCF_CNAME, CCF_DESCR, CCF_DESCR2, '
-            ' CCF_NPARS from CCF where CCF_TYPE=? and CCF_STYPE =? order by CCF_CNAME asc')
+            ' CCF_NPARS from CCF where CCF_TYPE=? and CCF_STYPE =? order by CCF_CNAME asc'
+        )
         res = self.execute(sql, (service_type, service_subtype), 'dict')
         # if command_subtype >= 0 and len(res) > 1:
         # if False:
@@ -253,11 +261,12 @@ class IDB:
             res = self.execute(sql, (spid, ), 'dict')
             self.parameter_structures[spid] = res
             return res
+
     def tcparam_interpret(self, ref, raw):
         """
          interpret telecommand parameter by using the table PAS  
         """
-        sql= 'select PAS_ALTXT from PAS where PAS_NUMBR=? and PAS_ALVAL=?'
+        sql = 'select PAS_ALTXT from PAS where PAS_NUMBR=? and PAS_ALVAL=?'
         args = (ref, raw)
         rows = self.execute(sql, args)
         try:
@@ -266,6 +275,7 @@ class IDB:
             return ''
         else:
             return ''
+
     def get_calibration_curve(self, pcf_curtx):
         """ calibration curve defined in CAP database """
         if pcf_curtx in self.calibration_curves:
@@ -277,6 +287,7 @@ class IDB:
             rows = self.execute(sql, args)
             self.calibration_curves[pcf_curtx] = rows
             return rows
+
     def textual_interpret(self, pcf_curtx, raw_value):
         if (pcf_curtx, raw_value) in self.textual_parameter_LUT:
             #build the lookup table
@@ -290,6 +301,7 @@ class IDB:
             self.textual_parameter_LUT[(pcf_curtx, raw_value)] = rows
             # lookup table
             return rows
+
     def get_calibration_polynomial(self, pcf_curtx):
         if pcf_curtx in self.calibration_polynomial:
             return self.calibration_polynomial[pcf_curtx]
@@ -300,6 +312,7 @@ class IDB:
             rows = self.execute(sql, args)
             self.calibration_polynomial[pcf_curtx] = rows
             return rows
+
 
 _stix_idb = IDB()
 

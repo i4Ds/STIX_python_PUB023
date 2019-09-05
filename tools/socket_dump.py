@@ -12,7 +12,6 @@ import binascii
 
 HOST = 'localhost'  # Standard loopback interface address (localhost)
 PORTS = [9000,9001] # Port to listen on (non-privileged ports are > 1023)
-SPEARATOR='<-->'
 def connect_socket(host,port):
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -37,21 +36,22 @@ def run(filename):
         try:
             buf=b''
             while True:
-                data = s.recv(1024)
-                if not data:
-                    break
-                buf += data
-                if buf.endswith(b'<-->'):
-                    data2=buf.split()
-                    if buf[0:9] == 'TM_PACKET'.encode():
-                        data_hex=data2[-1][0:-4]
-                        data_binary = binascii.unhexlify(data_hex)
-                        f.write(data_binary)
-                        num += 1
-                        print('Received: TM ({}, {})(SPID {})  at {} '.format(data2[3].decode(), 
-                            data2[4].decode(), data2[1].decode(),data2[2].decode()))
+                while True:
+                    data = s.recv(1)
+                    buf += data
+                    if data==b'>':
+                        if buf.endswith(b'<-->'):
+                            break
+                data2=buf.split()
+                if buf[0:9] == 'TM_PACKET'.encode():
+                    data_hex=data2[-1][0:-4]
+                    data_binary = binascii.unhexlify(data_hex)
+                    f.write(data_binary)
+                    num += 1
+                    print('Received: TM ({}, {})(SPID {})  at {} '.format(data2[3].decode(), 
+                        data2[4].decode(), data2[1].decode(),data2[2].decode()))
 
-                    buf=b''
+                buf=b''
         except KeyboardInterrupt:
             f.close()
             print('{} packets written to {}'.format(num, filename))
@@ -73,3 +73,5 @@ if __name__=='__main__':
     else:
         filename=sys.argv[1]
     run(filename)
+
+

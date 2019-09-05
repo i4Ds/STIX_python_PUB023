@@ -33,7 +33,8 @@ class StixPickleWriter:
             'comment': comment,
             'Date': datetime.datetime.now().isoformat()
         }
-    def write_one(self,packet):
+
+    def write_one(self, packet):
         pass
 
     def write_all(self, packets):
@@ -42,42 +43,49 @@ class StixPickleWriter:
             pickle.dump(data, self.fout)
             self.fout.close()
 
+
 class StixBinaryWriter:
     def __init__(self, filename):
         self.filename = filename
         self.packet_counter = 0
         self.fout = None
         self.packets = []
-        self.num_success=0
+        self.num_success = 0
         try:
-            self.fout=open(self.filename, 'wb')
+            self.fout = open(self.filename, 'wb')
         except IOError:
-            _stix_logger.error('IO error. Can not create file:{}'.format(
-                filename))
+            _stix_logger.error(
+                'IO error. Can not create file:{}'.format(filename))
+
     def register_run(self, in_filename, filesize=0, comment=''):
         pass
         #not write them to binary file
     def get_num_sucess(self):
         return self.num_success
-    def write_one(self,packet):
+
+    def write_one(self, packet):
         if self.fout:
             try:
-                raw=packet['bin']
+                raw = packet['bin']
                 self.fout.write(raw)
                 self.num_success += 1
             except KeyError:
                 _stix_logger.warn('binary data not available')
+
     def write_all(self, packets):
         if self.fout:
             for packet in packets:
                 self.write_one(packet)
 
 
-
-
 class StixMongoWriter:
     """write data to   MongoDB"""
-    def __init__(self, server='localhost', port=27017, username='', password=''):
+
+    def __init__(self,
+                 server='localhost',
+                 port=27017,
+                 username='',
+                 password=''):
 
         self.packets = []
         self.db = None
@@ -151,6 +159,7 @@ class StixMongoWriter:
             'date': datetime.datetime.now().isoformat(),
             'filesize': filesize
         }
+
     def write_all(self, packets):
         if self.db and packets:
             self.run_info['start'] = packets[0]['header']['time']
@@ -173,7 +182,5 @@ class StixMongoWriter:
                 result = self.collection_packets.insert_one(packet)
                 self.current_packet_id += 1
 
-    def write_one(self,packet):
+    def write_one(self, packet):
         pass
-
-

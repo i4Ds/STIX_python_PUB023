@@ -14,7 +14,7 @@ import tempfile
 import webbrowser
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-PLUGIN_TEMPLATE="""
+PLUGIN_TEMPLATE = """
 #!/usr/bin/python3
 #plugin template
 class Plugin:
@@ -30,25 +30,25 @@ class Plugin:
             print(str(packet))
 """
 
+
 def createTemplate(path):
-    filename='Unititled_{}.py'
+    filename = 'Unititled_{}.py'
     if path:
-        filename=os.path.join(path,'Untitled_{}.py')
-    counter=0
+        filename = os.path.join(path, 'Untitled_{}.py')
+    counter = 0
     while os.path.isfile(filename.format(counter)):
         counter += 1
-    fname=filename.format(counter)
+    fname = filename.format(counter)
     try:
-        f=open(fname,'w')
+        f = open(fname, 'w')
         f.write(PLUGIN_TEMPLATE)
         f.close()
     except IOError:
-        f=tempfile.NamedTemporaryFile(mode='w', suffix='.py',delete=False) 
+        f = tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False)
         f.write(PLUGIN_TEMPLATE)
-        fname=f.name
+        fname = f.name
         f.close()
     return fname
-    
 
 
 class Ui_Dialog(object):
@@ -78,13 +78,16 @@ class Ui_Dialog(object):
         self.editPushButton = QtWidgets.QPushButton(Dialog)
         self.editPushButton.setObjectName("editPushButton")
         self.gridLayout.addWidget(self.editPushButton, 3, 0, 1, 2)
-        self.newPushButton= QtWidgets.QPushButton(Dialog)
+        self.newPushButton = QtWidgets.QPushButton(Dialog)
         self.newPushButton.setObjectName("newPushButton")
         self.gridLayout.addWidget(self.newPushButton, 3, 2, 1, 1)
-        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        spacerItem = QtWidgets.QSpacerItem(40, 20,
+                                           QtWidgets.QSizePolicy.Expanding,
+                                           QtWidgets.QSizePolicy.Minimum)
         self.gridLayout.addItem(spacerItem, 3, 3, 1, 1)
         self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Apply|QtWidgets.QDialogButtonBox.Cancel)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Apply
+                                          | QtWidgets.QDialogButtonBox.Cancel)
         self.buttonBox.setObjectName("buttonBox")
         self.gridLayout.addWidget(self.buttonBox, 3, 4, 1, 2)
         self.pluginListWidget = QtWidgets.QListWidget(Dialog)
@@ -103,33 +106,34 @@ class Ui_Dialog(object):
         self.buttonBox.rejected.connect(Dialog.reject)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
-
-        self.Dialog=Dialog
+        self.Dialog = Dialog
 
         self.folderToolButton.clicked.connect(self.changeFolder)
         self.buttonBox.rejected.connect(Dialog.reject)
-        self.applyButton=self.buttonBox.button(QtWidgets.QDialogButtonBox.Apply)
+        self.applyButton = self.buttonBox.button(
+            QtWidgets.QDialogButtonBox.Apply)
         self.applyButton.clicked.connect(self.apply)
         self.editPushButton.clicked.connect(self.edit)
         self.newPushButton.clicked.connect(self.createNew)
 
-        self.packets=None
-        self.current_row=0
-    def setData(self, packets,row):
-        self.packets=packets
-        self.current_row=row
+        self.packets = None
+        self.current_row = 0
+
+    def setData(self, packets, row):
+        self.packets = packets
+        self.current_row = row
 
     def apply(self):
         self.textBrowser.clear()
         try:
-            fname=self.pluginListWidget.currentItem().text()
+            fname = self.pluginListWidget.currentItem().text()
         except AttributeError:
             return
 
         if not fname:
-            return 
-        path=self.getPluginLocation()
-        abs_fname=os.path.join(path,fname)
+            return
+        path = self.getPluginLocation()
+        abs_fname = os.path.join(path, fname)
         try:
             name, ext = os.path.splitext(fname)
             sys.path.insert(0, path)
@@ -137,23 +141,21 @@ class Ui_Dialog(object):
             importlib.reload(mod)
             sys.path.pop(0)
             plugin = mod.Plugin(self.packets, self.current_row)
-            old_stdout=sys.stdout
-            print_out=StringIO()
-            sys.stdout=print_out
+            old_stdout = sys.stdout
+            print_out = StringIO()
+            sys.stdout = print_out
             plugin.run()
-            msg=print_out.getvalue()
-            sys.stdout=old_stdout
+            msg = print_out.getvalue()
+            sys.stdout = old_stdout
             if msg:
                 self.textBrowser.setText(msg)
         except Exception as e:
             self.textBrowser.setText(str(e))
 
-
-        
     def edit(self):
-        path=self.getPluginLocation()
+        path = self.getPluginLocation()
         try:
-            fname=self.pluginListWidget.currentItem().text()
+            fname = self.pluginListWidget.currentItem().text()
         except AttributeError:
             msg = QtWidgets.QMessageBox()
             msg.setIcon(QtWidgets.QMessageBox.Critical)
@@ -164,45 +166,45 @@ class Ui_Dialog(object):
             retval = msg.exec_()
             return
 
-        abs_fname=os.path.join(path,fname)
+        abs_fname = os.path.join(path, fname)
         webbrowser.open(abs_fname)
 
     def createNew(self):
         try:
-            folder=self.getPluginLocation()
-            new_filename=createTemplate(folder)
+            folder = self.getPluginLocation()
+            new_filename = createTemplate(folder)
             webbrowser.open(new_filename)
         except Exception as e:
             print(e)
         self.updatePluginList()
 
     def changeFolder(self, default_folder=''):
-        folder=default_folder
+        folder = default_folder
         if not folder:
-            folder=self.getPluginLocation()
+            folder = self.getPluginLocation()
             if not folder:
-                folder=os.path.expanduser('~')
-        loc= str(QtWidgets.QFileDialog.getExistingDirectory(
-            self.Dialog,
-            "Open plugin folder",
-            folder,
-            QtWidgets.QFileDialog.ShowDirsOnly
-            ))
+                folder = os.path.expanduser('~')
+        loc = str(
+            QtWidgets.QFileDialog.getExistingDirectory(
+                self.Dialog, "Open plugin folder", folder,
+                QtWidgets.QFileDialog.ShowDirsOnly))
         self.setPluginLocation(loc)
 
-    def setPluginLocation(self,loc):
+    def setPluginLocation(self, loc):
         self.folderLineEdit.setText(loc)
         self.updatePluginList()
+
     def getPluginLocation(self):
         return self.folderLineEdit.text()
+
     def updatePluginList(self):
         self.pluginListWidget.clear()
-        path=self.folderLineEdit.text()
+        path = self.folderLineEdit.text()
         try:
             for f in os.listdir(path):
                 fname, ext = os.path.splitext(f)
                 if ext == '.py':
-                    self.pluginListWidget.addItem(fname+'.py')
+                    self.pluginListWidget.addItem(fname + '.py')
         except:
             pass
 
@@ -216,5 +218,3 @@ class Ui_Dialog(object):
         self.editPushButton.setText(_translate("Dialog", "Edit"))
         self.newPushButton.setText(_translate("Dialog", "New"))
         self.label_3.setText(_translate("Dialog", "Outputs:"))
-
-

@@ -26,6 +26,7 @@ from core import stix_context
 _context_format = ['B', '>H', 'BBB', '>I']
 _unsigned_format = ['B', '>H', 'BBB', '>I', 'BBBBB', '>IH']
 _signed_format = ['b', '>h', 'bbb', '>i', 'bbbbb', '>ih']
+_parameter_default_type = 'tuple'
 
 #binary structure used to unpack binaryarray
 _stix_idb = idb._stix_idb
@@ -34,11 +35,15 @@ _stix_logger = stix_logger._stix_logger
 
 def get_bits(data, offset, length):
     return (data >> offset) & ((1 << length) - 1)
+
+
 def unpack_integer(raw, structure):
     result = {}
     for name, bits in structure.items():
         result[name] = get_bits(raw, bits[0], bits[1])
     return result
+
+
 def get_from_bytearray(buf, i, width=1):
     data = buf[i:i + width]
     length = len(data)
@@ -46,6 +51,8 @@ def get_from_bytearray(buf, i, width=1):
         return False, i + length, data
     else:
         return True, i + length, data
+
+
 def find_next_header(buf, i):
     length = len(buf)
     while i < length:
@@ -59,12 +66,13 @@ def find_next_header(buf, i):
 
 class StixParameterNode:
     """ define decoded parameter structure """
+
     def __init__(self,
                  name='',
                  raw='',
                  eng='',
                  children=None,
-                 node_type='tuple'):
+                 node_type=_parameter_default_type):
         #node_type can be tuple or dict
         self._name = name
         self._raw = raw
@@ -77,8 +85,10 @@ class StixParameterNode:
     def set_node_type(self, node_type):
         """can be dictionary or tuple"""
         self._node_type = node_type
+
     def get_node_type(self):
         return self._node_type
+
     def get(self, item=None):
         if item == 'name':
             return self._name
@@ -92,6 +102,7 @@ class StixParameterNode:
             return _stix_idb.get_PCF_description(param_name)
         else:
             return self.get_node(self._node_type)
+
     def get_node(self, node_type):
         if node_type == 'tuple':
             return (self._name, self._raw, self._eng, self._children)
@@ -160,8 +171,6 @@ class StixParameterNode:
         return self.get_node(self._node_type)
 
 
-
-
 class StixParameterParser:
     def __init__(self):
         pass
@@ -186,18 +195,18 @@ class StixParameterParser:
         raw_bin = in_data[int(offset):int(offset + nbytes)]
         if nbytes != len(raw_bin):
             _stix_logger.error(
-                    'Parameter {} length mismatch.  Expect: {} real: {}'
-                .format(param_name, nbytes, len(raw_bin)))
+                'Parameter {} length mismatch.  Expect: {} real: {}'.format(
+                    param_name, nbytes, len(raw_bin)))
             return None
         bin_struct = str(nbytes) + 's'
-        if param_type == 'U' and  nbytes <= 6:
-                bin_struct = _unsigned_format[nbytes - 1]
+        if param_type == 'U' and nbytes <= 6:
+            bin_struct = _unsigned_format[nbytes - 1]
         elif param_type == 'I' and nbytes <= 6:
-                bin_struct = _signed_format[nbytes - 1]
+            bin_struct = _signed_format[nbytes - 1]
         elif param_type == 'T':
             bin_struct = '>IH'
-        elif param_type=='CONTEXT' and nbytes<=4:
-            bin_struct=_context_format[nbytes-1]
+        elif param_type == 'CONTEXT' and nbytes <= 4:
+            bin_struct = _context_format[nbytes - 1]
         #elif param_type == 'O':
         #    bin_struct = str(nbytes) + 's'
         results = ()
@@ -215,7 +224,8 @@ class StixParameterParser:
         else:
             results = raw
         return results
-    def convert_raw_to_eng(self,param_name, ref, param_type, raw, TMTC='TM'):
+
+    def convert_raw_to_eng(self, param_name, ref, param_type, raw, TMTC='TM'):
         """convert parameter raw values to engineer values"""
         """
         Inputs:
@@ -239,12 +249,12 @@ class StixParameterParser:
         raw_value = raw[0]
         if TMTC == 'TC':
             return _stix_idb.tcparam_interpret(ref, raw[0])
-        elif  param_name == 'NIX00101':
+        elif param_name == 'NIX00101':
             #conversion based on the equation in SIRIUS source code
-            return (raw_value*1.1*3.0/4095-1.281)*213.17
+            return (raw_value * 1.1 * 3.0 / 4095 - 1.281) * 213.17
         elif param_name == 'NIX00102':
             #temperature std. deviations
-            return (raw_value*1.1*3.0/4095)*213.17
+            return (raw_value * 1.1 * 3.0 / 4095) * 213.17
         elif not ref:
             if param_type == 'T':  # timestamp
                 #coarse time + fine time/2^16
@@ -286,7 +296,6 @@ class StixParameterParser:
             _stix_logger.warn('No calibration factors for {}'.format(ref))
             return ''
         return ''
-    
 
     def parse_one_parameter(self, app_data, par, calibration=True, TMTC='TM'):
         s2k_LUT = _stix_idb.get_s2k_parameter_types(par['ptc'], par['pfc'])
@@ -302,9 +311,9 @@ class StixParameterParser:
         if not calibration:
             eng_values = ''
         else:
-            eng_values = self.convert_raw_to_eng(par['name'], par['cal_ref'], param_type,
-                                                 raw_values, TMTC)
-        return StixParameterNode(par['name'],raw_values,eng_values).node
+            eng_values = self.convert_raw_to_eng(par['name'], par['cal_ref'],
+                                                 param_type, raw_values, TMTC)
+        return StixParameterNode(par['name'], raw_values, eng_values).node
 
 
 class StixVariablePacketParser(StixParameterParser):
@@ -425,15 +434,17 @@ class StixVariablePacketParser(StixParameterParser):
                 if not node or self.current_offset > len(self.source_data):
                     return
                 result = self.parse_parameter(node)
-                result_node=StixParameterNode()
+                result_node = StixParameterNode()
                 result_node.from_node(result)
                 if node['children']:
-                    raw=result_node.get('raw')
+                    raw = result_node.get('raw')
                     if raw:
                         node['counter'] = raw[0]
                         self.walk(node, result_node.children)
                     else:
-                        _stix_logger.warn('A repeater {} is not decoded.'.format(node['name']))
+                        _stix_logger.warn(
+                            'A repeater {} is not decoded.'.format(
+                                node['name']))
                 param.append(result_node.node)
 
     def parse_parameter(self, node):
@@ -469,81 +480,94 @@ class StixVariablePacketParser(StixParameterParser):
         return self.parse_one_parameter(
             self.source_data, par, calibration, TMTC='TM')
 
+
 class StixContextParser(StixParameterParser):
     '''Context file parser
     '''
+
     def __init__(self):
         pass
-    def parse(self,buf):
+
+    def parse(self, buf):
         #based on the FSW source code  ContextMgmt
-        
-        offset=0
-        parameters=[]
-        param_id=0
+
+        offset = 0
+        parameters = []
+        param_id = 0
         for name, width in stix_context._context_parameter_bit_size.items():
-            offset_bytes=int(offset/8)
-            offset_bits=offset%8
-            children=[]
-            raw_values=None
+            offset_bytes = int(offset / 8)
+            offset_bits = offset % 8
+            children = []
+            raw_values = None
             if name in stix_context._asic_registers:
-                children=self.parse_asic_registers(buf,offset)
-                raw_values=(len(children),) #as a repeater
+                children = self.parse_asic_registers(buf, offset)
+                raw_values = (len(children), )  #as a repeater
             else:
-                raw_values=self.decode(buf, 'CONTEXT',offset_bytes, offset_bits,width)
+                raw_values = self.decode(buf, 'CONTEXT', offset_bytes,
+                                         offset_bits, width)
             if raw_values:
-                param=StixParameterNode(name, raw_values,'',children)
+                param = StixParameterNode(name, raw_values, '', children)
                 parameters.append(param.node)
-            offset+= width
-            param_id+=1
+            offset += width
+            param_id += 1
         return parameters
 
-    def parse_asic_registers(self,buf,offset):
-        parameters=[]
+    def parse_asic_registers(self, buf, offset):
+        parameters = []
         for name, width in stix_context._context_register_bit_size.items():
-            offset_bytes=int(offset/8)
-            offset_bits=offset%8
-            raw_values=self.decode(buf, 'CONTEXT',offset_bytes, offset_bits,width)
+            offset_bytes = int(offset / 8)
+            offset_bits = offset % 8
+            raw_values = self.decode(buf, 'CONTEXT', offset_bytes, offset_bits,
+                                     width)
             offset += width
             if raw_values:
-                param=StixParameterNode(stix_context._context_register_desc[name],raw_values)
+                param = StixParameterNode(
+                    stix_context._context_register_desc[name], raw_values)
                 parameters.append(param.node)
         return parameters
+
 
 class StixTCTMParser(StixParameterParser):
     def __init__(self):
         self.vp_parser = StixVariablePacketParser()
-        self.context_parser=StixContextParser()
+        self.context_parser = StixContextParser()
 
-        self.selected_services=[]
-        self.selected_spids=[]
-        self.store_binary=True
+        self.selected_services = []
+        self.selected_spids = []
+        self.store_binary = True
 
-        self.num_tm=0
-        self.num_tc=0
-        self.num_bad_bytes=0
-        self.num_bad_headers=0
-        self.total_length=0
-        self.num_filtered=0
-        self.report_progress_enabled=True
+        self.num_tm = 0
+        self.num_tc = 0
+        self.num_bad_bytes = 0
+        self.num_bad_headers = 0
+        self.total_length = 0
+        self.num_filtered = 0
+        self.report_progress_enabled = True
         #counters
-    def set_report_progress_enabled(self,status):
-        self.report_progress_enabled=status
-    def set_packet_filter(self,selected_services=[], selected_spids=[]):
+    def set_report_progress_enabled(self, status):
+        self.report_progress_enabled = status
+
+    def set_packet_filter(self, selected_services=[], selected_spids=[]):
         """ only decoded packets with the given services or spids
         """
-        self.selected_services=selected_services
-        self.selected_spids=selected_spids
+        self.selected_services = selected_services
+        self.selected_spids = selected_spids
+
     def set_store_binary_enabled(self, status):
         """
           store raw binary  in the outputs 
         """
-        self.store_binary=status
+        self.store_binary = status
+
     def get_summary(self):
-        return {'total_length':self.total_length,
-                'num_tc':self.num_tc,'num_tm':self.num_tm,
-                'num_filtered':self.num_filtered,
-                'num_bad_bytes':self.num_bad_bytes,
-                'num_bad_headers':self.num_bad_headers}
+        return {
+            'total_length': self.total_length,
+            'num_tc': self.num_tc,
+            'num_tm': self.num_tm,
+            'num_filtered': self.num_filtered,
+            'num_bad_bytes': self.num_bad_bytes,
+            'num_bad_headers': self.num_bad_headers
+        }
 
     def parse_telemetry_header(self, packet):
         """ see STIX ICD-0812-ESC  (Page # 57) """
@@ -605,10 +629,9 @@ class StixTCTMParser(StixParameterParser):
         header['SSID'] = SSID
         return stix_global._ok
 
-
     def parse_fixed_packet(self, buf, spid):
-        if spid==54331:
-            #context file report. 
+        if spid == 54331:
+            #context file report.
             return self.context_parser.parse(buf)
         param_struct = _stix_idb.get_fixed_packet_structure(spid)
         return self.get_fixed_packet_parameters(
@@ -628,7 +651,8 @@ class StixTCTMParser(StixParameterParser):
             par['name'] = par['PCF_NAME']
             par['desc'] = par['PCF_DESCR']
             par['cal_ref'] = par['PCF_CURTX']
-            parameter = self.parse_one_parameter(buf, par, calibration, TMTC='TM')
+            parameter = self.parse_one_parameter(
+                buf, par, calibration, TMTC='TM')
             params.append(parameter)
         return params
 
@@ -693,7 +717,6 @@ class StixTCTMParser(StixParameterParser):
                    comment=''):
         _stix_logger.info('Processing file: {}'.format(in_filename))
 
-
         packets = []
         file_size = os.path.getsize(in_filename)
         st_writer = None
@@ -728,9 +751,7 @@ class StixTCTMParser(StixParameterParser):
         else:
             return packets
 
-    def parse_binary(self,
-                     buf,
-                     i=0):
+    def parse_binary(self, buf, i=0):
         """
         Inputs:
             buffer, i.e., the input binary array
@@ -740,7 +761,7 @@ class StixTCTMParser(StixParameterParser):
         """
 
         length = len(buf)
-        self.total_length+=length
+        self.total_length += length
         if i >= length:
             return []
 
@@ -772,11 +793,11 @@ class StixTCTMParser(StixParameterParser):
                 #packet filter
                 if self.selected_services:
                     if header['service_type'] not in self.selected_services:
-                        self.num_filtered+=1
+                        self.num_filtered += 1
                         continue
                 if self.selected_spids:
                     if spid not in self.selected_spids:
-                        self.num_filtered+=1
+                        self.num_filtered += 1
                         continue
                 self.num_tm += 1
                 parameters = None
@@ -836,6 +857,7 @@ class StixTCTMParser(StixParameterParser):
                 last = current
 
         return packets
+
     def parse_moc_ascii(self, filename):
         packets = []
         self.set_report_progress_enabled(False)
@@ -854,9 +876,11 @@ class StixTCTMParser(StixParameterParser):
                     _stix_logger.info('{} packet have been read'.format(idx))
                 idx += 1
         return packets
+
     def parse_hex(self, hex_string):
         raw = binascii.unhexlify(hex_string)
-        return self.parse_binary(raw, i=0 )
+        return self.parse_binary(raw, i=0)
+
     def parse_moc_xml(self, in_filename):
         packets = []
         results = []

@@ -8,7 +8,6 @@
 
 import re
 
-
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
@@ -84,12 +83,15 @@ class Ui_Dialog(object):
         self.lineEditSPID = QtWidgets.QLineEdit(Dialog)
         self.lineEditSPID.setObjectName("lineEditSPID")
         self.horizontalLayout_2.addWidget(self.lineEditSPID)
-        spacerItem = QtWidgets.QSpacerItem(188, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        spacerItem = QtWidgets.QSpacerItem(188, 20,
+                                           QtWidgets.QSizePolicy.Expanding,
+                                           QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_2.addItem(spacerItem)
         self.verticalLayout.addLayout(self.horizontalLayout_2)
         self.buttonBox = QtWidgets.QDialogButtonBox(Dialog)
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel
+                                          | QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.verticalLayout.addWidget(self.buttonBox)
         self.verticalLayout_2.addLayout(self.verticalLayout)
@@ -107,23 +109,21 @@ class Ui_Dialog(object):
         self.selectNone()
         self.checkBoxSelectAll.setChecked(False)
 
-
-
-
     def checkBoxStateChanged(self):
-        is_checked=self.checkBoxSelectAll.isChecked()
+        is_checked = self.checkBoxSelectAll.isChecked()
         if is_checked:
             self.selectAll()
         else:
             self.selectNone()
 
     def getSelectedSPID(self):
-        SPID_text=self.lineEditSPID.text()
-        if SPID_text =='*':
+        SPID_text = self.lineEditSPID.text()
+        if SPID_text == '*':
             return []
-        return [int(s) for s in re.findall(r'\d+',SPID_text)]
+        return [int(s) for s in re.findall(r'\d+', SPID_text)]
+
     def getSelectedServices(self):
-        services=[]
+        services = []
         if self.checkBoxS1.isChecked():
             services.append(1)
         if self.checkBoxS3.isChecked():
@@ -148,7 +148,8 @@ class Ui_Dialog(object):
             services.append(5)
 
         return services
-    def setSelectedServices(self,services):
+
+    def setSelectedServices(self, services):
         self.checkBoxS1.setChecked(1 in services)
         self.checkBoxS3.setChecked(3 in services)
         self.checkBoxS6.setChecked(6 in services)
@@ -160,7 +161,6 @@ class Ui_Dialog(object):
         self.checkBoxS238.setChecked(238 in services)
         self.checkBoxS239.setChecked(239 in services)
 
-       
     def selectAll(self):
         self.checkBoxS1.setChecked(True)
         self.checkBoxS3.setChecked(True)
@@ -173,6 +173,7 @@ class Ui_Dialog(object):
         self.checkBoxS238.setChecked(True)
         self.checkBoxS239.setChecked(True)
         self.checkBoxS5.setChecked(True)
+
     def selectNone(self):
         self.checkBoxS5.setChecked(False)
         self.checkBoxS1.setChecked(False)
@@ -184,25 +185,30 @@ class Ui_Dialog(object):
         self.checkBoxS236.setChecked(False)
         self.checkBoxS237.setChecked(False)
         self.checkBoxS238.setChecked(False)
-        self.checkBoxS239.setChecked(False) 
- 
+        self.checkBoxS239.setChecked(False)
+
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Packet filtering"))
         self.groupBox.setTitle(_translate("Dialog", "Selection by services"))
         self.checkBoxSelectAll.setText(_translate("Dialog", "All services"))
-        self.checkBoxS1.setText(_translate("Dialog", "Service 1 (TC verification)"))
+        self.checkBoxS1.setText(
+            _translate("Dialog", "Service 1 (TC verification)"))
         self.checkBoxS3.setText(_translate("Dialog", "Service 3 (HK)"))
-        self.checkBoxS5.setText(_translate("Dialog", "Service 5 (Event reporting)"))
+        self.checkBoxS5.setText(
+            _translate("Dialog", "Service 5 (Event reporting)"))
         self.checkBoxS6.setText(_translate("Dialog", "Service 6 (memory)"))
-        self.checkBoxS17.setText(_translate("Dialog", "Service 17 (connection test)"))
+        self.checkBoxS17.setText(
+            _translate("Dialog", "Service 17 (connection test)"))
         self.checkBoxS21.setText(_translate("Dialog", "Service 21 (science)"))
         self.checkBoxS22.setText(_translate("Dialog", "Service 22 (context)"))
-        self.checkBoxS236.setText(_translate("Dialog", "Service 236 (configuration)"))
-        self.checkBoxS237.setText(_translate("Dialog", "Service 237 (parameters)"))
-        self.checkBoxS238.setText(_translate("Dialog", "Service 238 (archive)"))
-        self.checkBoxS239.setText(_translate("Dialog", "Service 239 (test and debug)"))
+        self.checkBoxS236.setText(
+            _translate("Dialog", "Service 236 (configuration)"))
+        self.checkBoxS237.setText(
+            _translate("Dialog", "Service 237 (parameters)"))
+        self.checkBoxS238.setText(
+            _translate("Dialog", "Service 238 (archive)"))
+        self.checkBoxS239.setText(
+            _translate("Dialog", "Service 239 (test and debug)"))
         self.label.setText(_translate("Dialog", "or by SPID(s):"))
         self.lineEditSPID.setText(_translate("Dialog", "*"))
-
-

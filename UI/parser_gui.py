@@ -15,7 +15,7 @@ import socket
 import webbrowser
 
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
-from PyQt5.QtCore import QThread, pyqtSignal,QTimer
+from PyQt5.QtCore import QThread, pyqtSignal, QTimer
 from PyQt5.QtChart import QChart, QChartView, QLineSeries, QValueAxis, QBarSeries, QBarSet, QScatterSeries
 
 from core import stix_parser
@@ -33,9 +33,10 @@ from UI import raw_viewer
 from functools import partial
 from core import mongo_db as mgdb
 from core import stix_logger
-from core import stix_parameter
+#from core import stix_parameter
 
-SELECTED_SERVICES=[1,3,5,6, 17,21,22,236,237,238,239]
+SELECTED_SERVICES = [1, 3, 5, 6, 17, 21, 22, 236, 237, 238, 239]
+
 
 class StixSocketPacketReceiver(QThread):
     """
@@ -48,16 +49,17 @@ class StixSocketPacketReceiver(QThread):
 
     def __init__(self, host, port):
         super(StixSocketPacketReceiver, self).__init__()
-        self.working=True
+        self.working = True
         self.port = port
         self.host = host
         self.stix_tctm_parser = stix_parser.StixTCTMParser()
         self.stix_tctm_parser.set_store_binary_enabled(True)
         self.stix_tctm_parser.set_report_progress_enabled(False)
         stix_logger._stix_logger.set_signal(self.info, self.warn, self.error)
+
     def run(self):
         try:
-            s= socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect((self.host, self.port))
             self.info.emit('Receiving packets from {}:{}'.format(
                 self.host, self.port))
@@ -65,10 +67,10 @@ class StixSocketPacketReceiver(QThread):
             self.error.emit(str(e))
             return
         while True:
-            buf=b''
+            buf = b''
             while True:
                 data = s.recv(1)
-                buf+=data
+                buf += data
                 if data == b'>':
                     if buf.endswith(b'<-->'):
                         break
@@ -77,15 +79,13 @@ class StixSocketPacketReceiver(QThread):
                 data_hex = data2[-1][0:-4]
                 data_binary = binascii.unhexlify(data_hex)
                 packets = self.stix_tctm_parser.parse_binary(
-                    data_binary, 0,store_binary=True)
+                    data_binary, 0, store_binary=True)
                 if packets:
-                    packets[0]['header']['arrival'] = str(
-                        datetime.now())
+                    packets[0]['header']['arrival'] = str(datetime.now())
                     self.packetArrival.emit(packets)
-            
+
         else:
-           s.close()
-            
+            s.close()
 
 
 class StixFileReader(QThread):
@@ -95,7 +95,7 @@ class StixFileReader(QThread):
     dataLoaded = pyqtSignal(list)
     error = pyqtSignal(str)
     info = pyqtSignal(str)
-    importantInfo=pyqtSignal(str)
+    importantInfo = pyqtSignal(str)
     warn = pyqtSignal(str)
 
     def __init__(self, filename):
@@ -104,9 +104,13 @@ class StixFileReader(QThread):
         self.data = []
         self.stix_tctm_parser = stix_parser.StixTCTMParser()
         self.stix_tctm_parser.set_store_binary_enabled(True)
-        stix_logger._stix_logger.set_signal(self.info, self.importantInfo, self.warn, self.error)
-    def setPacketFilter(self,selected_services,selected_SPID):
-        self.stix_tctm_parser.set_packet_filter(selected_services,selected_SPID)
+        stix_logger._stix_logger.set_signal(self.info, self.importantInfo,
+                                            self.warn, self.error)
+
+    def setPacketFilter(self, selected_services, selected_SPID):
+        self.stix_tctm_parser.set_packet_filter(selected_services,
+                                                selected_SPID)
+
     def run(self):
         self.data = []
         filename = self.filename
@@ -120,7 +124,7 @@ class StixFileReader(QThread):
             self.info.emit('Loading ...')
             self.data = pickle.load(f)['packet']
             f.close()
-        elif filename.endswith(('.dat', '.binary','.BDF')):
+        elif filename.endswith(('.dat', '.binary', '.BDF')):
             self.parseRawFile(filename)
         elif filename.endswith('.xml'):
             self.parseESOCXmlFile(filename)
@@ -129,7 +133,8 @@ class StixFileReader(QThread):
         else:
             self.parseRawFile(filename)
             self.warn.emit('unknown file type: {}'.format(filename))
-        stix_logger._stix_logger.print_summary(self.stix_tctm_parser.get_summary())
+        stix_logger._stix_logger.print_summary(
+            self.stix_tctm_parser.get_summary())
         #print('self.data size:')
         #print(sys.getsizeof(self.data))
         self.dataLoaded.emit(self.data)
@@ -182,7 +187,6 @@ class StixFileReader(QThread):
                 continue
             self.data.extend(packets)
 
-
     def parseRawFile(self, filename):
         self.stix_tctm_parser.set_report_progress_enabled(True)
         try:
@@ -201,13 +205,12 @@ class StixFileReader(QThread):
             self.data = self.stix_tctm_parser.parse_binary(buf)
 
 
-
 class Ui(mainwindow.Ui_MainWindow):
     def __init__(self, MainWindow):
         super(Ui, self).setupUi(MainWindow)
         self.MainWindow = MainWindow
         self.stix_tctm_parser = stix_parser.StixTCTMParser()
-        self.socketPacketReceiver=None
+        self.socketPacketReceiver = None
         self.initialize()
 
     def close(self):
@@ -260,10 +263,10 @@ class Ui(mainwindow.Ui_MainWindow):
         self.actionOnlineHelp.triggered.connect(self.onOnlineHelpTriggered)
         self.actionViewBinary.triggered.connect(self.onViewBinaryTriggered)
 
-        self.packetTreeWidget.customContextMenuRequested.connect(self.packetTreeContextMenuEvent)
+        self.packetTreeWidget.customContextMenuRequested.connect(
+            self.packetTreeContextMenuEvent)
 
         self.mdb = None
-
 
         self.current_row = 0
         self.data = []
@@ -282,8 +285,8 @@ class Ui(mainwindow.Ui_MainWindow):
         self.chartView = QChartView(self.chart)
         self.gridLayout.addWidget(self.chartView, 1, 0, 1, 15)
         #self.packetTreeWidget.itemDoubleClicked.connect(self.onPacketTreeItemDoubleClicked)
-        self.selected_services=SELECTED_SERVICES
-        self.selected_SPID=[]
+        self.selected_services = SELECTED_SERVICES
+        self.selected_SPID = []
 
         # IDB location
 
@@ -294,24 +297,25 @@ class Ui(mainwindow.Ui_MainWindow):
         if not idb._stix_idb.is_connected():
             self.showMessage('IDB has not been set!')
         else:
-            self.showMessage('IDB location: {} '.format(
-                idb._stix_idb.get_idb_filename()), 1)
+            self.showMessage(
+                'IDB location: {} '.format(idb._stix_idb.get_idb_filename()),
+                1)
 
-    def packetTreeContextMenuEvent(self,pos):
-        menu=QtWidgets.QMenu()
-        rawDataAction=menu.addAction('Show raw data')
+    def packetTreeContextMenuEvent(self, pos):
+        menu = QtWidgets.QMenu()
+        rawDataAction = menu.addAction('Show raw data')
         menu.addSeparator()
-        filterAction=menu.addAction('Filter packets')
-        copyPacketAction=menu.addAction('Copy packet')
+        filterAction = menu.addAction('Filter packets')
+        copyPacketAction = menu.addAction('Copy packet')
         menu.addSeparator()
-        deleteAllAction=menu.addAction('Delete all packets')
+        deleteAllAction = menu.addAction('Delete all packets')
         self.current_row = self.packetTreeWidget.currentIndex().row()
 
         rawDataAction.triggered.connect(self.onViewBinaryTriggered)
         filterAction.triggered.connect(self.onPacketFilterTriggered)
         copyPacketAction.triggered.connect(self.onCopyTriggered)
         deleteAllAction.triggered.connect(self.onDeleteAllTriggered)
-        action=menu.exec_(self.packetTreeWidget.viewport().mapToGlobal(pos))
+        action = menu.exec_(self.packetTreeWidget.viewport().mapToGlobal(pos))
 
     def onDeleteAllTriggered(self):
         self.data.clear()
@@ -327,10 +331,11 @@ class Ui(mainwindow.Ui_MainWindow):
         diag_ui.setupUi(diag)
         if self.data:
             try:
-                raw=self.data[self.current_row]['bin']
-                header=self.data[self.current_row]['header']
-                diag_ui.setPacketInfo('{}({},{})  {}'.format(header['TMTC'],
-                    header['service_type'],header['service_subtype'],header['DESCR']))
+                raw = self.data[self.current_row]['bin']
+                header = self.data[self.current_row]['header']
+                diag_ui.setPacketInfo('{}({},{})  {}'.format(
+                    header['TMTC'], header['service_type'],
+                    header['service_subtype'], header['DESCR']))
                 diag_ui.displayRaw(raw)
             except (IndexError, KeyError):
                 diag_ui.setText('Raw data not available.')
@@ -340,18 +345,18 @@ class Ui(mainwindow.Ui_MainWindow):
         webbrowser.open('https://github.com/i4Ds/STIX-dataviewer', new=2)
 
     def onPluginTriggered(self):
-        self.plugin_location= self.settings.value('plugin_location', [], str)
+        self.plugin_location = self.settings.value('plugin_location', [], str)
         diag = QtWidgets.QDialog()
         diag_ui = plugin.Ui_Dialog()
         diag_ui.setupUi(diag)
         if self.plugin_location:
             diag_ui.setPluginLocation(self.plugin_location)
 
-        diag_ui.setData(self.data,self.current_row)
+        diag_ui.setData(self.data, self.current_row)
         diag.exec_()
-        location=diag_ui.getPluginLocation()
-        if location!=self.plugin_location:
-            self.settings.setValue('plugin_location',location)
+        location = diag_ui.getPluginLocation()
+        if location != self.plugin_location:
+            self.settings.setValue('plugin_location', location)
 
     def onPacketFilterTriggered(self):
         diag = QtWidgets.QDialog()
@@ -361,17 +366,19 @@ class Ui(mainwindow.Ui_MainWindow):
         diag_ui.buttonBox.accepted.connect(
             partial(self.applyServiceFilter, diag_ui))
         diag.exec_()
-    def applyServiceFilter(self,diag_ui):
-        self.selected_SPID=diag_ui.getSelectedSPID()
-        self.selected_services=diag_ui.getSelectedServices()
+
+    def applyServiceFilter(self, diag_ui):
+        self.selected_SPID = diag_ui.getSelectedSPID()
+        self.selected_services = diag_ui.getSelectedServices()
         self.showMessage('Applying filter...')
 
         self.addPacketsToView(self.data, True, show_stat=False)
+
     def onExportButtonClicked(self):
         if self.y:
             filename = str(
-                QtWidgets.QFileDialog.getSaveFileName(None, "Save data to file", "",
-                                                      "CSV(*.csv)")[0])
+                QtWidgets.QFileDialog.getSaveFileName(
+                    None, "Save data to file", "", "CSV(*.csv)")[0])
             if filename:
                 with open(filename, 'w') as f:
                     f.write('{},{}\n'.format(self.xlabel, self.ylabel))
@@ -390,9 +397,10 @@ class Ui(mainwindow.Ui_MainWindow):
     def savePlot(self):
         # if self.figure.get_axes():
         if self.chart:
-            filetypes="PNG (*.png);;JPEG (*.jpg)"
+            filetypes = "PNG (*.png);;JPEG (*.jpg)"
             filename = str(
-                QtWidgets.QFileDialog.getSaveFileName(None, "Save plot to file", "",filetypes)[0])
+                QtWidgets.QFileDialog.getSaveFileName(
+                    None, "Save plot to file", "", filetypes)[0])
             if filename:
                 if not filename.endswith(('.png', '.jpg')):
                     filename += '.png'
@@ -419,7 +427,9 @@ class Ui(mainwindow.Ui_MainWindow):
             cb.setText(ss, mode=cb.Clipboard)
             msg = QtWidgets.QMessageBox()
             msg.setIcon(QtWidgets.QMessageBox.Information)
-            msg.setText("The data of the selected packet has been copied to the clipboard.")
+            msg.setText(
+                "The data of the selected packet has been copied to the clipboard."
+            )
             msg.setWindowTitle("Information")
             msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
             retval = msg.exec_()
@@ -438,8 +448,9 @@ class Ui(mainwindow.Ui_MainWindow):
             packets = self.stix_tctm_parser.parse_binary(data_binary)
             if not packets:
                 return
-            self.showMessage('%d packets read from the clipboard' % len(packets))
-            self.onDataReady(packets,clear=False, show_stat=False)
+            self.showMessage(
+                '%d packets read from the clipboard' % len(packets))
+            self.onDataReady(packets, clear=False, show_stat=False)
         except Exception as e:
             self.showMessageBox(str(e), data_hex)
 
@@ -473,19 +484,16 @@ class Ui(mainwindow.Ui_MainWindow):
         if idb._stix_idb.is_connected():
             #settings = QtCore.QSettings('FHNW', 'stix_parser')
             self.settings.setValue('idb_filename', self.idb_filename)
-        self.showMessage('IDB location: {} '.format(
-            idb._stix_idb.get_idb_filename()), 1)
-
-
+        self.showMessage(
+            'IDB location: {} '.format(idb._stix_idb.get_idb_filename()), 1)
 
     def save(self):
-        filetypes='python compressed pickle (*.pklz);; python pickle file (*.pkl);; binary data (*.dat)'
+        filetypes = 'python compressed pickle (*.pklz);; python pickle file (*.pkl);; binary data (*.dat)'
         self.output_filename = str(
             QtWidgets.QFileDialog.getSaveFileName(None, "Save packets to", "",
                                                   filetypes)[0])
 
-        if not self.output_filename.endswith(
-                ('.pklz', '.pkl', '.dat')):
+        if not self.output_filename.endswith(('.pklz', '.pkl', '.dat')):
             msg = 'unsupported file format !'
             self.showMessage(msg)
             return
@@ -500,9 +508,10 @@ class Ui(mainwindow.Ui_MainWindow):
         elif self.output_filename.endswith('.dat'):
             stw = stix_writer.StixBinaryWriter(self.output_filename)
             stw.write_all(self.data)
-            num_ok=stw.get_num_sucess()
-            msg=('The binary data of {} packets written to file {}, total packets {}'.format(num_ok,
-                self.output_filename,len(self.data)))
+            num_ok = stw.get_num_sucess()
+            msg = (
+                'The binary data of {} packets written to file {}, total packets {}'
+                .format(num_ok, self.output_filename, len(self.data)))
             self.showMessage(msg)
 
     def setListViewSelected(self, row):
@@ -541,12 +550,12 @@ class Ui(mainwindow.Ui_MainWindow):
         self.setListViewSelected(self.current_row)
 
     def getOpenFilename(self):
-        filetypes=('STIX raw data(*.dat *.bin *.binary);; python pickle files (*.pkl *pklz);;'
-                'ESA xml files (*xml);;' 
-                'ESA ascii files(*.ascii);; CMDVS archive files (*.BDF);; All(*)'
-                )
+        filetypes = (
+            'STIX raw data(*.dat *.bin *.binary);; python pickle files (*.pkl *pklz);;'
+            'ESA xml files (*xml);;'
+            'ESA ascii files(*.ascii);; CMDVS archive files (*.BDF);; All(*)')
         self.input_filename = QtWidgets.QFileDialog.getOpenFileName(
-            None, 'Select file', '.',filetypes)[0]
+            None, 'Select file', '.', filetypes)[0]
         if not self.input_filename:
             return
 
@@ -558,10 +567,11 @@ class Ui(mainwindow.Ui_MainWindow):
             partial(self.onOpenFile, self.input_filename, diag_ui))
         diag.exec_()
 
-    def onOpenFile(self,input_filename,diag):
-        self.selected_SPID=diag.getSelectedSPID()
-        self.selected_services=diag.getSelectedServices()
-        self.openFile(input_filename,self.selected_services,self.selected_SPID)
+    def onOpenFile(self, input_filename, diag):
+        self.selected_SPID = diag.getSelectedSPID()
+        self.selected_services = diag.getSelectedServices()
+        self.openFile(input_filename, self.selected_services,
+                      self.selected_SPID)
 
     def openFile(self, filename, selected_services=None, selected_SPID=None):
         msg = 'Loading file %s ...' % filename
@@ -572,9 +582,10 @@ class Ui(mainwindow.Ui_MainWindow):
         self.dataReader.info.connect(self.onDataReaderInfo)
         self.dataReader.importantInfo.connect(self.onDataReaderImportantInfo)
         self.dataReader.warn.connect(self.onDataReaderWarn)
-        self.dataReader.setPacketFilter(selected_services,selected_SPID)
+        self.dataReader.setPacketFilter(selected_services, selected_SPID)
         self.dataReader.start()
-    def onDataReaderImportantInfo(self,msg):
+
+    def onDataReaderImportantInfo(self, msg):
         self.showMessage(msg, 1)
 
     def onDataReaderInfo(self, msg):
@@ -622,9 +633,10 @@ class Ui(mainwindow.Ui_MainWindow):
                 timestamp_str = '{:.2f}'.format(header['time'])
 
             root.setText(0, timestamp_str)
-            root.setText(1, '{}({},{}) - {}'.format(
-                header['TMTC'], header['service_type'],
-                header['service_subtype'], header['DESCR']))
+            root.setText(
+                1, '{}({},{}) - {}'.format(
+                    header['TMTC'], header['service_type'],
+                    header['service_subtype'], header['DESCR']))
             if not self.selected_SPID:
                 if header['service_type'] not in self.selected_services:
                     root.setHidden(True)
@@ -645,8 +657,7 @@ class Ui(mainwindow.Ui_MainWindow):
             diag_ui.serverLineEdit.setText(self.tsc_host)
         if self.tsc_port:
             diag_ui.portLineEdit.setText(self.tsc_port)
-        diag_ui.buttonBox.accepted.connect(
-            partial(self.connectToTSC, diag_ui))
+        diag_ui.buttonBox.accepted.connect(partial(self.connectToTSC, diag_ui))
         diag.exec_()
 
     def connectToTSC(self, dui):
@@ -749,8 +760,8 @@ class Ui(mainwindow.Ui_MainWindow):
             return
         header = self.data[row]['header']
         total_packets = len(self.data)
-        self.showMessage(('Packet %d / %d  %s ' % (row, total_packets,
-                                                   header['DESCR'])))
+        self.showMessage(
+            ('Packet %d / %d  %s ' % (row, total_packets, header['DESCR'])))
         self.paramTreeWidget.clear()
         header_root = QtWidgets.QTreeWidgetItem(self.paramTreeWidget)
         header_root.setText(0, "Header")
@@ -775,9 +786,9 @@ class Ui(mainwindow.Ui_MainWindow):
             root = QtWidgets.QTreeWidgetItem(parent)
             if not p:
                 continue
-            param=stix_parameter.StixParameterNode()
+            param = stix_parser.StixParameterNode()
             param.from_node(p)
-            param_name=param.name
+            param_name = param.name
             desc = param.desc
             scos_desc = idb._stix_idb.get_scos_description(param_name)
             if scos_desc:
@@ -801,7 +812,7 @@ class Ui(mainwindow.Ui_MainWindow):
         for p in params:
             if not p:
                 continue
-            param=stix_parameter.StixParameterNode()
+            param = stix_parser.StixParameterNode()
             param.from_node(p)
             if name == param.name:
                 values = None
@@ -941,11 +952,14 @@ class Ui(mainwindow.Ui_MainWindow):
             self.paramNameEdit.setText(name)
         if desc:
             self.descLabel.setText(desc)
+
     def onPlotActionClicked(self):
         self.tabWidget.setCurrentIndex(1)
         self.plotParameter()
+
     def onTreeItemClicked(self, it, col):
         self.plotParameter(it.text(0), it.text(1))
+
 
 if __name__ == '__main__':
     filename = None

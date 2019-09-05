@@ -19,7 +19,7 @@ class StixLogger:
 
     def set_signal(self, sig_info, sig_important_info, sig_warn, sig_error):
         self.signal_info = sig_info
-        self.signal_important_info= sig_important_info
+        self.signal_important_info = sig_important_info
         self.signal_warn = sig_warn
         self.signal_error = sig_error
         self.signal_enabled = True
@@ -53,7 +53,7 @@ class StixLogger:
                 self.signal_warn.emit(msg)
             elif msg_type == 'error':
                 self.signal_error.emit(msg)
-            elif msg_type =='important':
+            elif msg_type == 'important':
                 self.signal_important_info.emit(msg)
         elif self.logfile:
             self.logfile.write(msg + '\n')
@@ -62,6 +62,7 @@ class StixLogger:
 
     def important_info(self, msg):
         self.printf(('[Info ] : {}'.format(msg)), 'important')
+
     def error(self, msg):
         self.printf(('[ERROR  ] : {}'.format(msg)), 'error')
 
@@ -86,9 +87,9 @@ class StixLogger:
                 if par:
                     try:
                         # for tree-like structure
-                        eng= ''
+                        eng = ''
                         if par['eng'] != par['raw']:
-                            eng= par['eng']
+                            eng = par['eng']
                         self.printf(('{:<10} {:<30} {:<15} {:15}'.format(
                             par['name'], par['descr'], par['raw'], eng)))
                         if 'children' in par:
@@ -103,13 +104,16 @@ class StixLogger:
         if self.verbose < 4:
             return
         self.printf(msg)
-    def print_summary(self,summary):
-         self.important_info('Total size: {} bytes (bad:{});'
-                    ' Total Nb. of packets: {} ('
-                    'TM: {}, TC:{}, Filtered: {}); Bad headers:{} .'.format(
-                        summary['total_length'],
-                        summary['num_bad_bytes'],
-                        summary['num_tm']+summary['num_tc']+summary['num_filtered'], summary['num_tm'],
-                        summary['num_tc'], summary['num_filtered'],
-                        summary['num_bad_headers']))
+
+    def print_summary(self, summary):
+        self.important_info(
+            'Total size: {} bytes (bad:{});'
+            ' Total Nb. of packets: {} ('
+            'TM: {}, TC:{}, Filtered: {}); Bad headers:{} .'.format(
+                summary['total_length'], summary['num_bad_bytes'],
+                summary['num_tm'] + summary['num_tc'] +
+                summary['num_filtered'], summary['num_tm'], summary['num_tc'],
+                summary['num_filtered'], summary['num_bad_headers']))
+
+
 _stix_logger = StixLogger()
