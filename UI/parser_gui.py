@@ -5,14 +5,15 @@ sys.path.append('.')
 import os
 import pickle
 import gzip
-import numpy as np
 import re
-import io
 import binascii
 import xmltodict
 import pprint
 import socket
 import webbrowser
+from functools import partial
+from datetime import datetime
+import numpy as np
 
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QThread, pyqtSignal, QTimer
@@ -21,7 +22,8 @@ from PyQt5.QtChart import QChart, QChartView, QLineSeries, QValueAxis, QBarSerie
 from core import stix_parser
 from core import stix_writer
 from core import stix_idb
-from datetime import datetime
+from core import mongo_db as mgdb
+from core import stix_logger
 from UI import mainwindow_rc5
 from UI import mainwindow
 from UI import mongo_dialog
@@ -29,15 +31,12 @@ from UI import tsc_connection
 from UI import packet_filter
 from UI import plugin
 from UI import raw_viewer
-from functools import partial
-from core import mongo_db as mgdb
-from core import stix_logger
 #from core import stix_parameter
 
 SELECTED_SERVICES = [1, 3, 5, 6, 17, 21, 22, 236, 237, 238, 239]
 
-STIX_IDB=stix_idb.stix_idb()
-STIX_LOGGER=stix_logger.stix_logger()
+STIX_IDB = stix_idb.stix_idb()
+STIX_LOGGER = stix_logger.stix_logger()
 
 
 class StixSocketPacketReceiver(QThread):
@@ -47,6 +46,7 @@ class StixSocketPacketReceiver(QThread):
     packetArrival = pyqtSignal(list)
     error = pyqtSignal(str)
     info = pyqtSignal(str)
+    importantInfo = pyqtSignal(str)
     warn = pyqtSignal(str)
 
     def __init__(self, host, port):
@@ -57,7 +57,8 @@ class StixSocketPacketReceiver(QThread):
         self.stix_tctm_parser = stix_parser.StixTCTMParser()
         self.stix_tctm_parser.set_store_binary_enabled(True)
         self.stix_tctm_parser.set_report_progress_enabled(False)
-        STIX_LOGGER.set_signal(self.info, self.warn, self.error)
+        STIX_LOGGER.set_signal(self.info, self.importantInfo, self.warn,
+                               self.error)
 
     def run(self):
         try:
@@ -80,8 +81,7 @@ class StixSocketPacketReceiver(QThread):
             if buf[0:9] == 'TM_PACKET'.encode():
                 data_hex = data2[-1][0:-4]
                 data_binary = binascii.unhexlify(data_hex)
-                packets = self.stix_tctm_parser.parse_binary(
-                    data_binary, 0, store_binary=True)
+                packets = self.stix_tctm_parser.parse_binary(data_binary)
                 if packets:
                     packets[0]['header']['arrival'] = str(datetime.now())
                     self.packetArrival.emit(packets)
@@ -106,8 +106,8 @@ class StixFileReader(QThread):
         self.data = []
         self.stix_tctm_parser = stix_parser.StixTCTMParser()
         self.stix_tctm_parser.set_store_binary_enabled(True)
-        STIX_LOGGER.set_signal(self.info, self.importantInfo,
-                                            self.warn, self.error)
+        STIX_LOGGER.set_signal(self.info, self.importantInfo, self.warn,
+                               self.error)
 
     def setPacketFilter(self, selected_services, selected_SPID):
         self.stix_tctm_parser.set_packet_filter(selected_services,
@@ -135,8 +135,7 @@ class StixFileReader(QThread):
         else:
             self.parseRawFile(filename)
             self.warn.emit('unknown file type: {}'.format(filename))
-        STIX_LOGGER.print_summary(
-            self.stix_tctm_parser.get_summary())
+        STIX_LOGGER.print_summary(self.stix_tctm_parser.get_summary())
         #print('self.data size:')
         #print(sys.getsizeof(self.data))
         self.dataLoaded.emit(self.data)
@@ -195,16 +194,9 @@ class StixFileReader(QThread):
             in_file = open(filename, 'rb')
         except Exception as e:
             self.error.emit('Failed to open the file due to {}'.format(str(e)))
-        else:
-            buf = in_file.read()
-            size = os.stat(filename).st_size
-            percent = int(size / 100)
-            num_packets = 0
-            total_read = 0
-            total_packets = 0
-            self.data = []
-            last_percent = 0
-            self.data = self.stix_tctm_parser.parse_binary(buf)
+            return 
+        buf = in_file.read()
+        self.data = self.stix_tctm_parser.parse_binary(buf)
 
 
 class Ui(mainwindow.Ui_MainWindow):
@@ -300,8 +292,7 @@ class Ui(mainwindow.Ui_MainWindow):
             self.showMessage('IDB has not been set!')
         else:
             self.showMessage(
-                'IDB location: {} '.format(STIX_IDB.get_idb_filename()),
-                1)
+                'IDB location: {} '.format(STIX_IDB.get_idb_filename()), 1)
 
     def packetTreeContextMenuEvent(self, pos):
         menu = QtWidgets.QMenu()
@@ -669,6 +660,8 @@ class Ui(mainwindow.Ui_MainWindow):
         self.socketPacketReceiver = StixSocketPacketReceiver(host, int(port))
         self.socketPacketReceiver.packetArrival.connect(self.onPacketArrival)
         self.socketPacketReceiver.error.connect(self.onDataReaderError)
+        self.socketPacketReceiver.importantInfo.connect(
+            self.onDataReaderImportantInfo)
         self.socketPacketReceiver.info.connect(self.onDataReaderInfo)
         self.socketPacketReceiver.warn.connect(self.onDataReaderWarn)
         self.socketPacketReceiver.start()

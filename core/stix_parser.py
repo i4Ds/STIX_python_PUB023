@@ -31,7 +31,6 @@ PARAMETER_DEFAULT_TYPE = 'tuple'
 
 STIX_IDB = stix_idb.stix_idb()
 
-
 STIX_LOGGER = stix_logger.stix_logger()
 
 
@@ -102,33 +101,29 @@ class StixParameterNode(object):
             return self._children
         elif item == 'desc':
             return STIX_IDB.get_PCF_description(param_name)
-        else:
-            return self.get_node(self._node_type)
+
+        return self.get_node(self._node_type)
 
     def get_node(self, node_type):
         if node_type == 'tuple':
             return (self._name, self._raw, self._eng, self._children)
-        else:
-            return {
-                'name': self._name,
-                'raw': self._raw,
-                'eng': self._eng,
-                'children': self._children
-            }
+        return {
+            'name': self._name,
+            'raw': self._raw,
+            'eng': self._eng,
+            'children': self._children
+        }
 
     def isa(self, name):
-        if self._name == name:
-            return True
-        else:
-            return False
+        return self._name == name
 
     def from_node(self, node):
-        if type(node) is dict:
+        if isinstance(node, dict):
             self._name = node['name']
             self._raw = node['raw']
             self._eng = node['eng']
             self._children = node['children']
-        elif type(node) is tuple:
+        elif isinstance(node, tuple):
             self._name = node[0]
             self._raw = node[1]
             self._eng = node[2]
@@ -136,14 +131,15 @@ class StixParameterNode(object):
 
     def to_dict(self, node=None):
         self.from_node(node)
-        return get_node('dict')
+        return self.get_node('dict')
 
     def to_tuple(self, node=None):
         self.from_node(node)
-        return get_node('tuple')
+        return self.get_node('tuple')
 
-    def set_children(self, children=[]):
-        self._children[:] = children
+    def set_children(self, children=None):
+        if children:
+            self._children = children
 
     @property
     def name(self):
@@ -299,8 +295,8 @@ class StixParameterParser(object):
         return ''
 
     def parse_one_parameter(self, app_data, par, calibration=True, tmtc='TM'):
-        s2k_LUT = STIX_IDB.get_s2k_parameter_types(par['ptc'], par['pfc'])
-        param_type = s2k_LUT['S2K_TYPE']
+        s2k_table = STIX_IDB.get_s2k_parameter_types(par['ptc'], par['pfc'])
+        param_type = s2k_table['S2K_TYPE']
         raw_values = self.decode(
             app_data,
             param_type,
@@ -327,6 +323,7 @@ class StixVariablePacketParser(StixParameterParser):
         self.debug = False
         self.last_spid = -1
         self.last_num_bits = 0
+        self.last_data_width = 0
 
     def debug_enabled(self):
         self.debug = True
@@ -334,12 +331,13 @@ class StixVariablePacketParser(StixParameterParser):
     def init_nodes(self):
         self.nodes = []
         self.nodes.append(
-            self.create_node('top', 0, 0, stix_global.MAX_NUM_PARAMETERS, 
-                None, 1))
+            self.create_node('top', 0, 0, stix_global.MAX_NUM_PARAMETERS, None,
+                             1))
         self.nodes[0]['children'] = []
         self.length_min = 0
 
     def init_parser(self, data, spid):
+        self.last_data_width = 0
         self.last_num_bits = 0
         self.source_data = data
         self.spid = spid
@@ -369,7 +367,10 @@ class StixVariablePacketParser(StixParameterParser):
                     repeat_size,
                     parameter,
                     counter=0,
-                    children=[]):
+                    children=None):
+
+        if children is None:
+            children = []
         node = {
             'name': name,
             'offset_bits': offset_bits,
@@ -390,11 +391,11 @@ class StixVariablePacketParser(StixParameterParser):
                            repeat_size,
                            parameter,
                            counter,
-                           desc='',
-                           children=[]):
-        node = self.create_node(name, position, 
-                offset_bits, repeat_size, parameter, counter, 
-                                children)
+                           children=None):
+        if children is None:
+            children = []
+        node = self.create_node(name, position, offset_bits, repeat_size,
+                                parameter, counter, children)
         if width % 8 == 0:
             self.length_min += width / 8
         mother['children'].append(node)
@@ -407,7 +408,10 @@ class StixVariablePacketParser(StixParameterParser):
         structures = STIX_IDB.get_variable_packet_structure(self.spid)
 
         mother = self.nodes[0]
-        repeater = [{'node': mother, 'counter': stix_global.MAX_NUM_PARAMETERS}]
+        repeater = [{
+            'node': mother,
+            'counter': stix_global.MAX_NUM_PARAMETERS
+        }]
         for par in structures:
             if repeater:
                 for e in reversed(repeater):
@@ -417,8 +421,7 @@ class StixVariablePacketParser(StixParameterParser):
             mother = repeater[-1]['node']
             node = self.register_parameter(
                 mother, par['PCF_NAME'], par['VPD_POS'], par['PCF_WIDTH'],
-                par['VPD_OFFSET'], par['VPD_GRPSIZE'], par, 0,
-                par['PCF_DESCR'], [])
+                par['VPD_OFFSET'], par['VPD_GRPSIZE'], par, 0, [])
             rpsize = par['VPD_GRPSIZE']
             if rpsize > 0:
                 mother = node
@@ -548,9 +551,14 @@ class StixTCTMParser(StixParameterParser):
     def set_report_progress_enabled(self, status):
         self.report_progress_enabled = status
 
-    def set_packet_filter(self, selected_services=[], selected_spids=[]):
+    def set_packet_filter(self, selected_services=None, selected_spids=None):
         """ only decoded packets with the given services or spids
         """
+        if selected_spids is None:
+            selected_spids = []
+        if selected_services is None:
+            selected_services = []
+
         self.selected_services = selected_services
         self.selected_spids = selected_spids
 
@@ -620,7 +628,7 @@ class StixTCTMParser(StixParameterParser):
             res = st.unpack(bin_struct, data[int(start):int(end)])
             ssid = res[0]
         info = STIX_IDB.get_packet_type_info(service_type, service_subtype,
-                                              ssid)
+                                             ssid)
         if not info:
             return stix_global.NO_PID_INFO_IN_IDB
         header['descr'] = info['PID_DESCR']
@@ -671,8 +679,8 @@ class StixTCTMParser(StixParameterParser):
             header.update(unpack_integer(h, s))
         status = self.check_header(header, 'tc')
         info = STIX_IDB.get_telecommand_info(header['service_type'],
-                                              header['service_subtype'],
-                                              header['source_id'])
+                                             header['service_subtype'],
+                                             header['source_id'])
         if not info:
             return stix_global.HEADER_KEY_ERROR, header
 
@@ -749,8 +757,8 @@ class StixTCTMParser(StixParameterParser):
                 'Writing parameters to {} ...'.format(out_filename))
             st_writer.write_all(packets)
             STIX_LOGGER.info('Done.')
-        else:
-            return packets
+        #else:
+        #    return packets
 
     def parse_binary(self, buf, i=0):
         """
@@ -887,9 +895,9 @@ class StixTCTMParser(StixParameterParser):
         results = []
         self.set_report_progress_enabled(False)
 
-        with open(in_filename) as fd:
+        with open(in_filename) as filein:
             STIX_LOGGER.info('Parsing {}'.format(in_filename))
-            doc = xmltodict.parse(fd.read())
+            doc = xmltodict.parse(filein.read())
             for e in doc['ns2:ResponsePart']['Response']['PktRawResponse'][
                     'PktRawResponseElement']:
                 packet = {'id': e['@packetID'], 'raw': e['Packet']}

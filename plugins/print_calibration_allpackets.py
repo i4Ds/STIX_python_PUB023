@@ -1,10 +1,19 @@
-def search(data, name):
-    if type(data) is list:
-        return [element for element in data if element['name'] == name]
-    return None
 
+def search(data, name):
+    if not data:
+        return None
+    if type(data) is list:
+        if type(data[0]) is dict:
+            return [element for element in data if element['name'] == name]
+        elif type(data[0]) is tuple: 
+            return [element for element in data if element[0] == name]
+    return None
 def get_raw(data, name):
-    return [int(item['raw'][0]) for item in data if item['name']==name]
+        if type(data[0]) is dict:
+            return [int(item['raw'][0]) for item in data if item['name']==name]
+        elif type(data[0]) is tuple: 
+            return [int(item[1][0]) for item in data if item[0]==name]
+
 
 
 

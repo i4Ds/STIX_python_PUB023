@@ -8,22 +8,22 @@ import sys
 
 
 class StixLogger(object):
-    __instance=None
+    __instance = None
+
     @staticmethod
-    def get_instance( filename=None, verbose=10):
+    def get_instance(filename=None, verbose=10):
         if not StixLogger.__instance:
-            StixLogger(filename,verbose)
+            StixLogger(filename, verbose)
         return StixLogger.__instance
+
     #singleton
-            
 
     def __init__(self, filename=None, verbose=10):
 
         if StixLogger.__instance:
             raise Exception('Logger already initialized')
         else:
-            StixLogger.__instance=self
-
+            StixLogger.__instance = self
 
         self.logfile = None
         self.signal_info = None
@@ -134,4 +134,3 @@ class StixLogger(object):
 
 def stix_logger():
     return StixLogger.get_instance()
-

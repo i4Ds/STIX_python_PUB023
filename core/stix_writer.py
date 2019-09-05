@@ -4,14 +4,13 @@
 # @description  : Write decoded data to a python pickle file, sqlite database or mongo database
 # @author       : Hualin Xiao
 # @date         : Feb. 27, 2019
-import pprint
+import os
+import datetime
 import pickle
 import gzip
 import pymongo
-import datetime
-import os
 from core import stix_logger
-STIX_LOGGER= stix_logger.stix_logger()
+STIX_LOGGER = stix_logger.stix_logger()
 
 
 class StixPickleWriter(object):
@@ -20,6 +19,7 @@ class StixPickleWriter(object):
         self.packet_counter = 0
         self.fout = None
         self.packets = []
+        self.run = None
         if filename.endswith('.pklz'):
             self.fout = gzip.open(filename, 'wb')
         else:
@@ -90,11 +90,13 @@ class StixMongoWriter(object):
         self.packets = []
         self.db = None
         self.collection_packets = None
+        self.current_packet_id = 0
         self.collection_runs = None
         self.current_run_id = 0
         self.current_header_id = 0
         self.start = -1
         self.end = -1
+        self.run_info=None
         try:
             self.connect = pymongo.MongoClient(
                 server, port, username=username, password=password)
@@ -105,8 +107,9 @@ class StixMongoWriter(object):
             self.collection_runs = self.db['runs']
             self.create_indexes()
         except Exception as e:
-            raise e
-            print('can not connect to mongodb')
+            #raise(str(e))
+            #print('can not connect to mongodb')
+            print(str(e))
 
     def create_indexes(self):
         """to speed up queries """
@@ -168,7 +171,7 @@ class StixMongoWriter(object):
             run_id = self.collection_runs.insert_one(self.run_info).inserted_id
             for packet in packets:
                 header = packet['header']
-                parameters = packet['parameters']
+                #parameters = packet['parameters']
 
                 header['run_id'] = run_id
                 header['_id'] = self.current_header_id

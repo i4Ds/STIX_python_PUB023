@@ -15,6 +15,7 @@ sys.path.append('.')
 from core import stix_logger
 from core import stix_parser
 
+STIX_LOGGER=stix_logger.stix_logger()
 
 def main():
     in_filename = ''
@@ -52,8 +53,8 @@ def main():
 
     args = vars(ap.parse_args())
 
-    if args['SPID'] is not None:
-        selected_spid = int(args['SPID'])
+    if args['spid'] is not None:
+        selected_spid = int(args['spid'])
 
     if args['verbose'] is not None:
         verbose = int(args['verbose'])
@@ -73,7 +74,7 @@ def main():
 
     in_filename = args['in']
 
-    stix_logger._stix_logger.set_logger(logfile, verbose)
+    STIX_LOGGER.set_logger(logfile, verbose)
     parser = stix_parser.StixTCTMParser()
 
     selected_spids=[]
