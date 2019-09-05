@@ -22,6 +22,7 @@ from core import stix_global
 from core import stix_logger
 from core import stix_writer
 from core import stix_context
+from core import stix_parameter
 
 CONTEXT_FORMAT = ['B', '>H', 'BBB', '>I']
 UNSIGNED_FORMAT = ['B', '>H', 'BBB', '>I', 'BBBBB', '>IH']
@@ -63,109 +64,6 @@ def find_next_header(buf, i):
         else:
             i += 1
     return stix_global.EOF
-
-
-class StixParameterNode(object):
-    """ define decoded parameter structure """
-
-    def __init__(self,
-                 name='',
-                 raw='',
-                 eng='',
-                 children=None,
-                 node_type=PARAMETER_DEFAULT_TYPE):
-        #node_type can be tuple or dict
-        self._name = name
-        self._raw = raw
-        self._eng = eng
-        self._children = []
-        if children:
-            self._children = children
-        self._node_type = node_type
-
-    def set_node_type(self, node_type):
-        """can be dictionary or tuple"""
-        self._node_type = node_type
-
-    def get_node_type(self):
-        return self._node_type
-
-    def get(self, item=None):
-        if item == 'name':
-            return self._name
-        elif item == 'raw':
-            return self._raw
-        elif item == 'eng':
-            return self._eng
-        elif item == 'children':
-            return self._children
-        elif item == 'desc':
-            return STIX_IDB.get_PCF_description(param_name)
-
-        return self.get_node(self._node_type)
-
-    def get_node(self, node_type):
-        if node_type == 'tuple':
-            return (self._name, self._raw, self._eng, self._children)
-        return {
-            'name': self._name,
-            'raw': self._raw,
-            'eng': self._eng,
-            'children': self._children
-        }
-
-    def isa(self, name):
-        return self._name == name
-
-    def from_node(self, node):
-        if isinstance(node, dict):
-            self._name = node['name']
-            self._raw = node['raw']
-            self._eng = node['eng']
-            self._children = node['children']
-        elif isinstance(node, tuple):
-            self._name = node[0]
-            self._raw = node[1]
-            self._eng = node[2]
-            self._children = node[3]
-
-    def to_dict(self, node=None):
-        self.from_node(node)
-        return self.get_node('dict')
-
-    def to_tuple(self, node=None):
-        self.from_node(node)
-        return self.get_node('tuple')
-
-    def set_children(self, children=None):
-        if children:
-            self._children = children
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def raw(self):
-        return self._raw
-
-    @property
-    def eng(self):
-        return self._eng
-
-    @property
-    def children(self):
-        return self._children
-
-    @property
-    def desc(self):
-        if self._name:
-            return STIX_IDB.get_PCF_description(self._name)
-        return ''
-
-    @property
-    def node(self):
-        return self.get_node(self._node_type)
 
 
 class StixParameterParser(object):
@@ -310,7 +208,7 @@ class StixParameterParser(object):
         else:
             eng_values = self.convert_raw_to_eng(par['name'], par['cal_ref'],
                                                  param_type, raw_values, tmtc)
-        return StixParameterNode(par['name'], raw_values, eng_values).node
+        return stix_parameter.StixParameterNode(par['name'], raw_values, eng_values).node
 
 
 class StixVariablePacketParser(StixParameterParser):
@@ -437,7 +335,7 @@ class StixVariablePacketParser(StixParameterParser):
                 if not node or self.current_offset > len(self.source_data):
                     return
                 result = self.parse_parameter(node)
-                result_node = StixParameterNode()
+                result_node = stix_parameter.StixParameterNode()
                 result_node.from_node(result)
                 if node['children']:
                     raw = result_node.get('raw')
@@ -511,7 +409,7 @@ class StixContextParser(StixParameterParser):
                 raw_values = self.decode(buf, 'CONTEXT', offset_bytes,
                                          offset_bits, width)
             #if raw_values:
-            param = StixParameterNode(name, raw_values, '', children)
+            param = stix_parameter.StixParameterNode(name, raw_values, '', children)
             parameters.append(param.node)
 
             offset += width
@@ -528,7 +426,7 @@ class StixContextParser(StixParameterParser):
                                      width)
             offset += width
             if raw_values:
-                param = StixParameterNode(
+                param =stix_parameter.StixParameterNode(
                     stix_context.CONTEXT_REGISTER_DESC[name], raw_values)
                 parameters.append(param.node)
         return parameters

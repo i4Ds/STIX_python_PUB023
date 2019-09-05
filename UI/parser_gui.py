@@ -31,7 +31,7 @@ from UI import tsc_connection
 from UI import packet_filter
 from UI import plugin
 from UI import raw_viewer
-#from core import stix_parameter
+from core import stix_parameter
 
 SELECTED_SERVICES = [1, 3, 5, 6, 17, 21, 22, 236, 237, 238, 239]
 
@@ -781,7 +781,7 @@ class Ui(mainwindow.Ui_MainWindow):
             root = QtWidgets.QTreeWidgetItem(parent)
             if not p:
                 continue
-            param = stix_parser.StixParameterNode()
+            param = stix_parameter.StixParameterNode()
             param.from_node(p)
             param_name = param.name
             desc = param.desc
@@ -807,7 +807,7 @@ class Ui(mainwindow.Ui_MainWindow):
         for p in params:
             if not p:
                 continue
-            param = stix_parser.StixParameterNode()
+            param = stix_parameter.StixParameterNode()
             param.from_node(p)
             if name == param.name:
                 values = None
