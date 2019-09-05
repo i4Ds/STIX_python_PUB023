@@ -495,9 +495,11 @@ class StixContextParser(StixParameterParser):
         #based on the FSW source code  ContextMgmt
 
         offset = 0
+        #offset in units of bits
         parameters = []
         param_id = 0
-        for name, width in stix_context.CONTEXT_PARAMETER_BIT_SIZE.items():
+        for name, width in stix_context.CONTEXT_PARAMETER_BIT_SIZE:
+            #width also in units of bits
             offset_bytes = int(offset / 8)
             offset_bits = offset % 8
             children = []
@@ -508,16 +510,18 @@ class StixContextParser(StixParameterParser):
             else:
                 raw_values = self.decode(buf, 'CONTEXT', offset_bytes,
                                          offset_bits, width)
-            if raw_values:
-                param = StixParameterNode(name, raw_values, '', children)
-                parameters.append(param.node)
+            #if raw_values:
+            param = StixParameterNode(name, raw_values, '', children)
+            parameters.append(param.node)
+
             offset += width
+
             param_id += 1
         return parameters
 
     def parse_asic_registers(self, buf, offset):
         parameters = []
-        for name, width in stix_context.CONTEXT_REGISTER_BIT_SIZE.items():
+        for name, width in stix_context.CONTEXT_REGISTER_BIT_SIZE:
             offset_bytes = int(offset / 8)
             offset_bits = offset % 8
             raw_values = self.decode(buf, 'CONTEXT', offset_bytes, offset_bits,
