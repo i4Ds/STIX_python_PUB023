@@ -5,10 +5,10 @@ import pickle
 
 def view(file_in):
     print('pickle file loader')
-    f=None
+    f = None
     if file_in.endswith('.pklz'):
         f = gzip.open(file_in, 'rb')
-    elif file_in.endswith('.pkl'): 
+    elif file_in.endswith('.pkl'):
         f = open(file_in, 'rb')
     else:
         print('unknown file-type')

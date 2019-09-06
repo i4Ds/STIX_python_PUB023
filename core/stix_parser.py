@@ -211,8 +211,9 @@ class StixParameterParser(object):
         if calibration:
             eng_values = self.convert_raw_to_eng(name, cal_ref, param_type,
                                                  raw_values, tmtc)
+
         return stix_parameter.StixParameter(name, raw_values,
-                                                eng_values).parameter
+                                            eng_values).parameter
 
 
 class StixVariablePacketParser(StixParameterParser):
@@ -321,7 +322,7 @@ class StixVariablePacketParser(StixParameterParser):
                         self.source_data):
                     return
                 ret = self.decode_parameter_for(parse_tree_node)
-                param= stix_parameter.StixParameter()
+                param = stix_parameter.StixParameter()
                 param.clone(ret)
                 if parse_tree_node['children']:
                     raw = param.get('raw')
@@ -397,7 +398,7 @@ class StixContextParser(StixParameterParser):
                                                 offset_bits, width)
             #if raw_values:
             param = stix_parameter.StixParameter(name, raw_values, '',
-                                                     children)
+                                                 children)
             parameters.append(param.parameter)
 
             offset += width
@@ -429,9 +430,9 @@ class StixTCTMParser(StixParameterParser):
         self.selected_services = []
         self.selected_spids = []
         self.store_binary = True
-        self.decoded_packets=[]
-        self.in_filename=''
-        self.in_filesize=0
+        self.decoded_packets = []
+        self.in_filename = ''
+        self.in_filesize = 0
 
         self.num_tm = 0
         self.num_tc = 0
@@ -620,7 +621,7 @@ class StixTCTMParser(StixParameterParser):
             params.append(parameter)
         return params
 
-    def parse_binary(self, buf, i=0, reset=True):
+    def parse_binary(self, buf, i=0): 
         """
         Inputs:
             buffer, i.e., the input binary array
@@ -628,8 +629,9 @@ class StixTCTMParser(StixParameterParser):
         Returns:
             decoded packets in python list
         """
-        if reset:
-            self.reset_parser()
+        #if reset:
+        #    self.reset_parser()
+        packets=[]
 
         length = len(buf)
         self.total_length += length
@@ -682,9 +684,10 @@ class StixTCTMParser(StixParameterParser):
                             ' Packet (SPID {}) length mismatch. Actual length: {}, IDB: {}'
                             .format(spid, num_read, app_length))
                 packet = {'header': header, 'parameters': parameters}
+                STIX_LOGGER.pprint(packet)
                 if self.store_binary:
                     packet['bin'] = header_raw + app_raw
-                self.decoded_packets.append(packet)
+                packets.append(packet)
             elif buf[i] == 0x1D:
                 # telecommand
                 self.num_tc += 1
@@ -706,9 +709,10 @@ class StixTCTMParser(StixParameterParser):
                     break
                 parameters = self.get_telecommand_parameters(header, app_raw)
                 packet = {'header': header, 'parameters': parameters}
+                STIX_LOGGER.pprint(packet)
                 if self.store_binary:
                     packet['bin'] = header_raw + app_raw
-                self.decoded_packets.append(packet)
+                packets.append(packet)
             else:
                 old_i = i
                 STIX_LOGGER.warn('Unknown packet {} at {}'.format(buf[i], i))
@@ -726,7 +730,7 @@ class StixTCTMParser(StixParameterParser):
                     STIX_LOGGER.info('{}% processed!'.format(current))
                 last = current
 
-
+        return packets 
 
     def parse_hex(self, hex_string):
         raw = binascii.unhexlify(hex_string)
@@ -750,7 +754,6 @@ class StixTCTMParser(StixParameterParser):
                     STIX_LOGGER.info('{} packet have been read'.format(idx))
                 idx += 1
         return packets
-
 
     def parse_moc_xml(self, in_filename):
         packets = []
@@ -779,38 +782,46 @@ class StixTCTMParser(StixParameterParser):
                 continue
             results.extend(result)
         return results
-    
-    def parse_file(self, in_filename, file_type='binary'):
+
+    def parse_file(self, in_filename, file_type='binary', clear=True):
+        if clear:
+            self.reset_parser()
+
         STIX_LOGGER.info('Processing file: {}'.format(in_filename))
-        self.in_filename=in_filename
-        self.in_filesize=os.path.getsize(in_filename)
+        self.in_filename = in_filename
+        self.in_filesize = os.path.getsize(in_filename)
         if file_type == 'binary':
             with open(in_filename, 'rb') as in_file:
                 data = in_file.read()
-                self.parse_binary(data)
+                self.decoded_packets=self.parse_binary(data)
+
         elif file_type == 'ascii':
-            self.parse_moc_ascii(in_filename)
+            self.decoded_packets=self.parse_moc_ascii(in_filename)
         elif file_type == 'xml':
-            self.parse_moc_xml(in_filename)
+            self.decoded_packets=self.parse_moc_xml(in_filename)
         else:
             STIX_LOGGER.error(
                 '{} has unknown input file type'.format(in_filename))
-
         STIX_LOGGER.print_summary(self.get_summary())
 
-    def write_to_pickle(self,out_filename, comment=''):
+    def write_to_pickle(self, out_filename, comment=''):
         if not self.decoded_packets:
             STIX_LOGGER.warn('No decoded packets to write')
             return
         pkl_writer = stix_writer.StixPickleWriter(out_filename)
         pkl_writer.register_run(self.in_filename, self.in_filename, comment)
         pkl_writer.write_all(self.decoded_packets)
-    def write_to_MongoDB(self, server='localhost', port=27017, username='', password='', comment=''):
+
+    def write_to_MongoDB(self,
+                         server='localhost',
+                         port=27017,
+                         username='',
+                         password='',
+                         comment=''):
         if not self.decoded_packets:
             STIX_LOGGER.warn('No decoded packets to write')
             return
-        db_writer = stix_writer.StixMongoWriter(server, port, username, password)
+        db_writer = stix_writer.StixMongoWriter(server, port, username,
+                                                password)
         db_writer.register_run(self.in_filename, self.in_filesize, comment)
         db_writer.write_all(self.decoded_packets)
-
-

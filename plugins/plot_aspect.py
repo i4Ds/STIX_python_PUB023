@@ -1,8 +1,10 @@
 #plugin example
+import sys
+sys.path.append('..')
+sys.path.append('.')
+import stix_packet_analyzer as sta
 import pprint
 from matplotlib import pyplot as plt
-def get_raw(parameters, name):
-    return [int(item['raw'][0]) for item in parameters if item['name']==name][0]
 
 class Plugin:
     def __init__(self,  packets=[], current_row=0):
@@ -22,10 +24,14 @@ class Plugin:
             header=packet['header']
             timestamp.append(float(header['time']))
             parameters=packet['parameters']
-            A0_V.append(get_raw(parameters,'NIX00078'))
-            A1_V.append(get_raw(parameters,'NIX00079'))
-            B0_V.append(get_raw(parameters,'NIX00080'))
-            B1_V.append(get_raw(parameters,'NIX00081'))
+            analyzer=sta.StixPacketAnalyzer()
+            analyzer.load_packet(packet)
+            names=['NIX00078','NIX00079','NIX00080','NIX00081']
+            results=analyzer.get_raw(names)
+            A0_V.append(results['NIX00078'])
+            A1_V.append(results['NIX00079'])
+            B0_V.append(results['NIX00080'])
+            B1_V.append(results['NIX00081'])
 
         plt.plot(timestamp,A0_V,label='A0_V')
         plt.plot(timestamp,A1_V,label='A1_V')
@@ -35,7 +41,21 @@ class Plugin:
         plt.ylabel('Raw voltage ')
         plt.legend()
         plt.show()
-        
+        plt.savefig('aspect.png')
+
+
+
+def test():
+    from core import stix_parser
+    parser = stix_parser.StixTCTMParser()
+    parser.parse_file('../data/ql2.dat')
+    packets=parser.get_decoded_packets()
+    p=Plugin(packets)
+    p.run()
+
+if __name__=='__main__':
+    test()
+            
 
 
 

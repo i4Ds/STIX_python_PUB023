@@ -1,8 +1,7 @@
 #plugin example
 import pprint
+from stix_parameter_tree import StixParameterTreeAnalyzer as ptree
 
-def get_raw(parameters, name):
-    return [int(item['raw'][0]) for item in parameters if item['name']==name]
 
 class Plugin:
     def __init__(self,  packets=[], current_row=0):

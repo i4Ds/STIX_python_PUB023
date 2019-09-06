@@ -13,4 +13,3 @@ runs_col = db['runs']
 #print(runs_col.find({}, {"_id": -1}))
 
 timeit.timeit(packet_col.find({}, {"header_id": 100000}), number=1000)
-

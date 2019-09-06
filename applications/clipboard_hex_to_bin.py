@@ -27,7 +27,7 @@ def write_clipboard(fname):
 
 
 if __name__ == '__main__':
-    fname='clipboard.dat'
-    if len(sys.argv)==2:
-        fname=sys.argv[1]
+    fname = 'clipboard.dat'
+    if len(sys.argv) == 2:
+        fname = sys.argv[1]
     write_clipboard(fname)

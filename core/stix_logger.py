@@ -11,7 +11,7 @@ class StixLogger(object):
     __instance = None
 
     @staticmethod
-    def get_instance(filename=None, verbose=10):
+    def get_instance(filename=None, verbose=4):
         if not StixLogger.__instance:
             StixLogger(filename, verbose)
         return StixLogger.__instance
@@ -95,10 +95,14 @@ class StixLogger(object):
         else:
             self.printf(msg, 'info')
 
+    def pprint(self, parameter):
+        if self.verbose > 5:
+            pprint.pprint(parameter)
+
     def pprint_parameters(self, parameters):
         if self.verbose < 3 or not parameters:
             return
-        if type(parameters) is list:
+        if isinstance(parameters, list):
             for par in parameters:
                 if par:
                     try:
@@ -113,7 +117,7 @@ class StixLogger(object):
                                 self.pprint_parameters(par['children'])
                     except BaseException:
                         self.printf(par)
-        elif type(parameters) is dict:
+        else:
             self.printf(parameters)
 
     def debug(self, msg):

@@ -798,7 +798,7 @@ class Ui(mainwindow.Ui_MainWindow):
             root.setText(3, str(param.eng))
             if 'NIXG' in param_name:
                 root.setHidden(True)
-                #groups should not shown
+                #groups should not be shown
             if param.children:
                 self.showParameterTree(param.children, root)
         self.paramTreeWidget.itemDoubleClicked.connect(self.onTreeItemClicked)
