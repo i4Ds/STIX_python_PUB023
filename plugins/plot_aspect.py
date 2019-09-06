@@ -2,9 +2,11 @@
 import sys
 sys.path.append('..')
 sys.path.append('.')
-import stix_packet_analyzer as sta
+from core import stix_packet_analyzer as sta
 import pprint
 from matplotlib import pyplot as plt
+
+analyzer=sta.analyzer()
 
 class Plugin:
     def __init__(self,  packets=[], current_row=0):
@@ -24,7 +26,6 @@ class Plugin:
             header=packet['header']
             timestamp.append(float(header['time']))
             parameters=packet['parameters']
-            analyzer=sta.StixPacketAnalyzer()
             analyzer.load_packet(packet)
             names=['NIX00078','NIX00079','NIX00080','NIX00081']
             results=analyzer.get_raw(names)
@@ -44,23 +45,3 @@ class Plugin:
         plt.savefig('aspect.png')
 
 
-
-def test():
-    from core import stix_parser
-    parser = stix_parser.StixTCTMParser()
-    parser.parse_file('../data/ql2.dat')
-    packets=parser.get_decoded_packets()
-    p=Plugin(packets)
-    p.run()
-
-if __name__=='__main__':
-    test()
-            
-
-
-
-
-
-
-
-            

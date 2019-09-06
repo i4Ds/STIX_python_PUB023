@@ -587,7 +587,7 @@ class StixTCTMParser(StixParameterParser):
         if not info:
             return stix_global.HEADER_KEY_ERROR, header
 
-        header['DESCR'] = info['CCF_DESCR']
+        header['descr'] = info['CCF_DESCR']
         header['DESCR2'] = info['CCF_DESCR2']
         header['SPID'] = ''
         header['name'] = info['CCF_CNAME']

@@ -9,27 +9,25 @@ class StixPacketAnalyzer(object):
     def __init__(self):
         self._parameters = []
         self._spids=[]
+    def reset(self):
+        self._parameters.clear()
+        self._spids.clear()
+
     def set_filter(self,spid):
         self._spids.append(spid)
     def load_packet(self,packet):
+        self.reset()
         try:
             self._parameters =packet['parameters'] 
+            self._header=packet['header']
         except KeyError:
             print('Unsupported format')
     def load_parameters(self,parameters):
+        self.reset()
         if isinstance(parameters,list):
             self._parameters = parameters
         else:
             print('Not a parameter list')
-
-
-
-    def insert(self, parameter):
-        if isinstance(parameter,list):
-            self._parameters.extend(parameter)
-        else:
-            self._parameters.append(parameter)
-
 
     def find(self, name_list,  parameters=None):
         if not isinstance(name_list,list):
@@ -85,7 +83,8 @@ class StixPacketAnalyzer(object):
                 results[name].append(pp.eng)
         return results
 
-    def find_children(self, parent_name, order=1):
+
+    def find_child(self, parent_name, order=1):
         num_found=0
         for e in self._parameters:
             param = stp.StixParameter()
@@ -96,12 +95,85 @@ class StixPacketAnalyzer(object):
                     return param.children
 
         return None
-    def get_children_raw(self,param_name, order=1):
+    def get_child_raw(self,param_name, order=1):
         results=[]
-        for child in self.find_children(param_name,order):
+        for child in self.get_child(param_name,order):
             param = stp.StixParameter()
             param.clone(e)
             results.append(param.raw)
         return results
+
+
+
+    def find_all(self,pattern, plist=None, return_type='raw'):
+        """
+            pattern='NIX00159>NIX00146'
+        """
+        pnames=pattern.split('>')
+        results=[]
+        if not pnames:
+            return []
+        if not plist:
+            plist=self._parameters
+        try:
+            pname=pnames.pop(0)
+        except IndexError:
+            return []
+        for e in plist:
+            param = stp.StixParameter()
+            param.clone(e)
+            if param.name == pname:
+                if pnames:
+                    re=self.find_all('>'.join(pnames), param.children, return_type)
+                    if re:
+                        results.extend(re)
+                else:
+                    if return_type == 'raw':
+                        results.append(param.get_raw_int())
+                    if return_type == 'eng':
+                        results.append(param.eng)
+        return results
+
+
+
+    def find_all_children(self,pattern, plist=None, return_type='raw'):
+        """
+            pattern='NIX00159>NIX00146'
+        """
+        pnames=pattern.split('>')
+        results=[]
+        if not pnames:
+            return []
+        if not plist:
+            plist=self._parameters
+        try:
+            pname=pnames.pop(0)
+        except IndexError:
+            return []
+        for e in plist:
+            param = stp.StixParameter()
+            param.clone(e)
+            #pname=pnames.pop(0)
+
+            if param.name == pname:
+                if not pnames:
+                    result_children=[]
+                    for c in param.children:
+                        pchild= stp.StixParameter()
+                        pchild.clone(c)
+                        if return_type == 'raw':
+                            result_children.append(pchild.get_raw_int())
+                        if return_type == 'eng':
+                            result_children.append(pchild.eng)
+                    results.append(result_children)
+                else:
+                    results=self.find_all_children('>'.join(pnames), param.children,return_type)
+
+        return results
+
+
+def analyzer():
+    return StixPacketAnalyzer()
+
 
 

@@ -1,26 +1,17 @@
 #plot calibration spectra, whose counts are still compressed
 
 import os
-from ROOT import TGraph, TFile,TCanvas,TH1F, gROOT,TBrowser,gSystem
+import sys
+sys.path.append('..')
+sys.path.append('.')
+
 from PyQt5 import QtWidgets, QtCore, QtGui
-from data_utils import *
 
-def search(data, name):
-    if not data:
-        return None
-    if type(data) is list:
-        if type(data[0]) is dict:
-            return [element for element in data if element['name'] == name]
-        elif type(data[0]) is tuple: 
-            return [element for element in data if element[0] == name]
-    return None
+from core import stix_packet_analyzer as sta
+analyzer=sta.analyzer()
 
-def get_raw(data, name):
-        if type(data[0]) is dict:
-            return [int(item['raw'][0]) for item in data if item['name']==name]
-        elif type(data[0]) is tuple: 
-            return [int(item[1][0]) for item in data if item[0]==name]
 
+from ROOT import TGraph, TFile,TCanvas,TH1F, gROOT,TBrowser,gSystem
 def graph2(x,y, title, xlabel, ylabel):
     n=len(x)
     g=TGraph(n,array('d',x),array('d',y))
@@ -34,8 +25,6 @@ def hist(k,y, title, xlabel, ylabel):
     for i,val in enumerate(y):
         for j in range(val):
             h2.Fill(i)
-            #to correct the histogram wrong entries
-        #h2.SetBinContent(i+1,val)
     h2.GetXaxis().SetTitle(xlabel)
     h2.GetYaxis().SetTitle(ylabel)
     h2.SetTitle(title)
@@ -44,35 +33,6 @@ def hist(k,y, title, xlabel, ylabel):
     return h2 
 
 
-def get_calibration_spectra(packet):
-    param=packet['parameters']
-    search_res=get_nodes(param, 'NIX00159')
-    if not search_res:
-        return []
-    num_struct=0
-    try:
-        num_struct=int(search_res[0]['raw'][0])
-    except TypeError:
-        num_struct=int(search_res[0][1][0])
-
-
-
-    #number of structure
-    cal=search_res[0]['children']
-    detectors=get_raw(cal, 'NIXD0155')
-    pixels=get_raw(cal, 'NIXD0156')
-    spectra=[[int(it['raw'][0]) for it in  item['children']] for item in cal if item['name']=='NIX00146']
-    counts=[]
-    for e in spectra:
-        counts.append(sum(e))
-    result=[]
-    for i in range(num_struct):
-        if counts[i]>0:
-            result.append({'detector':detectors[i],
-                'pixel':pixels[i],
-                'counts':counts[i],
-                'spec':spectra[i]})
-    return result
 
 SPID=54124
 
@@ -82,18 +42,6 @@ class Plugin:
         self.current_row=current_row
     def run(self):
         # your code goes here
-        timestamp=[]
-        spectra=[]
-        for packet in self.packets:
-            try:
-                if int(packet['header']['SPID']) != SPID:
-                    continue
-            except ValueError:
-                continue
-            header=packet['header']
-            spectra.extend(get_calibration_spectra(packet))
-
-        num_spectra=len(spectra)
         filename = str(
                 QtWidgets.QFileDialog.getSaveFileName(None, "Save to file",'', 
                                                       "ROOT(*.root)")[0])
@@ -102,34 +50,45 @@ class Plugin:
             print('Invalid filename')
             return 
         
+
         fout=TFile(filename,'recreate')
-        hcounts=TH1F("hcounts","Channel counts; Pixel #; Counts",12*32,0,12*32)
         fout.cd()
-        tot_num_spec = len(spectra)
-        #cc=None
-        current_idx=0
-        idx_cc=0
-        for i,spec in enumerate(spectra):
-            if spec['counts']>0:
-                print('Detector %d Pixel %d, counts: %d '%(spec['detector'], spec['pixel'], spec['counts']))
-                xlabel= 'Energy channel'
-                ylabel= 'Counts'
-                title=('Detector %d Pixel %d '%(spec['detector'], spec['pixel']))
-                g=hist(i, spec['spec'],title,xlabel,ylabel)
-                #cc.cd(current_idx+1)
-                g.Draw("hist")
-                g.Write()
-                hcounts.Fill(12*spec['detector']+spec['pixel'], spec['counts'])
-                #current_idx+=1
+        hcounts=TH1F("hcounts","Channel counts; Pixel #; Counts",12*32,0,12*32)
+        num=0
+        for packet in self.packets:
+            try:
+                if int(packet['header']['SPID']) != SPID:
+                    continue
+            except ValueError:
+                continue
+            analyzer.load_packet(packet)
+            detector_ids=analyzer.find_all('NIX00159>NIXD0155')
+            pixels_ids=analyzer.find_all('NIX00159>NIXD0156')
+            spectra=analyzer.find_all_children('NIX00159>NIX00146')
+            for i,spec in enumerate(spectra):
+                if sum(spec)>0:
+                    num+=1
+                    det=detector_ids[i]
+                    pixel=pixels_ids[i]
+                    print('Detector %d Pixel %d, counts: %d '%(det, pixel, sum(spec)))
+
+                    xlabel= 'Energy channel'
+                    ylabel= 'Counts'
+                    title=('Detector %d Pixel %d '%(det, pixel))
+                    g=hist(i, spec,title,xlabel,ylabel)
+                    #cc.cd(current_idx+1)
+                    g.Draw("hist")
+                    g.Write()
+                    hcounts.Fill(12*det+pixel, spec)
+                    #current_idx+=1
         hcounts.Write('hcounts')
-        print('Total number of non-empty spectra:%d'%tot_num_spec)
         print('spectra saved to calibration.root')
-        gSystem.cd(dirname)
         fout.Close()
         gROOT.ProcessLine('new TBrowser()')
         gROOT.ProcessLine('new TFile("{}")'.format(filename))
 
 
+        print('Total number of non-empty spectra:%d'%num)
 
 
 
