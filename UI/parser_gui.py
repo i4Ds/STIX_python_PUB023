@@ -781,8 +781,8 @@ class Ui(mainwindow.Ui_MainWindow):
             root = QtWidgets.QTreeWidgetItem(parent)
             if not p:
                 continue
-            param = stix_parameter.StixParameterNode()
-            param.from_node(p)
+            param = stix_parameter.StixParameter()
+            param.clone(p)
             param_name = param.name
             desc = param.desc
             scos_desc = STIX_IDB.get_scos_description(param_name)
@@ -796,6 +796,9 @@ class Ui(mainwindow.Ui_MainWindow):
             except:
                 pass
             root.setText(3, str(param.eng))
+            if 'NIXG' in param_name:
+                root.setHidden(True)
+                #groups should not shown
             if param.children:
                 self.showParameterTree(param.children, root)
         self.paramTreeWidget.itemDoubleClicked.connect(self.onTreeItemClicked)
@@ -807,8 +810,8 @@ class Ui(mainwindow.Ui_MainWindow):
         for p in params:
             if not p:
                 continue
-            param = stix_parameter.StixParameterNode()
-            param.from_node(p)
+            param = stix_parameter.StixParameter()
+            param.clone(p)
             if name == param.name:
                 values = None
                 #print('data type:{}'.format(data_type))

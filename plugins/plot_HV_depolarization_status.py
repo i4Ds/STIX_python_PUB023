@@ -7,8 +7,8 @@ def get_raw(parameters, name):
 def get_eng_text(parameters, name):
     return [item['value'] for item in parameters if item['name']==name][0]
 
-SPID=54277
 
+SPID=54277
 class Plugin:
     def __init__(self,  packets=[], current_row=0):
         self.packets=packets

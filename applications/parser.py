@@ -18,73 +18,57 @@ from core import stix_parser
 STIX_LOGGER=stix_logger.stix_logger()
 
 def main():
-    in_filename = ''
-    out_filename = ''
-    selected_spid = 0
-    selected_service= 0
-    verbose = 10
-    logfile = None
-    file_type='binary'
-    comment=''
+
     ap = argparse.ArgumentParser()
-    ap.add_argument("-i", "--in",  required=True, nargs='?', help="input filename")
-    ap.add_argument("-o", "--out", required=False, nargs='?',help="output filename")
-    ap.add_argument("-m", "--comment", required=False, help="comment")
-    ap.add_argument("-t", "--ftype", required=False, choices=('binary', 'ascii', 'xml'),
-            help="Input file type: binary, ascii or xml ")
-    """
-    ascii file structure:
-    UTC HEX
-    """
-    ap.add_argument(
-        "--spid",
-        required=False,
-        help="only select the packets of the given SPID")
+    required=ap.add_argument_group('Required arguments')
+    optional=ap.add_argument_group('Optional arguments')
 
-    ap.add_argument(
-        "--service",
-        required=False,
-        help="only select the packets of the given service")
+    required.add_argument("-i", dest='input',required=True, nargs='?', help="Input raw data filename.")
+    optional.add_argument("-o", dest='output', default=None, required=False, 
+            help="Output filename. ")
 
-    ap.add_argument(
-        "-v", "--verbose", required=False, help="Logger verbose level")
+    optional.add_argument("-m", default='', dest='comment', required=False, help="comment")
 
-    ap.add_argument("-l", "--log", required=False, help="Log filename")
+    optional.add_argument("-t", dest='input_type', default='binary', choices=('binary', 'ascii', 'xml'),
+            help="Input file type. Three types (binary, ascii or xml) are supported.")
+
+    optional.add_argument("--wdb", dest='wdb', default=False,action='store_true',  
+            help='Write decoded packets to local MongoDB.')
+    optional.add_argument("--db-host", dest='db_host', default='localhost',
+        help='MongoDB host IP.')
+    optional.add_argument("--db-port", dest='db_port', default=27017, type=str,
+        help='MongoDB host port.')
+    optional.add_argument("--db-user", dest='db_user', default='',
+        help='MongoDB username.')
+    optional.add_argument("--db-pwd", dest='db_pwd', default='',
+        help='MongoDB password.')
+
+
+
+
+    optional.add_argument('--SPID', nargs='*', dest='SPID', action="store", default=[], type=int,
+            help='Only to parse the packets of the given SPIDs.' )
+    optional.add_argument('--services', nargs='*', dest='services', action="store", default=[], type=int, 
+            help='Only to parse the packets of the given service types.')
+    optional.add_argument(
+            "-v", dest="verbose", default=10, required=False, help="Logger verbose level", type=int)
+    optional.add_argument("-l", "--log", dest='logfile', default=None, required=False, help="Log filename")
 
     args = vars(ap.parse_args())
 
-    if args['spid'] is not None:
-        selected_spid = int(args['spid'])
-
-    if args['verbose'] is not None:
-        verbose = int(args['verbose'])
-
-    if args['log'] is not None:
-        logfile = args['log']
-
-
-    if args['out'] is not None:
-        out_filename = args['out']
-    if args['ftype'] is not None:
-        file_type= args['ftype']
-
-    if args['comment'] is not None:
-        comment= args['comment']
-
-
-    in_filename = args['in']
-
-    STIX_LOGGER.set_logger(logfile, verbose)
     parser = stix_parser.StixTCTMParser()
 
-    selected_spids=[]
-    selected_services=[]
-    if selected_spid!=0:
-        selected_spids=[selected_spid,]
-    if selected_service!=0:
-        selected_services=[selected_service,]
+    STIX_LOGGER.set_logger(args['logfile'], args['verbose'])
+
+    selected_spids=args['SPID']
+    selected_services=args['services']
     parser.set_packet_filter(selected_services, selected_spids)
-    parser.parse_file(in_filename, out_filename,file_type=file_type, comment=comment)
+    parser.parse_file(args['input'], args['input_type']) 
+    if args['output']:
+        parser.write_to_pickle( args['output'], args['comment'])
+    if args['wdb']:
+        parser.write_to_MongoDB(args['db_host'],args['db_port'],
+                args['db_user'],args['db_pwd'], args['comment'])
 
 
 if __name__ == '__main__':

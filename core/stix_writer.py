@@ -96,7 +96,7 @@ class StixMongoWriter(object):
         self.current_header_id = 0
         self.start = -1
         self.end = -1
-        self.run_info=None
+        self.run_info = None
         try:
             self.connect = pymongo.MongoClient(
                 server, port, username=username, password=password)
@@ -107,9 +107,7 @@ class StixMongoWriter(object):
             self.collection_runs = self.db['runs']
             self.create_indexes()
         except Exception as e:
-            #raise(str(e))
-            #print('can not connect to mongodb')
-            print(str(e))
+            STIX_LOGGER.error(str(e))
 
     def create_indexes(self):
         """to speed up queries """
@@ -165,6 +163,7 @@ class StixMongoWriter(object):
 
     def write_all(self, packets):
         if self.db and packets:
+            STIX_LOGGER.info('writing packets to MongoDB ...')
             self.run_info['start'] = packets[0]['header']['time']
             self.run_info['end'] = packets[-1]['header']['time']
             self.run_info['_id'] = self.current_run_id
@@ -184,6 +183,9 @@ class StixMongoWriter(object):
                 packet['_id'] = self.current_packet_id
                 result = self.collection_packets.insert_one(packet)
                 self.current_packet_id += 1
+            STIX_LOGGER.info('Done ...')
+        else:
+            STIX_LOGGER.error('Failed to write packets to the MongoDB')
 
     def write_one(self, packet):
         pass
