@@ -2,7 +2,7 @@ import sys
 import pprint
 sys.path.append('..')
 sys.path.append('.')
-from core import stix_packet_analyzer as sta
+from utils import stix_packet_analyzer as sta
 analyzer=sta.analyzer()
 
 SPID=54124
