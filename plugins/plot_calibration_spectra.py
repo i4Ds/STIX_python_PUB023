@@ -44,6 +44,7 @@ class Plugin:
         self.current_row=current_row
     def run(self):
         # your code goes here
+        print('Number of packets : {}'.format(len(self.packets)))
         filename = str(
                 QtWidgets.QFileDialog.getSaveFileName(None, "Save to file",'', 
                                                       "ROOT(*.root)")[0])

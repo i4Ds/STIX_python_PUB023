@@ -10,21 +10,16 @@ class StixPacketAnalyzer(object):
     def __init__(self):
         self._parameters = []
         self._spids=[]
-    def reset(self):
-        self._parameters.clear()
-        self._spids.clear()
 
     def set_filter(self,spid):
         self._spids.append(spid)
     def load_packet(self,packet):
-        self.reset()
         try:
             self._parameters =packet['parameters'] 
             self._header=packet['header']
         except KeyError:
             print('Unsupported format')
     def load_parameters(self,parameters):
-        self.reset()
         if isinstance(parameters,list):
             self._parameters = parameters
         else:
