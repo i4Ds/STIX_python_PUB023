@@ -1,14 +1,15 @@
 #plot calibration spectra, whose counts are still compressed
 
 import os
+
 import sys
 sys.path.append('..')
 sys.path.append('.')
+from core import stix_packet_analyzer as sta
+analyzer=sta.analyzer()
 
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-from core import stix_packet_analyzer as sta
-analyzer=sta.analyzer()
 
 
 from ROOT import TGraph, TFile,TCanvas,TH1F, gROOT,TBrowser,gSystem

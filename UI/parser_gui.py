@@ -312,6 +312,7 @@ class Ui(mainwindow.Ui_MainWindow):
 
     def onDeleteAllTriggered(self):
         self.data.clear()
+        self.current_row=0
         self.packetTreeWidget.clear()
         self.paramTreeWidget.clear()
 
