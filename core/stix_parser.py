@@ -24,14 +24,12 @@ from core import stix_writer
 from core import stix_context
 from core import stix_parameter
 
-CONTEXT_FORMAT = ['B', '>H', 'BBB', '>I']
-UNSIGNED_FORMAT = ['B', '>H', 'BBB', '>I', 'BBBBB', '>IH']
-SIGNED_FORMAT = ['b', '>h', 'bbb', '>i', 'bbbbb', '>ih']
-#binary structure used to unpack binaryarray
+CONTEXT_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I']
+UNSIGNED_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I', 'BBBBB', '>IH']
+SIGNED_UNPACK_FORMAT = ['b', '>h', 'bbb', '>i', 'bbbbb', '>ih']
 PARAMETER_DEFAULT_TYPE = 'tuple'
 
 STIX_IDB = stix_idb.stix_idb()
-
 STIX_LOGGER = stix_logger.stix_logger()
 
 
@@ -95,13 +93,13 @@ class StixParameterParser(object):
             return None
         bin_struct = str(nbytes) + 's'
         if param_type == 'U' and nbytes <= 6:
-            bin_struct = UNSIGNED_FORMAT[nbytes - 1]
+            bin_struct = UNSIGNED_UNPACK_FORMAT[nbytes - 1]
         elif param_type == 'I' and nbytes <= 6:
-            bin_struct = SIGNED_FORMAT[nbytes - 1]
+            bin_struct = SIGNED_UNPACK_FORMAT[nbytes - 1]
         elif param_type == 'T':
             bin_struct = '>IH'
         elif param_type == 'CONTEXT' and nbytes <= 4:
-            bin_struct = CONTEXT_FORMAT[nbytes - 1]
+            bin_struct = CONTEXT_UNPACK_FORMAT[nbytes - 1]
         #elif param_type == 'O':
         #    bin_struct = str(nbytes) + 's'
         results = ()
@@ -365,6 +363,7 @@ class StixVariablePacketParser(StixParameterParser):
         offset = self.last_offset
         offset_bits = self.current_offset_bit
         calibration = False
+        #Not to convert raw to eng for variable length packet
         return self.decode_parameter(self.source_data, name, offset,
                                      offset_bits, width, ptc, pfc, cal_ref,
                                      'TM', calibration)

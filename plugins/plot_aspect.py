@@ -3,7 +3,6 @@ import sys
 sys.path.append('..')
 sys.path.append('.')
 from core import stix_packet_analyzer as sta
-import pprint
 from matplotlib import pyplot as plt
 
 analyzer=sta.analyzer()

@@ -1,11 +1,12 @@
 #plot HV depolarization states
 import pprint
+import sys
+sys.path.append('..')
+sys.path.append('.')
+from core import stix_packet_analyzer as sta
+analyzer=sta.analyzer()
 from matplotlib import pyplot as plt
 
-def get_raw(parameters, name):
-    return [int(item['raw'][0]) for item in parameters if item['name']==name][0]
-def get_eng_text(parameters, name):
-    return [item['value'] for item in parameters if item['name']==name][0]
 
 
 SPID=54277
@@ -34,14 +35,13 @@ class Plugin:
             if T0 == 0:
                 T0=time
 
-            parameters=packet['parameters']
+            analyzer.load_packet(packet)
+            HV_line=analyzer.find_all('NIX00181')[0]
 
-            HV_line=get_raw(parameters,'NIX00181')
-            old_stat_text=get_eng_text(parameters,'NIX00182')
-            new_stat_text=get_eng_text(parameters,'NIX00183')
-
-            old_stat_raw=get_raw(parameters,'NIX00182')
-            new_stat_raw=get_raw(parameters,'NIX00183')
+            old_stat_text=analyzer.find_all('NIX00182',dtype='eng' )[0]
+            new_stat_text=analyzer.find_all('NIX00183',dtype='eng' )[0]
+            old_stat_raw=analyzer.find_all('NIX00182',dtype='raw' )[0]
+            new_stat_raw=analyzer.find_all('NIX00183',dtype='raw' )[0]
 
 
             if HV_line== 0 :

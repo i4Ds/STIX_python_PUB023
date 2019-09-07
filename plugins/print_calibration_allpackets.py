@@ -1,7 +1,8 @@
 import sys
+import pprint
 sys.path.append('..')
 sys.path.append('.')
-import stix_packet_analyzer as sta
+from core import stix_packet_analyzer as sta
 analyzer=sta.analyzer()
 
 SPID=54124
@@ -27,9 +28,9 @@ class Plugin:
                 continue
 
             analyzer.load_packet(packet)
-            detector_ids=analyzer.find_all('NIX00159>NIXD0155')
-            pixels_ids=analyzer.find_all('NIX00159>NIXD0156')
-            spectra=analyzer.find_all_children('NIX00159>NIX00146')
+            detector_ids=analyzer.find_all('NIX00159>NIXD0155')[0]
+            pixels_ids=analyzer.find_all('NIX00159>NIXD0156')[0]
+            spectra=analyzer.find_all('NIX00159>NIX00146>*')[0]
             for i,spec in enumerate(spectra):
                 if sum(spec)>0:
                     num+=1
@@ -40,16 +41,20 @@ class Plugin:
 
 
 
-def test():
+def test(filename='../GU/raw/asw164_calibration_test1.dat'):
     from core import stix_parser
     parser = stix_parser.StixTCTMParser()
-    parser.parse_file('../GU/raw/asw164_calibration_test1.dat')
+    parser.parse_file(filename)
     packets=parser.get_decoded_packets()
     p=Plugin(packets)
     p.run()
 
 if __name__=='__main__':
-    test()
+    if len(sys.argv)>1:
+        test(sys.argv[1])
+    else:
+        test()
+
             
 
 

@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 #stix packet analyzer
+
 import sys
 sys.path.append('..')
 sys.path.append('.')
@@ -105,9 +106,14 @@ class StixPacketAnalyzer(object):
 
 
 
-    def find_all(self,pattern, plist=None, return_type='raw'):
+    def find_all(self,pattern, plist=None, dtype='raw'):
         """
+        pattern examples:
             pattern='NIX00159>NIX00146'
+                return the values of all NIX00146 under NIX00159
+            pattern='NIX00159>NIX00146>*'
+                return the children's value of all NIX00146 
+
         """
         pnames=pattern.split('>')
         results=[]
@@ -122,54 +128,19 @@ class StixPacketAnalyzer(object):
         for e in plist:
             param = stp.StixParameter()
             param.clone(e)
-            if param.name == pname:
+            if param.name == pname or pname=='*':
                 if pnames:
-                    re=self.find_all('>'.join(pnames), param.children, return_type)
-                    if re:
-                        results.extend(re)
+                    ret=self.find_all('>'.join(pnames), param.children, dtype)
+                    if ret:
+                        results.append(ret)
                 else:
-                    if return_type == 'raw':
+                    if dtype == 'raw':
                         results.append(param.get_raw_int())
-                    if return_type == 'eng':
+                    if dtype == 'eng':
                         results.append(param.eng)
         return results
 
 
-
-    def find_all_children(self,pattern, plist=None, return_type='raw'):
-        """
-            pattern='NIX00159>NIX00146'
-        """
-        pnames=pattern.split('>')
-        results=[]
-        if not pnames:
-            return []
-        if not plist:
-            plist=self._parameters
-        try:
-            pname=pnames.pop(0)
-        except IndexError:
-            return []
-        for e in plist:
-            param = stp.StixParameter()
-            param.clone(e)
-            #pname=pnames.pop(0)
-
-            if param.name == pname:
-                if not pnames:
-                    result_children=[]
-                    for c in param.children:
-                        pchild= stp.StixParameter()
-                        pchild.clone(c)
-                        if return_type == 'raw':
-                            result_children.append(pchild.get_raw_int())
-                        if return_type == 'eng':
-                            result_children.append(pchild.eng)
-                    results.append(result_children)
-                else:
-                    results=self.find_all_children('>'.join(pnames), param.children,return_type)
-
-        return results
 
 
 def analyzer():

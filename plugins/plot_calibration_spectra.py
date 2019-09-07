@@ -21,10 +21,11 @@ def graph2(x,y, title, xlabel, ylabel):
     return g
 
 def hist(k,y, title, xlabel, ylabel):
-    h2=TH1F("h%d"%k,"%s; %s; %s"%(title,xlabel,ylabel),len(y),0,max(y))
+    h2=TH1F("h%d"%k,"%s; %s; %s"%(title,xlabel,ylabel),1024,0,1024)
     for i,val in enumerate(y):
-        for j in range(val):
-            h2.Fill(i)
+        h2.SetBinContent(i+1,val)
+        #for j in range(val):
+        #    h2.Fill(i)
     h2.GetXaxis().SetTitle(xlabel)
     h2.GetYaxis().SetTitle(ylabel)
     h2.SetTitle(title)
@@ -62,9 +63,9 @@ class Plugin:
             except ValueError:
                 continue
             analyzer.load_packet(packet)
-            detector_ids=analyzer.find_all('NIX00159>NIXD0155')
-            pixels_ids=analyzer.find_all('NIX00159>NIXD0156')
-            spectra=analyzer.find_all_children('NIX00159>NIX00146')
+            detector_ids=analyzer.find_all('NIX00159>NIXD0155')[0]
+            pixels_ids=analyzer.find_all('NIX00159>NIXD0156')[0]
+            spectra=analyzer.find_all('NIX00159>NIX00146>*')[0]
             for i,spec in enumerate(spectra):
                 if sum(spec)>0:
                     num+=1
@@ -77,15 +78,16 @@ class Plugin:
                     title=('Detector %d Pixel %d '%(det, pixel))
                     g=hist(i, spec,title,xlabel,ylabel)
                     #cc.cd(current_idx+1)
-                    g.Draw("hist")
+                    #g.Draw("hist")
                     g.Write()
-                    hcounts.Fill(12*det+pixel, spec)
+                    hcounts.Fill(12*det+pixel, sum(spec))
                     #current_idx+=1
-        hcounts.Write('hcounts')
+        if num>0:
+            hcounts.Write('hcounts')
         print('spectra saved to calibration.root')
         fout.Close()
-        gROOT.ProcessLine('new TBrowser()')
         gROOT.ProcessLine('new TFile("{}")'.format(filename))
+        gROOT.ProcessLine('new TBrowser()')
 
 
         print('Total number of non-empty spectra:%d'%num)
@@ -93,11 +95,3 @@ class Plugin:
 
 
         
-
-
-
-
-
-
-
-            
