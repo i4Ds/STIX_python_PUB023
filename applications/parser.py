@@ -38,11 +38,20 @@ def main():
         help="Output filename. ")
 
     optional.add_argument(
-        "-idb",
+        "--idb",
         dest='idb',
         default=None,
         required=False,
         help="IDB sqlite3 filename. ")
+
+    optional.add_argument(
+        "--opf",
+        dest='param_format',
+        default='tuple',
+        required=False,
+        choices=('tuple','dict'),
+        help="format to store output parameters. ")
+
 
     optional.add_argument(
         "-t",
@@ -111,6 +120,14 @@ def main():
 
     parser = stix_parser.StixTCTMParser()
 
+    parameter_format=args['param_format']
+    if args['wdb']:
+        param_format='dict'
+        #use hash table to store parameter 
+        #tuple is not supported by the web applications
+    
+    parser.set_parameter_format(param_format)
+
     STIX_LOGGER.set_logger(args['logfile'], args['verbose'])
 
     selected_spids = args['SPID']
@@ -125,6 +142,8 @@ def main():
                                 args['comment'])
     if args['idb']:
         idb_instance = stix_idb.stix_idb(args['idb'])
+
+
 
 
 if __name__ == '__main__':

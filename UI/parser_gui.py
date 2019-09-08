@@ -22,7 +22,7 @@ from PyQt5.QtChart import QChart, QChartView, QLineSeries, QValueAxis, QBarSerie
 from core import stix_parser
 from core import stix_writer
 from core import stix_idb
-from core import mongo_db as mgdb
+from utils import mongo_db as mgdb
 from core import stix_logger
 from UI import mainwindow_rc5
 from UI import mainwindow

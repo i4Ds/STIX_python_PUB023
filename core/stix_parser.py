@@ -27,7 +27,6 @@ from core import stix_parameter
 CONTEXT_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I']
 UNSIGNED_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I', 'BBBBB', '>IH']
 SIGNED_UNPACK_FORMAT = ['b', '>h', 'bbb', '>i', 'bbbbb', '>ih']
-PARAMETER_DEFAULT_TYPE = 'tuple'
 
 STIX_IDB = stix_idb.stix_idb()
 STIX_LOGGER = stix_logger.stix_logger()
@@ -67,6 +66,13 @@ def find_next_header(buf, i):
 class StixParameterParser(object):
     def __init__(self):
         pass
+
+    def set_parameter_format(self,fmt):
+        """ define how parameters stored in parameter tree: 
+            tuples or hash table
+        """
+        stix_parameter.StixParameter.set_format(fmt)
+
 
     def decode_buffer(self,
                       in_data,
@@ -820,6 +826,7 @@ class StixTCTMParser(StixParameterParser):
         if not self.decoded_packets:
             STIX_LOGGER.warn('No decoded packets to write')
             return
+
         db_writer = stix_writer.StixMongoWriter(server, port, username,
                                                 password)
         db_writer.register_run(self.in_filename, self.in_filesize, comment)

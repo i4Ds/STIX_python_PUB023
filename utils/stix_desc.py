@@ -2466,7 +2466,6 @@ def get_parameter_desc(name, which=1):
         except KeyError:
             seperator=''
         return pcf_des+seperator+scos_des
-
     elif which ==2 :
         try:
             return SCOS_DESC[name]

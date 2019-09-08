@@ -77,7 +77,7 @@ class Plugin:
 
                     xlabel= 'Energy channel'
                     ylabel= 'Counts'
-                    title=('Detector %d Pixel %d '%(det, pixel))
+                    title=('Detector %d Pixel %d '%(det+1, pixel))
                     g=hist(i, spec,title,xlabel,ylabel)
                     #cc.cd(current_idx+1)
                     #g.Draw("hist")

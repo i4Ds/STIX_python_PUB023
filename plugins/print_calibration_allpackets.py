@@ -34,7 +34,7 @@ class Plugin:
             for i,spec in enumerate(spectra):
                 if sum(spec)>0:
                     num+=1
-                    print('Detector %d Pixel %d, counts: %d '%(detector_ids[i], pixels_ids[i], sum(spec)))
+                    print('Detector %d Pixel %d, counts: %d '%(detector_ids[i]+1, pixels_ids[i], sum(spec)))
 
         print('Total number of non-empty spectra:%d'%num)
 
