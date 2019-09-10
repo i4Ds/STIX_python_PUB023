@@ -23,6 +23,7 @@ from core import stix_logger
 from core import stix_writer
 from core import stix_context
 from core import stix_parameter
+from core import stix_decompressor
 
 CONTEXT_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I']
 UNSIGNED_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I', 'BBBBB', '>IH']
@@ -30,6 +31,8 @@ SIGNED_UNPACK_FORMAT = ['b', '>h', 'bbb', '>i', 'bbbbb', '>ih']
 
 STIX_IDB = stix_idb.stix_idb()
 STIX_LOGGER = stix_logger.stix_logger()
+STIX_DECOMPRESSOR=stix_decompressor.StixDecompressor()
+stix_parameter.StixParameter.set_decompressor(STIX_DECOMPRESSOR)
 
 
 def get_bits(data, offset, length):
@@ -66,12 +69,14 @@ def find_next_header(buf, i):
 class StixParameterParser(object):
     def __init__(self):
         pass
+        #super(StixParameterParser, self).__init__()
 
     def set_parameter_format(self,fmt):
         """ define how parameters stored in parameter tree: 
             tuples or hash table
         """
         stix_parameter.StixParameter.set_format(fmt)
+
 
 
     def decode_buffer(self,
@@ -432,6 +437,8 @@ class StixTCTMParser(StixParameterParser):
         self.vp_parser = StixVariablePacketParser()
         self.context_parser = StixContextParser()
 
+
+
         self.selected_services = []
         self.selected_spids = []
         self.store_binary = True
@@ -677,6 +684,9 @@ class StixTCTMParser(StixParameterParser):
                         self.num_filtered += 1
                         continue
                 self.num_tm += 1
+
+                STIX_DECOMPRESSOR.initalize_decompressor(spid)
+
                 parameters = None
                 if tpsd == -1:
                     parameters = self.parse_fixed_packet(app_raw, spid)

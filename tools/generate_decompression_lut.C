@@ -66,10 +66,11 @@ void makeLUT(uint8_t K, uint8_t M, int max_value, float *x, float *y) {
     x[i] = i;
     value = (unsigned int)out;
     y[i] = value;
+	printf("%d %d\n",i,value);
 
     if (value != last_value) {
       mean_x = (first_x + last_x) / 2;
-      cout << last_value << ":" << mean_x << "," << endl;
+      //cout << last_value << ":" << mean_x << "," << endl;
       first_x = i;
     }
     last_x = i;

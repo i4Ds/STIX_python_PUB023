@@ -124,7 +124,6 @@ class StixLogger(object):
         if self.verbose < 4:
             return
         self.printf(msg)
-
     def print_summary(self, summary):
         self.important_info(
             'Total size: {} bytes (bad:{});'
@@ -134,7 +133,6 @@ class StixLogger(object):
                 summary['num_tm'] + summary['num_tc'] +
                 summary['num_filtered'], summary['num_tm'], summary['num_tc'],
                 summary['num_filtered'], summary['num_bad_headers']))
-
 
 def stix_logger():
     return StixLogger.get_instance()
