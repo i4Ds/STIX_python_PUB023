@@ -194,7 +194,7 @@ class StixFileReader(QThread):
             in_file = open(filename, 'rb')
         except Exception as e:
             self.error.emit('Failed to open the file due to {}'.format(str(e)))
-            return 
+            return
         buf = in_file.read()
         self.data = self.stix_tctm_parser.parse_binary(buf)
 
@@ -206,6 +206,8 @@ class Ui(mainwindow.Ui_MainWindow):
         self.stix_tctm_parser = stix_parser.StixTCTMParser()
         self.socketPacketReceiver = None
         self.initialize()
+        self.timmer = None
+        self.timmer_is_on = False
 
     def close(self):
         self.MainWindow.close()
@@ -247,7 +249,9 @@ class Ui(mainwindow.Ui_MainWindow):
         self.actionPaste.triggered.connect(self.onPasteTriggered)
         self.actionLog.triggered.connect(self.dockWidget.show)
         self.actionSetIDB.triggered.connect(self.onSetIDBClicked)
-        self.plotButton.clicked.connect(self.onPlotButtonClicked)
+        self.plotButton.clicked.connect(
+            partial(self.onPlotButtonClicked, None))
+
         self.exportButton.clicked.connect(self.onExportButtonClicked)
         self.actionPlot.triggered.connect(self.onPlotActionClicked)
         self.actionLoadMongodb.triggered.connect(self.onLoadMongoDBTriggered)
@@ -256,6 +260,8 @@ class Ui(mainwindow.Ui_MainWindow):
         self.actionPlugins.triggered.connect(self.onPluginTriggered)
         self.actionOnlineHelp.triggered.connect(self.onOnlineHelpTriggered)
         self.actionViewBinary.triggered.connect(self.onViewBinaryTriggered)
+        self.autoUpdateButton.clicked.connect(
+            self.onPlotAutoUpdateButtonClicked)
 
         self.packetTreeWidget.customContextMenuRequested.connect(
             self.packetTreeContextMenuEvent)
@@ -294,6 +300,27 @@ class Ui(mainwindow.Ui_MainWindow):
             self.showMessage(
                 'IDB location: {} '.format(STIX_IDB.get_idb_filename()), 1)
 
+    def onPlotAutoUpdateButtonClicked(self):
+        if not self.timmer_is_on:
+            if not self.data:
+                return
+            num_packets = len(self.data)
+            if num_packets > 200:
+                packets = self.data[-200:-1]
+            else:
+                packets = self.data
+            self.timer = QTimer()
+            self.timer.timeout.connect(
+                partial(self.onPlotButtonClicked, packets))
+            self.timer.start(2000)
+            self.timmer_is_on = True
+            self.autoUpdateButton.setText('Stop Auto Update')
+        else:
+            if self.timer:
+                self.timer.stop()
+            self.timmer_is_on = False
+            self.autoUpdateButton.setText('Start Auto Update')
+
     def packetTreeContextMenuEvent(self, pos):
         menu = QtWidgets.QMenu()
         rawDataAction = menu.addAction('Show raw data')
@@ -312,7 +339,7 @@ class Ui(mainwindow.Ui_MainWindow):
 
     def onDeleteAllTriggered(self):
         self.data.clear()
-        self.current_row=0
+        self.current_row = 0
         self.packetTreeWidget.clear()
         self.paramTreeWidget.clear()
 
@@ -838,11 +865,14 @@ class Ui(mainwindow.Ui_MainWindow):
                 self.walk(name, param.children, header, ret_x, ret_y, xaxis,
                           data_type)
 
-    def onPlotButtonClicked(self):
+    def onPlotButtonClicked(self, packets=None):
         if self.chart:
             self.chart.removeAllSeries()
-        if not self.data:
+        if packets is None:
+            packets = self.data
+        if not packets:
             return
+
         self.showMessage('Preparing plot ...')
         name = self.paramNameEdit.text()
         packet_selection = self.comboBox.currentIndex()
@@ -851,15 +881,21 @@ class Ui(mainwindow.Ui_MainWindow):
 
         timestamp = []
         self.y = []
-        packet_id = self.current_row
-        params = self.data[packet_id]['parameters']
-        header = self.data[packet_id]['header']
-        current_spid = header['SPID']
+
+        #packet_id = self.current_row
+        params = self.paramNameEdit.text()
+        #packets[packet_id]['parameters']
+        header = packets[0]['header']
+        current_spid = 0
+        spid_text = self.spidLineEdit.text()
+        if spid_text:
+            current_spid = int(spid_text)
+
         if packet_selection == 0:
             self.walk(name, params, header, timestamp, self.y, xaxis_type,
                       data_type)
         elif packet_selection == 1:
-            for packet in self.data:
+            for packet in packets:
                 header = packet['header']
                 if packet['header']['SPID'] != current_spid:
                     continue
@@ -885,7 +921,7 @@ class Ui(mainwindow.Ui_MainWindow):
             ylabel = 'Raw value'
             xlabel = name
             if data_type == 1:
-                ylabel = 'Engineering  value'
+                ylabel = 'Engineering / Decompressed  value'
             if xaxis_type == 0:
                 if packet_selection == 1:
                     xlabel = "Packet #"
@@ -938,26 +974,32 @@ class Ui(mainwindow.Ui_MainWindow):
             self.ylabel = ylabel
             self.chartView.setRubberBand(QChartView.RectangleRubberBand)
             self.chartView.setRenderHint(QtGui.QPainter.Antialiasing)
-            msg = 'Y length: {}, min-Y:  {}, max-Y: {}'.format(
+            msg = 'Data points: {}, Y ({} - {})'.format(
                 len(self.y), min(self.y), max(self.y))
-
             self.showMessage(msg, 1)
 
             self.showMessage('The canvas updated!')
 
-    def plotParameter(self, name=None, desc=None):
+    def plotParameter(self, SPID=None, pname=None, desc=None):
         self.tabWidget.setCurrentIndex(1)
-        if name:
-            self.paramNameEdit.setText(name)
+        if pname:
+            self.paramNameEdit.setText(pname)
         if desc:
             self.descLabel.setText(desc)
+        if SPID:
+            self.spidLineEdit.setText(str(SPID))
 
     def onPlotActionClicked(self):
         self.tabWidget.setCurrentIndex(1)
         self.plotParameter()
 
     def onTreeItemClicked(self, it, col):
-        self.plotParameter(it.text(0), it.text(1))
+        SPID = None
+        try:
+            SPID = self.data[self.current_row]['header']['SPID']
+        except IndexError:
+            pass
+        self.plotParameter(SPID, it.text(0), it.text(1))
 
 
 if __name__ == '__main__':

@@ -88,25 +88,22 @@ class Ui_MainWindow(object):
         self.gridLayout.addWidget(self.xaxisComboBox, 0, 1, 1, 1)
         self.label = QtWidgets.QLabel(self.plotTab)
         self.label.setObjectName("label")
-        self.gridLayout.addWidget(self.label, 0, 2, 1, 1)
-        self.label_2 = QtWidgets.QLabel(self.plotTab)
-        self.label_2.setObjectName("label_2")
-        self.gridLayout.addWidget(self.label_2, 0, 4, 1, 1)
+        self.gridLayout.addWidget(self.label, 0, 4, 1, 1)
         self.styleEdit = QtWidgets.QLineEdit(self.plotTab)
         self.styleEdit.setMaximumSize(QtCore.QSize(40, 16777215))
         self.styleEdit.setObjectName("styleEdit")
-        self.gridLayout.addWidget(self.styleEdit, 0, 9, 1, 1)
+        self.gridLayout.addWidget(self.styleEdit, 0, 10, 1, 1)
         spacerItem = QtWidgets.QSpacerItem(25, 17,
                                            QtWidgets.QSizePolicy.Expanding,
                                            QtWidgets.QSizePolicy.Minimum)
-        self.gridLayout.addItem(spacerItem, 0, 10, 1, 1)
+        self.gridLayout.addItem(spacerItem, 0, 11, 1, 1)
         self.label_4 = QtWidgets.QLabel(self.plotTab)
         self.label_4.setObjectName("label_4")
         self.gridLayout.addWidget(self.label_4, 0, 0, 1, 1)
         self.paramNameEdit = QtWidgets.QLineEdit(self.plotTab)
         self.paramNameEdit.setMaximumSize(QtCore.QSize(150, 16777215))
         self.paramNameEdit.setObjectName("paramNameEdit")
-        self.gridLayout.addWidget(self.paramNameEdit, 0, 3, 1, 1)
+        self.gridLayout.addWidget(self.paramNameEdit, 0, 5, 1, 1)
         self.comboBox = QtWidgets.QComboBox(self.plotTab)
         self.comboBox.setMinimumSize(QtCore.QSize(120, 0))
         self.comboBox.setMaximumSize(QtCore.QSize(150, 16777215))
@@ -114,32 +111,41 @@ class Ui_MainWindow(object):
         self.comboBox.setObjectName("comboBox")
         self.comboBox.addItem("")
         self.comboBox.addItem("")
-        self.gridLayout.addWidget(self.comboBox, 0, 5, 1, 1)
+        self.gridLayout.addWidget(self.comboBox, 0, 6, 1, 1)
         self.descLabel = QtWidgets.QLabel(self.plotTab)
         self.descLabel.setMinimumSize(QtCore.QSize(0, 0))
         self.descLabel.setMaximumSize(QtCore.QSize(0, 16777215))
         self.descLabel.setText("")
         self.descLabel.setObjectName("descLabel")
-        self.gridLayout.addWidget(self.descLabel, 0, 6, 1, 1)
+        self.gridLayout.addWidget(self.descLabel, 0, 7, 1, 1)
         self.label_3 = QtWidgets.QLabel(self.plotTab)
         self.label_3.setObjectName("label_3")
-        self.gridLayout.addWidget(self.label_3, 0, 8, 1, 1)
+        self.gridLayout.addWidget(self.label_3, 0, 9, 1, 1)
         self.plotButton = QtWidgets.QPushButton(self.plotTab)
         self.plotButton.setMaximumSize(QtCore.QSize(100, 16777215))
         self.plotButton.setObjectName("plotButton")
-        self.gridLayout.addWidget(self.plotButton, 0, 11, 1, 1)
+        self.gridLayout.addWidget(self.plotButton, 0, 13, 1, 1)
         self.savePlotButton = QtWidgets.QPushButton(self.plotTab)
         self.savePlotButton.setMaximumSize(QtCore.QSize(100, 16777215))
         self.savePlotButton.setObjectName("savePlotButton")
-        self.gridLayout.addWidget(self.savePlotButton, 0, 12, 1, 1)
+        self.gridLayout.addWidget(self.savePlotButton, 0, 15, 1, 1)
         self.dataTypeComboBox = QtWidgets.QComboBox(self.plotTab)
         self.dataTypeComboBox.setObjectName("dataTypeComboBox")
         self.dataTypeComboBox.addItem("")
         self.dataTypeComboBox.addItem("")
-        self.gridLayout.addWidget(self.dataTypeComboBox, 0, 7, 1, 1)
+        self.gridLayout.addWidget(self.dataTypeComboBox, 0, 8, 1, 1)
         self.exportButton = QtWidgets.QPushButton(self.plotTab)
         self.exportButton.setObjectName("exportButton")
-        self.gridLayout.addWidget(self.exportButton, 0, 13, 1, 1)
+        self.gridLayout.addWidget(self.exportButton, 0, 16, 1, 1)
+        self.autoUpdateButton = QtWidgets.QPushButton(self.plotTab)
+        self.autoUpdateButton.setObjectName("autoUpdateButton")
+        self.gridLayout.addWidget(self.autoUpdateButton, 0, 14, 1, 1)
+        self.label_2 = QtWidgets.QLabel(self.plotTab)
+        self.label_2.setObjectName("label_2")
+        self.gridLayout.addWidget(self.label_2, 0, 2, 1, 1)
+        self.spidLineEdit = QtWidgets.QLineEdit(self.plotTab)
+        self.spidLineEdit.setObjectName("spidLineEdit")
+        self.gridLayout.addWidget(self.spidLineEdit, 0, 3, 1, 1)
         self.verticalLayout.addLayout(self.gridLayout)
         self.tabWidget.addTab(self.plotTab, "")
         self.horizontalLayout.addWidget(self.tabWidget)
@@ -297,7 +303,7 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.actionViewBinary)
 
         self.retranslateUi(MainWindow)
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -311,7 +317,7 @@ class Ui_MainWindow(object):
         self.paramTreeWidget.headerItem().setText(
             2, _translate("MainWindow", "Raw"))
         self.paramTreeWidget.headerItem().setText(
-            3, _translate("MainWindow", "Eng. Value"))
+            3, _translate("MainWindow", "Eng. /Decomp. Value"))
         self.tabWidget.setTabText(
             self.tabWidget.indexOf(self.packetTab),
             _translate("MainWindow", "Packets"))
@@ -319,27 +325,29 @@ class Ui_MainWindow(object):
             _translate("MainWindow", "plot parameters\n"
                        ""))
         self.xaxisComboBox.setItemText(
-            0, _translate("MainWindow", "Parameter repeat # as X"))
+            0, _translate("MainWindow", "Param. repeat # as X"))
         self.xaxisComboBox.setItemText(
             1, _translate("MainWindow", "Timestamp - T0 as X"))
         self.xaxisComboBox.setItemText(2, _translate("MainWindow",
                                                      "Histogram"))
-        self.label.setText(_translate("MainWindow", "Data source:"))
-        self.label_2.setText(_translate("MainWindow", "In"))
+        self.label.setText(_translate("MainWindow", "Param.:"))
         self.styleEdit.setText(_translate("MainWindow", "-"))
         self.label_4.setText(_translate("MainWindow", "Type:"))
-        self.comboBox.setItemText(0, _translate("MainWindow",
-                                                "the same packet"))
         self.comboBox.setItemText(
-            1, _translate("MainWindow", "all loaded packets"))
+            0, _translate("MainWindow", "In the same packet"))
+        self.comboBox.setItemText(
+            1, _translate("MainWindow", "Of all loaded packets"))
         self.label_3.setText(_translate("MainWindow", "Curve Style:"))
         self.plotButton.setText(_translate("MainWindow", "Plot"))
         self.savePlotButton.setText(_translate("MainWindow", "Save"))
         self.dataTypeComboBox.setItemText(
             0, _translate("MainWindow", "Raw values"))
         self.dataTypeComboBox.setItemText(
-            1, _translate("MainWindow", "Engineering values"))
+            1, _translate("MainWindow", "Eng./Decompr. values"))
         self.exportButton.setText(_translate("MainWindow", "Export data"))
+        self.autoUpdateButton.setText(
+            _translate("MainWindow", "Start Auto Update"))
+        self.label_2.setText(_translate("MainWindow", "SPID:"))
         self.tabWidget.setTabText(
             self.tabWidget.indexOf(self.plotTab),
             _translate("MainWindow", "Plot"))

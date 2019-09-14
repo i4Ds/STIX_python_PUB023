@@ -120,7 +120,8 @@ def main():
 
     parser = stix_parser.StixTCTMParser()
 
-    parameter_format=args['param_format']
+    param_format=args['param_format']
+
     if args['wdb']:
         param_format='dict'
         #use hash table to store parameter 

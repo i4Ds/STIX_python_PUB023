@@ -12,8 +12,8 @@ import math
 import os
 import re
 import struct as st
-import xmltodict
 import binascii
+import xmltodict
 from scipy import interpolate
 
 from core import stix_header
@@ -31,7 +31,7 @@ SIGNED_UNPACK_FORMAT = ['b', '>h', 'bbb', '>i', 'bbbbb', '>ih']
 
 STIX_IDB = stix_idb.stix_idb()
 STIX_LOGGER = stix_logger.stix_logger()
-STIX_DECOMPRESSOR=stix_decompressor.StixDecompressor()
+STIX_DECOMPRESSOR = stix_decompressor.StixDecompressor()
 stix_parameter.StixParameter.set_decompressor(STIX_DECOMPRESSOR)
 
 
@@ -71,13 +71,11 @@ class StixParameterParser(object):
         pass
         #super(StixParameterParser, self).__init__()
 
-    def set_parameter_format(self,fmt):
+    def set_parameter_format(self, fmt):
         """ define how parameters stored in parameter tree: 
             tuples or hash table
         """
         stix_parameter.StixParameter.set_format(fmt)
-
-
 
     def decode_buffer(self,
                       in_data,
@@ -236,6 +234,15 @@ class StixVariablePacketParser(StixParameterParser):
         self.last_spid = -1
         self.last_num_bits = 0
         self.last_data_width = 0
+        self.current_offset_bit = 0
+        self.length_min = 0
+        self.nodes = []
+        self.source_data = None
+        self.spid = 0
+        self.current_offset = 0
+        self.last_offset = 0
+        self.results_tree = []
+        self.results_dict = {}
 
     def debug_enabled(self):
         self.debug = True
@@ -258,6 +265,7 @@ class StixVariablePacketParser(StixParameterParser):
         self.results_tree[:] = []
         self.results_dict = {}
         self.results_dict.clear()
+
         if spid != self.last_spid:
             self.init_parser_nodes()
             self.build_parse_tree()
@@ -436,8 +444,6 @@ class StixTCTMParser(StixParameterParser):
         super(StixTCTMParser, self).__init__()
         self.vp_parser = StixVariablePacketParser()
         self.context_parser = StixContextParser()
-
-
 
         self.selected_services = []
         self.selected_spids = []
@@ -633,7 +639,7 @@ class StixTCTMParser(StixParameterParser):
             params.append(parameter)
         return params
 
-    def parse_binary(self, buf, i=0): 
+    def parse_binary(self, buf, i=0):
         """
         Inputs:
             buffer, i.e., the input binary array
@@ -641,10 +647,7 @@ class StixTCTMParser(StixParameterParser):
         Returns:
             decoded packets in python list
         """
-        #if reset:
-        #    self.reset_parser()
-        packets=[]
-
+        packets = []
         length = len(buf)
         self.total_length += length
         if i >= length:
@@ -744,8 +747,7 @@ class StixTCTMParser(StixParameterParser):
                 if current > last:
                     STIX_LOGGER.info('{}% processed!'.format(current))
                 last = current
-
-        return packets 
+        return packets
 
     def parse_hex(self, hex_string):
         raw = binascii.unhexlify(hex_string)
@@ -808,12 +810,12 @@ class StixTCTMParser(StixParameterParser):
         if file_type == 'binary':
             with open(in_filename, 'rb') as in_file:
                 data = in_file.read()
-                self.decoded_packets=self.parse_binary(data)
+                self.decoded_packets = self.parse_binary(data)
 
         elif file_type == 'ascii':
-            self.decoded_packets=self.parse_moc_ascii(in_filename)
+            self.decoded_packets = self.parse_moc_ascii(in_filename)
         elif file_type == 'xml':
-            self.decoded_packets=self.parse_moc_xml(in_filename)
+            self.decoded_packets = self.parse_moc_xml(in_filename)
         else:
             STIX_LOGGER.error(
                 '{} has unknown input file type'.format(in_filename))
