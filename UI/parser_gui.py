@@ -37,6 +37,7 @@ SELECTED_SERVICES = [1, 3, 5, 6, 17, 21, 22, 236, 237, 238, 239]
 
 STIX_IDB = stix_idb.stix_idb()
 STIX_LOGGER = stix_logger.stix_logger()
+MAX_NUM_PACKET_IN_BUFFER=6000
 
 
 class StixSocketPacketReceiver(QThread):
@@ -59,7 +60,6 @@ class StixSocketPacketReceiver(QThread):
         self.stix_tctm_parser.set_report_progress_enabled(False)
         STIX_LOGGER.set_signal(self.info, self.importantInfo, self.warn,
                                self.error)
-
     def run(self):
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -695,8 +695,11 @@ class Ui(mainwindow.Ui_MainWindow):
         self.socketPacketReceiver.start()
 
     def onPacketArrival(self, packets):
+        clear=False
         if packets:
-            self.onDataReady(packets, clear=False, show_stat=True)
+            if len(self.data)>MAX_NUM_PACKET_IN_BUFFER:
+                clear=True
+            self.onDataReady(packets, clear=clear, show_stat=True)
 
     def onLoadMongoDBTriggered(self):
         diag = QtWidgets.QDialog()
