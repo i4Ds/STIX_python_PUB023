@@ -200,7 +200,7 @@ class StixParameterParser(object):
         return ''
 
     def decode_parameter(self,
-                         app_data,
+                         data_field,
                          name,
                          offset,
                          offset_bits,
@@ -212,7 +212,7 @@ class StixParameterParser(object):
                          calibration=True):
 
         param_type = STIX_IDB.get_s2k_parameter_types(ptc, pfc)
-        raw_values = self.decode_buffer(app_data, param_type, offset,
+        raw_values = self.decode_buffer(data_field, param_type, offset,
                                         offset_bits, width, name)
         eng_values = ''
         if calibration:
@@ -534,7 +534,7 @@ class StixTCTMParser(StixParameterParser):
                 return stix_global.HEADER_INVALID
         return stix_global.OK
 
-    def decode_app_header(self, header, data, length):
+    def decode_data_field_header(self, header, data, length):
         """ Decode the data field header
         """
         service_type = header['service_type']
@@ -665,11 +665,13 @@ class StixTCTMParser(StixParameterParser):
                         i, header_status))
                     self.num_bad_headers += 1
                     continue
-                app_length = header['length'] - 9
-                status, i, app_raw = get_from_bytearray(buf, i, app_length)
+                data_field_length = header['length'] - 9
+                status, i, data_field_raw = get_from_bytearray(
+                    buf, i, data_field_length)
                 if status == stix_global.EOF:
                     break
-                ret = self.decode_app_header(header, app_raw, app_length)
+                ret = self.decode_data_field_header(header, data_field_raw,
+                                                    data_field_length)
                 if ret != stix_global.OK:
                     STIX_LOGGER.warn(
                         'Missing information in the IDB to decoded the data starting at {} '
@@ -692,19 +694,19 @@ class StixTCTMParser(StixParameterParser):
 
                 parameters = None
                 if tpsd == -1:
-                    parameters = self.parse_fixed_packet(app_raw, spid)
+                    parameters = self.parse_fixed_packet(data_field_raw, spid)
                 else:
-                    self.vp_parser.init_parser(app_raw, spid)
+                    self.vp_parser.init_parser(data_field_raw, spid)
                     num_read, parameters, status = self.vp_parser.parse_all_parameters(
                     )
-                    if num_read != app_length:
+                    if num_read != data_field_length:
                         STIX_LOGGER.warn(
                             ' Packet (SPID {}) length mismatch. Actual length: {}, IDB: {}'
-                            .format(spid, num_read, app_length))
+                            .format(spid, num_read, data_field_length))
                 packet = {'header': header, 'parameters': parameters}
                 STIX_LOGGER.pprint(packet)
                 if self.store_binary:
-                    packet['bin'] = header_raw + app_raw
+                    packet['bin'] = header_raw + data_field_raw
                 packets.append(packet)
             elif buf[i] == 0x1D:
                 # telecommand
@@ -721,15 +723,17 @@ class StixTCTMParser(StixParameterParser):
                         "Invalid telecommand header. Cursor at {} ".format(i -
                                                                            12))
                     continue
-                app_length = header['length'] + 1 - 4
-                status, i, app_raw = get_from_bytearray(buf, i, app_length)
+                data_field_length = header['length'] + 1 - 4
+                status, i, data_field_raw = get_from_bytearray(
+                    buf, i, data_field_length)
                 if status == stix_global.EOF:
                     break
-                parameters = self.get_telecommand_parameters(header, app_raw)
+                parameters = self.get_telecommand_parameters(
+                    header, data_field_raw)
                 packet = {'header': header, 'parameters': parameters}
                 STIX_LOGGER.pprint(packet)
                 if self.store_binary:
-                    packet['bin'] = header_raw + app_raw
+                    packet['bin'] = header_raw + data_field_raw
                 packets.append(packet)
             else:
                 old_i = i
