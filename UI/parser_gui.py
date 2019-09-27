@@ -58,117 +58,16 @@ def detect_filetype(filename):
         f.close()
     return filetype
 
-class StixSocketPacketReceiver(QThread):
-    """
-    QThread to receive packets via socket
-    """
-    packetArrival = pyqtSignal(list)
+class Parser(object):
     error = pyqtSignal(str)
     info = pyqtSignal(str)
     importantInfo = pyqtSignal(str)
     warn = pyqtSignal(str)
-
-    def __init__(self, host, port):
-        super(StixSocketPacketReceiver, self).__init__()
-        self.working = True
-        self.port = port
-        self.host = host
-        self.stix_tctm_parser = stix_parser.StixTCTMParser()
-        self.stix_tctm_parser.set_store_binary_enabled(True)
-        self.stix_tctm_parser.set_report_progress_enabled(False)
-        STIX_LOGGER.set_signal(self.info, self.importantInfo, self.warn,
-                               self.error)
-    def run(self):
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.connect((self.host, self.port))
-            self.info.emit('Receiving packets from {}:{}'.format(
-                self.host, self.port))
-        except Exception as e:
-            self.error.emit(str(e))
-            return
-        while True:
-            buf = b''
-            while True:
-                data = s.recv(1)
-                buf += data
-                if data == b'>':
-                    if buf.endswith(b'<-->'):
-                        break
-            data2 = buf.split()
-            if buf[0:9] == 'TM_PACKET'.encode():
-                data_hex = data2[-1][0:-4]
-                data_binary = binascii.unhexlify(data_hex)
-                packets = self.stix_tctm_parser.parse_binary(data_binary)
-                if packets:
-                    packets[0]['header']['arrival'] = str(datetime.now())
-                    self.packetArrival.emit(packets)
-
-        else:
-            s.close()
-
-
-class StixFileReader(QThread):
-    """
-    thread
-    """
-    dataLoaded = pyqtSignal(list)
-    error = pyqtSignal(str)
-    info = pyqtSignal(str)
-    importantInfo = pyqtSignal(str)
-    warn = pyqtSignal(str)
-
-    def __init__(self, filename):
-        super(StixFileReader, self).__init__()
-        self.filename = filename
-        self.data = []
+    def __init__(self):
         self.stix_tctm_parser = stix_parser.StixTCTMParser()
         self.stix_tctm_parser.set_store_binary_enabled(True)
         STIX_LOGGER.set_signal(self.info, self.importantInfo, self.warn,
                                self.error)
-
-    def setPacketFilter(self, selected_services, selected_SPID):
-        self.stix_tctm_parser.set_packet_filter(selected_services,
-                                                selected_SPID)
-
-    def run(self):
-        self.data = []
-        filename = self.filename
-        if filename.endswith('.pklz'):
-            self.info.emit('Loading {} ...'.format(filename))
-            f = gzip.open(filename, 'rb')
-            self.data = pickle.load(f)['packet']
-            f.close()
-        elif filename.endswith('.pkl'):
-            f = open(filename, 'rb')
-            self.info.emit('Loading ...')
-            self.data = pickle.load(f)['packet']
-            f.close()
-        elif filename.endswith(('.dat', '.binary', '.bin','.BDF')):
-            self.parseRawFile(filename)
-        elif filename.endswith('.xml'):
-            self.parseESOCXmlFile(filename)
-        elif filename.endswith('.ascii'):
-            self.parseMocAsciiFile(filename)
-        else:
-            self.warn.emit('unknown file type: {}'.format(filename))
-            self.warn.emit('detecting the file type...')
-            filetype=detect_filetype(filename)
-            self.info.emit('trying to decode as  type {}'.format(filetype))
-
-            
-            if filetype == 'ascii':
-                self.parseMocAsciiFile(filename)
-            elif filetype == 'hex':
-                self.parseHexFile(filename)
-            else:
-                self.parseRawFile(filename)
-
-        STIX_LOGGER.print_summary(self.stix_tctm_parser.get_summary())
-        #print('self.data size:')
-        #print(sys.getsizeof(self.data))
-        self.dataLoaded.emit(self.data)
-
     def parseMocAsciiFile(self, filename):
         self.data = []
         self.stix_tctm_parser.set_report_progress_enabled(False)
@@ -216,11 +115,9 @@ class StixFileReader(QThread):
             if not packets:
                 continue
             self.data.extend(packets)
-
     def parseHexFile(self,filename):
         with open(filename,'r') as f:
             raw_hex=f.read()
-
             self.data = self.stix_tctm_parser.parse_hex(raw_hex)
     def parseRawFile(self, filename):
         self.stix_tctm_parser.set_report_progress_enabled(True)
@@ -231,6 +128,104 @@ class StixFileReader(QThread):
             return
         buf = in_file.read()
         self.data = self.stix_tctm_parser.parse_binary(buf)
+
+
+class StixSocketPacketReceiver(QThread,Parser):
+    """
+    QThread to receive packets via socket
+    """
+    packetArrival = pyqtSignal(list)
+
+    def __init__(self, host, port):
+        super(StixSocketPacketReceiver, self).__init__()
+        self.working = True
+        self.port = port
+        self.host = host
+        self.stix_tctm_parser.set_report_progress_enabled(False)
+
+    def run(self):
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((self.host, self.port))
+            self.info.emit('Receiving packets from {}:{}'.format(
+                self.host, self.port))
+        except Exception as e:
+            self.error.emit(str(e))
+            return
+        while True:
+            buf = b''
+            while True:
+                data = s.recv(1)
+                buf += data
+                if data == b'>':
+                    if buf.endswith(b'<-->'):
+                        break
+            data2 = buf.split()
+            if buf[0:9] == 'TM_PACKET'.encode():
+                data_hex = data2[-1][0:-4]
+                data_binary = binascii.unhexlify(data_hex)
+                packets = self.stix_tctm_parser.parse_binary(data_binary)
+                if packets:
+                    packets[0]['header']['arrival'] = str(datetime.now())
+                    self.packetArrival.emit(packets)
+
+        else:
+            s.close()
+
+
+class StixFileReader(QThread,Parser):
+    """
+    thread
+    """
+    dataLoaded = pyqtSignal(list)
+
+    def __init__(self, filename):
+        super(StixFileReader, self).__init__()
+        self.filename = filename
+        self.data = []
+
+
+    def setPacketFilter(self, selected_services, selected_SPID):
+        self.stix_tctm_parser.set_packet_filter(selected_services,
+                                                selected_SPID)
+
+    def run(self):
+        self.data = []
+        filename = self.filename
+        if filename.endswith('.pklz'):
+            self.info.emit('Loading {} ...'.format(filename))
+            f = gzip.open(filename, 'rb')
+            self.data = pickle.load(f)['packet']
+            f.close()
+        elif filename.endswith('.pkl'):
+            f = open(filename, 'rb')
+            self.info.emit('Loading ...')
+            self.data = pickle.load(f)['packet']
+            f.close()
+        elif filename.endswith(('.dat', '.binary', '.bin','.BDF')):
+            self.parseRawFile(filename)
+        elif filename.endswith('.xml'):
+            self.parseESOCXmlFile(filename)
+        elif filename.endswith('.ascii'):
+            self.parseMocAsciiFile(filename)
+        else:
+            self.warn.emit('unknown file type: {}'.format(filename))
+            self.warn.emit('detecting the file type...')
+            filetype=detect_filetype(filename)
+            self.info.emit('trying to decode as  type {}'.format(filetype))
+
+            
+            if filetype == 'ascii':
+                self.parseMocAsciiFile(filename)
+            elif filetype == 'hex':
+                self.parseHexFile(filename)
+            else:
+                self.parseRawFile(filename)
+
+        STIX_LOGGER.print_summary(self.stix_tctm_parser.get_summary())
+        #print('self.data size:')
+        #print(sys.getsizeof(self.data))
+        self.dataLoaded.emit(self.data)
 
 
 class Ui(mainwindow.Ui_MainWindow):
