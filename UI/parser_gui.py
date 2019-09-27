@@ -39,16 +39,19 @@ STIX_IDB = stix_idb.stix_idb()
 STIX_LOGGER = stix_logger.stix_logger()
 MAX_NUM_PACKET_IN_BUFFER=6000
 
+HEX_SPACE='0123456789ABCDEFabcdef'
+
 def detect_filetype(filename):
     filetype=None
     try:
         f=open(filename,'r')
         buf=f.read(1024).strip()
         data= re.sub(r"\s+", "", buf)
-        if data[0:2].upper() in ('0D','1D'):
-            filetype='hex'
-        else:
-            filetype='ascii'
+        filetype='hex'
+        for c in data:
+            if c not in HEX_SPACE:
+                filetype='ascii'
+                break
     except UnicodeDecodeError:
         filetype='bin'
     finally:
@@ -148,8 +151,19 @@ class StixFileReader(QThread):
         elif filename.endswith('.ascii'):
             self.parseMocAsciiFile(filename)
         else:
-            self.parseRawFile(filename)
             self.warn.emit('unknown file type: {}'.format(filename))
+            self.warn.emit('detecting the file type...')
+            filetype=detect_filetype(filename)
+            self.info.emit('trying to decode as  type {}'.format(filetype))
+
+            
+            if filetype == 'ascii':
+                self.parseMocAsciiFile(filename)
+            elif filetype == 'hex':
+                self.parseHexFile(filename)
+            else:
+                self.parseRawFile(filename)
+
         STIX_LOGGER.print_summary(self.stix_tctm_parser.get_summary())
         #print('self.data size:')
         #print(sys.getsizeof(self.data))
@@ -203,6 +217,11 @@ class StixFileReader(QThread):
                 continue
             self.data.extend(packets)
 
+    def parseHexFile(self,filename):
+        with open(filename,'r') as f:
+            raw_hex=f.read()
+
+            self.data = self.stix_tctm_parser.parse_hex(raw_hex)
     def parseRawFile(self, filename):
         self.stix_tctm_parser.set_report_progress_enabled(True)
         try:
@@ -478,6 +497,10 @@ class Ui(mainwindow.Ui_MainWindow):
         if len(raw_hex) < 16:
             self.showMessage('No data in the clipboard.')
             return
+        self.parseHex(raw_hex)
+
+
+    def parseHex(self, raw_hex):
         data_hex = re.sub(r"\s+", "", raw_hex)
         try:
             data_binary = binascii.unhexlify(data_hex)
@@ -485,7 +508,7 @@ class Ui(mainwindow.Ui_MainWindow):
             if not packets:
                 return
             self.showMessage(
-                '%d packets read from the clipboard' % len(packets))
+                '%d packets read' % len(packets))
             self.onDataReady(packets, clear=False, show_stat=False)
         except Exception as e:
             self.showMessageBox(str(e), data_hex)

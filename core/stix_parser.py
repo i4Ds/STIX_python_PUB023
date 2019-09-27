@@ -753,7 +753,8 @@ class StixTCTMParser(StixParameterParser):
                 last = current
         return packets
 
-    def parse_hex(self, hex_string):
+    def parse_hex(self, raw_hex):
+        hex_string= re.sub(r"\s+", "", raw_hex)
         raw = binascii.unhexlify(hex_string)
         return self.parse_binary(raw)
 
