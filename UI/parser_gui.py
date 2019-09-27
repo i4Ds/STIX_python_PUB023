@@ -39,6 +39,21 @@ STIX_IDB = stix_idb.stix_idb()
 STIX_LOGGER = stix_logger.stix_logger()
 MAX_NUM_PACKET_IN_BUFFER=6000
 
+def detect_filetype(filename):
+    filetype=None
+    try:
+        f=open(filename,'r')
+        buf=f.read(1024).strip()
+        data= re.sub(r"\s+", "", buf)
+        if data[0:2].upper() in ('0D','1D'):
+            filetype='hex'
+        else:
+            filetype='ascii'
+    except UnicodeDecodeError:
+        filetype='bin'
+    finally:
+        f.close()
+    return filetype
 
 class StixSocketPacketReceiver(QThread):
     """
@@ -126,7 +141,7 @@ class StixFileReader(QThread):
             self.info.emit('Loading ...')
             self.data = pickle.load(f)['packet']
             f.close()
-        elif filename.endswith(('.dat', '.binary', '.BDF')):
+        elif filename.endswith(('.dat', '.binary', '.bin','.BDF')):
             self.parseRawFile(filename)
         elif filename.endswith('.xml'):
             self.parseESOCXmlFile(filename)
@@ -572,7 +587,7 @@ class Ui(mainwindow.Ui_MainWindow):
 
     def getOpenFilename(self):
         filetypes = (
-            'STIX raw data(*.dat *.bin *.binary);; python pickle files (*.pkl *pklz);;'
+            'STIX raw data(*.dat *.bin *.binary);; python pickle file (*.pkl *pklz);;'
             'ESA xml files (*xml);;'
             'ESA ascii files(*.ascii);; CMDVS archive files (*.BDF);; All(*)')
         self.input_filename = QtWidgets.QFileDialog.getOpenFileName(
