@@ -58,16 +58,30 @@ def detect_filetype(filename):
         f.close()
     return filetype
 
-class Parser(object):
+class ParserThread(QThread):
     error = pyqtSignal(str)
     info = pyqtSignal(str)
     importantInfo = pyqtSignal(str)
     warn = pyqtSignal(str)
+    dataLoaded = pyqtSignal(list)
+    packetArrival = pyqtSignal(list)
+
     def __init__(self):
+        super(ParserThread, self).__init__()
         self.stix_tctm_parser = stix_parser.StixTCTMParser()
         self.stix_tctm_parser.set_store_binary_enabled(True)
         STIX_LOGGER.set_signal(self.info, self.importantInfo, self.warn,
                                self.error)
+    def setSignalHandler(self, info, warn, error, importantInfo, dataLoaded, packetArrival): 
+
+        self.error.connect(error)
+        self.info.connect(info)
+        self.warn.connect(warn)
+
+        self.dataLoaded.connect(dataLoaded)
+        self.packetArrival.connect(packetArrival)
+        self.importantInfo.connect(importantInfo)
+
     def parseMocAsciiFile(self, filename):
         self.data = []
         self.stix_tctm_parser.set_report_progress_enabled(False)
@@ -130,32 +144,40 @@ class Parser(object):
         self.data = self.stix_tctm_parser.parse_binary(buf)
 
 
-class StixSocketPacketReceiver(QThread,Parser):
+
+class StixSocketPacketReceiver(ParserThread):
     """
     QThread to receive packets via socket
     """
-    packetArrival = pyqtSignal(list)
-
-    def __init__(self, host, port):
+    def __init__(self ):
         super(StixSocketPacketReceiver, self).__init__()
+        self.working = True
+        self.port = 9000
+        self.host = 'localost'
+
+        self.stix_tctm_parser.set_report_progress_enabled(False)
+        self.s=None
+
+    def connect(self,host,port):
         self.working = True
         self.port = port
         self.host = host
-        self.stix_tctm_parser.set_report_progress_enabled(False)
-
-    def run(self):
         try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.connect((self.host, self.port))
-            self.info.emit('Receiving packets from {}:{}'.format(
+            self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.s.connect((self.host, self.port))
+            self.info.emit('Listening server {}:{}'.format(
                 self.host, self.port))
         except Exception as e:
             self.error.emit(str(e))
-            return
+
+    def run(self):
+        if not self.s:
+            return 
+
         while True:
             buf = b''
             while True:
-                data = s.recv(1)
+                data = self.s.recv(1)
                 buf += data
                 if data == b'>':
                     if buf.endswith(b'<-->'):
@@ -169,20 +191,22 @@ class StixSocketPacketReceiver(QThread,Parser):
                     packets[0]['header']['arrival'] = str(datetime.now())
                     self.packetArrival.emit(packets)
 
-        else:
-            s.close()
 
 
-class StixFileReader(QThread,Parser):
+class StixFileReader(ParserThread):
     """
     thread
     """
-    dataLoaded = pyqtSignal(list)
 
-    def __init__(self, filename):
+    def __init__(self ):
         super(StixFileReader, self).__init__()
-        self.filename = filename
         self.data = []
+        self.filename = None
+
+    def setFilename(self,filename):
+        self.filename = filename
+        self.data.clear()
+
 
 
     def setPacketFilter(self, selected_services, selected_SPID):
@@ -223,20 +247,62 @@ class StixFileReader(QThread,Parser):
                 self.parseRawFile(filename)
 
         STIX_LOGGER.print_summary(self.stix_tctm_parser.get_summary())
-        #print('self.data size:')
-        #print(sys.getsizeof(self.data))
-        self.dataLoaded.emit(self.data)
+        if self.data:
+            self.dataLoaded.emit(self.data)
+
+class StixHexStringParser(ParserThread):
+    def __init__(self):
+        super(StixHexStringParser, self).__init__()
+        self.data = []
+        self.hex_string=[]
+
+    def setHex(self,hex_str):
+        self.hex_string=hex_str 
+        self.data.clear()
+    def run(self):
+        if self.hex_string:
+            self.data = self.stix_tctm_parser.parse_hex(self.hex_string)
+            if self.data:
+                self.packetArrival.emit(self.data)
 
 
 class Ui(mainwindow.Ui_MainWindow):
     def __init__(self, MainWindow):
         super(Ui, self).setupUi(MainWindow)
         self.MainWindow = MainWindow
-        self.stix_tctm_parser = stix_parser.StixTCTMParser()
+        #self.stix_tctm_parser = stix_parser.StixTCTMParser()
         self.socketPacketReceiver = None
         self.initialize()
         self.timmer = None
         self.timmer_is_on = False
+
+        self.hexParser=StixHexStringParser()
+        self.socketPacketReceiver = StixSocketPacketReceiver()
+        self.dataReader = StixFileReader()
+
+        self.dataReader.setSignalHandler(
+                self.onDataReaderInfo,
+                self.onDataReaderWarn,
+                self.onDataReaderError,
+                self.onDataReaderImportantInfo,
+                self.onDataReady,
+                self.onPacketArrival)
+        self.socketPacketReceiver.setSignalHandler(
+                self.onDataReaderInfo,
+                self.onDataReaderWarn,
+                self.onDataReaderError,
+                self.onDataReaderImportantInfo,
+                self.onDataReady,
+                self.onPacketArrival)
+        self.hexParser.setSignalHandler(
+                self.onDataReaderInfo,
+                self.onDataReaderWarn,
+                self.onDataReaderError,
+                self.onDataReaderImportantInfo,
+                self.onDataReady,
+                self.onPacketArrival)
+
+
 
     def close(self):
         self.MainWindow.close()
@@ -492,32 +558,35 @@ class Ui(mainwindow.Ui_MainWindow):
         if len(raw_hex) < 16:
             self.showMessage('No data in the clipboard.')
             return
-        self.parseHex(raw_hex)
+        self.hexParser.setHex(raw_hex)
+        self.hexParser.start()
 
 
-    def parseHex(self, raw_hex):
-        data_hex = re.sub(r"\s+", "", raw_hex)
-        try:
-            data_binary = binascii.unhexlify(data_hex)
-            packets = self.stix_tctm_parser.parse_binary(data_binary)
-            if not packets:
+    """
+    #def parseHex(self, raw_hex):
+        #data_hex = re.sub(r"\s+", "", raw_hex)
+        #try:
+            #data_binary = binascii.unhexlify(data_hex)
+            #packets = self.stix_tctm_parser.parse_binary(data_binary)
+            #if not packets:
                 return
-            self.showMessage(
-                '%d packets read' % len(packets))
-            self.onDataReady(packets, clear=False, show_stat=False)
-        except Exception as e:
-            self.showMessageBox(str(e), data_hex)
+        #    self.showMessage(
+        #        '%d packets read' % len(packets))
+        #    self.onDataReady(packets, clear=False, show_stat=False)
+        #except Exception as e:
+        #   self.showMessageBox(str(e), data_hex)
 
-    def showMessageBox(self, message, content):
-        msg = QtWidgets.QMessageBox()
-        msg.setIcon(QtWidgets.QMessageBox.Critical)
-        msg.setText("Error")
-        msg.setInformativeText(message)
-        msg.setWindowTitle("Error")
-        msg.setDetailedText(content)
-        msg.setStandardButtons(QtWidgets.QMessageBox.Ok
-                               | QtWidgets.QMessageBox.Cancel)
-        retval = msg.exec_()
+    #def showMessageBox(self, message, content):
+    #    msg = QtWidgets.QMessageBox()
+    #    msg.setIcon(QtWidgets.QMessageBox.Critical)
+    #    msg.setText("Error")
+    #    msg.setInformativeText(message)
+    #    msg.setWindowTitle("Error")
+    ##    msg.setDetailedText(content)
+    #    msg.setStandardButtons(QtWidgets.QMessageBox.Ok
+    #                           | QtWidgets.QMessageBox.Cancel)
+    #    retval = msg.exec_()
+    """
 
     def showMessage(self, msg, where=0):
         if where != 1:
@@ -605,9 +674,7 @@ class Ui(mainwindow.Ui_MainWindow):
 
     def getOpenFilename(self):
         filetypes = (
-            'STIX raw data(*.dat *.bin *.binary);; python pickle file (*.pkl *pklz);;'
-            'ESA xml files (*xml);;'
-            'ESA ascii files(*.ascii);; CMDVS archive files (*.BDF);; All(*)')
+            'Supported file (*.dat *.bin *.binary *.pkl *.pklz *.xml *BDF *txt) ;; All(*)')
         self.input_filename = QtWidgets.QFileDialog.getOpenFileName(
             None, 'Select file', '.', filetypes)[0]
         if not self.input_filename:
@@ -630,13 +697,9 @@ class Ui(mainwindow.Ui_MainWindow):
     def openFile(self, filename, selected_services=None, selected_SPID=None):
         msg = 'Loading file %s ...' % filename
         self.showMessage(msg)
-        self.dataReader = StixFileReader(filename)
-        self.dataReader.dataLoaded.connect(self.onDataReady)
-        self.dataReader.error.connect(self.onDataReaderError)
-        self.dataReader.info.connect(self.onDataReaderInfo)
-        self.dataReader.importantInfo.connect(self.onDataReaderImportantInfo)
-        self.dataReader.warn.connect(self.onDataReaderWarn)
+
         self.dataReader.setPacketFilter(selected_services, selected_SPID)
+        self.dataReader.setFilename(filename)
         self.dataReader.start()
 
     def onDataReaderImportantInfo(self, msg):
@@ -718,13 +781,9 @@ class Ui(mainwindow.Ui_MainWindow):
         host = dui.serverLineEdit.text()
         port = dui.portLineEdit.text()
         self.showMessage('Connecting to TSC...')
-        self.socketPacketReceiver = StixSocketPacketReceiver(host, int(port))
-        self.socketPacketReceiver.packetArrival.connect(self.onPacketArrival)
-        self.socketPacketReceiver.error.connect(self.onDataReaderError)
-        self.socketPacketReceiver.importantInfo.connect(
-            self.onDataReaderImportantInfo)
-        self.socketPacketReceiver.info.connect(self.onDataReaderInfo)
-        self.socketPacketReceiver.warn.connect(self.onDataReaderWarn)
+
+
+        self.socketPacketReceiver.connect(host,int(port))
         self.socketPacketReceiver.start()
 
     def onPacketArrival(self, packets):
