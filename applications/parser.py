@@ -149,9 +149,5 @@ def main():
     parser.parse_file(args['input'], args['input_type'])
     parser.done()
 
-
-
-
-
 if __name__ == '__main__':
     main()

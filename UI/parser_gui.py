@@ -632,7 +632,7 @@ class Ui(mainwindow.Ui_MainWindow):
         if clear:
             self.packetTreeWidget.clear()
         for p in data:
-            if type(p) is not dict:
+            if not isinstance(p, dict):
                 continue
             header = p['header']
             root = QtWidgets.QTreeWidgetItem(self.packetTreeWidget)
@@ -836,7 +836,7 @@ class Ui(mainwindow.Ui_MainWindow):
                     values = param.eng
                 try:
                     yvalue = None
-                    if (type(values) is tuple) or (type(values) is list):
+                    if isinstance(values, (tuple, list)):
                         yvalue = float(values[0])
                     else:
                         yvalue = float(values)
