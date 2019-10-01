@@ -459,7 +459,13 @@ class StixTCTMParser(StixParameterParser):
         self.total_length = 0
         self.num_filtered = 0
         self.report_progress_enabled = True
+
+        self.store_packets=True
+        self.packet_writer=None
         #counters
+    def set_store_packet(self,status):
+        self.store_packets=status
+
     def reset_parser(self):
         self.decoded_packets.clear()
         self.num_tm = 0
@@ -531,6 +537,7 @@ class StixTCTMParser(StixParameterParser):
             constrains = stix_header.TELECOMMAND_HEADER_CONSTRAINTS
         for name, lim in constrains.items():
             if header[name] not in lim:
+                STIX_LOGGER.warn('Header {} value {} violates the range: {} '.format(name, header[name], lim))
                 return stix_global.HEADER_INVALID
         return stix_global.OK
 
@@ -627,7 +634,7 @@ class StixTCTMParser(StixParameterParser):
         params = []
         for par in param_structure:
             if int(par['CDF_GRPSIZE']) > 0:
-                STIX_LOGGER.info('variable length TC skipped')
+                STIX_LOGGER.warn('TC parameter {} not parsed!'.format(name))
                 break
             offset = int(int(par['CDF_BIT']) / 8)
             offset_bits = int(par['CDF_BIT']) % 8
@@ -648,16 +655,16 @@ class StixTCTMParser(StixParameterParser):
             buffer, i.e., the input binary array
             i: starting offset
         Returns:
-            decoded packets in python list
+            decoded packets in python list if ret_packets=True
         """
         packets = []
         length = len(buf)
         self.total_length += length
         if i >= length:
             return []
-
         last = 0
         while i < length:
+            packet = None
             if buf[i] == 0x0D:
                 status, i, header_raw = get_from_bytearray(buf, i, 16)
                 if status == stix_global.EOF:
@@ -710,7 +717,8 @@ class StixTCTMParser(StixParameterParser):
                 STIX_LOGGER.pprint(packet)
                 if self.store_binary:
                     packet['bin'] = header_raw + data_field_raw
-                packets.append(packet)
+
+
             elif buf[i] == 0x1D:
                 # telecommand
                 self.num_tc += 1
@@ -722,8 +730,9 @@ class StixTCTMParser(StixParameterParser):
                     header_raw)
                 if header_status != stix_global.OK:
                     self.num_bad_headers += 1
+
                     STIX_LOGGER.warn(
-                        "Invalid telecommand header. Cursor at {} ".format(i -
+                            "Invalid telecommand header. ERROR code: {}, Cursor at {} ".format(header_status, i -
                                                                            12))
                     continue
                 data_field_length = header['length'] + 1 - 4
@@ -737,7 +746,6 @@ class StixTCTMParser(StixParameterParser):
                 STIX_LOGGER.pprint(packet)
                 if self.store_binary:
                     packet['bin'] = header_raw + data_field_raw
-                packets.append(packet)
             else:
                 old_i = i
                 STIX_LOGGER.warn('Unknown packet {} at {}'.format(buf[i], i))
@@ -749,11 +757,19 @@ class StixTCTMParser(StixParameterParser):
                     'New header found at {}, {} bytes skipped!'.format(
                         i, i - old_i))
 
+            if packet:
+                if self.store_packets:
+                    packets.append(packet)
+                if self.packet_writer:
+                    self.packet_writer.write_one(packet)
+
             if self.report_progress_enabled:
                 current = int(100. * i / length)
                 if current > last:
                     STIX_LOGGER.info('{}% processed!'.format(current))
                 last = current
+
+
         return packets
 
     def parse_hex(self, raw_hex):
@@ -812,6 +828,9 @@ class StixTCTMParser(StixParameterParser):
         if clear:
             self.reset_parser()
 
+        if self.packet_writer:
+            self.packet_writer.set_filename(in_filename)
+
         STIX_LOGGER.info('Processing file: {}'.format(in_filename))
         self.in_filename = in_filename
         self.in_filesize = os.path.getsize(in_filename)
@@ -827,27 +846,27 @@ class StixTCTMParser(StixParameterParser):
         else:
             STIX_LOGGER.error(
                 '{} has unknown input file type'.format(in_filename))
-        STIX_LOGGER.print_summary(self.get_summary())
+        summary=self.get_summary()
+        STIX_LOGGER.print_summary(summary)
+        if self.packet_writer:
+            self.packet_writer.set_summary(summary)
 
-    def write_to_pickle(self, out_filename, comment=''):
-        if not self.decoded_packets:
-            STIX_LOGGER.warn('No decoded packets to write')
-            return
-        pkl_writer = stix_writer.StixPickleWriter(out_filename)
-        pkl_writer.register_run(self.in_filename, self.in_filename, comment)
-        pkl_writer.write_all(self.decoded_packets)
-
-    def write_to_MongoDB(self,
+    
+    def set_pickle_writer(self, out_filename, comment=''):
+        self.packet_writer= stix_writer.StixPickleWriter(out_filename)
+        self.packet_writer.register_run(self.in_filename, self.in_filename, comment)
+    def set_MongoDB_writer(self,
                          server='localhost',
                          port=27017,
                          username='',
                          password='',
                          comment=''):
-        if not self.decoded_packets:
-            STIX_LOGGER.warn('No decoded packets to write')
-            return
-
-        db_writer = stix_writer.StixMongoWriter(server, port, username,
+        self.packet_writer= stix_writer.StixMongoDBWriter(server, port, username,
                                                 password)
-        db_writer.register_run(self.in_filename, self.in_filesize, comment)
-        db_writer.write_all(self.decoded_packets)
+        self.packet_writer.register_run(self.in_filename, self.in_filesize, comment)
+
+    def done(self):
+        if self.packet_writer:
+            self.packet_writer.close()
+
+

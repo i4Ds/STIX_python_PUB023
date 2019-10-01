@@ -117,32 +117,33 @@ def main():
         help="Log filename")
 
     args = vars(ap.parse_args())
+    STIX_LOGGER.set_logger(args['logfile'], args['verbose'])
+    if args['idb']:
+        idb_instance = stix_idb.stix_idb(args['idb'])
 
     parser = stix_parser.StixTCTMParser()
-
     param_format=args['param_format']
-
     if args['wdb']:
         param_format='dict'
-        #use hash table to store parameter 
-        #tuple is not supported by the web applications
-    
     parser.set_parameter_format(param_format)
 
-    STIX_LOGGER.set_logger(args['logfile'], args['verbose'])
 
     selected_spids = args['SPID']
     selected_services = args['services']
     parser.set_packet_filter(selected_services, selected_spids)
-    parser.parse_file(args['input'], args['input_type'])
+
     if args['output']:
-        parser.write_to_pickle(args['output'], args['comment'])
+        parser.set_store_packet(False)
+        parser.set_pickle_writer(args['output'], args['comment'])
     if args['wdb']:
-        parser.write_to_MongoDB(args['db_host'], args['db_port'],
+        parser.set_store_packet(False)
+        parser.set_MongoDB_writer(args['db_host'], args['db_port'],
                                 args['db_user'], args['db_pwd'],
                                 args['comment'])
-    if args['idb']:
-        idb_instance = stix_idb.stix_idb(args['idb'])
+
+    parser.parse_file(args['input'], args['input_type'])
+    parser.done()
+
 
 
 
