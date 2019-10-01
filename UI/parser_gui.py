@@ -37,26 +37,28 @@ SELECTED_SERVICES = [1, 3, 5, 6, 17, 21, 22, 236, 237, 238, 239]
 
 STIX_IDB = stix_idb.stix_idb()
 STIX_LOGGER = stix_logger.stix_logger()
-MAX_NUM_PACKET_IN_BUFFER=6000
+MAX_NUM_PACKET_IN_BUFFER = 6000
 
-HEX_SPACE='0123456789ABCDEFabcdef'
+HEX_SPACE = '0123456789ABCDEFabcdef'
+
 
 def detect_filetype(filename):
-    filetype=None
+    filetype = None
     try:
-        f=open(filename,'r')
-        buf=f.read(1024).strip()
-        data= re.sub(r"\s+", "", buf)
-        filetype='hex'
+        f = open(filename, 'r')
+        buf = f.read(1024).strip()
+        data = re.sub(r"\s+", "", buf)
+        filetype = 'hex'
         for c in data:
             if c not in HEX_SPACE:
-                filetype='ascii'
+                filetype = 'ascii'
                 break
     except UnicodeDecodeError:
-        filetype='bin'
+        filetype = 'bin'
     finally:
         f.close()
     return filetype
+
 
 class ParserThread(QThread):
     error = pyqtSignal(str)
@@ -72,7 +74,9 @@ class ParserThread(QThread):
         self.stix_tctm_parser.set_store_binary_enabled(True)
         STIX_LOGGER.set_signal(self.info, self.importantInfo, self.warn,
                                self.error)
-    def setSignalHandler(self, info, warn, error, importantInfo, dataLoaded, packetArrival): 
+
+    def setSignalHandler(self, info, warn, error, importantInfo, dataLoaded,
+                         packetArrival):
 
         self.error.connect(error)
         self.info.connect(info)
@@ -129,10 +133,12 @@ class ParserThread(QThread):
             if not packets:
                 continue
             self.data.extend(packets)
-    def parseHexFile(self,filename):
-        with open(filename,'r') as f:
-            raw_hex=f.read()
+
+    def parseHexFile(self, filename):
+        with open(filename, 'r') as f:
+            raw_hex = f.read()
             self.data = self.stix_tctm_parser.parse_hex(raw_hex)
+
     def parseRawFile(self, filename):
         self.stix_tctm_parser.set_report_progress_enabled(True)
         try:
@@ -144,21 +150,21 @@ class ParserThread(QThread):
         self.data = self.stix_tctm_parser.parse_binary(buf)
 
 
-
 class StixSocketPacketReceiver(ParserThread):
     """
     QThread to receive packets via socket
     """
-    def __init__(self ):
+
+    def __init__(self):
         super(StixSocketPacketReceiver, self).__init__()
         self.working = True
         self.port = 9000
         self.host = 'localost'
 
         self.stix_tctm_parser.set_report_progress_enabled(False)
-        self.s=None
+        self.s = None
 
-    def connect(self,host,port):
+    def connect(self, host, port):
         self.working = True
         self.port = port
         self.host = host
@@ -172,7 +178,7 @@ class StixSocketPacketReceiver(ParserThread):
 
     def run(self):
         if not self.s:
-            return 
+            return
 
         while True:
             buf = b''
@@ -192,22 +198,19 @@ class StixSocketPacketReceiver(ParserThread):
                     self.packetArrival.emit(packets)
 
 
-
 class StixFileReader(ParserThread):
     """
     thread
     """
 
-    def __init__(self ):
+    def __init__(self):
         super(StixFileReader, self).__init__()
         self.data = []
         self.filename = None
 
-    def setFilename(self,filename):
+    def setFilename(self, filename):
         self.filename = filename
         self.data.clear()
-
-
 
     def setPacketFilter(self, selected_services, selected_SPID):
         self.stix_tctm_parser.set_packet_filter(selected_services,
@@ -226,7 +229,7 @@ class StixFileReader(ParserThread):
             self.info.emit('Loading ...')
             self.data = pickle.load(f)['packet']
             f.close()
-        elif filename.endswith(('.dat', '.binary', '.bin','.BDF')):
+        elif filename.endswith(('.dat', '.binary', '.bin', '.BDF')):
             self.parseRawFile(filename)
         elif filename.endswith('.xml'):
             self.parseESOCXmlFile(filename)
@@ -235,10 +238,9 @@ class StixFileReader(ParserThread):
         else:
             self.warn.emit('unknown file type: {}'.format(filename))
             self.warn.emit('detecting the file type...')
-            filetype=detect_filetype(filename)
+            filetype = detect_filetype(filename)
             self.info.emit('trying to decode as  type {}'.format(filetype))
 
-            
             if filetype == 'ascii':
                 self.parseMocAsciiFile(filename)
             elif filetype == 'hex':
@@ -250,15 +252,17 @@ class StixFileReader(ParserThread):
         if self.data:
             self.dataLoaded.emit(self.data)
 
+
 class StixHexStringParser(ParserThread):
     def __init__(self):
         super(StixHexStringParser, self).__init__()
         self.data = []
-        self.hex_string=[]
+        self.hex_string = []
 
-    def setHex(self,hex_str):
-        self.hex_string=hex_str 
+    def setHex(self, hex_str):
+        self.hex_string = hex_str
         self.data.clear()
+
     def run(self):
         if self.hex_string:
             self.data = self.stix_tctm_parser.parse_hex(self.hex_string)
@@ -276,33 +280,22 @@ class Ui(mainwindow.Ui_MainWindow):
         self.timmer = None
         self.timmer_is_on = False
 
-        self.hexParser=StixHexStringParser()
+        self.hexParser = StixHexStringParser()
         self.socketPacketReceiver = StixSocketPacketReceiver()
         self.dataReader = StixFileReader()
 
         self.dataReader.setSignalHandler(
-                self.onDataReaderInfo,
-                self.onDataReaderWarn,
-                self.onDataReaderError,
-                self.onDataReaderImportantInfo,
-                self.onDataReady,
-                self.onPacketArrival)
+            self.onDataReaderInfo, self.onDataReaderWarn,
+            self.onDataReaderError, self.onDataReaderImportantInfo,
+            self.onDataReady, self.onPacketArrival)
         self.socketPacketReceiver.setSignalHandler(
-                self.onDataReaderInfo,
-                self.onDataReaderWarn,
-                self.onDataReaderError,
-                self.onDataReaderImportantInfo,
-                self.onDataReady,
-                self.onPacketArrival)
+            self.onDataReaderInfo, self.onDataReaderWarn,
+            self.onDataReaderError, self.onDataReaderImportantInfo,
+            self.onDataReady, self.onPacketArrival)
         self.hexParser.setSignalHandler(
-                self.onDataReaderInfo,
-                self.onDataReaderWarn,
-                self.onDataReaderError,
-                self.onDataReaderImportantInfo,
-                self.onDataReady,
-                self.onPacketArrival)
-
-
+            self.onDataReaderInfo, self.onDataReaderWarn,
+            self.onDataReaderError, self.onDataReaderImportantInfo,
+            self.onDataReady, self.onPacketArrival)
 
     def close(self):
         self.MainWindow.close()
@@ -561,7 +554,6 @@ class Ui(mainwindow.Ui_MainWindow):
         self.hexParser.setHex(raw_hex)
         self.hexParser.start()
 
-
     """
     #def parseHex(self, raw_hex):
         #data_hex = re.sub(r"\s+", "", raw_hex)
@@ -593,8 +585,6 @@ class Ui(mainwindow.Ui_MainWindow):
             self.statusbar.showMessage(msg)
         if where != 0:
             self.statusListWidget.addItem(msg)
-        # if destination !=0 :
-        #    self.listWidget_2.addItem(msg)
 
     def onSetIDBClicked(self):
         self.idb_filename = QtWidgets.QFileDialog.getOpenFileName(
@@ -674,7 +664,8 @@ class Ui(mainwindow.Ui_MainWindow):
 
     def getOpenFilename(self):
         filetypes = (
-            'Supported file (*.dat *.bin *.binary *.pkl *.pklz *.xml *BDF *txt) ;; All(*)')
+            'Supported file (*.dat *.bin *.binary *.pkl *.pklz *.xml *BDF *txt) ;; All(*)'
+        )
         self.input_filename = QtWidgets.QFileDialog.getOpenFileName(
             None, 'Select file', '.', filetypes)[0]
         if not self.input_filename:
@@ -782,15 +773,14 @@ class Ui(mainwindow.Ui_MainWindow):
         port = dui.portLineEdit.text()
         self.showMessage('Connecting to TSC...')
 
-
-        self.socketPacketReceiver.connect(host,int(port))
+        self.socketPacketReceiver.connect(host, int(port))
         self.socketPacketReceiver.start()
 
     def onPacketArrival(self, packets):
-        clear=False
+        clear = False
         if packets:
-            if len(self.data)>MAX_NUM_PACKET_IN_BUFFER:
-                clear=True
+            if len(self.data) > MAX_NUM_PACKET_IN_BUFFER:
+                clear = True
             self.onDataReady(packets, clear=clear, show_stat=True)
 
     def onLoadMongoDBTriggered(self):

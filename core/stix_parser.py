@@ -549,7 +549,10 @@ class StixTCTMParser(StixParameterParser):
             bin_struct = '>B'
             if width == 16:
                 bin_struct = '>H'
-            res = st.unpack(bin_struct, data[int(start):int(end)])
+            raw=data[int(start):int(end)]
+            if not raw:
+                return stix_global.PACKET_TOO_SHORT
+            res = st.unpack(bin_struct, raw)
             ssid = res[0]
         info = STIX_IDB.get_packet_type_info(service_type, service_subtype,
                                              ssid)

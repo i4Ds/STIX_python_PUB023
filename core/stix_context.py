@@ -571,7 +571,8 @@ CONTEXT_PARAMETER_BIT_SIZE = [
     ('ContextMgmt_param_hk_tm_sid2_reporting_enabled', 1),
     ('ContextMgmt_param_hk_tm_sid4_reporting_enabled', 1),
     ('ContextMgmt_param_hv_reset_delay_from_flare', 16),
-    ('ContextMgmt_param_lv_state', 1), ('ContextMgmt_param_mem_load_enabled',
+    ('ContextMgmt_param_lv_state', 1), 
+    ('ContextMgmt_param_mem_load_enabled',
                                         1),
     ('ContextMgmt_param_fdir_sw_psut_min', 12),
     ('ContextMgmt_param_ql_flaredet_dete_mask', 32),
@@ -607,3 +608,7 @@ ASIC_REGISTERS = [
     'ContextMgmt_param_xray29_registers', 'ContextMgmt_param_xray30_registers',
     'ContextMgmt_param_xray31_registers', 'ContextMgmt_param_xray32_registers'
 ]
+
+if __name__=='__main__':
+    print('number of parameters:')
+    print(len(CONTEXT_PARAMETER_BIT_SIZE))
