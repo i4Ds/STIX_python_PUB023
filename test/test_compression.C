@@ -87,8 +87,8 @@ uint32_t decode(uint8_t val, uint8_t K, uint8_t M)
 
 int main(int argc, char *argv[])
 {
-	uint8_t K=4;
-	uint8_t M=4;
+	uint8_t K=5;
+	uint8_t M=3;
 //	cout<<"K:"<<(unsigned int)K<<" M: "<<(unsigned int)M<<endl;
 
 	for(uint32_t i=0;i<256;i++)

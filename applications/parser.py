@@ -56,10 +56,10 @@ def main():
     optional.add_argument(
         "-t",
         dest='input_type',
-        default='binary',
-        choices=('binary', 'ascii', 'xml'),
+        default='bin',
+        choices=('bin', 'ascii', 'xml','hex'),
         help=
-        "Input file type. Three types (binary, ascii or xml) are supported.")
+        "Input file type. Four types (bin, hex, ascii or xml) are supported.")
 
     optional.add_argument(
         "--wdb",
@@ -132,10 +132,15 @@ def main():
     selected_services = args['services']
     parser.set_packet_filter(selected_services, selected_spids)
 
+
+
     if args['output']:
         parser.set_store_packet(False)
+        parser.set_store_binary_enabled(False):
         parser.set_pickle_writer(args['output'], args['comment'])
     if args['wdb']:
+        parser.set_store_packet(False)
+        parser.set_store_binary_enabled(False):
         parser.set_store_packet(False)
         parser.set_MongoDB_writer(args['db_host'], args['db_port'],
                                 args['db_user'], args['db_pwd'],

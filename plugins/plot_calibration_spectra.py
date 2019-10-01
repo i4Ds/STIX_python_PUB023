@@ -35,9 +35,7 @@ def hist(k, y, title, xlabel, ylabel):
 
     return h2
 
-
 SPID = 54124
-
 
 class Plugin:
     def __init__(self, packets=[], current_row=0):
@@ -93,5 +91,4 @@ class Plugin:
         fout.Close()
         gROOT.ProcessLine('new TFile("{}")'.format(filename))
         gROOT.ProcessLine('new TBrowser()')
-
         print('Total number of non-empty spectra:%d' % num)

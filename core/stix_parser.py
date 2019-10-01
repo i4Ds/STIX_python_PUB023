@@ -15,6 +15,7 @@ import struct as st
 import binascii
 import xmltodict
 from scipy import interpolate
+import pathlib
 
 from core import stix_header
 from core import stix_idb
@@ -33,6 +34,28 @@ STIX_IDB = stix_idb.stix_idb()
 STIX_LOGGER = stix_logger.stix_logger()
 STIX_DECOMPRESSOR = stix_decompressor.StixDecompressor()
 stix_parameter.StixParameter.set_decompressor(STIX_DECOMPRESSOR)
+
+def detect_filetype(filename):
+    filetype = None
+    ext=pathlib.Path(filename).suffix
+    if ext in ('xml','ascii','bin','hex'):
+        return ext
+    elif ext in ('binary','raw','BDF','.dat'):
+        return 'bin'
+    try:
+        f = open(filename, 'r')
+        buf = f.read(1024).strip()
+        data = re.sub(r"\s+", "", buf)
+        filetype = 'hex'
+        for c in data:
+            if c not in HEX_SPACE:
+                filetype = 'ascii'
+                break
+    except UnicodeDecodeError:
+        filetype = 'bin'
+    finally:
+        f.close()
+    return filetype
 
 
 def get_bits(data, offset, length):
@@ -448,7 +471,7 @@ class StixTCTMParser(StixParameterParser):
         self.selected_services = []
         self.selected_spids = []
         self.store_binary = True
-        self.decoded_packets = []
+        #self.decoded_packets = []
         self.in_filename = ''
         self.in_filesize = 0
 
@@ -456,6 +479,7 @@ class StixTCTMParser(StixParameterParser):
         self.num_tc = 0
         self.num_bad_bytes = 0
         self.num_bad_headers = 0
+        self.utc_timestamp=''
         self.total_length = 0
         self.num_filtered = 0
         self.report_progress_enabled = True
@@ -467,7 +491,7 @@ class StixTCTMParser(StixParameterParser):
         self.store_packets=status
 
     def reset_parser(self):
-        self.decoded_packets.clear()
+        #self.decoded_packets.clear()
         self.num_tm = 0
         self.num_tc = 0
         self.num_bad_bytes = 0
@@ -475,8 +499,8 @@ class StixTCTMParser(StixParameterParser):
         self.total_length = 0
         self.num_filtered = 0
 
-    def get_decoded_packets(self):
-        return self.decoded_packets
+    #def get_decoded_packets(self):
+        #return self.decoded_packets
 
     def set_report_progress_enabled(self, status):
         self.report_progress_enabled = status
@@ -758,6 +782,7 @@ class StixTCTMParser(StixParameterParser):
                         i, i - old_i))
 
             if packet:
+                self.attach_header_aux(packet)
                 if self.store_packets:
                     packets.append(packet)
                 if self.packet_writer:
@@ -776,6 +801,10 @@ class StixTCTMParser(StixParameterParser):
         hex_string= re.sub(r"\s+", "", raw_hex)
         raw = binascii.unhexlify(hex_string)
         return self.parse_binary(raw)
+    def parse_hex_file(self, filename):
+        with open(filename, 'r') as f:
+            raw_hex = f.read()
+            return self.parse_hex(raw_hex)
 
     def parse_moc_ascii(self, filename):
         packets = []
@@ -785,16 +814,22 @@ class StixTCTMParser(StixParameterParser):
                 'Reading packets from the file {}'.format(filename))
             idx = 0
             for line in filein:
-                [utc_timestamp, data_hex] = line.strip().split()
+                [self.utc_timestamp, data_hex] = line.strip().split()
                 data_binary = binascii.unhexlify(data_hex)
                 packet = self.parse_binary(data_binary)
+                #self.utc_timestamp=utc_timestamp
+                #self.attach_header_aux(packet)
                 if packet:
-                    packet[0]['header']['UTC'] = utc_timestamp
                     packets.extend(packet)
                 if idx % 10 == 0:
-                    STIX_LOGGER.info('{} packet have been read'.format(idx))
+                    STIX_LOGGER.info('{} packets loaded.'.format(idx))
                 idx += 1
         return packets
+
+    def attach_header_aux(self,packet):
+        if self.utc_timestamp:
+            packet['header']['UTC'] = self.utc_timestamp
+
 
     def parse_moc_xml(self, in_filename):
         packets = []
@@ -824,7 +859,8 @@ class StixTCTMParser(StixParameterParser):
             results.extend(result)
         return results
 
-    def parse_file(self, in_filename, file_type='binary', clear=True):
+    def parse_file(self, in_filename, file_type=None, clear=True):
+        packets=[]
         if clear:
             self.reset_parser()
 
@@ -834,24 +870,31 @@ class StixTCTMParser(StixParameterParser):
         STIX_LOGGER.info('Processing file: {}'.format(in_filename))
         self.in_filename = in_filename
         self.in_filesize = os.path.getsize(in_filename)
-        if file_type == 'binary':
+
+        if not file_type:
+            file_type=detect_filetype(in_filename)
+
+        if file_type == 'bin':
             with open(in_filename, 'rb') as in_file:
                 data = in_file.read()
-                self.decoded_packets = self.parse_binary(data)
-
+                packets= self.parse_binary(data)
         elif file_type == 'ascii':
-            self.decoded_packets = self.parse_moc_ascii(in_filename)
+            packets= self.parse_moc_ascii(in_filename)
         elif file_type == 'xml':
-            self.decoded_packets = self.parse_moc_xml(in_filename)
+            packets= self.parse_moc_xml(in_filename)
+        elif file_type =='hex':
+            packets= self.parse_hex_file(in_filename)
         else:
             STIX_LOGGER.error(
                 '{} has unknown input file type'.format(in_filename))
+            return []
+
         summary=self.get_summary()
         STIX_LOGGER.print_summary(summary)
         if self.packet_writer:
             self.packet_writer.set_summary(summary)
 
-    
+        return packets
     def set_pickle_writer(self, out_filename, comment=''):
         self.packet_writer= stix_writer.StixPickleWriter(out_filename)
         self.packet_writer.register_run(self.in_filename, self.in_filename, comment)

@@ -230,6 +230,7 @@ class StixMongoDBWriter(StixPacketWriter):
             STIX_LOGGER.error('Error occurred when inserting  header to MongoDB')
             STIX_LOGGER.error(str(e))
             STIX_LOGGER.info('header:'+str(header))
+            raise
             return
                     
 
@@ -237,18 +238,14 @@ class StixMongoDBWriter(StixPacketWriter):
         packet['header_id'] = self.current_header_id
         packet['run_id'] = self.current_run_id
         packet['_id'] = self.current_packet_id
-        if 'bin' in packet:
-            #not to write binary data to MongoDB
-            packet['bin']=''
-
         try:
             self.collection_packets.insert_one(packet)
         except Exception as e:
             STIX_LOGGER.error('Error occurred when inserting packet to MongoDB')
             STIX_LOGGER.error(str(e))
             STIX_LOGGER.info('Packet:'+str(header))
-            return
             raise
+            return
 
         self.current_header_id += 1
         self.current_packet_id += 1

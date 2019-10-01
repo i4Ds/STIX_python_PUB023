@@ -42,25 +42,8 @@ MAX_NUM_PACKET_IN_BUFFER = 6000
 HEX_SPACE = '0123456789ABCDEFabcdef'
 
 
-def detect_filetype(filename):
-    filetype = None
-    try:
-        f = open(filename, 'r')
-        buf = f.read(1024).strip()
-        data = re.sub(r"\s+", "", buf)
-        filetype = 'hex'
-        for c in data:
-            if c not in HEX_SPACE:
-                filetype = 'ascii'
-                break
-    except UnicodeDecodeError:
-        filetype = 'bin'
-    finally:
-        f.close()
-    return filetype
 
-
-class ParserThread(QThread):
+class ParserQThread(QThread):
     error = pyqtSignal(str)
     info = pyqtSignal(str)
     importantInfo = pyqtSignal(str)
@@ -69,9 +52,11 @@ class ParserThread(QThread):
     packetArrival = pyqtSignal(list)
 
     def __init__(self):
-        super(ParserThread, self).__init__()
+        super(ParserQThread, self).__init__()
         self.stix_tctm_parser = stix_parser.StixTCTMParser()
+        self.stix_tctm_parser.set_store_packet(True)
         self.stix_tctm_parser.set_store_binary_enabled(True)
+
         STIX_LOGGER.set_signal(self.info, self.importantInfo, self.warn,
                                self.error)
 
@@ -86,71 +71,8 @@ class ParserThread(QThread):
         self.packetArrival.connect(packetArrival)
         self.importantInfo.connect(importantInfo)
 
-    def parseMocAsciiFile(self, filename):
-        self.data = []
-        self.stix_tctm_parser.set_report_progress_enabled(False)
-        with open(filename) as fd:
-            self.info.emit('Reading packets from the file {}'.format(filename))
-            idx = 0
-            for line in fd:
-                [utc_timestamp, data_hex] = line.strip().split()
-                data_binary = binascii.unhexlify(data_hex)
-                packets = self.stix_tctm_parser.parse_binary(data_binary)
-                if packets:
-                    packets[0]['header']['utc'] = utc_timestamp
-                self.data.extend(packets)
-                if idx % 10 == 0:
-                    self.info.emit('{} packet(s) loaded.'.format(idx))
-                idx += 1
 
-    def parseESOCXmlFile(self, in_filename):
-        packets = []
-        self.stix_tctm_parser.set_report_progress_enabled(False)
-        try:
-            fd = open(in_filename)
-        except Exception as e:
-            self.error.emit('Failed to open {}'.format(str(e)))
-        else:
-            self.info.emit('Parsing {}'.format(in_filename))
-            doc = xmltodict.parse(fd.read())
-            for e in doc['ns2:ResponsePart']['Response']['PktRawResponse'][
-                    'PktRawResponseElement']:
-                packet = {'id': e['@packetID'], 'raw': e['Packet']}
-                packets.append(packet)
-        num = len(packets)
-        freq = 1
-        if num > 100:
-            freq = num / 100
-
-        for i, packet in enumerate(packets):
-            data_hex = packet['raw']
-            data_binary = binascii.unhexlify(data_hex)
-            data = data_binary[76:]
-            packets = self.stix_tctm_parser.parse_binary(data)
-            if i % freq == 0:
-                self.info.emit("{:.0f}% loaded".format(100 * i / num))
-
-            if not packets:
-                continue
-            self.data.extend(packets)
-
-    def parseHexFile(self, filename):
-        with open(filename, 'r') as f:
-            raw_hex = f.read()
-            self.data = self.stix_tctm_parser.parse_hex(raw_hex)
-
-    def parseRawFile(self, filename):
-        self.stix_tctm_parser.set_report_progress_enabled(True)
-        try:
-            in_file = open(filename, 'rb')
-        except Exception as e:
-            self.error.emit('Failed to open the file due to {}'.format(str(e)))
-            return
-        buf = in_file.read()
-        self.data = self.stix_tctm_parser.parse_binary(buf)
-
-
-class StixSocketPacketReceiver(ParserThread):
+class StixSocketPacketReceiver(ParserQThread):
     """
     QThread to receive packets via socket
     """
@@ -198,7 +120,7 @@ class StixSocketPacketReceiver(ParserThread):
                     self.packetArrival.emit(packets)
 
 
-class StixFileReader(ParserThread):
+class StixFileReader(ParserQThread):
     """
     thread
     """
@@ -229,31 +151,14 @@ class StixFileReader(ParserThread):
             self.info.emit('Loading ...')
             self.data = pickle.load(f)['packet']
             f.close()
-        elif filename.endswith(('.dat', '.binary', '.bin', '.BDF')):
-            self.parseRawFile(filename)
-        elif filename.endswith('.xml'):
-            self.parseESOCXmlFile(filename)
-        elif filename.endswith('.ascii'):
-            self.parseMocAsciiFile(filename)
         else:
-            self.warn.emit('unknown file type: {}'.format(filename))
-            self.warn.emit('detecting the file type...')
-            filetype = detect_filetype(filename)
-            self.info.emit('trying to decode as  type {}'.format(filetype))
+            self.data=self.stix_tctm_parser.parse_file(filename)
 
-            if filetype == 'ascii':
-                self.parseMocAsciiFile(filename)
-            elif filetype == 'hex':
-                self.parseHexFile(filename)
-            else:
-                self.parseRawFile(filename)
-
-        STIX_LOGGER.print_summary(self.stix_tctm_parser.get_summary())
         if self.data:
             self.dataLoaded.emit(self.data)
 
 
-class StixHexStringParser(ParserThread):
+class StixHexStringParser(ParserQThread):
     def __init__(self):
         super(StixHexStringParser, self).__init__()
         self.data = []
@@ -274,10 +179,8 @@ class Ui(mainwindow.Ui_MainWindow):
     def __init__(self, MainWindow):
         super(Ui, self).setupUi(MainWindow)
         self.MainWindow = MainWindow
-        #self.stix_tctm_parser = stix_parser.StixTCTMParser()
         self.socketPacketReceiver = None
         self.initialize()
-        self.timmer = None
         self.timmer_is_on = False
 
         self.hexParser = StixHexStringParser()
@@ -664,7 +567,7 @@ class Ui(mainwindow.Ui_MainWindow):
 
     def getOpenFilename(self):
         filetypes = (
-            'Supported file (*.dat *.bin *.binary *.pkl *.pklz *.xml *BDF *txt) ;; All(*)'
+            'Supported file (*.dat *.bin *.binary *.pkl *.pklz *.xml *ascii *BDF *txt) ;; All(*)'
         )
         self.input_filename = QtWidgets.QFileDialog.getOpenFileName(
             None, 'Select file', '.', filetypes)[0]
