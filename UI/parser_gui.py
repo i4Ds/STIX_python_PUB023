@@ -39,7 +39,6 @@ STIX_IDB = stix_idb.stix_idb()
 STIX_LOGGER = stix_logger.stix_logger()
 MAX_NUM_PACKET_IN_BUFFER = 6000
 
-HEX_SPACE = '0123456789ABCDEFabcdef'
 
 
 

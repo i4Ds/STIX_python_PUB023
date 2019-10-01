@@ -29,6 +29,7 @@ from core import stix_decompressor
 CONTEXT_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I']
 UNSIGNED_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I', 'BBBBB', '>IH']
 SIGNED_UNPACK_FORMAT = ['b', '>h', 'bbb', '>i', 'bbbbb', '>ih']
+HEX_SPACE = '0123456789ABCDEFabcdef'
 
 STIX_IDB = stix_idb.stix_idb()
 STIX_LOGGER = stix_logger.stix_logger()
