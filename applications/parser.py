@@ -136,11 +136,11 @@ def main():
 
     if args['output']:
         parser.set_store_packet(False)
-        parser.set_store_binary_enabled(False):
+        parser.set_store_binary_enabled(False)
         parser.set_pickle_writer(args['output'], args['comment'])
     if args['wdb']:
         parser.set_store_packet(False)
-        parser.set_store_binary_enabled(False):
+        parser.set_store_binary_enabled(False)
         parser.set_store_packet(False)
         parser.set_MongoDB_writer(args['db_host'], args['db_port'],
                                 args['db_user'], args['db_pwd'],

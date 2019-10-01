@@ -83,6 +83,16 @@ class MongoDB(object):
         else:
             return None
 
+    def select_packets(self,conditions):
+        if self.collection_packets:
+            cursor = self.collection_packets.find(conditions)
+            data = [x for x in cursor]
+            return data
+        else:
+            return None
+
+
+
     def close(self):
         if self.connect:
             self.connect.close()
