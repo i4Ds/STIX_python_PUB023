@@ -56,7 +56,7 @@ def main():
     optional.add_argument(
         "-t",
         dest='input_type',
-        default='bin',
+        default=None,
         choices=('bin', 'ascii', 'xml','hex'),
         help=
         "Input file type. Four types (bin, hex, ascii or xml) are supported.")

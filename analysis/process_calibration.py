@@ -14,7 +14,7 @@ sys.path.append('.')
 from core import stix_logger
 from core import stix_parser
 from core import stix_idb
-from analysis import calibration_plugin  as cal
+from analysis import calibration_plugin_pdf  as cal
 
 from utils import mongo_db
 STIX_LOGGER = stix_logger.stix_logger()
@@ -58,7 +58,7 @@ def main():
     optional.add_argument(
         "-t",
         dest='input_type',
-        default='bin',
+        default=None,
         choices=('bin', 'ascii', 'xml','hex'),
         help=
         "Input file type. Four types (bin, hex, ascii or xml) are supported.")
@@ -141,8 +141,9 @@ def main():
     #mdb = mongo_db.MongoDB()
     #conditions={'run_id':int(args['input']),
     #        'header.SPID':54124}
+    #conditions={"$and": [{'run_id':int(args['input'])} ,{ 'header.SPID':54124}]}
     #packets=mdb.select_packets(conditions)
-    #print('number of packets:{}'.format(len(packets)))
+    print('number of packets:{}'.format(len(packets)))
     plugin=cal.Plugin(packets)
     plugin.run(output)
 
