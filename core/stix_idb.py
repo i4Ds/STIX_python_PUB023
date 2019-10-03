@@ -257,13 +257,6 @@ class _IDB(object):
             ' CCF_NPARS from CCF where CCF_TYPE=? and CCF_STYPE =? order by CCF_CNAME asc'
         )
         res = self.execute(sql, (service_type, service_subtype), 'dict')
-        # if command_subtype >= 0 and len(res) > 1:
-        # if False:
-        # for TC(237,7) , ZIX37701 -- ZIX37724
-        # source_id in the header is needed to identify the packet type
-        #    return res[command_subtype - 1]
-        # command subtype is only used for 237, 7
-        # else:
         try:
             return res[0]
         except IndexError:
@@ -274,14 +267,26 @@ class _IDB(object):
             Get the structure of a telecommand  by its name
             The structure will be used to decode the TC packet.
         """
-        sql = (
-            'select CDF_PNAME, CPC_DESCR, CDF_ELTYPE, CDF_ELLEN, CDF_BIT, CDF_GRPSIZE, CDF_INTER,'
-            ' CPC_DISPFMT, CPC_CATEG, CPC_PRFREF,CPC_CCAREF, CPC_PAFREF,'
-            ' CPC_PTC, CPC_PFC from CPC join CDF on CDF_CNAME=? and '
-            'CDF_PNAME=CPC_PNAME  order by CDF_BIT asc')
+        sql = ('select CDF_ELTYPE, CDF_DESCR, CDF_ELLEN, CDF_BIT, '
+                'CDF_GRPSIZE, CDF_PNAME, CPC_DESCR,  CPC_PAFREF, CPC_PTC,'
+                'CPC_PFC from CDF left join CPC on  CDF_PNAME=CPC_PNAME'
+                '  where  CDF_CNAME=?  order by CDF_BIT asc')
         args = (name, )
         res = self.execute(sql, args, 'dict')
         return res
+
+
+    def is_variable_length_telecommand(self,name):
+        sql = 'select CDF_GRPSIZE  from CDF where CDF_GRPSIZE >0 and CDF_CNAME=?'
+        args = (name, )
+        rows= self.execute(sql, args, 'list')
+        if rows:
+            num_repeater = int(rows[0][0])
+            if num_repeater>0:
+                return True
+        return False
+
+
 
     def get_variable_packet_structure(self, spid):
         if spid in self.parameter_structures:
@@ -353,8 +358,9 @@ if __name__ == '__main__':
     """ test  the database interface"""
     import sys
     idb = stix_idb()
-    if len(sys.argv) > 1:
-        ret = idb.get_variable_packet_structure(sys.argv[1])
-        for row in ret:
-            print('{}  {} {} {}'.format(row['PCF_NAME'], row['PCF_DESCR'],
-                                        row['VPD_POS'], row['PCF_WIDTH']))
+    print(idb.is_variable_length_telecommand('ZIX37701'))
+    #if len(sys.argv) > 1:
+    #    ret = idb.get_variable_packet_structure(sys.argv[1])
+    #    for row in ret:
+    #        print('{}  {} {} {}'.format(row['PCF_NAME'], row['PCF_DESCR'],
+    #                                    row['VPD_POS'], row['PCF_WIDTH']))

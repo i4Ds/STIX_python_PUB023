@@ -591,7 +591,6 @@ class Ui(mainwindow.Ui_MainWindow):
     def openFile(self, filename, selected_services=None, selected_SPID=None):
         msg = 'Loading file %s ...' % filename
         self.showMessage(msg)
-
         self.dataReader.setPacketFilter(selected_services, selected_SPID)
         self.dataReader.setFilename(filename)
         self.dataReader.start()

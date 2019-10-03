@@ -27,7 +27,6 @@ class StixParameter(object):
     @classmethod
     def set_format(cls, fmt):
         """can be dictionary or tuple"""
-        print(fmt)
         if fmt in ('tuple', 'dict'):
             cls.__parameter_foramt = fmt
         else:
