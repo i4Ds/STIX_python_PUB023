@@ -16,7 +16,7 @@ import binascii
 import xmltodict
 from scipy import interpolate
 import pathlib
-
+from dateutil import parser as dtparser
 from core import stix_header
 from core import stix_idb
 from core import stix_global
@@ -829,7 +829,11 @@ class StixTCTMParser(StixParameterParser):
 
     def attach_header_aux(self,packet):
         if self.utc_timestamp:
-            packet['header']['UTC'] = self.utc_timestamp
+            try:
+                packet['header']['UTC'] = dtparser.parse(self.utc_timestamp)
+            except ValueError:
+                packet['header']['UTC'] = self.utc_timestamp
+
 
 
     def parse_moc_xml(self, in_filename):

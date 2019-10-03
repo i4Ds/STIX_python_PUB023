@@ -14,6 +14,7 @@ import webbrowser
 from functools import partial
 from datetime import datetime
 import numpy as np
+import datetime
 
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QThread, pyqtSignal, QTimer
@@ -638,8 +639,12 @@ class Ui(mainwindow.Ui_MainWindow):
             root = QtWidgets.QTreeWidgetItem(self.packetTreeWidget)
             timestamp_str = ''
             try:
-                timestamp_str = header['utc']
-            except KeyError:
+                utc= header['UTC']
+                if isinstance(utc,datetime.datetime):
+                    timestamp_str=utc.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+
+
+            except (KeyError,IndexError):
                 timestamp_str = '{:.2f}'.format(header['time'])
 
             root.setText(0, timestamp_str)

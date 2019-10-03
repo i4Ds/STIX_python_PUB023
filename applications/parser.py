@@ -124,7 +124,8 @@ def main():
     parser = stix_parser.StixTCTMParser()
     param_format=args['param_format']
     if args['wdb']:
-        param_format='dict'
+        param_format='tuple'
+        #must be tuple as they consume  less storage
     parser.set_parameter_format(param_format)
 
 

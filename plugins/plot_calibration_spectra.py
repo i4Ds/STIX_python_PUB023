@@ -64,10 +64,10 @@ class Plugin:
                     continue
             except ValueError:
                 continue
-            analyzer.load_packet(packet)
-            detector_ids = analyzer.find_all('NIX00159>NIXD0155')[0]
-            pixels_ids = analyzer.find_all('NIX00159>NIXD0156')[0]
-            spectra = analyzer.find_all('NIX00159>NIX00146>*')[0]
+            analyzer.load(packet)
+            detector_ids = analyzer.find_all('NIX00159>NIXD0155',dtype='eng')[0]
+            pixels_ids = analyzer.find_all('NIX00159>NIXD0156',dtype='eng')[0]
+            spectra = analyzer.find_all('NIX00159>NIX00146>*',dtype='eng')[0]
             for i, spec in enumerate(spectra):
                 if sum(spec) > 0:
                     num += 1

@@ -13,7 +13,7 @@ class StixPacketAnalyzer(object):
 
     def set_filter(self,spid):
         self._spids.append(spid)
-    def load_packet(self,packet):
+    def load(self,packet):
         try:
             self._parameters =packet['parameters'] 
             self._header=packet['header']
@@ -101,7 +101,7 @@ class StixPacketAnalyzer(object):
 
 
 
-    def find_all(self,pattern, plist=None, dtype='raw'):
+    def find_all(self,pattern, plist=None,dtype='raw'):
         """
         pattern examples:
             pattern='NIX00159>NIX00146'
@@ -129,10 +129,14 @@ class StixPacketAnalyzer(object):
                     if ret:
                         results.append(ret)
                 else:
-                    if dtype == 'raw':
-                        results.append(param.get_raw_int())
+                    result_ok=False
                     if dtype == 'eng':
-                        results.append(param.eng)
+                        if param.eng:
+                            results.append(param.eng)
+                            result_ok=True
+                    if dtype == 'raw' or result_ok:
+                        results.append(param.get_raw_int())
+
         return results
 
 

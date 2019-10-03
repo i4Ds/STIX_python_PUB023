@@ -1,46 +1,110 @@
 ## STIX raw data parser and data viewer
 
-A python package to parser STIX raw packets.  
+   A python package allows to parser, display and analysis STIX  packets.  
 Parsing of raw binary packets is based on IDB.  
 Releases: 
 https://github.com/i4Ds/STIX-dataviewer/releases
 
+### 1. Source code download
+
+   Download the source code and decompress the zip file. 
+ 
+    https://github.com/i4Ds/STIX-dataviewer/archive/master.zip
 
 
+### 2. Python environment Setup
+   The packet relies on python3 and some extra python modules. 
 
-### 1. Environment Setup
-The packet was tested under linux. It should also work on Windows. 
-#### On Linux 
+#### 2.1 On Linux 
 
-1. Install python 3
-  ```
-    sudo  apt-get install python3
-  ```
-2. Install pip
-  ```
-    sudo apt install python3-pip
-  ```
-3. Install dependencies:
+   - To install python3 on ubuntu/debian/Mint, run: 
+```console
+sudo  apt-get install python3
+sudo apt install python3-pip
+pip3 install numpy xmltodict PyQt5 pyqtchart scipy pymongo python-dateutil
+
 ```
-pip3 install numpy xmltodict PyQt5 pyqtchart scipy pymongo
+   - On Redhat/Federo/CentOS/Scientific linux, run (not tested):
+```console
+yum install python36
+yum install python3-pip
+pip3 install numpy xmltodict PyQt5 pyqtchart scipy pymongo python-dateutil
 ```
-### 2. On windows
-  A guide to install python3 and pip3 is available at https://vgkits.org/blog/pip3-windows-howto/
 
-### 3. How to use 
-#### 3.1 Running as a command line parser
+
+#### 2.2 On windows
+
+  - Download  python3.6 executalble installer
+ 
+     For 64-bit Windows: https://www.python.org/ftp/python/3.6.7/python-3.6.7-amd64.exe 
+   
+     For 32-bit Windows: https://www.python.org/ftp/python/3.6.7/python-3.6.7.exe 
+ 
+  - Install python3
+ 
+    When installing python, choose `customize installation`, 
+  `install pip` and `add python path to the system enviroment`. 
+  
+  - Install dependencies
+
+    Open Cmd as administrator and run
+  ```cmd
+   pip3 install numpy xmltodict PyQt5 pyqtchart scipy pymongo python-dateutil
+````
+
+### 3. How to use the package
+#### 3.1. Running as a command line parser
+
+Usage:
+python3 applications/parser.py
+```console
+Usage: parser.py [-h] -i [INPUT] [-o OUTPUT] [--idb IDB] [--opf {tuple,dict}]
+                 [-t {binary,ascii,xml}] [--wdb] [--db-host DB_HOST]
+                 [--db-port DB_PORT] [--db-user DB_USER] [--db-pwd DB_PWD]
+                 [-m COMMENT] [--SPID [SPID [SPID ...]]]
+                 [--services [SERVICES [SERVICES ...]]] [-v VERBOSE]
+                 [-l LOGFILE]
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+Required arguments:
+  -i [INPUT]            Input raw data filename.
+
+Optional arguments:
+  -o OUTPUT             Output filename.
+  --idb IDB             IDB sqlite3 filename.
+  --opf {tuple,dict}    format to store output parameters.
+  -t {binary,ascii,xml}
+                        Input file type. Three types (binary, ascii or xml)
+                        are supported.
+  --wdb                 Write decoded packets to local MongoDB.
+  --db-host DB_HOST     MongoDB host IP.
+  --db-port DB_PORT     MongoDB host port.
+  --db-user DB_USER     MongoDB username.
+  --db-pwd DB_PWD       MongoDB password.
+  -m COMMENT            comment
+  --SPID [SPID [SPID ...]]
+                        Only to parse the packets of the given SPIDs.
+  --services [SERVICES [SERVICES ...]]
+                        Only to parse the packets of the given service types.
+  -v VERBOSE            Logger verbose level
+  -l LOGFILE, --log LOGFILE
+                        Log filename
 ```
+
+Example:
+```console
 python3 applications/parser.py -i <RAW_DATA_FILENAME> -o <OUTPUT>  -v  <Verbose level>
 ```
 
+#### 3.2. Embeding the parser in your own code.  
+  Here are several examples.
+ - Example 1
 
-### 3.2 Embeding the parser in your own code.  
-Here are several examples.
-Example 1
+   Parsing a raw data file and writting packets to a python pickle file
 
-Parsing a raw data file and writting packets to a python pickle file
-
-```
+```python
 #!/usr/bin/python3 
 from core import stix_logger
 from core import stix_parser
@@ -48,11 +112,11 @@ stix_logger._stix_logger.set_logger(logfile='test.log', verbose=2)
 parser = stix_parser.StixTCTMParser()
 parser.parse_file('raw.binary', 'output.pkl')
 ```
-Example 2
+ - Example 2
 
-Parsing a raw data file and print  the packets. 
+   Parsing a raw data file and print  the packets. 
 
-```
+```python
 #!/usr/bin/python3 
 from core import stix_parser
 
@@ -66,21 +130,21 @@ for packet in packets:
   print(packet['parameters'])
 ```
 
-Example 3:
-```
+ - Example 3:
+```python
 
 #!/usr/bin/python3 
 import pprint
 from core import stix_parser
 parser = stix_parser.StixTCTMParser()
-hex='0d e5 c3 ce 00 1a 10 03 19 0e 80 00 87 46 6e 97 04 80 00 87 46 00 00 00 00 00 00 00 00 00 00 00 00'
-packets=parser.parse_hex(hex)
+data='0d e5 c3 ce 00 1a 10 03 19 0e 80 00 87 46 6e 97 04 80 00 87 46 00 00 00 00 00 00 00 00 00 00 00 00'
+packets=parser.parse_hex(data)
 
 pprint.pprint(packets)
 
 ```
-Output 
-```
+  Output 
+```python
 [{'header': {'APID': 1509,
             'APID_packet_category': 5,
             'APID_process_ID': 94,
@@ -105,80 +169,80 @@ Output
             'service_type': 3,
             'time': 2147518278.4319916,
             'version': 0},
- 'parameters': [{'desc': 'SID', 'name': 'NIX00020', 'raw': (4,), 'value': ''},
+ 'parameters': [{'desc': 'SID', 'name': 'NIX00020', 'raw': (4,), 'eng': ''},
                 {'desc': 'Heartbeat value',
                  'name': 'NIX00059',
                  'raw': (2147518278,),
-                 'value': ''},
+                 'eng': ''},
                 {'desc': 'Flare location',
                  'name': 'NIXD0059',
                  'raw': (0,),
-                 'value': 'NotAvailable'},
+                 'eng': 'NotAvailable'},
                 {'desc': 'Non-thermal flare index',
                  'name': 'NIXD0060',
                  'raw': (0,),
-                 'value': 'NoSignNThrFlux'},
+                 'eng': 'NoSignNThrFlux'},
                 {'desc': 'Thermal flare index',
                  'name': 'NIXD0061',
                  'raw': (0,),
-                 'value': 'NoFlareDetect'},
+                 'eng': 'NoFlareDetect'},
                 {'desc': 'Flare - global',
                  'name': 'NIXG0020',
                  'raw': (0,),
-                 'value': ''},
+                 'eng': ''},
                 {'desc': 'Flare Location Z',
                  'name': 'NIX00283',
                  'raw': (0,),
-                 'value': ''},
+                 'eng': ''},
                 {'desc': 'Flare Location Y',
                  'name': 'NIX00284',
                  'raw': (0,),
-                 'value': ''},
+                 'eng': ''},
                 {'desc': 'Flare Duration',
                  'name': 'NIX00063',
                  'raw': (0,),
-                 'value': ''},
+                 'eng': ''},
                 {'desc': 'Attenuator motion flag',
                  'name': 'NIXD0064',
                  'raw': (0,),
-                 'value': 'False'},
+                 'eng': 'False'},
                 {'desc': 'HK global 15',
                  'name': 'NIXG0064',
                  'raw': (0,),
-                 'value': ''}}
+                 'eng': ''}}
                ]
 ```
  
   
 
-### 3.3 Using the GUI 
-````
+#### 3.3 Using the GUI 
+##### 3.3.1 Run the GUI
+- On Linux
+```console
 chmod +x run_gui.sh
 ./run_gui.sh
-````
-or 
-````
-python3 UI/parser_gui.py
-````
-#### 3.3.1 GUI basic functions
-The GUI allows parsing/loading and then displaying STIX packets in the following data formats/sources:
-- STIX raw data
-- SOC XML format
-- MOC ascii format
-- packets stored in  python pickle files (pkl and pklz)
-- packets stored in Nosql database Mongodb
-- packets received from TSC via socket
-- STIX TM binary hex string copied from clipboard
+```
+- On Windows
+   Double clicking  "run_gui.bat" in the source code directory
+##### 3.3.2 GUI basic functions
+  The GUI allows parsing/loading and then displaying STIX packets in the following data formats/sources:
+   - STIX raw data
+   - SOC XML format
+   - MOC ascii format
+   - packets stored in  python pickle files (pkl and pklz)
+   - packets stored in Nosql database Mongodb
+   - packets received from TSC via socket
+   - STIX TM binary hex string copied from clipboard
 
-The GUI also allows plotting parameters as a function of timestamp or packet number. 
-#### 3.3.2 GUI plugins
-Plugins are supported for more complex analysis. 
-The plugin manager can be loaded by clicking "Tool->Plugins" or the plugin icon in the toolbar. Here is a plugin example
-````
+  The GUI also allows plotting parameters as a function of timestamp or packet number. 
+##### 3.3.3  GUI plugins
+  One could create plugins to analyze the packets loaded in the GUI.
+  The plugin manager can be loaded by clicking "Tool->Plugins" or the plugin icon in the toolbar. 
+  Here is a plugin source code example
+````python
 #plugin example
 import pprint
 class Plugin:
-    """ don't modify here """
     def __init__(self,  packets=[], current_row=0):
         self.packets=packets
         self.current_row=current_row
@@ -192,11 +256,10 @@ class Plugin:
             pprint.pprint(self.packets[self.current_row])
             
 ````
-More plugin examples are available in  plugins/
+  More plugin examples are available in  plugins/
 
 
-
-### 3.3.3 GUI screenshots
+##### 3.3.4 GUI screenshots
 
 ![GU data parser GUI](screenshots/stix_parser_1.jpg)
 ![GU data parser GUI](screenshots/stix_parser_2.jpg)

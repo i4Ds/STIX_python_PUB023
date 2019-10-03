@@ -201,7 +201,7 @@ class StixMongoDBWriter(StixPacketWriter):
             'summary':'',
             'filesize': filesize
         }
-        print(self.run_info)
+        #print(self.run_info)
         self.inserted_run_id=self.collection_runs.insert_one(self.run_info).inserted_id
 
     def set_filename(self,fname):
