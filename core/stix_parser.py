@@ -194,7 +194,7 @@ class StixParameterParser(object):
             rows = STIX_IDB.textual_interpret(ref, raw_value)
             if rows:
                 return rows[0][0]
-            STIX_LOGGER.warn('No textual calibration for {}'.format(ref))
+            STIX_LOGGER.warn('Missing textual calibration info. for {}'.format(ref))
             return ''
         elif prefix == 'CIXP':
             #calibration
@@ -219,7 +219,7 @@ class StixParameterParser(object):
                 for coeff, xval in zip(pol_coeff, x_points):
                     sum_value += coeff * xval
                 return sum_value
-            STIX_LOGGER.warn('No calibration factors for {}'.format(ref))
+            STIX_LOGGER.warn('Missing calibration factors for {}'.format(ref))
             return ''
         return ''
 
@@ -234,7 +234,6 @@ class StixParameterParser(object):
                          cal_ref='',
                          tmtc='TM',
                          calibration=True):
-
         param_type = STIX_IDB.get_s2k_parameter_types(ptc, pfc)
         raw_values = self.decode_buffer(data_field, param_type, offset,
                                         offset_bits, width, name)
@@ -669,8 +668,8 @@ class StixTCTMParser(StixParameterParser):
             name = par['CDF_PNAME']
             cal_ref = par['CPC_PAFREF']
             parameter = self.decode_parameter(buf, name, offset, offset_bits,
-                                              width, ptc, pfc, cal_ref, 'TM',
-                                              False)
+                                              width, ptc, pfc, cal_ref, 'TC',
+                                              True)
             params.append(parameter)
         return params
 
