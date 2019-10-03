@@ -30,6 +30,7 @@ CONTEXT_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I']
 UNSIGNED_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I', 'BBBBB', '>IH']
 SIGNED_UNPACK_FORMAT = ['b', '>h', 'bbb', '>i', 'bbbbb', '>ih']
 HEX_SPACE = '0123456789ABCDEFabcdef'
+PARMETERS_CALIBRATION_ENABLED=['NIX00101', 'NIX00102']
 
 STIX_IDB = stix_idb.stix_idb()
 STIX_LOGGER = stix_logger.stix_logger()
@@ -411,6 +412,9 @@ class StixVariableTelemetryPacketParser(StixParameterParser):
         offset = self.last_offset
         offset_bits = self.current_offset_bit
         calibration_enabled = False
+        if name in PARMETERS_CALIBRATION_ENABLED:
+            calibration_enabled=True
+
         #Not to convert raw to eng for variable length packet
         return self.decode_parameter(self.buffer, name, offset,
                                      offset_bits, width, ptc, pfc, cal_ref,
@@ -916,7 +920,7 @@ class StixTCTMParser(StixParameterParser):
 
                 tc_name=header['name']
                 num_read, parameters, status=self.vp_tc_parser.parse(tc_name,data_field_raw)
-                if num_read != data_field_length: #the last two bytes is CRC
+                if num_read != data_field_length-2: #the last two bytes is CRC
                     STIX_LOGGER.warn(
                             ' TC {} data field size: {}B, actual read: {}B'
                             .format(tc_name,  data_field_length,num_read))
