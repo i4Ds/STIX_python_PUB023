@@ -193,9 +193,11 @@ class StixMongoDBWriter(StixPacketWriter):
             'path': self.path,
             'comment': comment,
             'log': log_filename,
-            'date': datetime.datetime.now().isoformat(),
-            'start': 0,
-            'end': 0,
+            'date': datetime.datetime.now(),
+            'processing_start':datetime.datetime.now(),
+            'processing_stop':datetime.datetime.now(),
+            'data_start_utc': 0,
+            'data_stop_utc': 0,
             '_id': self.current_run_id,
             'status':stix_global.UNKNOWN,
             'summary':'',
@@ -265,8 +267,9 @@ class StixMongoDBWriter(StixPacketWriter):
         STIX_LOGGER.info('Updating run :'.format(self.inserted_run_id))
         run=self.collection_runs.find_one({'_id':self.inserted_run_id})
         if run:
-            run['start'] = self.start_time
-            run['end'] = self.end_time
+            run['data_start_utc'] = self.start_time
+            run['data_stop_utc'] = self.end_time
+            run['processing_stop'] = datetime.datetime.now()
             run['filename']=self.filename
             run['path']=self.path
             run['status']=stix_global.OK

@@ -57,11 +57,11 @@ class MongoDB(object):
 
     def delete_one_run(self, run_id):
         if self.collection_packets:
-            cursor=self.collection_packets.deleteMany({'run_id':int(run_id)})
+            cursor=self.collection_packets.delete_many({'run_id':int(run_id)})
         if self.collection_headers:
-            cursor=self.collection_headers.deleteMany({'run_id':int(run_id)})
+            cursor=self.collection_headers.delete_many({'run_id':int(run_id)})
         if self.collection_runs:
-            cursor=self.collection_runs.deleteMany({'_id':int(run_id)})
+            cursor=self.collection_runs.delete_many({'_id':int(run_id)})
     def delete_runs(self,runs):
         for run in runs:
             self.delete_one_run(run)
