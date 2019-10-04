@@ -93,5 +93,8 @@ TELECOMMAND_RAW_STRUCTURE = [  # each dictionary
     },
     {
         'source_id': (0, 8)
+    },
+    {
+        'subtype': (0, 8)
     }
 ]

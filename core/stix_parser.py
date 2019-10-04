@@ -535,10 +535,7 @@ class StixTelecommandParser(StixParameterParser):
             #CDF_ELLIEN is not respected  for variable telecommand
             offset=int(self.current_bit_offset/8)
             offset_bits=int(self.current_bit_offset%8)
-            # not works well 
-            #print("PARMETER:-----")
-            #print(param_name)
-            #print(self.current_bit_offset, offset,offset_bits, width)
+            # need to be checked
             self.current_bit_offset += width
         parameter = self.decode_parameter(
             self.buffer,
@@ -649,6 +646,10 @@ class StixTCTMParser(StixParameterParser):
 
         self.num_tm = 0
         self.num_tc = 0
+
+        self.num_tm_parsed= 0
+        self.num_tc_parsed= 0
+
         self.num_bad_bytes = 0
         self.num_bad_headers = 0
         self.utc_timestamp=''
@@ -666,6 +667,8 @@ class StixTCTMParser(StixParameterParser):
         #self.decoded_packets.clear()
         self.num_tm = 0
         self.num_tc = 0
+        self.num_tm_parsed= 0
+        self.num_tc_parsed= 0
         self.num_bad_bytes = 0
         self.num_bad_headers = 0
         self.total_length = 0
@@ -699,6 +702,8 @@ class StixTCTMParser(StixParameterParser):
             'total_length': self.total_length,
             'num_tc': self.num_tc,
             'num_tm': self.num_tm,
+            'num_tc_parsed': self.num_tc_parsed,
+            'num_tm_parsed': self.num_tm_parsed,
             'num_filtered': self.num_filtered,
             'num_bad_bytes': self.num_bad_bytes,
             'num_bad_headers': self.num_bad_headers
@@ -800,14 +805,22 @@ class StixTCTMParser(StixParameterParser):
             header_raw = st.unpack('>HHHBBBB', packet[0:10])
         except Exception as e:
             STIX_LOGGER.error(str(e))
-            return stix_global.HEADER_RAW_LENGTH_VALID, None
+            return stix_global.HEADER_RAW_LENGTH_VALID, None, None
         header = {}
         for h, s in zip(header_raw, stix_header.TELECOMMAND_RAW_STRUCTURE):
             header.update(unpack_integer(h, s))
         status = self.check_header(header, 'tc')
-        info = STIX_IDB.get_telecommand_info(header['service_type'],
-                                             header['service_subtype'],
-                                             header['source_id'])
+        subtype = -1
+        if (header['service_type'],header['service_subtype']) in [(237,7), (236,6)]:
+            try:
+                subtype= st.unpack('B', packet[10:11])[0]
+                header['subtype']=subtype
+            except Exception as e:
+                STIX_LOGGER.warn('Error occurred when parsing TC({},{}) due to {}'.format(
+                    header['service_type'],header['service_subtype'],
+                    str(e))) 
+                print(subtype)
+        info = STIX_IDB.get_telecommand_info(header)
         if not info:
             return stix_global.HEADER_KEY_ERROR, header
 
@@ -852,10 +865,15 @@ class StixTCTMParser(StixParameterParser):
                         i, header_status))
                     self.num_bad_headers += 1
                     continue
+
+                self.num_tm += 1
+
                 data_field_length = header['length'] - 9
                 status, i, data_field_raw = get_from_bytearray(
                     buf, i, data_field_length)
                 if status == stix_global.EOF:
+                    STIX_LOGGER.warn("Incomplete packet, the last {} bytes  were not parsed".format(
+                        len(data_field_raw)))
                     break
                 ret = self.parse_data_field_header(header, data_field_raw,
                                                     data_field_length)
@@ -874,7 +892,6 @@ class StixTCTMParser(StixParameterParser):
                     if spid not in self.selected_spids:
                         self.num_filtered += 1
                         continue
-                self.num_tm += 1
 
                 STIX_DECOMPRESSOR.initalize_decompressor(spid)
 
@@ -889,34 +906,35 @@ class StixTCTMParser(StixParameterParser):
                             .format(spid,  data_field_length,num_read))
 
                 packet = {'header': header, 'parameters': parameters}
+                self.num_tm_parsed+=1
                 STIX_LOGGER.pprint(packet)
                 if self.store_binary:
                     packet['bin'] = header_raw + data_field_raw
 
 
             elif buf[i] == 0x1D:
-                # telecommand
-                self.num_tc += 1
-                status, i, header_raw = get_from_bytearray(buf, i, 10)
-                # header 10 bytes, the last two bytes are crc
-                if status == stix_global.EOF:
-                    break
-                header_status, header = self.parse_telecommand_header(
-                    header_raw)
+
+                if len(buf)<10:
+                    STIX_LOGGER.warn("Incomplete packet. The last {} bytes  were not parsed".format(
+                        len(buf)))
+                    break 
+
+                header_status, header= self.parse_telecommand_header(buf)
+                i=10
+                #10 bytes for header
+
                 if header_status != stix_global.OK:
                     self.num_bad_headers += 1
                     STIX_LOGGER.warn(
-                            "Invalid telecommand header. ERROR code: {}, Cursor at {} ".format(header_status, i -
-                                                                           12))
+                            "Invalid telecommand header. ERROR code: {}, Cursor at {} ".format(
+                                header_status, i-10))
                     continue
+                self.num_tc += 1
                 data_field_length = header['length'] + 1 - 4
-
                 status, i, data_field_raw = get_from_bytearray(
                     buf, i, data_field_length)
                 if status == stix_global.EOF:
                     break
-
-
 
                 tc_name=header['name']
                 num_read, parameters, status=self.vp_tc_parser.parse(tc_name,data_field_raw)
@@ -927,9 +945,10 @@ class StixTCTMParser(StixParameterParser):
 
 
                 packet = {'header': header, 'parameters': parameters}
+                self.num_tc_parsed+=1
                 STIX_LOGGER.pprint(packet)
                 if self.store_binary:
-                    packet['bin'] = header_raw + data_field_raw
+                    packet['bin'] = buf[0:10] + data_field_raw
 
             else:
                 old_i = i

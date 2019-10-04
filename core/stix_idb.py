@@ -244,21 +244,21 @@ class _IDB(object):
         self.parameter_structures[spid] = res
         return res
 
-    def get_telecommand_info(self,
-                             service_type,
-                             service_subtype,
-                             command_subtype=-1):
+    def get_telecommand_info(self,header):
         """
             get TC description
         """
-        sql = (
-            # ,CCF_TYPE, CCF_STYPE, CCF_APID,'
-            'select  CCF_CNAME, CCF_DESCR, CCF_DESCR2, '
+        service_type=header['service_type']
+        service_subtype=header['service_subtype']
+        sql = ('select  CCF_CNAME, CCF_DESCR, CCF_DESCR2, '
             ' CCF_NPARS from CCF where CCF_TYPE=? and CCF_STYPE =? order by CCF_CNAME asc'
         )
         res = self.execute(sql, (service_type, service_subtype), 'dict')
+        index=0
+        if len(res) > 1 and 'subtype' in header:
+            index=header['subtype']-1
         try:
-            return res[0]
+            return res[index]
         except IndexError:
             return None
 
