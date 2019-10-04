@@ -55,13 +55,16 @@ class MongoDB(object):
         else:
             return None
 
-    #def select_packets_by_SPID_UTC(self,t0, tw ,  spid):
-    #    if self.collection_packets:
-    #        cursor=self.collection_packets.find({'header.SPID':int(spid)})
-    #        data=[x for x in cursor]
-    #        return data
-    #    else:
-    #        return None
+    def delete_one_run(self, run_id):
+        if self.collection_packets:
+            cursor=self.collection_packets.deleteMany({'run_id':int(run_id)})
+        if self.collection_headers:
+            cursor=self.collection_headers.deleteMany({'run_id':int(run_id)})
+        if self.collection_runs:
+            cursor=self.collection_runs.deleteMany({'_id':int(run_id)})
+    def delete_runs(self,runs):
+        for run in runs:
+            self.delete_one_run(run)
 
 
 
