@@ -11,6 +11,8 @@ import uuid
 import bson
 import pymongo
 
+NUM_MAX_PACKETS=10000
+
 class MongoDB(object):
     def __init__(self, server='localhost',port=27017, user='',pwd=''):
         self.filename=None
@@ -79,7 +81,7 @@ class MongoDB(object):
         else:
             return None
 
-    def select_packets_by_run(self,run_id):
+    def select_packets_by_run(self,run_id, nmax=NUM_MAX_PACKETS):
         if self.collection_packets:
             cursor=self.collection_packets.find({'run_id':int(run_id)})
             data=[x for x in cursor]

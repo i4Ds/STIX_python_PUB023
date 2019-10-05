@@ -10,6 +10,35 @@ class StixPacketAnalyzer(object):
     def __init__(self):
         self._parameters = []
         self._spids=[]
+        self._parameter_vector={}
+
+    def push_back(self, parameters=None, reset=False):
+        if not parameters:
+            parameters=self._parameters
+        if reset:
+            self._parameter_vector={}
+        if 'UTC' not in self._parameter_vector:
+            self._parameter_vector['UTC']=[self._header['UTC']]
+        else:
+            self._parameter_vector['UTC'].append(self._header['UTC'])
+        if 'time' not in self._parameter_vector:
+            self._parameter_vector['time']=[self._header['time']]
+        else:
+            self._parameter_vector['time'].append(self._header['time'])
+
+        for e in parameters:
+            param = stp.StixParameter()
+            param.clone(e)
+            if param.name in self._parameter_vector:
+                self._parameter_vector[param.name].append(param.parameter)
+            else:
+                self._parameter_vector[param.name]=[param.parameter]
+            if param.children:
+                self.push_back(param.children, reset=False)
+    def get_parameter_vector(self):
+        return self._parameter_vector
+
+ 
 
     def set_filter(self,spid):
         self._spids.append(spid)
@@ -33,7 +62,7 @@ class StixPacketAnalyzer(object):
             parameters=self._parameters
         results ={name:[] for name in name_list }
         #results=dict()
-        for e in self._parameters:
+        for e in parameters:
             param = stp.StixParameter()
             param.clone(e)
             if param.name in name_list:

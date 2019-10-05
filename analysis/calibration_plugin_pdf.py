@@ -5,18 +5,14 @@ import os
 import sys
 sys.path.append('..')
 sys.path.append('.')
-from matplotlib import pyplot as plt
-from utils import stix_packet_analyzer as sta
-analyzer = sta.analyzer()
-from matplotlib.backends.backend_pdf import PdfPages
-from PyQt5 import QtWidgets, QtCore, QtGui
 
-#from ROOT import TGraph, TFile, TCanvas, TH1F, gROOT, TBrowser, gSystem, TH2F, gPad
 import numpy as np
-import matplotlib.pyplot as plt
-
+from matplotlib.backends.backend_pdf import PdfPages
+from matplotlib import pyplot as plt
 from datetime import datetime
+from utils import stix_packet_analyzer as sta
 
+analyzer = sta.analyzer()
 
 SPID = 54124
 class Plugin:
