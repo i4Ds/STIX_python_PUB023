@@ -43,7 +43,7 @@ class Plugin:
                    
 
                 fig=None
-                analyzer.load_packet(packet)
+                analyzer.load(packet)
                 detector_ids = analyzer.find_all('NIX00159>NIXD0155')[0]
                 pixels_ids = analyzer.find_all('NIX00159>NIXD0156')[0]
                 spectra = analyzer.find_all('NIX00159>NIX00146>*')[0]

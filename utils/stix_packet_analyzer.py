@@ -9,39 +9,34 @@ from core import stix_parameter as stp
 class StixPacketAnalyzer(object):
     def __init__(self):
         self._parameters = []
-        self._spids=[]
         self._parameter_vector={}
+        self._header=None
+    def merge(self, packet):
+        parameters=packet['parameters']
+        header=packet['header']
+        if 'UTC' in header:
+            if 'UTC' not in self._parameter_vector:
+                self._parameter_vector['UTC']=[header['UTC']]
+            else:
+                self._parameter_vector['UTC'].append(header['UTC'])
 
-    def push_back(self, parameters=None, reset=False):
-        if not parameters:
-            parameters=self._parameters
-        if reset:
-            self._parameter_vector={}
-        if 'UTC' not in self._parameter_vector:
-            self._parameter_vector['UTC']=[self._header['UTC']]
-        else:
-            self._parameter_vector['UTC'].append(self._header['UTC'])
         if 'time' not in self._parameter_vector:
-            self._parameter_vector['time']=[self._header['time']]
+            self._parameter_vector['time']=[header['time']]
         else:
-            self._parameter_vector['time'].append(self._header['time'])
-
+            self._parameter_vector['time'].append(header['time'])
         for e in parameters:
             param = stp.StixParameter()
             param.clone(e)
             if param.name in self._parameter_vector:
-                self._parameter_vector[param.name].append(param.parameter)
+                self._parameter_vector[param.name].append(param.get_raw_int())
             else:
-                self._parameter_vector[param.name]=[param.parameter]
+                self._parameter_vector[param.name]=[param.get_raw_int()]
             if param.children:
-                self.push_back(param.children, reset=False)
-    def get_parameter_vector(self):
+                self.merge(param.children)
+
+    def get_merged_parameters(self):
         return self._parameter_vector
 
- 
-
-    def set_filter(self,spid):
-        self._spids.append(spid)
     def load(self,packet):
         try:
             self._parameters =packet['parameters'] 
@@ -91,7 +86,6 @@ class StixPacketAnalyzer(object):
                 except (TypeError, IndexError,ValueError):
                     print('can not get raw value for {}: value: {} '.format(name,
                         str(pp.raw)))
-
                 results[name].append(value)
         return results
     def get_eng(self, name_list, parameters=None):
@@ -107,7 +101,6 @@ class StixPacketAnalyzer(object):
                 pp.clone(p)
                 results[name].append(pp.eng)
         return results
-
 
     def find_child(self, parent_name, order=1):
         num_found=0
