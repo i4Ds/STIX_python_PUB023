@@ -72,7 +72,6 @@ class StixParameter(object):
 
         if param_format == 'tuple':
             return (self._name, self._raw, self._eng, self._children)
-
         return {
             'name': self._name,
             'raw': self._raw,
@@ -90,7 +89,7 @@ class StixParameter(object):
             self._raw = parameter['raw']
             self._eng = parameter['eng']
             self._children = parameter['children']
-        elif isinstance(parameter, tuple):
+        elif isinstance(parameter, (tuple, list)):
             self._name = parameter[0]
             self._raw = parameter[1]
             self._eng = parameter[2]
@@ -118,7 +117,10 @@ class StixParameter(object):
 
     @property
     def eng(self):
-        return self._eng
+        try:
+            return float(self._eng)
+        except:
+            return self._eng
 
     @property
     def children(self):

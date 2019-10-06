@@ -11,7 +11,19 @@ class StixPacketAnalyzer(object):
         self._parameters = []
         self._parameter_vector={}
         self._header=None
-    def merge(self, packet):
+    def merge_packets(self,packets, SPIDs, default_value_type='eng'):
+        num = 0 
+        for packet in packets:
+            try:
+                if int(packet['header']['SPID']) not in  SPIDs:
+                    continue
+            except ValueError:
+                continue
+            self.merge(packet, default_value_type)
+            num+=1
+        return num
+
+    def merge(self, packet, default_value_type='eng'):
         parameters=packet['parameters']
         header=packet['header']
         if 'UTC' in header:
@@ -19,23 +31,34 @@ class StixPacketAnalyzer(object):
                 self._parameter_vector['UTC']=[header['UTC']]
             else:
                 self._parameter_vector['UTC'].append(header['UTC'])
-
         if 'time' not in self._parameter_vector:
             self._parameter_vector['time']=[header['time']]
         else:
             self._parameter_vector['time'].append(header['time'])
+
         for e in parameters:
             param = stp.StixParameter()
             param.clone(e)
-            if param.name in self._parameter_vector:
-                self._parameter_vector[param.name].append(param.get_raw_int())
+            value=0
+            name=param.name
+            if 'NIXG' in name:
+                continue
+            value=param.get_raw_int()
+            if default_value_type=='eng':
+                if isinstance(param.eng, (float,int)):
+                    value=param.eng
+
+            if name in self._parameter_vector:
+                self._parameter_vector[name].append(value)
             else:
-                self._parameter_vector[param.name]=[param.get_raw_int()]
+                self._parameter_vector[name]=[value]
             if param.children:
-                self.merge(param.children)
+                self.merge(param.children, default_value_type)
 
     def get_merged_parameters(self):
         return self._parameter_vector
+
+
 
     def load(self,packet):
         try:

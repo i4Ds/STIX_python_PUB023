@@ -287,9 +287,8 @@ def decompress(x, S, K, M):
     if S + K + M > 8 or S not in (0, 1) or K > 7 or M > 7:
         STIX_LOGGER.warn('Invalid SKM values: {}{}{}'.format(S, K, M))
         return None
-    if K == 0 or  M == 0:
+    if K == 0 or M == 0:
         return None
-
 
     sign = 1
     if S == 1:  #decompression for signed byte
@@ -311,9 +310,8 @@ def decompress(x, S, K, M):
     high = low | ((1 << exponent) - 1)  #maxima value
     mean = (low + high) >> 1  #mean value
 
-    if mean>1e8:
+    if mean > 1e8:
         return float(mean)
-
 
     return sign * mean
 

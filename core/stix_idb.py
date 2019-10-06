@@ -168,15 +168,13 @@ class _IDB(object):
             rows = self.execute('select PCF_DESCR from PCF where PCF_NAME=? ',
                                 (name, ))
             if not rows:
-                rows = self.execute('select CPC_DESCR from CPC where CPC_PNAME=? ',
-                                (name, ))
+                rows = self.execute(
+                    'select CPC_DESCR from CPC where CPC_PNAME=? ', (name, ))
             if rows:
                 res = rows[0][0]
                 self.parameter_descriptions[name] = res
                 return res
             return ''
-
-
 
     def get_packet_type_info(self, packet_type, packet_subtype, pi1_val=-1):
         """
@@ -244,19 +242,20 @@ class _IDB(object):
         self.parameter_structures[spid] = res
         return res
 
-    def get_telecommand_info(self,header):
+    def get_telecommand_info(self, header):
         """
             get TC description
         """
-        service_type=header['service_type']
-        service_subtype=header['service_subtype']
-        sql = ('select  CCF_CNAME, CCF_DESCR, CCF_DESCR2, '
+        service_type = header['service_type']
+        service_subtype = header['service_subtype']
+        sql = (
+            'select  CCF_CNAME, CCF_DESCR, CCF_DESCR2, '
             ' CCF_NPARS from CCF where CCF_TYPE=? and CCF_STYPE =? order by CCF_CNAME asc'
         )
         res = self.execute(sql, (service_type, service_subtype), 'dict')
-        index=0
+        index = 0
         if len(res) > 1 and 'subtype' in header:
-            index=header['subtype']-1
+            index = header['subtype'] - 1
         try:
             return res[index]
         except IndexError:
@@ -268,25 +267,22 @@ class _IDB(object):
             The structure will be used to decode the TC packet.
         """
         sql = ('select CDF_ELTYPE, CDF_DESCR, CDF_ELLEN, CDF_BIT, '
-                'CDF_GRPSIZE, CDF_PNAME, CPC_DESCR,  CPC_PAFREF, CPC_PTC,'
-                'CPC_PFC from CDF left join CPC on  CDF_PNAME=CPC_PNAME'
-                '  where  CDF_CNAME=?  order by CDF_BIT asc')
+               'CDF_GRPSIZE, CDF_PNAME, CPC_DESCR,  CPC_PAFREF, CPC_PTC,'
+               'CPC_PFC from CDF left join CPC on  CDF_PNAME=CPC_PNAME'
+               '  where  CDF_CNAME=?  order by CDF_BIT asc')
         args = (name, )
         res = self.execute(sql, args, 'dict')
         return res
 
-
-    def is_variable_length_telecommand(self,name):
+    def is_variable_length_telecommand(self, name):
         sql = 'select CDF_GRPSIZE  from CDF where CDF_GRPSIZE >0 and CDF_CNAME=?'
         args = (name, )
-        rows= self.execute(sql, args, 'list')
+        rows = self.execute(sql, args, 'list')
         if rows:
             num_repeater = int(rows[0][0])
-            if num_repeater>0:
+            if num_repeater > 0:
                 return True
         return False
-
-
 
     def get_variable_packet_structure(self, spid):
         if spid in self.parameter_structures:
@@ -324,6 +320,17 @@ class _IDB(object):
             rows = self.execute(sql, args)
             self.calibration_curves[pcf_curtx] = rows
             return rows
+
+    def get_textual_mapping(self, parameter_name):
+        #select PCF_NAME, PCF_CURTX, TXP_FROM,TXP_TO, TXP_ALTXT from TXP join PCF on PCF_CURTX=TXP_NUMBR order by PCF_NAME asc
+        #sql='select  TXP_FROM,TXP_TO, TXP_ALTXT from TXP join PCF on PCF_CURTX=TXP_NUMBR where PCF_NAME=? order by PCF_NAME asc'
+        sql = 'select  TXP_FROM, TXP_ALTXT from TXP join PCF on PCF_CURTX=TXP_NUMBR where PCF_NAME=? order by TXP_FROM asc'
+        args = (parameter_name, )
+        rows = self.execute(sql, args)
+        if rows:
+            return ([int(x[0]) for x in rows], [x[1] for x in rows])
+        else:
+            return None
 
     def textual_interpret(self, pcf_curtx, raw_value):
         if (pcf_curtx, raw_value) in self.textual_parameter_lut:

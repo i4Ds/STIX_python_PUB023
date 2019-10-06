@@ -129,13 +129,14 @@ class StixLogger(object):
         self.important_info(
             'Size: {} bytes (bad:{});'
             ' Nb. of packets: {} ('
-            'TM: {}, TC:{}, Filtered: {}); Parsed {} (TM:{},TC:{}); Bad headers:{} .'.format(
+            'TM: {}, TC:{}, Filtered: {}); Parsed {} (TM:{},TC:{}); Bad headers:{} .'
+            .format(
                 summary['total_length'], summary['num_bad_bytes'],
                 summary['num_tm'] + summary['num_tc'] +
                 summary['num_filtered'], summary['num_tm'], summary['num_tc'],
-                summary['num_filtered'], 
+                summary['num_filtered'],
                 summary['num_tm_parsed'] + summary['num_tc_parsed'],
-                summary['num_tm_parsed'] , summary['num_tc_parsed'],
+                summary['num_tm_parsed'], summary['num_tc_parsed'],
                 summary['num_bad_headers']))
 
 

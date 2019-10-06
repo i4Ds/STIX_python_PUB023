@@ -31,6 +31,7 @@ class MongoDB(object):
             self.collection_packets=self.db['packets']
             self.collection_headers=self.db['headers']
             self.collection_runs=self.db['runs']
+            self.collection_quicklook=self.db['quicklook']
         except Exception as e:
             print('can not connect to mongodb')
             raise(e)

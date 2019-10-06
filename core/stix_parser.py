@@ -30,7 +30,7 @@ CONTEXT_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I']
 UNSIGNED_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I', 'BBBBB', '>IH']
 SIGNED_UNPACK_FORMAT = ['b', '>h', 'bbb', '>i', 'bbbbb', '>ih']
 HEX_SPACE = '0123456789ABCDEFabcdef'
-PARMETERS_CALIBRATION_ENABLED=['NIX00101', 'NIX00102']
+PARMETERS_CALIBRATION_ENABLED = ['NIX00101', 'NIX00102']
 
 STIX_IDB = stix_idb.stix_idb()
 STIX_LOGGER = stix_logger.stix_logger()
@@ -38,14 +38,12 @@ STIX_DECOMPRESSOR = stix_decompressor.StixDecompressor()
 stix_parameter.StixParameter.set_decompressor(STIX_DECOMPRESSOR)
 
 
-
-
 def detect_filetype(filename):
     filetype = None
-    ext=pathlib.Path(filename).suffix
-    if ext in ('xml','ascii','bin','hex'):
+    ext = pathlib.Path(filename).suffix
+    if ext in ('xml', 'ascii', 'bin', 'hex'):
         return ext
-    elif ext in ('binary','raw','BDF','.dat'):
+    elif ext in ('binary', 'raw', 'BDF', '.dat'):
         return 'bin'
     try:
         f = open(filename, 'r')
@@ -100,8 +98,17 @@ class StixParameterParser(object):
         #super(StixParameterParser, self).__init__()
 
     def set_parameter_format(self, fmt):
-        """ define how parameters stored in parameter tree: 
+        """ define how parameters are stored: 
             tuples or hash table
+            If it is 'tuple', the structure of a parameter will be:
+            (PARAMETER_NAME, RAW_VALUE, ENGINEERING_VALUE, CHILDREN) 
+            if it is 'dict', it will be:
+            {
+              'name': PARAMETER_NAME,
+              'raw':  (RAW_VALUE,)
+              'eng':  ENGINEERING_VALUE,
+              'children':[ ] 
+            }
         """
         stix_parameter.StixParameter.set_format(fmt)
 
@@ -124,7 +131,6 @@ class StixParameterParser(object):
         nbytes = math.ceil((length + offset_bits) / 8.)
 
         raw_bin = in_data[int(offset):int(offset + nbytes)]
-
 
         if nbytes != len(raw_bin):
             STIX_LOGGER.error(
@@ -203,7 +209,8 @@ class StixParameterParser(object):
             rows = STIX_IDB.textual_interpret(ref, raw_value)
             if rows:
                 return rows[0][0]
-            STIX_LOGGER.warn('Missing textual calibration info. for {}'.format(ref))
+            STIX_LOGGER.warn(
+                'Missing textual calibration info. for {}'.format(ref))
             return ''
         elif prefix == 'CIXP':
             #calibration
@@ -233,7 +240,7 @@ class StixParameterParser(object):
         return ''
 
     def decode_parameter(self,
-                         data_field,
+                         buf,
                          name,
                          offset,
                          offset_bits,
@@ -243,9 +250,12 @@ class StixParameterParser(object):
                          cal_ref='',
                          tmtc='TM',
                          calibration_enabled=True):
+        """
+            Decode and calibrate a parameter 
+        """
         param_type = STIX_IDB.get_s2k_parameter_types(ptc, pfc)
-        raw_values = self.decode_buffer(data_field, param_type, offset,
-                                        offset_bits, width, name)
+        raw_values = self.decode_buffer(buf, param_type, offset, offset_bits,
+                                        width, name)
         eng_values = ''
         if calibration_enabled:
             eng_values = self.convert_raw_to_eng(name, cal_ref, param_type,
@@ -257,7 +267,7 @@ class StixParameterParser(object):
 
 class StixVariableTelemetryPacketParser(StixParameterParser):
     """
-    Variable length telemetry packet parser
+        Variable length telemetry packet parser
     """
 
     def __init__(self):
@@ -269,7 +279,7 @@ class StixVariableTelemetryPacketParser(StixParameterParser):
         self.current_offset_bit = 0
         self.length_min = 0
         self.nodes = []
-        self.buffer= None
+        self.buffer = None
         self.spid = 0
         self.current_offset = 0
         self.last_offset = 0
@@ -288,7 +298,7 @@ class StixVariableTelemetryPacketParser(StixParameterParser):
     def parse(self, data, spid):
         self.last_data_width = 0
         self.last_num_bits = 0
-        self.buffer= data
+        self.buffer = data
         self.spid = spid
         self.current_offset = 0
         self.last_offset = 0
@@ -358,15 +368,13 @@ class StixVariableTelemetryPacketParser(StixParameterParser):
                 mother = node
                 repeater.append({'node': node, 'counter': rpsize})
 
-
     def walk(self, mother, parameter_list):
         if not mother:
             return
         counter = mother['counter']
         for i in range(0, counter):
             for pnode in mother['children']:
-                if not pnode or self.current_offset > len(
-                        self.buffer):
+                if not pnode or self.current_offset > len(self.buffer):
                     return
                 ret = self.decode_parameter_for(pnode)
                 param = stix_parameter.StixParameter()
@@ -413,17 +421,19 @@ class StixVariableTelemetryPacketParser(StixParameterParser):
         offset_bits = self.current_offset_bit
         calibration_enabled = False
         if name in PARMETERS_CALIBRATION_ENABLED:
-            calibration_enabled=True
+            calibration_enabled = True
 
         #Not to convert raw to eng for variable length packet
-        return self.decode_parameter(self.buffer, name, offset,
-                                     offset_bits, width, ptc, pfc, cal_ref,
-                                     'TM', calibration_enabled)
-
+        return self.decode_parameter(self.buffer, name, offset, offset_bits,
+                                     width, ptc, pfc, cal_ref, 'TM',
+                                     calibration_enabled)
 
 
 class StixContextParser(StixParameterParser):
     '''Context file parser
+       As Context file structure is not described in IDB,
+       we define the structure in stix_context.py
+       
     '''
 
     def __init__(self):
@@ -473,11 +483,9 @@ class StixContextParser(StixParameterParser):
         return parameters
 
 
-
 class StixTelecommandParser(StixParameterParser):
     """
-    telecommand packet parser
-
+        STIX telecommand packet parser
     """
 
     def __init__(self):
@@ -493,9 +501,9 @@ class StixTelecommandParser(StixParameterParser):
 
     def parse(self, name, buf):
         self.buffer = buf
-        self.tc_name =name
-        self.param_structure=[]
-        self.current_bit_offset=0
+        self.tc_name = name
+        self.param_structure = []
+        self.current_bit_offset = 0
         is_variable = STIX_IDB.is_variable_length_telecommand(name)
         self.param_structure = STIX_IDB.get_telecommand_structure(name)
         if is_variable:
@@ -508,18 +516,18 @@ class StixTelecommandParser(StixParameterParser):
             result = self.parse_one(par, True, True)
             if result:
                 params.append(result)
-        return int(self.current_bit_offset/8), params, stix_global.OK
+        return int(self.current_bit_offset / 8), params, stix_global.OK
 
     def parse_one(self, par, is_fixed=True, calibration_enabled=True):
-        cdf_type=par['CDF_ELTYPE']
-        param_name=''
-        ptc=0
-        pfc=0
-        if cdf_type=='A':
+        cdf_type = par['CDF_ELTYPE']
+        param_name = ''
+        ptc = 0
+        pfc = 0
+        if cdf_type == 'A':
             #fixed area SCOS-2000 ICD page 63
             param_name = par['CDF_DESCR']
-            ptc=3 # works for STIX
-            pfc=4
+            ptc = 3  # works for STIX
+            pfc = 4
         else:
             ptc = int(par['CPC_PTC'])
             pfc = int(par['CPC_PFC'])
@@ -530,11 +538,11 @@ class StixTelecommandParser(StixParameterParser):
         if is_fixed:
             offset = int(int(par['CDF_BIT']) / 8)
             offset_bits = int(par['CDF_BIT']) % 8
-            self.current_bit_offset=int(par['CDF_BIT'])+width
+            self.current_bit_offset = int(par['CDF_BIT']) + width
         else:
             #CDF_ELLIEN is not respected  for variable telecommand
-            offset=int(self.current_bit_offset/8)
-            offset_bits=int(self.current_bit_offset%8)
+            offset = int(self.current_bit_offset / 8)
+            offset_bits = int(self.current_bit_offset % 8)
             # need to be checked
             self.current_bit_offset += width
         parameter = self.decode_parameter(
@@ -552,18 +560,19 @@ class StixTelecommandParser(StixParameterParser):
 
     def parse_variable_telecommand(self):
         self.current_bit_offset = 0
-        self.length_min=0
-        self.results_tree=[]
-        self.nodes=[]
+        self.length_min = 0
+        self.results_tree = []
+        self.nodes = []
         self.nodes.append(self.create_parse_node('top', counter=1))
-        self.nodes[0]['children']=[]
+        self.nodes[0]['children'] = []
         self.length_min = 0
         self.build_parse_tree()
         packet_length = len(self.buffer)
         if self.length_min > packet_length:
             return 0, None, stix_global.VARIABLE_PACKET_LENGTH_MISMATCH
         self.walk(self.nodes[0], self.results_tree)
-        return int(self.current_bit_offset/8), self.results_tree, stix_global.OK
+        return int(
+            self.current_bit_offset / 8), self.results_tree, stix_global.OK
 
     def create_parse_node(self, name, parameter=None, counter=0,
                           children=None):
@@ -604,7 +613,7 @@ class StixTelecommandParser(StixParameterParser):
                         repeater.pop()
             mother = repeater[-1]['node']
             node = self.register_parameter(mother, par)
-            rpsize=  par['CDF_GRPSIZE']
+            rpsize = par['CDF_GRPSIZE']
             if rpsize > 0:
                 mother = node
                 repeater.append({'node': node, 'counter': rpsize})
@@ -615,9 +624,10 @@ class StixTelecommandParser(StixParameterParser):
         counter = mother['counter']
         for i in range(0, counter):
             for pnode in mother['children']:
-                if not pnode or self.current_bit_offset > 8*len(self.buffer):
+                if not pnode or self.current_bit_offset > 8 * len(self.buffer):
                     return
-                ret = self.parse_one(pnode['parameter'], False, calibration_enabled=True)
+                ret = self.parse_one(
+                    pnode['parameter'], False, calibration_enabled=True)
                 param = stix_parameter.StixParameter()
                 param.clone(ret)
                 if pnode['children']:
@@ -630,6 +640,7 @@ class StixTelecommandParser(StixParameterParser):
                             'Children of {} are not decoded.'.format(
                                 pnode['name']))
                 parameter_list.append(param.parameter)
+
 
 class StixTCTMParser(StixParameterParser):
     def __init__(self):
@@ -647,35 +658,31 @@ class StixTCTMParser(StixParameterParser):
         self.num_tm = 0
         self.num_tc = 0
 
-        self.num_tm_parsed= 0
-        self.num_tc_parsed= 0
+        self.num_tm_parsed = 0
+        self.num_tc_parsed = 0
 
         self.num_bad_bytes = 0
         self.num_bad_headers = 0
-        self.utc_timestamp=''
+        self.packet_utc = ''
         self.total_length = 0
         self.num_filtered = 0
         self.report_progress_enabled = True
 
-        self.store_packets=True
-        self.packet_writer=None
-        #counters
-    def set_store_packet(self,status):
-        self.store_packets=status
+        self.store_packet_enabled = True
+        self.packet_writer = None
+
+    def set_store_packet_enabled(self, status):
+        self.store_packet_enabled = status
 
     def reset_parser(self):
-        #self.decoded_packets.clear()
         self.num_tm = 0
         self.num_tc = 0
-        self.num_tm_parsed= 0
-        self.num_tc_parsed= 0
+        self.num_tm_parsed = 0
+        self.num_tc_parsed = 0
         self.num_bad_bytes = 0
         self.num_bad_headers = 0
         self.total_length = 0
         self.num_filtered = 0
-
-    #def get_decoded_packets(self):
-        #return self.decoded_packets
 
     def set_report_progress_enabled(self, status):
         self.report_progress_enabled = status
@@ -693,7 +700,7 @@ class StixTCTMParser(StixParameterParser):
 
     def set_store_binary_enabled(self, status):
         """
-          store raw binary  in the outputs 
+          store raw binary  in the output 
         """
         self.store_binary = status
 
@@ -730,7 +737,7 @@ class StixTCTMParser(StixParameterParser):
         return status, header
 
     def check_header(self, header, tmtc='tm'):
-        # header validate
+        # header validation
         constrains = None
         if tmtc == 'tm':
             constrains = stix_header.TELEMETRY_HEADER_CONSTRAINTS
@@ -738,7 +745,9 @@ class StixTCTMParser(StixParameterParser):
             constrains = stix_header.TELECOMMAND_HEADER_CONSTRAINTS
         for name, lim in constrains.items():
             if header[name] not in lim:
-                STIX_LOGGER.warn('Header {} value {} violates the range: {} '.format(name, header[name], lim))
+                STIX_LOGGER.warn(
+                    'Header {} value {} violates the range: {} '.format(
+                        name, header[name], lim))
                 return stix_global.HEADER_INVALID
         return stix_global.OK
 
@@ -757,7 +766,7 @@ class StixTCTMParser(StixParameterParser):
             bin_struct = '>B'
             if width == 16:
                 bin_struct = '>H'
-            raw=data[int(start):int(end)]
+            raw = data[int(start):int(end)]
             if not raw:
                 return stix_global.PACKET_TOO_SHORT
             res = st.unpack(bin_struct, raw)
@@ -773,13 +782,14 @@ class StixTCTMParser(StixParameterParser):
         header['SSID'] = ssid
         return stix_global.OK
 
-    def parse_fixed_packet(self, buf, spid):
-        """ Extract parameters from a fixed data packet see Solar orbit IDB.ICD section 3.3.2.5.1
+    def parse_fixed_telemetry_packet(self, buf, spid):
+        """ Extract parameters for a fixed data packet 
+            see Solar orbit IDB.ICD section 3.3.2.5.1
         """
         if spid == 54331:
-            #context file report.
+            #context file report parsing
+            # not to use IDB
             return self.context_parser.parse(buf)
-
         parameters = []
         param_structures = STIX_IDB.get_fixed_packet_structure(spid)
         for par in param_structures:
@@ -792,9 +802,7 @@ class StixTCTMParser(StixParameterParser):
             cal_ref = par['PCF_CURTX']
             param = self.decode_parameter(buf, name, offset, offset_bits,
                                           width, ptc, pfc, cal_ref, 'TM', True)
-
             parameters.append(param)
-
         return parameters
 
     def parse_telecommand_header(self, packet):
@@ -811,15 +819,16 @@ class StixTCTMParser(StixParameterParser):
             header.update(unpack_integer(h, s))
         status = self.check_header(header, 'tc')
         subtype = -1
-        if (header['service_type'],header['service_subtype']) in [(237,7), (236,6)]:
+        if (header['service_type'], header['service_subtype']) in [(237, 7),
+                                                                   (236, 6)]:
             try:
-                subtype= st.unpack('B', packet[10:11])[0]
-                header['subtype']=subtype
+                subtype = st.unpack('B', packet[10:11])[0]
+                header['subtype'] = subtype
             except Exception as e:
-                STIX_LOGGER.warn('Error occurred when parsing TC({},{}) due to {}'.format(
-                    header['service_type'],header['service_subtype'],
-                    str(e))) 
-                print(subtype)
+                STIX_LOGGER.warn(
+                    'Error occurred when parsing TC({},{}) due to {}'.format(
+                        header['service_type'], header['service_subtype'],
+                        str(e)))
         info = STIX_IDB.get_telecommand_info(header)
         if not info:
             return stix_global.HEADER_KEY_ERROR, header
@@ -836,8 +845,6 @@ class StixTCTMParser(StixParameterParser):
             except KeyError:
                 status = stix_global.HEADER_KEY_ERROR
         return status, header
-
-
 
     def parse_binary(self, buf, i=0):
         """
@@ -872,11 +879,12 @@ class StixTCTMParser(StixParameterParser):
                 status, i, data_field_raw = get_from_bytearray(
                     buf, i, data_field_length)
                 if status == stix_global.EOF:
-                    STIX_LOGGER.warn("Incomplete packet, the last {} bytes  were not parsed".format(
-                        len(data_field_raw)))
+                    STIX_LOGGER.warn(
+                        "Incomplete packet, the last {} bytes  were not parsed"
+                        .format(len(data_field_raw)))
                     break
                 ret = self.parse_data_field_header(header, data_field_raw,
-                                                    data_field_length)
+                                                   data_field_length)
                 if ret != stix_global.OK:
                     STIX_LOGGER.warn(
                         'Missing information in the IDB to decoded the data starting at {} '
@@ -897,37 +905,39 @@ class StixTCTMParser(StixParameterParser):
 
                 parameters = None
                 if tpsd == -1:
-                    parameters = self.parse_fixed_packet(data_field_raw, spid)
+                    #it is a fixed length telemetry packet
+                    parameters = self.parse_fixed_telemetry_packet(
+                        data_field_raw, spid)
                 else:
-                    num_read, parameters, status=self.vp_tm_parser.parse(data_field_raw, spid)
+                    # variable length telemetry packet
+                    num_read, parameters, status = self.vp_tm_parser.parse(
+                        data_field_raw, spid)
                     if num_read != data_field_length:
                         STIX_LOGGER.warn(
-                                ' Packet (SPID {}) data field size: {}B, actual read: {}B'
-                            .format(spid,  data_field_length,num_read))
-
+                            ' Packet (SPID {}) data field size: {}B, actual read: {}B'
+                            .format(spid, data_field_length, num_read))
                 packet = {'header': header, 'parameters': parameters}
-                self.num_tm_parsed+=1
+                self.num_tm_parsed += 1
                 STIX_LOGGER.pprint(packet)
                 if self.store_binary:
                     packet['bin'] = header_raw + data_field_raw
 
-
             elif buf[i] == 0x1D:
 
-                if len(buf)<10:
-                    STIX_LOGGER.warn("Incomplete packet. The last {} bytes  were not parsed".format(
-                        len(buf)))
-                    break 
+                if len(buf) < 10:
+                    STIX_LOGGER.warn(
+                        "Incomplete packet. The last {} bytes  were not parsed"
+                        .format(len(buf)))
+                    break
 
-                header_status, header= self.parse_telecommand_header(buf)
-                i=10
-                #10 bytes for header
-
+                header_status, header = self.parse_telecommand_header(buf)
+                i = 10
+                #head length is 10 bytes
                 if header_status != stix_global.OK:
                     self.num_bad_headers += 1
                     STIX_LOGGER.warn(
-                            "Invalid telecommand header. ERROR code: {}, Cursor at {} ".format(
-                                header_status, i-10))
+                        "Invalid telecommand header. ERROR code: {}, Cursor at {} "
+                        .format(header_status, i - 10))
                     continue
                 self.num_tc += 1
                 data_field_length = header['length'] + 1 - 4
@@ -936,16 +946,15 @@ class StixTCTMParser(StixParameterParser):
                 if status == stix_global.EOF:
                     break
 
-                tc_name=header['name']
-                num_read, parameters, status=self.vp_tc_parser.parse(tc_name,data_field_raw)
-                if num_read != data_field_length-2: #the last two bytes is CRC
+                tc_name = header['name']
+                num_read, parameters, status = self.vp_tc_parser.parse(
+                    tc_name, data_field_raw)
+                if num_read != data_field_length - 2:  #the last two bytes is CRC
                     STIX_LOGGER.warn(
-                            ' TC {} data field size: {}B, actual read: {}B'
-                            .format(tc_name,  data_field_length,num_read))
-
-
+                        ' TC {} data field size: {}B, actual read: {}B'.format(
+                            tc_name, data_field_length, num_read))
                 packet = {'header': header, 'parameters': parameters}
-                self.num_tc_parsed+=1
+                self.num_tc_parsed += 1
                 STIX_LOGGER.pprint(packet)
                 if self.store_binary:
                     packet['bin'] = buf[0:10] + data_field_raw
@@ -963,7 +972,7 @@ class StixTCTMParser(StixParameterParser):
 
             if packet:
                 self.attach_header_aux(packet)
-                if self.store_packets:
+                if self.store_packet_enabled:
                     packets.append(packet)
                 if self.packet_writer:
                     self.packet_writer.write_one(packet)
@@ -974,17 +983,17 @@ class StixTCTMParser(StixParameterParser):
                     STIX_LOGGER.info('{}% processed!'.format(current))
                 last = current
 
-
         return packets
 
     def parse_hex(self, raw_hex):
-        hex_string= re.sub(r"\s+", "", raw_hex)
+        hex_string = re.sub(r"\s+", "", raw_hex)
         try:
             raw = binascii.unhexlify(hex_string)
         except Exception as e:
             STIX_LOGGER.error(str(e))
             return []
         return self.parse_binary(raw)
+
     def parse_hex_file(self, filename):
         with open(filename, 'r') as f:
             raw_hex = f.read()
@@ -998,7 +1007,7 @@ class StixTCTMParser(StixParameterParser):
                 'Reading packets from the file {}'.format(filename))
             idx = 0
             for line in filein:
-                [self.utc_timestamp, data_hex] = line.strip().split()
+                [self.packet_utc, data_hex] = line.strip().split()
                 data_binary = binascii.unhexlify(data_hex)
                 packet = self.parse_binary(data_binary)
                 if packet:
@@ -1008,16 +1017,16 @@ class StixTCTMParser(StixParameterParser):
                 idx += 1
         return packets
 
-    def attach_header_aux(self,packet):
-        if self.utc_timestamp:
+    def attach_header_aux(self, packet):
+        #attach auxiliary  information to header
+        if self.packet_utc:
             try:
-                packet['header']['UTC'] = dtparser.parse(self.utc_timestamp)
+                packet['header']['UTC'] = dtparser.parse(self.packet_utc)
             except ValueError:
-                packet['header']['UTC'] = self.utc_timestamp
-
-
+                packet['header']['UTC'] = self.packet_utc
 
     def parse_moc_xml(self, in_filename):
+        #parse a MOC xml file
         packets = []
         results = []
         self.set_report_progress_enabled(False)
@@ -1046,7 +1055,7 @@ class StixTCTMParser(StixParameterParser):
         return results
 
     def parse_file(self, in_filename, file_type=None, clear=True):
-        packets=[]
+        packets = []
         if clear:
             self.reset_parser()
 
@@ -1058,44 +1067,46 @@ class StixTCTMParser(StixParameterParser):
         self.in_filesize = os.path.getsize(in_filename)
 
         if not file_type:
-            file_type=detect_filetype(in_filename)
+            file_type = detect_filetype(in_filename)
 
         if file_type == 'bin':
             with open(in_filename, 'rb') as in_file:
                 data = in_file.read()
-                packets= self.parse_binary(data)
+                packets = self.parse_binary(data)
         elif file_type == 'ascii':
-            packets= self.parse_moc_ascii(in_filename)
+            packets = self.parse_moc_ascii(in_filename)
         elif file_type == 'xml':
-            packets= self.parse_moc_xml(in_filename)
-        elif file_type =='hex':
-            packets= self.parse_hex_file(in_filename)
+            packets = self.parse_moc_xml(in_filename)
+        elif file_type == 'hex':
+            packets = self.parse_hex_file(in_filename)
         else:
             STIX_LOGGER.error(
                 '{} has unknown input file type'.format(in_filename))
             return []
 
-        summary=self.get_summary()
+        summary = self.get_summary()
         STIX_LOGGER.print_summary(summary)
         if self.packet_writer:
             self.packet_writer.set_summary(summary)
 
         return packets
+
     def set_pickle_writer(self, out_filename, comment=''):
-        self.packet_writer= stix_writer.StixPickleWriter(out_filename)
-        self.packet_writer.register_run(self.in_filename, self.in_filename, comment)
+        self.packet_writer = stix_writer.StixPickleWriter(out_filename)
+        self.packet_writer.register_run(self.in_filename, self.in_filename,
+                                        comment)
+
     def set_MongoDB_writer(self,
-                         server='localhost',
-                         port=27017,
-                         username='',
-                         password='',
-                         comment=''):
-        self.packet_writer= stix_writer.StixMongoDBWriter(server, port, username,
-                                                password)
-        self.packet_writer.register_run(self.in_filename, self.in_filesize, comment)
+                           server='localhost',
+                           port=27017,
+                           username='',
+                           password='',
+                           comment=''):
+        self.packet_writer = stix_writer.StixMongoDBWriter(
+            server, port, username, password)
+        self.packet_writer.register_run(self.in_filename, self.in_filesize,
+                                        comment)
 
     def done(self):
         if self.packet_writer:
             self.packet_writer.close()
-
-

@@ -12,20 +12,26 @@ import pymongo
 from core import stix_logger
 from core import stix_global
 STIX_LOGGER = stix_logger.stix_logger()
+
+
 class StixPacketWriter(object):
     def __init__(self):
         pass
-    def write_all(self,packets):
-        pass
-    def write_one(self,packet):
-        pass
-    def set_filename(self,fname):
-        pass
-    def set_summary(self,summary):
-        pass
-    def close(self):
+
+    def write_all(self, packets):
         pass
 
+    def write_one(self, packet):
+        pass
+
+    def set_filename(self, fname):
+        pass
+
+    def set_summary(self, summary):
+        pass
+
+    def close(self):
+        pass
 
 
 class StixPickleWriter(StixPacketWriter):
@@ -55,11 +61,12 @@ class StixPickleWriter(StixPacketWriter):
             data = {'run': self.run, 'packet': packets}
             pickle.dump(data, self.fout)
             self.fout.close()
-    def write_one(self,packet):
+
+    def write_one(self, packet):
         self.packets.append(packet)
+
     def close(self):
         self.write_all(self.packets)
-
 
 
 class StixBinaryWriter(StixPacketWriter):
@@ -95,10 +102,10 @@ class StixBinaryWriter(StixPacketWriter):
         if self.fout:
             for packet in packets:
                 self.write_one(packet)
+
     def close(self):
         if self.fout:
             self.fout.close()
-
 
 
 class StixMongoDBWriter(StixPacketWriter):
@@ -113,12 +120,12 @@ class StixMongoDBWriter(StixPacketWriter):
 
         self.ipacket = 0
         self.packets = []
-        self.start_time=0
-        self.end_time=0
+        self.start_time = 0
+        self.end_time = 0
         self.db = None
-        self.filename=''
-        self.path=''
-        self.summary=''
+        self.filename = ''
+        self.path = ''
+        self.summary = ''
         self.collection_packets = None
         self.current_packet_id = 0
         self.collection_runs = None
@@ -157,12 +164,12 @@ class StixMongoDBWriter(StixPacketWriter):
 
         if self.collection_packets:
             if self.collection_packets.count() == 0:
-                self.collection_packets.create_index([('header.time', -1), ('header.UTC',-1),
-                    ('header.SPID',-1),('header.service_type',-1),
-                    ('header.service_subtype',-1),
-                                                      ('header_id', -1),
-                                                      ('run_id', -1)],
-                                                     unique=False)
+                self.collection_packets.create_index(
+                    [('header.time', -1), ('header.UTC', -1),
+                     ('header.SPID', -1), ('header.service_type', -1),
+                     ('header.service_subtype', -1), ('header_id', -1),
+                     ('run_id', -1)],
+                    unique=False)
 
     def register_run(self, in_filename, filesize=0, comment=''):
         try:
@@ -186,7 +193,7 @@ class StixMongoDBWriter(StixPacketWriter):
         log_filename = STIX_LOGGER.get_log_filename()
 
         self.filename = os.path.basename(in_filename)
-        self.path=os.path.dirname(in_filename)
+        self.path = os.path.dirname(in_filename)
 
         self.run_info = {
             'filename': self.filename,
@@ -194,35 +201,38 @@ class StixMongoDBWriter(StixPacketWriter):
             'comment': comment,
             'log': log_filename,
             'date': datetime.datetime.now(),
-            'processing_start':datetime.datetime.now(),
-            'processing_stop':datetime.datetime.now(),
+            'processing_start': datetime.datetime.now(),
+            'processing_stop': datetime.datetime.now(),
             'data_start_utc': 0,
             'data_stop_utc': 0,
             '_id': self.current_run_id,
-            'status':stix_global.UNKNOWN,
-            'summary':'',
+            'status': stix_global.UNKNOWN,
+            'summary': '',
             'filesize': filesize
         }
         #print(self.run_info)
-        self.inserted_run_id=self.collection_runs.insert_one(self.run_info).inserted_id
+        self.inserted_run_id = self.collection_runs.insert_one(
+            self.run_info).inserted_id
 
-    def set_filename(self,fname):
+    def set_filename(self, fname):
         self.filename = os.path.basename(fname)
-        self.path=os.path.dirname(fname)
-    def set_summary(self,summary):
-        self.summary=summary
+        self.path = os.path.dirname(fname)
 
-   
-    def write_all(self,packets):
+    def set_summary(self, summary):
+        self.summary = summary
+
+    def write_all(self, packets):
         for packet in packets:
             self.write_one(packets)
-    def write_one(self, packet):
-        if not packet or (not self.collection_headers) or (not self.collection_packets):
-            return 
 
-        if self.ipacket == 0: 
-            self.start_time=packet['header']['time']
-        self.end_time=packet['header']['time']
+    def write_one(self, packet):
+        if not packet or (not self.collection_headers) or (
+                not self.collection_packets):
+            return
+
+        if self.ipacket == 0:
+            self.start_time = packet['header']['time']
+        self.end_time = packet['header']['time']
         #insert header
 
         header = packet['header']
@@ -231,12 +241,12 @@ class StixMongoDBWriter(StixPacketWriter):
         try:
             self.collection_headers.insert_one(header)
         except Exception as e:
-            STIX_LOGGER.error('Error occurred when inserting  header to MongoDB')
+            STIX_LOGGER.error(
+                'Error occurred when inserting  header to MongoDB')
             STIX_LOGGER.error(str(e))
-            STIX_LOGGER.info('header:'+str(header))
+            STIX_LOGGER.info('header:' + str(header))
             raise
             return
-                    
 
             #insert packet
         packet['header_id'] = self.current_header_id
@@ -245,9 +255,10 @@ class StixMongoDBWriter(StixPacketWriter):
         try:
             self.collection_packets.insert_one(packet)
         except Exception as e:
-            STIX_LOGGER.error('Error occurred when inserting packet to MongoDB')
+            STIX_LOGGER.error(
+                'Error occurred when inserting packet to MongoDB')
             STIX_LOGGER.error(str(e))
-            STIX_LOGGER.info('Packet:'+str(header))
+            STIX_LOGGER.info('Packet:' + str(header))
             raise
             return
 
@@ -255,31 +266,26 @@ class StixMongoDBWriter(StixPacketWriter):
         self.current_packet_id += 1
         self.ipacket += 1
 
-
-
     def close(self):
         #it has to be called at the end
 
         if not self.collection_runs:
             STIX_LOGGER.warn('MongoDB was not initialized ')
             return
-        STIX_LOGGER.info('{} packets have been inserted into MongoDB'.format(self.ipacket))
+        STIX_LOGGER.info('{} packets have been inserted into MongoDB'.format(
+            self.ipacket))
         STIX_LOGGER.info('Updating run :'.format(self.inserted_run_id))
-        run=self.collection_runs.find_one({'_id':self.inserted_run_id})
+        run = self.collection_runs.find_one({'_id': self.inserted_run_id})
         if run:
             run['data_start_utc'] = self.start_time
             run['data_stop_utc'] = self.end_time
             run['processing_stop'] = datetime.datetime.now()
-            run['filename']=self.filename
-            run['path']=self.path
-            run['status']=stix_global.OK
+            run['filename'] = self.filename
+            run['path'] = self.path
+            run['status'] = stix_global.OK
             #status ==1 if success  0
-            run['summary']=self.summary
+            run['summary'] = self.summary
             self.collection_runs.save(run)
             STIX_LOGGER.info('Run info updated successfully.')
         else:
             STIX_LOGGER.error('Run info not updated.')
-
-
-
-
