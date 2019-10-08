@@ -152,6 +152,7 @@ class StixMongoDBWriter(StixPacketWriter):
             if self.collection_headers.count() == 0:
                 self.collection_headers.create_index([('time', -1),
                                                       ('SPID', -1),
+                                                      ('UTC', -1),
                                                       ('service_type', -1),
                                                       ('service_subtype', -1),
                                                       ('run_id', -1)],

@@ -343,14 +343,14 @@ class StixDecompressor(object):
         if spid not in SCHEMAS:
             self.compressed = False
             STIX_LOGGER.warn(
-                'Current version  is not able to  decompress the packet {}'.
+                'The current version  is not able to  decompress the packets of SPID {}'.
                 format(spid))
             return
         try:
             self.schema = SCHEMAS[spid]
         except KeyError:
             STIX_LOGGER.warn(
-                'Current version is not able to decompress the packet (SPID {})'
+                'The current version is not able to decompress the packets (SPID {})'
                 .format(spid))
             self.compressed = False
             return

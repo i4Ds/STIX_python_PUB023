@@ -24,6 +24,7 @@ from core import stix_parser
 from core import stix_writer
 from core import stix_idb
 from utils import mongo_db as mgdb
+from utils.stix_datetime import format_datetime
 from core import stix_logger
 from UI import mainwindow_rc5
 from UI import mainwindow
@@ -42,7 +43,6 @@ MAX_NUM_PACKET_IN_BUFFER = 6000
 
 
 
-
 class ParserQThread(QThread):
     error = pyqtSignal(str)
     info = pyqtSignal(str)
@@ -54,7 +54,7 @@ class ParserQThread(QThread):
     def __init__(self):
         super(ParserQThread, self).__init__()
         self.stix_tctm_parser = stix_parser.StixTCTMParser()
-        self.stix_tctm_parser.set_store_packet(True)
+        self.stix_tctm_parser.set_store_packet_enabled(True)
         self.stix_tctm_parser.set_store_binary_enabled(True)
 
         STIX_LOGGER.set_signal(self.info, self.importantInfo, self.warn,
@@ -739,13 +739,13 @@ class Ui(mainwindow.Ui_MainWindow):
 
         dui.treeWidget.clear()
         self.showMessage('Fetching data...')
-        for run in self.mdb.get_runs():
+        for run in self.mdb.select_all_runs():
             root = QtWidgets.QTreeWidgetItem(dui.treeWidget)
             root.setText(0, str(run['_id']))
             root.setText(1, run['filename'])
-            root.setText(2, run['date'])
-            root.setText(3, str(run['start']))
-            root.setText(4, str(run['end']))
+            root.setText(2, format_datetime(run['date']))
+            root.setText(3, format_datetime(run['data_start_utc']))
+            root.setText(4, format_datetime(run['data_stop_utc']))
 
     def loadDataFromMongoDB(self, dui, diag):
         self.showMessage('Loading packets ...')
@@ -757,7 +757,7 @@ class Ui(mainwindow.Ui_MainWindow):
         if selected_runs:
             diag.done(0)
             self.showMessage('Loading data ...!')
-            data = self.mdb.get_packets(selected_runs[0])
+            data = self.mdb.select_packets_by_run(selected_runs[0])
             if data:
                 self.onDataReady(data, clear=True)
             else:

@@ -199,7 +199,7 @@ class StixParameterParser(object):
         elif not ref:
             if param_type == 'T':  # timestamp
                 #coarse time + fine time/2^16
-                return float(raw[0]) + float(raw[1]) / 65536.
+                return round(float(raw[0]) + float(raw[1]) / 65536.,3)
             return ''
 
         #other parameters
@@ -219,8 +219,13 @@ class StixParameterParser(object):
                 x_points = [float(row[0]) for row in rows]
                 y_points = [float(row[1]) for row in rows]
                 tck = interpolate.splrep(x_points, y_points)
-                val = str(interpolate.splev(raw_value, tck))
-                return val
+
+                val= interpolate.splev(raw_value, tck)
+                try:
+                    ret = round(float(val),3)
+                except TypeError:
+                    ret = ''
+                return ret
             STIX_LOGGER.warn('No calibration factors for {}'.format(ref))
             return ''
         elif prefix == 'NIX':
@@ -234,7 +239,7 @@ class StixParameterParser(object):
                 sum_value = 0
                 for coeff, xval in zip(pol_coeff, x_points):
                     sum_value += coeff * xval
-                return sum_value
+                return round(sum_value,3)
             STIX_LOGGER.warn('Missing calibration factors for {}'.format(ref))
             return ''
         return ''
@@ -1019,11 +1024,13 @@ class StixTCTMParser(StixParameterParser):
 
     def attach_header_aux(self, packet):
         #attach auxiliary  information to header
-        if self.packet_utc:
-            try:
-                packet['header']['UTC'] = dtparser.parse(self.packet_utc)
-            except ValueError:
-                packet['header']['UTC'] = self.packet_utc
+        if not self.packet_utc:
+               self.packet_utc='1970-01-01T00:00:00Z'
+        try:
+            packet['header']['UTC'] = dtparser.parse(self.packet_utc)
+        except ValueError:
+            packet['header']['UTC'] = self.packet_utc
+
 
     def parse_moc_xml(self, in_filename):
         #parse a MOC xml file

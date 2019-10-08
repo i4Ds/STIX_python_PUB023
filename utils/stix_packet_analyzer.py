@@ -146,7 +146,7 @@ class StixPacketAnalyzer(object):
 
 
 
-    def find_all(self,pattern, plist=None,dtype='raw'):
+    def find_all(self, pattern, plist=None,dtype='raw'):
         """
         pattern examples:
             pattern='NIX00159>NIX00146'
