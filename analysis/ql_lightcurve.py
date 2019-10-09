@@ -49,7 +49,7 @@ class Plugin:
                 analyzer.load(packet)
                 scet_coarse=analyzer.to_array('NIX00445')[0]
                 scet_fine=analyzer.to_array('NIX00446')[0]
-                int_duration=analyzer.to_array('NIX00405')[0]
+                int_duration=analyzer.to_array('NIX00405')[0]+1
 
                 num_lc= analyzer.to_array('NIX00270')[0]
                 num_lc_points= analyzer.to_array('NIX00270>NIX00271')[0]
@@ -74,19 +74,15 @@ class Plugin:
 
                 fig = plt.figure(figsize=figsize)
                 ax = plt.subplot(111)
-                ilc=0
-                for lc in light_curve:
+                for ilc, lc in enumerate(light_curve):
                     print("Length of light curve :")
                     print(len(lc))
-                    pprint.pprint(lc)
-                    return
                     ax.plot(lc,label='LC {}'.format(ilc))
-                    ilc+=1
 
                 ax.legend()
                 ax.set_title('QL lightcurves')
                 ax.set_xlabel('Time / {} (s)'.format(int_duration*0.1))
-                ax.set_ylabel('rates * {} '.format(int_duration*0.1))
+                ax.set_ylabel('Counts in {} s '.format(int_duration*0.1))
                 pdf.savefig()
                 plt.close()
                 fig = plt.figure(figsize=figsize)
@@ -97,7 +93,7 @@ class Plugin:
                     ax.plot(lt, label='triggers')
                     ax.set_title('Triggers')
                     ax.set_xlabel('Time / {} (s)'.format(int_duration*0.1))
-                    ax.set_ylabel('rates * {} '.format(int_duration*0.1))
+                    ax.set_ylabel('Counts in {} s '.format(int_duration*0.1))
                 pdf.savefig()
                 plt.close()
 

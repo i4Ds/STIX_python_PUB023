@@ -172,18 +172,6 @@ class Plugin(object):
             plt.close()
             fig.clf()
 
-            #fig = plt.figure(figsize=figsize)
-            #plt.step(param_values['time'],param_values['NIXD0021'], where='mid',label='SW running (NIXD0021)')
-            #plt.step(param_values['time'],param_values['NIXD0005'], where='mid',label='Active SPW link (NIXD0005)')
-            #plt.legend(loc='upper right')
-            #pdf.savefig()
-            #plt.close()
-            #fig.clf()
-
-
-
-            
-
 
             for group in groups:
                 fig = plt.figure(figsize=figsize)
