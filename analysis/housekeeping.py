@@ -18,7 +18,7 @@ analyzer = sta.analyzer()
 STIX_IDB = stix_idb.stix_idb()
 
 SPIDs = [
-    54102,
+    54101, 54102
 ]
 
 groups = [{
@@ -142,10 +142,10 @@ class Plugin(object):
             fig = plt.figure(figsize=figsize)
             plt.axis('off')
             try:
-                title = ' Housekeeping data SPID: {} ,start: {} stop: {}'.format(
+                title = ' Housekeeping data SPID(s): {} ,start: {} stop: {}'.format(
                     str(SPIDs), param_values['UTC'][0], param_values['UTC'][-1])
             except KeyError:
-                title = ' Housekeeping data SPID: {} ,start: {} stop: {}'.format(
+                title = ' Housekeeping data SPID(s): {} ,start: {} stop: {}'.format(
                     str(SPIDs), param_values['time'][0], param_values['time'][-1])
             plt.text(0.5, 0.5, title, ha='center', va='center')
             pdf.savefig()
@@ -153,13 +153,36 @@ class Plugin(object):
             fig.clf()
 
             fig = plt.figure(figsize=figsize)
-            plt.plot(get_delta_time(param_values['time']))
-            plt.xlabel('Packet #')
-            plt.ylabel('Delta T(s)')
-            plt.title('Packet timestamp difference')
+            title="Timestamps"
+            fig.suptitle(title, fontsize=14, fontweight='bold')
+            ax=fig.add_subplot(2,1,1)
+            ax.plot(param_values['time'])
+            ax.set_xlabel('Packet #')
+            ax.set_ylabel('SCET (s)')
+            ax.set_title('Packet SCET')
+
+            ax=fig.add_subplot(2,1,2)
+            ax.plot(get_delta_time(param_values['time']))
+            ax.set_xlabel('Packet #')
+            ax.set_ylabel('Delta T(s)')
+            ax.set_title('Packet timestamp difference')
+            fig.tight_layout()
+            fig.subplots_adjust(top=0.9)
             pdf.savefig()
             plt.close()
             fig.clf()
+
+            #fig = plt.figure(figsize=figsize)
+            #plt.step(param_values['time'],param_values['NIXD0021'], where='mid',label='SW running (NIXD0021)')
+            #plt.step(param_values['time'],param_values['NIXD0005'], where='mid',label='Active SPW link (NIXD0005)')
+            #plt.legend(loc='upper right')
+            #pdf.savefig()
+            #plt.close()
+            #fig.clf()
+
+
+
+            
 
 
             for group in groups:

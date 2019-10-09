@@ -91,7 +91,7 @@ class StixPacketAnalyzer(object):
 
 
 
-    def to_array(self, pattern, plist=None,dtype='raw'):
+    def to_array(self, pattern, plist=None, dtype='raw'):
         """
         pattern examples:
             pattern='NIX00159>NIX00146'
@@ -115,16 +115,16 @@ class StixPacketAnalyzer(object):
             param.clone(e)
             if param.name == pname or pname=='*':
                 if pnames:
-                    ret=self.find_all('>'.join(pnames), param.children, dtype)
+                    ret=self.to_array('>'.join(pnames), param.children, dtype)
                     if ret:
                         results.append(ret)
                 else:
-                    result_ok=False
                     if dtype == 'eng':
                         if param.eng:
                             results.append(param.eng)
-                            result_ok=True
-                    if dtype == 'raw' or result_ok:
+                        else:
+                            results.append(param.get_raw_int())
+                    elif dtype == 'raw':
                         results.append(param.get_raw_int())
 
         return results

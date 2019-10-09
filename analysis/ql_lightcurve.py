@@ -11,6 +11,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib import pyplot as plt
 from datetime import datetime
 from utils import stix_packet_analyzer as sta
+import pprint
 
 analyzer = sta.analyzer()
 
@@ -77,6 +78,8 @@ class Plugin:
                 for lc in light_curve:
                     print("Length of light curve :")
                     print(len(lc))
+                    pprint.pprint(lc)
+                    return
                     ax.plot(lc,label='LC {}'.format(ilc))
                     ilc+=1
 
