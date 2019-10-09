@@ -48,6 +48,7 @@ class StixPickleWriter(StixPacketWriter):
             self.fout = open(filename, 'wb')
 
     def register_run(self, in_filename, filesize=0, comment=''):
+        #processing run
         self.run = {
             'Input': in_filename,
             'Output': self.filename,
@@ -287,6 +288,7 @@ class StixMongoDBWriter(StixPacketWriter):
             #status ==1 if success  0
             run['summary'] = self.summary
             self.collection_runs.save(run)
+            STIX_LOGGER.info(str(run))
             STIX_LOGGER.info('Run info updated successfully.')
         else:
             STIX_LOGGER.error('Run info not updated.')

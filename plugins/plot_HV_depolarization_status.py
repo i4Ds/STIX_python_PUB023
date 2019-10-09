@@ -36,13 +36,13 @@ class Plugin:
             if T0 == 0:
                 T0 = time
 
-            analyzer.load_packet(packet)
-            HV_line = analyzer.find_all('NIX00181')[0]
+            analyzer.load(packet)
+            HV_line = analyzer.to_array('NIX00181')[0]
 
-            old_stat_text = analyzer.find_all('NIX00182', dtype='eng')[0]
-            new_stat_text = analyzer.find_all('NIX00183', dtype='eng')[0]
-            old_stat_raw = analyzer.find_all('NIX00182', dtype='raw')[0]
-            new_stat_raw = analyzer.find_all('NIX00183', dtype='raw')[0]
+            old_stat_text = analyzer.to_array('NIX00182', dtype='eng')[0]
+            new_stat_text = analyzer.to_array('NIX00183', dtype='eng')[0]
+            old_stat_raw = analyzer.to_array('NIX00182', dtype='raw')[0]
+            new_stat_raw = analyzer.to_array('NIX00183', dtype='raw')[0]
 
             if HV_line == 0:
                 line0_timestamp.append(time - T0)

@@ -65,12 +65,7 @@ class StixPacketAnalyzer(object):
             self._parameters =packet['parameters'] 
             self._header=packet['header']
         except KeyError:
-            print('Unsupported format')
-    def load_parameters(self,parameters):
-        if isinstance(parameters,list):
-            self._parameters = parameters
-        else:
-            print('Not a parameter list')
+            print('Unrecognized packet')
 
     def find(self, name_list,  parameters=None):
         if not isinstance(name_list,list):
@@ -92,61 +87,11 @@ class StixPacketAnalyzer(object):
                         results[k].extend(v)
         return results
 
-    def get_raw(self, name_list, raw_type='int', parameters=None):
-        if not isinstance(name_list,list):
-            name_list=[name_list]
-        params=self.find(name_list,parameters)
-        #results=dict()
-        results ={name:[] for name in name_list }
-        for name in name_list:
-            param=params[name]
-            for p in param:
-                pp=stp.StixParameter()
-                pp.clone(p)
-                value=-1
-                try:
-                    value=int(pp.raw[0])
-                except (TypeError, IndexError,ValueError):
-                    print('can not get raw value for {}: value: {} '.format(name,
-                        str(pp.raw)))
-                results[name].append(value)
-        return results
-    def get_eng(self, name_list, parameters=None):
-        if not isinstance(name_list,list):
-            name_list=[name_list]
-        params=self.find(name_list,parameters)
-        #results=dict()
-        results ={name:[] for name in name_list }
-        for name in name_list:
-            param=params[name]
-            for p in param:
-                pp=stp.StixParameter()
-                pp.clone(p)
-                results[name].append(pp.eng)
-        return results
-
-    def find_child(self, parent_name, order=1):
-        num_found=0
-        for e in self._parameters:
-            param = stp.StixParameter()
-            param.clone(e)
-            if param.name == parent_name:
-                num_found+=1
-                if num_found==order:
-                    return param.children
-
-        return None
-    def get_child_raw(self,param_name, order=1):
-        results=[]
-        for child in self.get_child(param_name,order):
-            param = stp.StixParameter()
-            param.clone(e)
-            results.append(param.raw)
-        return results
+ 
 
 
 
-    def find_all(self, pattern, plist=None,dtype='raw'):
+    def to_array(self, pattern, plist=None,dtype='raw'):
         """
         pattern examples:
             pattern='NIX00159>NIX00146'

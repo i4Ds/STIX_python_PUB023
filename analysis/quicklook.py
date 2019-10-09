@@ -22,14 +22,20 @@ from utils import mongo_db
 STIX_LOGGER = stix_logger.stix_logger()
 
 
-def process(run_id, output):
+def process(run_id, output, process='hk'):
     mdb = mongo_db.MongoDB()
     print("request packet from mongodb")
     packets = mdb.select_packets_by_run(run_id)
     print('number of packets:{}'.format(len(packets)))
-    #plugin = hk2.Plugin(packets)
-    plugin=qllc.Plugin(packets)
-    plugin.run(output)
+    plugin=None
+    if process=='hk':
+        plugin = hk2.Plugin(packets)
+    elif process=='cal':
+        plugin = calibration.Plugin(packets)
+    elif process=='qllc':
+        plugin=qllc.Plugin(packets)
+    if plugin:
+        plugin.run(output)
 
 
 def main():
@@ -37,6 +43,7 @@ def main():
     ap = argparse.ArgumentParser()
     required = ap.add_argument_group('Required arguments')
     optional = ap.add_argument_group('Optional arguments')
+
 
     required.add_argument(
         "-i", dest='run', required=True, nargs='?', help="run ID.")
@@ -46,9 +53,13 @@ def main():
         default=None,
         required=False,
         help="Output filename. ")
+    
+    required.add_argument(
+        "-p", dest='process', required=True,  
+        choices=('hk','cal','qllc'),help="what processing ?")
 
     args = vars(ap.parse_args())
-    process(args['run'], args['output'])
+    process(args['run'], args['output'], args['process'])
 
 
 if __name__ == '__main__':

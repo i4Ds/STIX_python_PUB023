@@ -46,14 +46,14 @@ class Plugin:
 
                 fig = None
                 analyzer.load(packet)
-                detector_ids = analyzer.find_all('NIX00159>NIXD0155')[0]
-                pixels_ids = analyzer.find_all('NIX00159>NIXD0156')[0]
-                spectra = analyzer.find_all('NIX00159>NIX00146>*')[0]
-                live_time = float(analyzer.find_all('NIX00122')[0])
-                quiet_time = float(analyzer.find_all('NIX00123')[0])
-                compression_s = int(analyzer.find_all('NIXD0126')[0])
-                compression_k = int(analyzer.find_all('NIXD0127')[0])
-                compression_m = int(analyzer.find_all('NIXD0128')[0])
+                detector_ids = analyzer.to_array('NIX00159>NIXD0155')[0]
+                pixels_ids = analyzer.to_array('NIX00159>NIXD0156')[0]
+                spectra = analyzer.to_array('NIX00159>NIX00146>*')[0]
+                live_time = float(analyzer.to_array('NIX00122')[0])
+                quiet_time = float(analyzer.to_array('NIX00123')[0])
+                compression_s = int(analyzer.to_array('NIXD0126')[0])
+                compression_k = int(analyzer.to_array('NIXD0127')[0])
+                compression_m = int(analyzer.to_array('NIXD0128')[0])
 
                 for i, spec in enumerate(spectra):
                     if sum(spec) > 0:

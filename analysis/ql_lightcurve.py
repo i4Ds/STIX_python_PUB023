@@ -46,18 +46,18 @@ class Plugin:
 
                 fig = None
                 analyzer.load(packet)
-                scet_coarse=analyzer.find_all('NIX00445')[0]
-                scet_fine=analyzer.find_all('NIX00446')[0]
-                int_duration=analyzer.find_all('NIX00405')[0]
+                scet_coarse=analyzer.to_array('NIX00445')[0]
+                scet_fine=analyzer.to_array('NIX00446')[0]
+                int_duration=analyzer.to_array('NIX00405')[0]
 
-                num_lc= analyzer.find_all('NIX00270')[0]
-                num_lc_points= analyzer.find_all('NIX00270>NIX00271')[0]
-                light_curve= analyzer.find_all('NIX00270>NIX00271>*', dtype='eng')[0]
-                triggers= analyzer.find_all('NIX00273>*', dtype='eng')
-                rcr= analyzer.find_all('NIX00275>*')
-                compression_s = int(analyzer.find_all('NIXD0101')[0])
-                compression_k = int(analyzer.find_all('NIXD0102')[0])
-                compression_m = int(analyzer.find_all('NIXD0103')[0])
+                num_lc= analyzer.to_array('NIX00270')[0]
+                num_lc_points= analyzer.to_array('NIX00270>NIX00271')[0]
+                light_curve= analyzer.to_array('NIX00270>NIX00271>*', dtype='eng')[0]
+                triggers= analyzer.to_array('NIX00273>*', dtype='eng')
+                rcr= analyzer.to_array('NIX00275>*')
+                compression_s = int(analyzer.to_array('NIXD0101')[0])
+                compression_k = int(analyzer.to_array('NIXD0102')[0])
+                compression_m = int(analyzer.to_array('NIXD0103')[0])
                 UTC=header['UTC']
 
                 fig = plt.figure(figsize=figsize)
