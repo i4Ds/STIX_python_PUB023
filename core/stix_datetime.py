@@ -14,9 +14,9 @@ def format_datetime(dt):
         try:
             return format_datetime(float(dt))
         except ValueError:
-            return '1970-01-01T00:00.000Z'
+            return '1970-01-01T00:00:00.000Z'
     else:
-        return '1970-01-01T00:00.000Z'
+        return '1970-01-01T00:00:00.000Z'
 
 
 def convert_SCET_to_UTC(coarse_time, fine_time=0):
@@ -29,7 +29,36 @@ def convert_UTC_to_unixtimestamp(utc):
         dtparser.parse(utc).timestamp()
     except:
         return 0
+def convert_to_datetime(timestamp):
+    dt=None
+    if isinstance(timestamp,float):
+        dt=datetime.utcfromtimestamp(timestamp)
+    elif isinstance(timestamp,str):
+        try: 
+            ts=float(timestamp)
+            dt=datetime.utcfromtimestamp(ts)
+        except ValueError:
+            dt=dtparser.parse(timestamp)
+    elif isinstance(timestamp,datetime.datetime):
+        dt=timestamp
+    return dt
 
+
+def convert_to_timestamp(timestamp):
+    dt=None
+    if isinstance(timestamp,float):
+        dt=datetime.utcfromtimestamp(timestamp)
+    elif isinstance(timestamp,str):
+        try: 
+            ts=float(timestamp)
+            dt=datetime.utcfromtimestamp(ts)
+        except ValueError:
+            dt=dtparser.parse(timestamp)
+    elif isinstance(timestamp,datetime.datetime):
+        dt=timestamp
+    if dt:
+        return dt.timestamp()
+    return 0
 
 def convert_SCET_to_unixtimestamp(coarse_time, fine_time=0):
     return coarse_time + fine_time / 65536. + SCET_OFFSET

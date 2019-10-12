@@ -24,6 +24,7 @@ from core import stix_writer
 from core import stix_context
 from core import stix_parameter
 from core import stix_decompressor
+from core import stix_datetime
 
 from pprint import pprint
 CONTEXT_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I']
@@ -668,7 +669,7 @@ class StixTCTMParser(StixParameterParser):
 
         self.num_bad_bytes = 0
         self.num_bad_headers = 0
-        self.packet_utc = ''
+        self.packet_reception_utc = ''
         self.total_length = 0
         self.num_filtered = 0
         self.report_progress_enabled = True
@@ -738,7 +739,7 @@ class StixTCTMParser(StixParameterParser):
                 {'segmentation': stix_header.PACKET_SEG[header['seg_flag']]})
             header['TMTC'] = 'TM'
             header.update(
-                {'time': header['fine_time'] / 65536. + header['coarse_time']})
+                {'SCET': header['fine_time'] / 65536. + header['coarse_time']})
         return status, header
 
     def check_header(self, header, tmtc='tm'):
@@ -976,7 +977,7 @@ class StixTCTMParser(StixParameterParser):
                         i, i - old_i))
 
             if packet:
-                self.attach_header_aux(packet)
+                self.attach_timestamps(packet)
                 if self.store_packet_enabled:
                     packets.append(packet)
                 if self.packet_writer:
@@ -1012,7 +1013,7 @@ class StixTCTMParser(StixParameterParser):
                 'Reading packets from the file {}'.format(filename))
             idx = 0
             for line in filein:
-                [self.packet_utc, data_hex] = line.strip().split()
+                [self.packet_reception_utc, data_hex] = line.strip().split()
                 data_binary = binascii.unhexlify(data_hex)
                 packet = self.parse_binary(data_binary)
                 if packet:
@@ -1022,14 +1023,24 @@ class StixTCTMParser(StixParameterParser):
                 idx += 1
         return packets
 
-    def attach_header_aux(self, packet):
-        #attach auxiliary  information to header
-        if not self.packet_utc:
-               self.packet_utc='1970-01-01T00:00:00Z'
+    def attach_timestamps(self, packet):
+        #attach timestamp
+        T0='1970-01-01T00:00:00.000Z'
+        pkt_header=packet['header']
+        if not self.packet_reception_utc:
+               packet['header']['unix_time'] = stix_datetime.convert_SCET_to_unixtimestamp(pkt_header['SCET'])
+               packet['header']['UTC'] = stix_datetime.convert_SCET_to_UTC(pkt_header['SCET'])
+               return 
         try:
-            packet['header']['UTC'] = dtparser.parse(self.packet_utc)
+            dt=dtparser.parse(self.packet_reception_utc)
+            packet['header']['UTC'] = dt
+            packet['header']['unix_time'] = dt.timestamp()
         except ValueError:
-            packet['header']['UTC'] = self.packet_utc
+            #packet['header']['UTC'] = T0
+            packet['header']['UTC'] = stix_datetime.convert_SCET_to_UTC(pkt_header['SCET'])
+
+
+
 
 
     def parse_moc_xml(self, in_filename):

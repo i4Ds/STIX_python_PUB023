@@ -151,7 +151,7 @@ class StixMongoDBWriter(StixPacketWriter):
         """to speed up queries """
         if self.collection_headers:
             if self.collection_headers.count() == 0:
-                self.collection_headers.create_index([('time', -1),
+                self.collection_headers.create_index([('unix_time', -1),
                                                       ('SPID', -1),
                                                       ('UTC', -1),
                                                       ('service_type', -1),
@@ -167,7 +167,7 @@ class StixMongoDBWriter(StixPacketWriter):
         if self.collection_packets:
             if self.collection_packets.count() == 0:
                 self.collection_packets.create_index(
-                    [('header.time', -1), ('header.UTC', -1),
+                    [('header.unix_time', -1), ('header.UTC', -1),
                      ('header.SPID', -1), ('header.service_type', -1),
                      ('header.service_subtype', -1), ('header_id', -1),
                      ('run_id', -1)],
@@ -233,8 +233,8 @@ class StixMongoDBWriter(StixPacketWriter):
             return
 
         if self.ipacket == 0:
-            self.start_time = packet['header']['time']
-        self.end_time = packet['header']['time']
+            self.start_time = packet['header']['unix_time']
+        self.end_time = packet['header']['unix_time']
         #insert header
 
         header = packet['header']

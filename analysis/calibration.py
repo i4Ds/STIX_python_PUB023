@@ -72,7 +72,7 @@ class Plugin:
                     try:
                         UTC = packet['header']['UTC']
                     except:
-                        UTC = packet['header']['time']
+                        UTC = packet['header']['unix_time']
 
                     num = len(spectra_container)
                     if num > 0:

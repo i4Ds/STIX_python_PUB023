@@ -14,7 +14,7 @@ import webbrowser
 from functools import partial
 from datetime import datetime
 import numpy as np
-import datetime
+#import datetime
 
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QThread, pyqtSignal, QTimer
@@ -24,7 +24,7 @@ from core import stix_parser
 from core import stix_writer
 from core import stix_idb
 from utils import mongo_db as mgdb
-from utils.stix_datetime import format_datetime
+from core.stix_datetime import format_datetime
 from core import stix_logger
 from UI import mainwindow_rc5
 from UI import mainwindow
@@ -636,15 +636,7 @@ class Ui(mainwindow.Ui_MainWindow):
                 continue
             header = p['header']
             root = QtWidgets.QTreeWidgetItem(self.packetTreeWidget)
-            timestamp_str = ''
-            try:
-                utc= header['UTC']
-                if isinstance(utc,datetime.datetime):
-                    timestamp_str=utc.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-
-
-            except (KeyError,IndexError):
-                timestamp_str = '{:.2f}'.format(header['time'])
+            timestamp_str = header['UTC']
 
             root.setText(0, timestamp_str)
             root.setText(

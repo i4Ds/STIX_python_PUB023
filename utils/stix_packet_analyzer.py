@@ -31,10 +31,10 @@ class StixPacketAnalyzer(object):
                 self._parameter_vector['UTC']=[header['UTC']]
             else:
                 self._parameter_vector['UTC'].append(header['UTC'])
-        if 'time' not in self._parameter_vector:
-            self._parameter_vector['time']=[header['time']]
+        if 'unix_time' not in self._parameter_vector:
+            self._parameter_vector['unix_time']=[header['unix_time']]
         else:
-            self._parameter_vector['time'].append(header['time'])
+            self._parameter_vector['unix_time'].append(header['unix_time'])
 
         for e in parameters:
             param = stp.StixParameter()
