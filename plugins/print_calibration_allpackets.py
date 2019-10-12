@@ -2,7 +2,7 @@ import sys
 import pprint
 sys.path.append('..')
 sys.path.append('.')
-from utils import stix_packet_analyzer as sta
+from core import stix_packet_analyzer as sta
 analyzer = sta.analyzer()
 
 SPID = 54124
@@ -30,9 +30,9 @@ class Plugin:
                 continue
 
             analyzer.load(packet)
-            detector_ids = analyzer.to_array('NIX00159>NIXD0155')[0]
-            pixels_ids = analyzer.to_array('NIX00159>NIXD0156')[0]
-            spectra = analyzer.to_array('NIX00159>NIX00146>*')[0]
+            detector_ids = analyzer.to_array('NIX00159/NIXD0155')[0]
+            pixels_ids = analyzer.to_array('NIX00159/NIXD0156')[0]
+            spectra = analyzer.to_array('NIX00159/NIX00146/*')[0]
             for i, spec in enumerate(spectra):
                 if sum(spec) > 0:
                     num += 1

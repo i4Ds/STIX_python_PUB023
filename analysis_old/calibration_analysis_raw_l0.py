@@ -5,20 +5,18 @@ import os
 import pprint
 #from matplotlib import pyplot as plt
 #from ROOT import TGraph, TFile,TCanvas
-from array import array 
+from array import array
 from core import stix_telemetry_parser
 from core import stix_logger
 import datetime
 LOGGER = stix_logger.LOGGER
 LOGGER.set_level(1)
 
-raw_dir='GU/raw/'
-l0_dir='GU/l0/'
-l1_dir='GU/l1/'
-proc_log='GU/log/processing.log'
-ana_log='GU/log/calibration.log'
-
-
+raw_dir = 'GU/raw/'
+l0_dir = 'GU/l0/'
+l1_dir = 'GU/l1/'
+proc_log = 'GU/log/processing.log'
+ana_log = 'GU/log/calibration.log'
 '''
 def graph2(x,y, title, xlabel, ylabel):
     n=len(x)
@@ -99,26 +97,25 @@ def analysis(file_in, file_out):
 
 
 def main():
-    log=open(proc_log,'ab+')
-    log_content=log.read()
+    log = open(proc_log, 'ab+')
+    log_content = log.read()
 
     for f in os.listdir(raw_dir):
         if f.endswith(".dat"):
-            raw_filename=(os.path.join(raw_dir, f))
+            raw_filename = (os.path.join(raw_dir, f))
             if str(raw_filename) in str(log_content):
-                print('Processed already: %s '%raw_filename)
+                print('Processed already: %s ' % raw_filename)
                 continue
-            filename=os.path.splitext(f)[0]+'.pklz'
-            l0_filename=os.path.join(l0_dir,filename)
-            filename=os.path.splitext(f)[0]+'.root'
-            l1_filename=os.path.join(l1_dir,filename)
+            filename = os.path.splitext(f)[0] + '.pklz'
+            l0_filename = os.path.join(l0_dir, filename)
+            filename = os.path.splitext(f)[0] + '.root'
+            l1_filename = os.path.join(l1_dir, filename)
             print('Parsing file %s -> %s' % (raw_filename, l0_filename))
             #log.write(str(raw_filename+'\n'))
 
-            stix_telemetry_parser.parse_stix_raw_file(raw_filename,LOGGER, 
-                l0_filename, 54124, 'array')
+            stix_telemetry_parser.parse_stix_raw_file(
+                raw_filename, LOGGER, l0_filename, 54124, 'array')
             #analysis(l0_filename, l1_filename)
 
 
 main()
-

@@ -200,7 +200,7 @@ class StixParameterParser(object):
         elif not ref:
             if param_type == 'T':  # timestamp
                 #coarse time + fine time/2^16
-                return round(float(raw[0]) + float(raw[1]) / 65536.,3)
+                return round(float(raw[0]) + float(raw[1]) / 65536., 3)
             return ''
 
         #other parameters
@@ -221,9 +221,9 @@ class StixParameterParser(object):
                 y_points = [float(row[1]) for row in rows]
                 tck = interpolate.splrep(x_points, y_points)
 
-                val= interpolate.splev(raw_value, tck)
+                val = interpolate.splev(raw_value, tck)
                 try:
-                    ret = round(float(val),3)
+                    ret = round(float(val), 3)
                 except TypeError:
                     ret = ''
                 return ret
@@ -240,7 +240,7 @@ class StixParameterParser(object):
                 sum_value = 0
                 for coeff, xval in zip(pol_coeff, x_points):
                     sum_value += coeff * xval
-                return round(sum_value,3)
+                return round(sum_value, 3)
             STIX_LOGGER.warn('Missing calibration factors for {}'.format(ref))
             return ''
         return ''
@@ -1025,22 +1025,22 @@ class StixTCTMParser(StixParameterParser):
 
     def attach_timestamps(self, packet):
         #attach timestamp
-        pkt_header=packet['header']
+        pkt_header = packet['header']
         if not self.packet_reception_utc:
-               packet['header']['unix_time'] = stix_datetime.convert_SCET_to_unixtimestamp(pkt_header['SCET'])
-               packet['header']['UTC'] = stix_datetime.convert_SCET_to_UTC(pkt_header['SCET'])
-               return 
+            packet['header'][
+                'unix_time'] = stix_datetime.convert_SCET_to_unixtimestamp(
+                    pkt_header['SCET'])
+            packet['header']['UTC'] = stix_datetime.convert_SCET_to_UTC(
+                pkt_header['SCET'])
+            return
         try:
-            dt=dtparser.parse(self.packet_reception_utc)
+            dt = dtparser.parse(self.packet_reception_utc)
             packet['header']['UTC'] = dt
             packet['header']['unix_time'] = dt.timestamp()
         except ValueError:
             #packet['header']['UTC'] = T0
-            packet['header']['UTC'] = stix_datetime.convert_SCET_to_UTC(pkt_header['SCET'])
-
-
-
-
+            packet['header']['UTC'] = stix_datetime.convert_SCET_to_UTC(
+                pkt_header['SCET'])
 
     def parse_moc_xml(self, in_filename):
         #parse a MOC xml file

@@ -42,7 +42,6 @@ STIX_LOGGER = stix_logger.stix_logger()
 MAX_NUM_PACKET_IN_BUFFER = 6000
 
 
-
 class ParserQThread(QThread):
     error = pyqtSignal(str)
     info = pyqtSignal(str)
@@ -152,7 +151,7 @@ class StixFileReader(ParserQThread):
             self.data = pickle.load(f)['packet']
             f.close()
         else:
-            self.data=self.stix_tctm_parser.parse_file(filename)
+            self.data = self.stix_tctm_parser.parse_file(filename)
 
         if self.data:
             self.dataLoaded.emit(self.data)

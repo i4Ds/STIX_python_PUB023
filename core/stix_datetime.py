@@ -4,6 +4,7 @@ from dateutil import parser as dtparser
 
 SCET_OFFSET = 946684800.
 
+
 #To be checked  2000-01-01T00:00.000Z
 def format_datetime(dt):
     if isinstance(dt, datetime):
@@ -16,11 +17,9 @@ def format_datetime(dt):
         except ValueError:
             return dt
             #it is a datetime str
-            
         #    return '1970-01-01T00:00:00.000Z'
     else:
         return '1970-01-01T00:00:00.000Z'
-
 
 
 def convert_SCET_to_UTC(coarse_time, fine_time=0):
@@ -29,40 +28,48 @@ def convert_SCET_to_UTC(coarse_time, fine_time=0):
 
 
 def convert_UTC_to_unixtimestamp(utc):
-    try:
-        dtparser.parse(utc).timestamp()
-    except:
-        return 0
+    if isinstance(utc, str):
+        if not utc.endswith('Z'):
+            utc += 'Z'
+        try:
+            dtparser.parse(utc).timestamp()
+        except:
+            return 0
+    else:
+        return utc
+
+
 def convert_to_datetime(timestamp):
-    dt=None
-    if isinstance(timestamp,float):
-        dt=datetime.utcfromtimestamp(timestamp)
-    elif isinstance(timestamp,str):
-        try: 
-            ts=float(timestamp)
-            dt=datetime.utcfromtimestamp(ts)
+    dt = None
+    if isinstance(timestamp, float):
+        dt = datetime.utcfromtimestamp(timestamp)
+    elif isinstance(timestamp, str):
+        try:
+            ts = float(timestamp)
+            dt = datetime.utcfromtimestamp(ts)
         except ValueError:
-            dt=dtparser.parse(timestamp)
-    elif isinstance(timestamp,datetime.datetime):
-        dt=timestamp
+            dt = dtparser.parse(timestamp)
+    elif isinstance(timestamp, datetime.datetime):
+        dt = timestamp
     return dt
 
 
 def convert_to_timestamp(timestamp):
-    dt=None
-    if isinstance(timestamp,float):
-        dt=datetime.utcfromtimestamp(timestamp)
-    elif isinstance(timestamp,str):
-        try: 
-            ts=float(timestamp)
-            dt=datetime.utcfromtimestamp(ts)
+    dt = None
+    if isinstance(timestamp, float):
+        dt = datetime.utcfromtimestamp(timestamp)
+    elif isinstance(timestamp, str):
+        try:
+            ts = float(timestamp)
+            dt = datetime.utcfromtimestamp(ts)
         except ValueError:
-            dt=dtparser.parse(timestamp)
-    elif isinstance(timestamp,datetime.datetime):
-        dt=timestamp
+            dt = dtparser.parse(timestamp)
+    elif isinstance(timestamp, datetime.datetime):
+        dt = timestamp
     if dt:
         return dt.timestamp()
     return 0
+
 
 def convert_SCET_to_unixtimestamp(coarse_time, fine_time=0):
     return coarse_time + fine_time / 65536. + SCET_OFFSET
@@ -82,4 +89,6 @@ def from_unixtimestamp(unix_timestamp):
 
 
 def from_UTC(utc):
+    if not utc.endswith('Z'):
+        utc += 'Z'
     return dtparser.parse(utc)

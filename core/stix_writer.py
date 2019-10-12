@@ -12,8 +12,11 @@ import pymongo
 import time
 from core import stix_logger
 from core import stix_global
+from core import stix_packet_analyzer 
+from core import stix_datetime
 STIX_LOGGER = stix_logger.stix_logger()
 
+analyzer = stix_packet_analyzer.analyzer()
 
 class StixPacketWriter(object):
     def __init__(self):
@@ -133,6 +136,10 @@ class StixMongoDBWriter(StixPacketWriter):
         self.collection_runs = None
         self.current_run_id = 0
         self.current_header_id = 0
+        self.calibration_info=None
+
+        self.current_calibration_run_id = 0
+
         self.start = -1
         self.end = -1
         self.run_info = None
@@ -144,6 +151,7 @@ class StixMongoDBWriter(StixPacketWriter):
             self.collection_packets = self.db['packets']
             self.collection_headers = self.db['headers']
             self.collection_runs = self.db['runs']
+            self.collection_calibration = self.db['calibration']
             self.create_indexes()
         except Exception as e:
             STIX_LOGGER.error(str(e))
@@ -167,8 +175,8 @@ class StixMongoDBWriter(StixPacketWriter):
         if self.collection_packets:
             if self.collection_packets.count() == 0:
                 self.collection_packets.create_index(
-                    [('header.unix_time', -1), 
-                     ('header.SPID', -1), ('header.service_type', -1),
+                    [('header.unix_time', -1), ('header.SPID', -1),
+                     ('header.service_type', -1),
                      ('header.service_subtype', -1), ('header_id', -1),
                      ('run_id', -1)],
                     unique=False)
@@ -191,6 +199,12 @@ class StixMongoDBWriter(StixPacketWriter):
                 '_id', -1).limit(1)[0]['_id'] + 1
         except IndexError:
             self.current_packet_id = 0
+
+        try:
+            self.current_calibration_run_id = self.collection_calibration.find(
+            ).sort('_id', -1).limit(1)[0]['_id'] + 1
+        except IndexError:
+            self.current_calibration_run_id = 0
 
         log_filename = STIX_LOGGER.get_log_filename()
 
@@ -254,6 +268,7 @@ class StixMongoDBWriter(StixPacketWriter):
         packet['header_id'] = self.current_header_id
         packet['run_id'] = self.current_run_id
         packet['_id'] = self.current_packet_id
+
         try:
             self.collection_packets.insert_one(packet)
         except Exception as e:
@@ -263,6 +278,8 @@ class StixMongoDBWriter(StixPacketWriter):
             STIX_LOGGER.info('Packet:' + str(header))
             raise
             return
+        self.capture_calibration(packet)
+
 
         self.current_header_id += 1
         self.current_packet_id += 1
@@ -292,3 +309,41 @@ class StixMongoDBWriter(StixPacketWriter):
             STIX_LOGGER.info('Run info updated successfully.')
         else:
             STIX_LOGGER.error('Run info not updated.')
+
+
+    def capture_calibration(self, packet):
+        if not self.collection_calibration:
+            return 
+        header=packet['header']
+        if header['SPID'] != 54124:
+            return
+        if header['seg_flag'] in [1,3]:
+            self.calibration_info={
+                    'run_id':self.current_run_id,
+                    'header_ids':[self.current_header_id],
+                    'header_unix_time':header['unix_time'],
+                    '_id':self.current_calibration_run_id 
+                    }
+        elif header['seg_flag'] == 0 :
+            if not self.calibration_info:
+                STIX_LOGGER.warn('The first calibration report is missing!')
+            else:
+                self.calibration_info['header_ids'].append(self.current_header_id)
+
+        if header['seg_flag'] in [2,3]:
+            #last or single packet
+            analyzer.load(packet)
+            param_dict=analyzer.to_dict()
+            self.calibration_info['duration']=param_dict['NIX00122'][0]
+            scet=param_dict['NIX00445'][0]
+            self.calibration_info['SCET']=scet
+            self.calibration_info['start_unix_time']=stix_datetime.convert_SCET_to_unixtimestamp(scet)
+            self.calibration_info['aux']=param_dict
+            self.collection_calibration.insert_one(self.calibration_info)
+            self.current_calibration_run_id += 1
+
+            self.calibration_info=None
+            
+
+            
+

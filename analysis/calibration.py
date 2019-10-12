@@ -10,7 +10,7 @@ import numpy as np
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib import pyplot as plt
 from datetime import datetime
-from utils import stix_packet_analyzer as sta
+from core import stix_packet_analyzer as sta
 
 analyzer = sta.analyzer()
 
@@ -46,9 +46,9 @@ class Plugin:
 
                 fig = None
                 analyzer.load(packet)
-                detector_ids = analyzer.to_array('NIX00159>NIXD0155')[0]
-                pixels_ids = analyzer.to_array('NIX00159>NIXD0156')[0]
-                spectra = analyzer.to_array('NIX00159>NIX00146>*')[0]
+                detector_ids = analyzer.to_array('NIX00159/NIXD0155')[0]
+                pixels_ids = analyzer.to_array('NIX00159/NIXD0156')[0]
+                spectra = analyzer.to_array('NIX00159/NIX00146/*')[0]
                 live_time = float(analyzer.to_array('NIX00122')[0])
                 quiet_time = float(analyzer.to_array('NIX00123')[0])
                 compression_s = int(analyzer.to_array('NIXD0126')[0])

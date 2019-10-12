@@ -9,6 +9,7 @@ class Plugin:
         self.packets = packets
         self.current_row = current_row
         print("Plugin  loaded ...")
+
     def run(self):
         # your code goes here
         print('current row')

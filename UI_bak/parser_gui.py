@@ -95,6 +95,7 @@ class StixFileReader(QThread):
         self.data = []
         self.stix_tctm_parser = stix_parser.StixTCTMParser()
         stix_logger._stix_logger.set_signal(self.info, self.warn, self.error)
+
     def run(self):
         self.data = []
         filename = self.filename
@@ -108,7 +109,7 @@ class StixFileReader(QThread):
             self.info.emit('Loading ...')
             self.data = pickle.load(f)['packet']
             f.close()
-        elif filename.endswith(('.dat', '.binary','.BDF')):
+        elif filename.endswith(('.dat', '.binary', '.BDF')):
             self.parseRawFile(filename)
         # elif filename.endswith(('.db', '.sqlite')):
         #    self.readSqliteDB(filename)
@@ -266,8 +267,8 @@ class Ui(mainwindow.Ui_MainWindow):
         if not idb._stix_idb.is_connected():
             self.showMessage('IDB has not been set!')
         else:
-            self.showMessage('IDB found: {} '.format(
-                idb._stix_idb.get_idb_filename()), 1)
+            self.showMessage(
+                'IDB found: {} '.format(idb._stix_idb.get_idb_filename()), 1)
 
     def onExportButtonClicked(self):
         if self.y:
@@ -375,8 +376,8 @@ class Ui(mainwindow.Ui_MainWindow):
         if idb._stix_idb.is_connected():
             #settings = QtCore.QSettings('FHNW', 'stix_parser')
             self.settings.setValue('idb_filename', self.idb_filename)
-        self.showMessage('current IDB: {} '.format(
-            idb._stix_idb.get_idb_filename()), 1)
+        self.showMessage(
+            'current IDB: {} '.format(idb._stix_idb.get_idb_filename()), 1)
 
     def save(self):
         self.output_filename = str(
@@ -384,7 +385,7 @@ class Ui(mainwindow.Ui_MainWindow):
                                                   ".pklz .pkl .db .sqlite")[0])
 
         if not self.output_filename.endswith(
-                ('.pklz', '.pkl', '.db', '.sqlite')):
+            ('.pklz', '.pkl', '.db', '.sqlite')):
             msg = 'unsupported file format !'
             return
         msg = 'Writing data to file %s' % self.output_filename
@@ -502,9 +503,10 @@ class Ui(mainwindow.Ui_MainWindow):
                 #- t0)
 
             root.setText(0, timestamp_str)
-            root.setText(1, '{}({},{}) - {}'.format(
-                header['TMTC'], header['service_type'],
-                header['service_subtype'], header['DESCR']))
+            root.setText(
+                1, '{}({},{}) - {}'.format(
+                    header['TMTC'], header['service_type'],
+                    header['service_subtype'], header['DESCR']))
 
         if show_stat:
             total_packets = len(self.data)
@@ -520,8 +522,7 @@ class Ui(mainwindow.Ui_MainWindow):
             diag_ui.serverLineEdit.setText(self.tsc_host)
         if self.tsc_port:
             diag_ui.portLineEdit.setText(self.tsc_port)
-        diag_ui.buttonBox.accepted.connect(
-            partial(self.connectToTSC, diag_ui))
+        diag_ui.buttonBox.accepted.connect(partial(self.connectToTSC, diag_ui))
         diag.exec_()
 
     def connectToTSC(self, dui):
@@ -626,8 +627,8 @@ class Ui(mainwindow.Ui_MainWindow):
             return
         header = self.data[row]['header']
         total_packets = len(self.data)
-        self.showMessage(('Packet %d / %d  %s ' % (row, total_packets,
-                                                   header['DESCR'])))
+        self.showMessage(
+            ('Packet %d / %d  %s ' % (row, total_packets, header['DESCR'])))
         self.paramTreeWidget.clear()
         header_root = QtWidgets.QTreeWidgetItem(self.paramTreeWidget)
         header_root.setText(0, "Header")
@@ -823,11 +824,14 @@ class Ui(mainwindow.Ui_MainWindow):
             self.paramNameEdit.setText(name)
         if desc:
             self.descLabel.setText(desc)
+
     def onPlotActionClicked(self):
         self.tabWidget.setCurrentIndex(1)
         self.plotParameter()
+
     def onTreeItemClicked(self, it, col):
         self.plotParameter(it.text(0), it.text(1))
+
 
 if __name__ == '__main__':
     filename = None

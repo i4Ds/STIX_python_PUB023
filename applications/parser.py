@@ -49,15 +49,14 @@ def main():
         dest='param_format',
         default='tuple',
         required=False,
-        choices=('tuple','dict'),
+        choices=('tuple', 'dict'),
         help="format to store output parameters. ")
-
 
     optional.add_argument(
         "-t",
         dest='input_type',
         default=None,
-        choices=('bin', 'ascii', 'xml','hex'),
+        choices=('bin', 'ascii', 'xml', 'hex'),
         help=
         "Input file type. Four types (bin, hex, ascii or xml) are supported.")
 
@@ -122,18 +121,15 @@ def main():
         idb_instance = stix_idb.stix_idb(args['idb'])
 
     parser = stix_parser.StixTCTMParser()
-    param_format=args['param_format']
+    param_format = args['param_format']
     if args['wdb']:
-        param_format='tuple'
+        param_format = 'tuple'
         #must be tuple as they consume  less storage
     parser.set_parameter_format(param_format)
-
 
     selected_spids = args['SPID']
     selected_services = args['services']
     parser.set_packet_filter(selected_services, selected_spids)
-
-
 
     if args['output']:
         parser.set_store_packet_enabled(False)
@@ -144,11 +140,12 @@ def main():
         parser.set_store_binary_enabled(False)
         parser.set_store_packet_enabled(False)
         parser.set_MongoDB_writer(args['db_host'], args['db_port'],
-                                args['db_user'], args['db_pwd'],
-                                args['comment'])
+                                  args['db_user'], args['db_pwd'],
+                                  args['comment'])
 
     parser.parse_file(args['input'], args['input_type'])
     parser.done()
+
 
 if __name__ == '__main__':
     main()
