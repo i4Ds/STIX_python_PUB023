@@ -9,6 +9,7 @@ import datetime
 import pickle
 import gzip
 import pymongo
+import time
 from core import stix_logger
 from core import stix_global
 STIX_LOGGER = stix_logger.stix_logger()
@@ -153,7 +154,6 @@ class StixMongoDBWriter(StixPacketWriter):
             if self.collection_headers.count() == 0:
                 self.collection_headers.create_index([('unix_time', -1),
                                                       ('SPID', -1),
-                                                      ('UTC', -1),
                                                       ('service_type', -1),
                                                       ('service_subtype', -1),
                                                       ('run_id', -1)],
@@ -167,7 +167,7 @@ class StixMongoDBWriter(StixPacketWriter):
         if self.collection_packets:
             if self.collection_packets.count() == 0:
                 self.collection_packets.create_index(
-                    [('header.unix_time', -1), ('header.UTC', -1),
+                    [('header.unix_time', -1), 
                      ('header.SPID', -1), ('header.service_type', -1),
                      ('header.service_subtype', -1), ('header_id', -1),
                      ('run_id', -1)],
@@ -203,10 +203,10 @@ class StixMongoDBWriter(StixPacketWriter):
             'comment': comment,
             'log': log_filename,
             'date': datetime.datetime.now(),
-            'processing_start': datetime.datetime.now(),
-            'processing_stop': datetime.datetime.now(),
-            'data_start_utc': 0,
-            'data_stop_utc': 0,
+            'run_start_unix_time': time.time(),
+            'run_stop_unix_time': 0,
+            'data_start_unix_time': 0,
+            'data_stop_unix_time': 0,
             '_id': self.current_run_id,
             'status': stix_global.UNKNOWN,
             'summary': '',
@@ -279,9 +279,9 @@ class StixMongoDBWriter(StixPacketWriter):
         STIX_LOGGER.info('Updating run :'.format(self.inserted_run_id))
         run = self.collection_runs.find_one({'_id': self.inserted_run_id})
         if run:
-            run['data_start_utc'] = self.start_time
-            run['data_stop_utc'] = self.end_time
-            run['processing_stop'] = datetime.datetime.now()
+            run['data_start_unix_time'] = self.start_time
+            run['data_stop_unix_time'] = self.end_time
+            run['run_stop_unix_time'] = time.time()
             run['filename'] = self.filename
             run['path'] = self.path
             run['status'] = stix_global.OK
