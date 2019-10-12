@@ -1025,7 +1025,6 @@ class StixTCTMParser(StixParameterParser):
 
     def attach_timestamps(self, packet):
         #attach timestamp
-        T0='1970-01-01T00:00:00.000Z'
         pkt_header=packet['header']
         if not self.packet_reception_utc:
                packet['header']['unix_time'] = stix_datetime.convert_SCET_to_unixtimestamp(pkt_header['SCET'])

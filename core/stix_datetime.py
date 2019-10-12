@@ -14,7 +14,10 @@ def format_datetime(dt):
         try:
             return format_datetime(float(dt))
         except ValueError:
-            return '1970-01-01T00:00:00.000Z'
+            return dt
+            #it is a datetime str
+            
+        #    return '1970-01-01T00:00:00.000Z'
     else:
         return '1970-01-01T00:00:00.000Z'
 
