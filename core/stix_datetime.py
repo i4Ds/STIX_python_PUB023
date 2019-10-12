@@ -19,6 +19,7 @@ def format_datetime(dt):
         return '1970-01-01T00:00:00.000Z'
 
 
+
 def convert_SCET_to_UTC(coarse_time, fine_time=0):
     unixtimestamp = coarse_time + fine_time / 65536. + SCET_OFFSET
     return convert_unixtimestamp_to_UTC(unixtimestamp)

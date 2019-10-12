@@ -636,7 +636,7 @@ class Ui(mainwindow.Ui_MainWindow):
                 continue
             header = p['header']
             root = QtWidgets.QTreeWidgetItem(self.packetTreeWidget)
-            timestamp_str = header['UTC']
+            timestamp_str = format_datetime(header['UTC'])
 
             root.setText(0, timestamp_str)
             root.setText(
