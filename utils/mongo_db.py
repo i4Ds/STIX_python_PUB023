@@ -52,26 +52,21 @@ class MongoDB(object):
             cursor = self.collection_headers.find({
                 'run_id': int(run_id)
             }).sort('_id', 1)
-            data = [x for x in cursor]
-            return data
-        else:
-            return None
+            return list(cursor)
+        return []
 
     def get_filename_of_run(self, run_id):
         if self.collection_runs:
             cursor = self.collection_runs.find({'_id': int(run_id)})
             for x in cursor:
                 return x['filename']
-        else:
-            return ''
+        return ''
 
     def select_packets_by_id(self, pid):
         if self.collection_packets:
             cursor = self.collection_packets.find({'_id': int(pid)})
-            data = [x for x in cursor]
-            return data
-        else:
-            return None
+            return list(cursor)
+        return []
 
     def delete_one_run(self, run_id):
         if self.collection_packets:
@@ -94,18 +89,14 @@ class MongoDB(object):
         if self.collection_packets:
             cursor = self.collection_packets.find(
                 {'header_id': int(header_id)})
-            data = [x for x in cursor]
-            return data
-        else:
-            return None
+            return list(cursor)
+        return []
 
     def select_packets_by_run(self, run_id, nmax=NUM_MAX_PACKETS):
         if self.collection_packets:
             cursor = self.collection_packets.find({'run_id': int(run_id)})
-            data = [x for x in cursor]
-            return data
-        else:
-            return None
+            return list(cursor)
+        return []
 
     def close(self):
         if self.connect:

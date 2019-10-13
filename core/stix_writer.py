@@ -268,6 +268,7 @@ class StixMongoDBWriter(StixPacketWriter):
         packet['header_id'] = self.current_header_id
         packet['run_id'] = self.current_run_id
         packet['_id'] = self.current_packet_id
+        self.capture_calibration(packet)
 
         try:
             self.collection_packets.insert_one(packet)
@@ -278,7 +279,6 @@ class StixMongoDBWriter(StixPacketWriter):
             STIX_LOGGER.info('Packet:' + str(header))
             raise
             return
-        self.capture_calibration(packet)
 
 
         self.current_header_id += 1
