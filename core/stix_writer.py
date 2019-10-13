@@ -156,17 +156,16 @@ class StixMongoDBWriter(StixPacketWriter):
         """to speed up queries """
         if self.collection_runs:
             if self.collection_runs.count() == 0:
-                self.collection_runs.create_index([('file', -1), ('date', -1)],
-                                                  unique=False)
+                indexes=['file','date']
+                for index in indexes:
+                    self.collection_runs.create_index(indexes)
 
         if self.collection_packets:
             if self.collection_packets.count() == 0:
-                self.collection_packets.create_index(
-                    [('header.unix_time', -1), ('header.SPID', -1),
-                     ('header.service_type', -1),
-                     ('header.service_subtype', -1), 
-                     ('run_id', -1)],
-                    unique=False)
+                indexes=['header.unix_time','header.SPID','header.service_type',
+                        'header.service_subtype','run_id','TMTC']
+                for index in indexes:
+                    self.collection_packets.create_index(index)
 
     def register_run(self, in_filename, filesize=0, comment=''):
         try:
