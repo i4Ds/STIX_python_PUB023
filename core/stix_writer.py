@@ -52,7 +52,6 @@ class StixPickleWriter(StixPacketWriter):
             self.fout = open(filename, 'wb')
 
     def register_run(self, in_filename, filesize=0, comment=''):
-        #processing run
         self.run = {
             'Input': in_filename,
             'Output': self.filename,
@@ -60,7 +59,6 @@ class StixPickleWriter(StixPacketWriter):
             'comment': comment,
             'Date': datetime.datetime.now().isoformat()
         }
-
     def write_all(self, packets):
         if self.fout:
             data = {'run': self.run, 'packet': packets}
@@ -135,7 +133,6 @@ class StixMongoDBWriter(StixPacketWriter):
         self.current_packet_id = 0
         self.collection_runs = None
         self.current_run_id = 0
-        self.current_header_id = 0
         self.calibration_info=None
 
         self.current_calibration_run_id = 0
@@ -149,24 +146,14 @@ class StixMongoDBWriter(StixPacketWriter):
             self.db = self.connect["stix"]
 
             self.collection_packets = self.db['packets']
-            self.collection_headers = self.db['headers']
-            self.collection_runs = self.db['runs']
-            self.collection_calibration = self.db['calibration']
+            self.collection_runs = self.db['processing_runs']
+            self.collection_calibration = self.db['calibration_runs']
             self.create_indexes()
         except Exception as e:
             STIX_LOGGER.error(str(e))
 
     def create_indexes(self):
         """to speed up queries """
-        if self.collection_headers:
-            if self.collection_headers.count() == 0:
-                self.collection_headers.create_index([('unix_time', -1),
-                                                      ('SPID', -1),
-                                                      ('service_type', -1),
-                                                      ('service_subtype', -1),
-                                                      ('run_id', -1)],
-                                                     unique=False)
-
         if self.collection_runs:
             if self.collection_runs.count() == 0:
                 self.collection_runs.create_index([('file', -1), ('date', -1)],
@@ -177,7 +164,7 @@ class StixMongoDBWriter(StixPacketWriter):
                 self.collection_packets.create_index(
                     [('header.unix_time', -1), ('header.SPID', -1),
                      ('header.service_type', -1),
-                     ('header.service_subtype', -1), ('header_id', -1),
+                     ('header.service_subtype', -1), 
                      ('run_id', -1)],
                     unique=False)
 
@@ -188,11 +175,6 @@ class StixMongoDBWriter(StixPacketWriter):
         except IndexError:
             self.current_run_id = 0
             # first entry
-        try:
-            self.current_header_id = self.collection_headers.find().sort(
-                '_id', -1).limit(1)[0]['_id'] + 1
-        except IndexError:
-            self.current_header_id = 0
 
         try:
             self.current_packet_id = self.collection_packets.find().sort(
@@ -242,30 +224,12 @@ class StixMongoDBWriter(StixPacketWriter):
             self.write_one(packets)
 
     def write_one(self, packet):
-        if not packet or (not self.collection_headers) or (
-                not self.collection_packets):
-            return
 
         if self.ipacket == 0:
             self.start_time = packet['header']['unix_time']
         self.end_time = packet['header']['unix_time']
         #insert header
 
-        header = packet['header']
-        header['run_id'] = self.current_run_id
-        header['_id'] = self.current_header_id
-        try:
-            self.collection_headers.insert_one(header)
-        except Exception as e:
-            STIX_LOGGER.error(
-                'Error occurred when inserting  header to MongoDB')
-            STIX_LOGGER.error(str(e))
-            STIX_LOGGER.info('header:' + str(header))
-            raise
-            return
-
-            #insert packet
-        packet['header_id'] = self.current_header_id
         packet['run_id'] = self.current_run_id
         packet['_id'] = self.current_packet_id
         self.capture_calibration(packet)
@@ -281,7 +245,6 @@ class StixMongoDBWriter(StixPacketWriter):
             return
 
 
-        self.current_header_id += 1
         self.current_packet_id += 1
         self.ipacket += 1
 
@@ -320,7 +283,7 @@ class StixMongoDBWriter(StixPacketWriter):
         if header['seg_flag'] in [1,3]:
             self.calibration_info={
                     'run_id':self.current_run_id,
-                    'header_ids':[self.current_header_id],
+                    'packet_ids':[self.current_packet_id],
                     'header_unix_time':header['unix_time'],
                     '_id':self.current_calibration_run_id 
                     }
@@ -328,7 +291,7 @@ class StixMongoDBWriter(StixPacketWriter):
             if not self.calibration_info:
                 STIX_LOGGER.warn('The first calibration report is missing!')
             else:
-                self.calibration_info['header_ids'].append(self.current_header_id)
+                self.calibration_info['packet_ids'].append(self.current_packet_id)
 
         if header['seg_flag'] in [2,3]:
             #last or single packet

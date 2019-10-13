@@ -735,8 +735,8 @@ class Ui(mainwindow.Ui_MainWindow):
             root.setText(0, str(run['_id']))
             root.setText(1, run['filename'])
             root.setText(2, format_datetime(run['date']))
-            root.setText(3, format_datetime(run['data_start_utc']))
-            root.setText(4, format_datetime(run['data_stop_utc']))
+            root.setText(3, format_datetime(run['data_start_unix_time']))
+            root.setText(4, format_datetime(run['data_stop_unix_time']))
 
     def loadDataFromMongoDB(self, dui, diag):
         self.showMessage('Loading packets ...')
@@ -816,7 +816,7 @@ class Ui(mainwindow.Ui_MainWindow):
     def walk(self, name, params, header, ret_x, ret_y, xaxis=0, data_type=0):
         if not params:
             return
-        timestamp = header['time']
+        timestamp = header['unix_time']
         for p in params:
             if not p:
                 continue

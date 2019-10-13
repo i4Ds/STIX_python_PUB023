@@ -21,7 +21,6 @@ class MongoDB(object):
         self.db = None
         self.collection_packets = None
         self.collection_runs = None
-        self.collection_headers = None
         try:
             if server == 'localhost' and user == '' and pwd == '':
                 self.connect = pymongo.MongoClient(server, port)
@@ -34,9 +33,7 @@ class MongoDB(object):
                     authSource='stix')
             self.db = self.connect["stix"]
             self.collection_packets = self.db['packets']
-            self.collection_headers = self.db['headers']
-            self.collection_runs = self.db['runs']
-            self.collection_quicklook = self.db['quicklook']
+            self.collection_runs = self.db['processing_runs']
         except Exception as e:
             print('can not connect to mongodb')
             raise (e)
@@ -46,14 +43,6 @@ class MongoDB(object):
             return True
         else:
             return False
-
-    def select_headers_by_run(self, run_id):
-        if self.collection_headers:
-            cursor = self.collection_headers.find({
-                'run_id': int(run_id)
-            }).sort('_id', 1)
-            return list(cursor)
-        return []
 
     def get_filename_of_run(self, run_id):
         if self.collection_runs:
@@ -72,25 +61,13 @@ class MongoDB(object):
         if self.collection_packets:
             cursor = self.collection_packets.delete_many(
                 {'run_id': int(run_id)})
-        if self.collection_headers:
-            cursor = self.collection_headers.delete_many(
-                {'run_id': int(run_id)})
+
         if self.collection_runs:
             cursor = self.collection_runs.delete_many({'_id': int(run_id)})
 
     def delete_runs(self, runs):
         for run in runs:
             self.delete_one_run(run)
-
-    def select_packets_by_header(self, hid, objID=False):
-        header_id = hid
-        if objID:
-            header_id = bson.ObjectId(hid)
-        if self.collection_packets:
-            cursor = self.collection_packets.find(
-                {'header_id': int(header_id)})
-            return list(cursor)
-        return []
 
     def select_packets_by_run(self, run_id, nmax=NUM_MAX_PACKETS):
         if self.collection_packets:
