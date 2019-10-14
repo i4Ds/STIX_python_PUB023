@@ -29,7 +29,6 @@ class Plugin:
         print('Number of packets : {}'.format(len(self.packets)))
         #with PdfPages(filename) as pdf:
         figsize = (12, 8)
-
         isub = 0
         spectra_container = []
         T0 = 0
