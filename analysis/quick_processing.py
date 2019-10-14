@@ -24,7 +24,7 @@ from analysis import ql_lightcurve as qllc
 from utils import mongo_db
 STIX_LOGGER = stix_logger.stix_logger()
 
-OUTPUT_PDF_DIRECTORY='~/data/pdf'
+OUTPUT_PDF_DIRECTORY='pdf'
 
 STIX_MDB= mongo_db.MongoDB()
 
@@ -104,6 +104,7 @@ def main():
         runs=[int(args['run'])]
     if args['all_runs']:
         runs=STIX_MDB.get_unprocessed()
+        print(runs)
 
     if args['output']:
         outputs=[args['output']]

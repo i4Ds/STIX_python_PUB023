@@ -87,8 +87,10 @@ class MongoDB(object):
     def get_unprocessed(self):
         unprocess_run_ids=[]
         if self.collection_runs:
-            unprocess_run_ids=list(self.collection_runs.find({'quicklook_pdf':{'$exists':False}},{'_id':1}))
-        return unprocess_run_ids
+            unprocess_runs=self.collection_runs.find({'quicklook_pdf':{'$exists':False}},{'_id':1})
+            if unprocess_runs:
+                return [x['_id'] for x in unprocess_runs]
+        return []
     def set_run_ql_pdf(self, _id,  pdf_filename):
         if self.collection_runs:
             run = self.collection_runs.find_one({'_id': _id})
