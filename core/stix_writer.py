@@ -14,9 +14,9 @@ from core import stix_logger
 from core import stix_global
 from core import stix_packet_analyzer 
 from core import stix_datetime
+from core import stix_calibration
 STIX_LOGGER = stix_logger.stix_logger()
 
-analyzer = stix_packet_analyzer.analyzer()
 
 class StixPacketWriter(object):
     def __init__(self):
@@ -133,7 +133,6 @@ class StixMongoDBWriter(StixPacketWriter):
         self.current_packet_id = 0
         self.collection_runs = None
         self.current_run_id = 0
-        self.calibration_info=None
 
         self.current_calibration_run_id = 0
 
@@ -151,6 +150,7 @@ class StixMongoDBWriter(StixPacketWriter):
             self.create_indexes()
         except Exception as e:
             STIX_LOGGER.error(str(e))
+        self.calibration_instance=stix_calibration.StixCalibration(self.collection_calibration)
 
     def create_indexes(self):
         """to speed up queries """
@@ -181,11 +181,6 @@ class StixMongoDBWriter(StixPacketWriter):
         except IndexError:
             self.current_packet_id = 0
 
-        try:
-            self.current_calibration_run_id = self.collection_calibration.find(
-            ).sort('_id', -1).limit(1)[0]['_id'] + 1
-        except IndexError:
-            self.current_calibration_run_id = 0
 
         log_filename = STIX_LOGGER.get_log_filename()
 
@@ -231,7 +226,7 @@ class StixMongoDBWriter(StixPacketWriter):
 
         packet['run_id'] = self.current_run_id
         packet['_id'] = self.current_packet_id
-        self.capture_calibration(packet)
+        self.calibration_instance.capture(self.current_run_id,self.current_packet_id,packet)
 
         try:
             self.collection_packets.insert_one(packet)
@@ -272,40 +267,4 @@ class StixMongoDBWriter(StixPacketWriter):
         else:
             STIX_LOGGER.error('Run info not updated.')
 
-
-    def capture_calibration(self, packet):
-        if not self.collection_calibration:
-            return 
-        header=packet['header']
-        if header['SPID'] != 54124:
-            return
-        if header['seg_flag'] in [1,3]:
-            self.calibration_info={
-                    'run_id':self.current_run_id,
-                    'packet_ids':[self.current_packet_id],
-                    'header_unix_time':header['unix_time'],
-                    '_id':self.current_calibration_run_id 
-                    }
-        elif header['seg_flag'] == 0 :
-            if not self.calibration_info:
-                STIX_LOGGER.warn('The first calibration report is missing!')
-            else:
-                self.calibration_info['packet_ids'].append(self.current_packet_id)
-
-        if header['seg_flag'] in [2,3]:
-            #last or single packet
-            analyzer.load(packet)
-            param_dict=analyzer.to_dict()
-            self.calibration_info['duration']=param_dict['NIX00122'][0]
-            scet=param_dict['NIX00445'][0]
-            self.calibration_info['SCET']=scet
-            self.calibration_info['start_unix_time']=stix_datetime.convert_SCET_to_unixtimestamp(scet)
-            self.calibration_info['aux']=param_dict
-            self.collection_calibration.insert_one(self.calibration_info)
-            self.current_calibration_run_id += 1
-
-            self.calibration_info=None
-            
-
-            
 
