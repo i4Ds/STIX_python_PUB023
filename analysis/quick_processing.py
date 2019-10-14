@@ -66,7 +66,8 @@ def main():
         "-i", dest='run',  default=None,  required=False, nargs='?', help="run ID.")
 
     optional.add_argument(
-        "--all", dest='all_runs',  default=None,  
+        "--all", dest='all_runs',  default=None, 
+        action='store_true',
         required=False, help="Get a list of unprocessed runs from MongoDB and process all of them.")
 
 
