@@ -46,7 +46,7 @@ def detect_filetype(filename):
     
     if ext in ('xml', 'ascii', 'bin', 'hex'):
         return ext
-    elif ext in ('binary', 'raw', 'BDF', '.dat'):
+    elif ext in ('binary', 'raw', 'BDF', 'dat'):
         return 'bin'
     try:
         f = open(filename, 'r')
@@ -56,6 +56,7 @@ def detect_filetype(filename):
         for c in data:
             if c not in HEX_SPACE:
                 filetype = 'ascii'
+                #possibly ASCII
                 break
     except UnicodeDecodeError:
         filetype = 'bin'

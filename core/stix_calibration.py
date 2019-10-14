@@ -59,7 +59,7 @@ class StixCalibration(object):
             scet=param_dict['NIX00445'][0]
             self.report['SCET']=scet
             self.report['start_unix_time']=stix_datetime.convert_SCET_to_unixtimestamp(scet)
-            self.report['aux']=param_dict
+            self.report['auxiliary']=param_dict
             #Fill calibration configuration into the report
             self.report['total_counts']=self.total_counts
             
