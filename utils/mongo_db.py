@@ -36,7 +36,6 @@ class MongoDB(object):
             self.collection_runs = self.db['processing_runs']
         except Exception as e:
             print('can not connect to mongodb')
-            raise (e)
 
     def is_connected(self):
         if self.db:
@@ -85,9 +84,26 @@ class MongoDB(object):
             return runs
         else:
             return None
+    def get_unprocessed(self):
+        unprocess_run_ids=[]
+        if self.collection_runs:
+            unprocess_run_ids=list(self.collection_runs.find({'quicklook_pdf':{'$exists':False}},{'_id':1}))
+        return unprocess_run_ids
+    def set_run_ql_pdf(self, _id,  pdf_filename):
+        if self.collection_runs:
+            run = self.collection_runs.find_one({'_id': _id})
+            run['quicklook_pdf']=pdf_filename
+            self.collection_runs.save(run)
+    def get_run_ql_pdf(self, _id):
+        if self.collection_runs:
+            run = self.collection_runs.find_one({'_id': _id})
+            if 'quicklook_pdf' in run:
+                return run['quicklook_pdf']
+        return None
+
 
 
 if __name__ == '__main__':
     mdb = MongoDB()
     #print(mdb.get_packet_for_header(318))
-    mdb.get_parameters_of_run(0)
+    mdb.set_quicklook_pdf(0, '/data/a.pdf')

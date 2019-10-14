@@ -122,85 +122,87 @@ class Plugin(object):
     def __init__(self, packets=[]):
         self.packets = packets
 
-    def run(self, filename):
+    def run(self,  pdf):
         print('Number of packets : {}'.format(len(self.packets)))
         num = analyzer.merge_packets(self.packets, SPIDs)
         print("Nb. of merged packets:{}".format(num))
         param_values = analyzer.get_merged_parameters()
 
-        with PdfPages(filename) as pdf:
-            fig = None
-            fig = plt.figure(figsize=figsize)
-            plt.axis('off')
-            try:
-                title = ' Housekeeping data SPID(s): {} ,start: {} stop: {}'.format(
-                    str(SPIDs), param_values['UTC'][0],
-                    param_values['UTC'][-1])
-            except KeyError:
-                title = ' Housekeeping data SPID(s): {} ,start: {} stop: {}'.format(
-                    str(SPIDs), param_values['unix_time'][0],
-                    param_values['unix_time'][-1])
-            plt.text(0.5, 0.5, title, ha='center', va='center')
-            pdf.savefig()
-            plt.close()
-            fig.clf()
-            fig = plt.figure(figsize=figsize)
-            title = "Timestamps"
-            fig.suptitle(title, fontsize=14, fontweight='bold')
-            ax = fig.add_subplot(2, 1, 1)
-            ax.plot(param_values['unix_time'])
-            ax.set_xlabel('Packet #')
-            ax.set_ylabel('Time (s)')
-            ax.set_title('Packet time')
+        #with PdfPages(filename) as pdf:
+        fig = None
+        fig = plt.figure(figsize=figsize)
+        plt.axis('off')
+        try:
+            title = ' Housekeeping data SPID(s): {} ,start: {} stop: {}'.format(
+                str(SPIDs), param_values['UTC'][0],
+                param_values['UTC'][-1])
+        except KeyError:
+            title = ' Housekeeping data SPID(s): {} ,start: {} stop: {}'.format(
+                str(SPIDs), param_values['unix_time'][0],
+                param_values['unix_time'][-1])
+        plt.text(0.5, 0.5, title, ha='center', va='center')
 
-            ax = fig.add_subplot(2, 1, 2)
-            ax.plot(get_delta_time(param_values['unix_time']))
-            ax.set_xlabel('Packet #')
-            ax.set_ylabel('Delta T(s)')
-            ax.set_title('Packet timestamp difference')
+
+        pdf.savefig()
+        plt.close()
+        fig.clf()
+
+
+        fig = plt.figure(figsize=figsize)
+        title = "Timestamps"
+        fig.suptitle(title, fontsize=14, fontweight='bold')
+        ax = fig.add_subplot(2, 1, 1)
+        ax.plot(param_values['unix_time'])
+        ax.set_xlabel('Packet #')
+        ax.set_ylabel('Time (s)')
+        ax.set_title('Packet time')
+
+        ax = fig.add_subplot(2, 1, 2)
+        ax.plot(get_delta_time(param_values['unix_time']))
+        ax.set_xlabel('Packet #')
+        ax.set_ylabel('Delta T(s)')
+        ax.set_title('Packet timestamp difference')
+        fig.tight_layout()
+        fig.subplots_adjust(top=0.9)
+        pdf.savefig()
+        plt.close()
+        fig.clf()
+        for group in groups:
+            fig = plt.figure(figsize=figsize)
+            title = list(group.keys())[0]
+            group_parameters = list(group.values())[0]
+            num_plots = len(group_parameters)
+            nrows = 0
+            ncols = 1
+            if num_plots <= 3:
+                nrows = num_plots
+            else:
+                nrows = int(math.sqrt(num_plots))
+            ncols = math.ceil(num_plots / nrows)
+            fig.suptitle(title, fontsize=14, fontweight='bold')
+            for ifig, pname in enumerate(group_parameters):
+                ax = fig.add_subplot(nrows, ncols, ifig + 1)
+                text_cal = STIX_IDB.get_textual_mapping(pname)
+                value = param_values[pname]
+                if len(param_values['unix_time']) == len(value):
+                    ax.step(param_values['unix_time'], value, where='mid')
+                else:
+                    ax.plot(value)
+                ax.tick_params(axis='x', which='major', pad=10)
+                fig.tight_layout()
+                ax.set_xlabel('Time (s)')
+                desc = stix_desc.get_parameter_desc(pname)
+                ax.set_title('{} ({})'.format(desc, pname))
+                if text_cal:
+                    if len(text_cal[0]) < 8:
+                        ax.set_yticks(text_cal[0])
+                        ax.set_yticklabels(text_cal[1])
+
+                else:
+                    ax.set_ylabel('value')
             fig.tight_layout()
             fig.subplots_adjust(top=0.9)
             pdf.savefig()
             plt.close()
             fig.clf()
-            for group in groups:
-                fig = plt.figure(figsize=figsize)
-                title = list(group.keys())[0]
-                group_parameters = list(group.values())[0]
-                num_plots = len(group_parameters)
-                nrows = 0
-                ncols = 1
-                if num_plots <= 3:
-                    nrows = num_plots
-                else:
-                    nrows = int(math.sqrt(num_plots))
-                ncols = math.ceil(num_plots / nrows)
-                fig.suptitle(title, fontsize=14, fontweight='bold')
-                for ifig, pname in enumerate(group_parameters):
-                    ax = fig.add_subplot(nrows, ncols, ifig + 1)
-                    text_cal = STIX_IDB.get_textual_mapping(pname)
-                    value = param_values[pname]
-                    if len(param_values['unix_time']) == len(value):
-                        ax.step(param_values['unix_time'], value, where='mid')
-                    else:
-                        ax.plot(value)
-                    ax.tick_params(axis='x', which='major', pad=10)
-                    fig.tight_layout()
-                    ax.set_xlabel('Time (s)')
-                    desc = stix_desc.get_parameter_desc(pname)
-                    ax.set_title('{} ({})'.format(desc, pname))
-                    if text_cal:
-                        print(text_cal)
-                        if len(text_cal[0]) < 8:
-                            ax.set_yticks(text_cal[0])
-                            ax.set_yticklabels(text_cal[1])
 
-                    else:
-                        ax.set_ylabel('value')
-                fig.tight_layout()
-                fig.subplots_adjust(top=0.9)
-                pdf.savefig()
-                plt.close()
-                fig.clf()
-
-            print("Output: {}".format(filename))
