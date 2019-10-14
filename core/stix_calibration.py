@@ -8,7 +8,7 @@ class StixCalibration(object):
     def __init__(self,  collection):
         self.collection_calibration=collection
         self.report=None
-        self.all_spectra=[]
+        self.total_counts=[]
 
         self.analyzer = sta.analyzer()
 
@@ -34,7 +34,7 @@ class StixCalibration(object):
         pixels_ids = self.analyzer.to_array('NIX00159/NIXD0156')[0]
         spectra = self.analyzer.to_array('NIX00159/NIX00146/*')[0]
         for ispec, spectrum in enumerate(spectra):
-            self.all_spectra.append([detector_ids[ispec],pixels_ids[ispec],  sum(spectrum),spectrum]) 
+            self.total_counts.append([packet_id, detector_ids[ispec],pixels_ids[ispec],  sum(spectrum)]) 
 
         if header['seg_flag'] in [1,3]:
             #first or standard alone packet
@@ -61,12 +61,12 @@ class StixCalibration(object):
             self.report['start_unix_time']=stix_datetime.convert_SCET_to_unixtimestamp(scet)
             self.report['aux']=param_dict
             #Fill calibration configuration into the report
-            self.report['spectra']=self.all_spectra
+            self.report['total_counts']=self.total_counts
             
             self.collection_calibration.insert_one(self.report)
             self.current_calibration_run_id += 1
             self.report=None
-            self.spectra=[]
+            self.total_counts=[]
 
             
 
