@@ -44,7 +44,7 @@ class StixCalibration(object):
                     'header_unix_time':header['unix_time'],
                     '_id':self.current_calibration_run_id 
                     }
-        elif header['seg_flag'] == 0 :
+        else:
             #continuation packet
             if not self.report:
                 STIX_LOGGER.warn('The first calibration report is missing!')
@@ -54,6 +54,10 @@ class StixCalibration(object):
         if header['seg_flag'] in [2,3]:
             #last or single packet
             # extract the information from
+            if not self.report:
+                STIX_LOGGER.warn('One calibration run is not recorded due to missing the first packet!')
+                return
+
             param_dict=self.analyzer.to_dict()
             self.report['duration']=param_dict['NIX00122'][0]
             scet=param_dict['NIX00445'][0]
