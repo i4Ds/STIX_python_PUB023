@@ -41,7 +41,9 @@ stix_parameter.StixParameter.set_decompressor(STIX_DECOMPRESSOR)
 
 def detect_filetype(filename):
     filetype = None
-    ext = pathlib.Path(filename).suffix
+    extension = pathlib.Path(filename).suffix
+    ext=extension[1:]
+    
     if ext in ('xml', 'ascii', 'bin', 'hex'):
         return ext
     elif ext in ('binary', 'raw', 'BDF', '.dat'):

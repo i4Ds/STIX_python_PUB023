@@ -1,6 +1,9 @@
 from core import stix_packet_analyzer as sta
 from core import stix_datetime
 class StixCalibration(object):
+    """
+      Checking if a packet is a calibration packet.
+    """
 
     def __init__(self,  collection):
         self.collection_calibration=collection
