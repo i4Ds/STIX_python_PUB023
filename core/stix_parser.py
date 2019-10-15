@@ -814,12 +814,12 @@ class StixTCTMParser(StixParameterParser):
             parameters.append(param)
         return parameters
 
-    def parse_telecommand_header(self, packet):
+    def parse_telecommand_header(self, buf, ipos):
         # see STIX ICD-0812-ESC  (Page 56)
-        if packet[0] != 0x1D:
+        if buf[ipos] != 0x1D:
             return stix_global.HEADER_FIRST_BYTE_INVALID, None
         try:
-            header_raw = st.unpack('>HHHBBBB', packet[0:10])
+            header_raw = st.unpack('>HHHBBBB', buf[ipos:ipos+10])
         except Exception as e:
             STIX_LOGGER.error(str(e))
             return stix_global.HEADER_RAW_LENGTH_VALID, None, None
@@ -831,7 +831,7 @@ class StixTCTMParser(StixParameterParser):
         if (header['service_type'], header['service_subtype']) in [(237, 7),
                                                                    (236, 6)]:
             try:
-                subtype = st.unpack('B', packet[10:11])[0]
+                subtype = st.unpack('B', buf[ipos+10:ipos+11])[0]
                 header['subtype'] = subtype
             except Exception as e:
                 STIX_LOGGER.warn(
@@ -847,7 +847,7 @@ class StixTCTMParser(StixParameterParser):
         header['SPID'] = ''
         header['name'] = info['CCF_CNAME']
         header['TMTC'] = 'TC'
-        header['time'] = 0
+        header['SCET'] = 0
         if status == stix_global.OK:
             try:
                 header['ACK_DESC'] = stix_header.ACK_MAPPING[header['ACK']]
@@ -933,19 +933,18 @@ class StixTCTMParser(StixParameterParser):
 
             elif buf[i] == 0x1D:
 
-                if len(buf) < 10:
+                if len(buf)-i < 10:
                     STIX_LOGGER.warn(
                         "Incomplete packet. The last {} bytes  were not parsed"
                         .format(len(buf)))
                     break
-
-                header_status, header = self.parse_telecommand_header(buf)
-                i = 10
+                header_status, header = self.parse_telecommand_header(buf,i)
+                i += 10
                 #head length is 10 bytes
                 if header_status != stix_global.OK:
                     self.num_bad_headers += 1
                     STIX_LOGGER.warn(
-                        "Invalid telecommand header. ERROR code: {}, Cursor at {} "
+                        "Invalid telecommand header. ERROR code: {}, Current cursor at {} "
                         .format(header_status, i - 10))
                     continue
                 self.num_tc += 1
@@ -955,18 +954,18 @@ class StixTCTMParser(StixParameterParser):
                 if status == stix_global.EOF:
                     break
 
-                tc_name = header['name']
+                telecommand_name = header['name']
                 num_read, parameters, status = self.vp_tc_parser.parse(
-                    tc_name, data_field_raw)
+                    telecommand_name, data_field_raw)
                 if num_read != data_field_length - 2:  #the last two bytes is CRC
                     STIX_LOGGER.warn(
                         ' TC {} data field size: {}B, actual read: {}B'.format(
-                            tc_name, data_field_length, num_read))
+                            telecommand_name, data_field_length, num_read))
                 packet = {'header': header, 'parameters': parameters}
                 self.num_tc_parsed += 1
                 STIX_LOGGER.pprint(packet)
                 if self.store_binary:
-                    packet['bin'] = buf[0:10] + data_field_raw
+                    packet['bin'] = buf[i:i+10] + data_field_raw
 
             else:
                 old_i = i
@@ -989,7 +988,7 @@ class StixTCTMParser(StixParameterParser):
             if self.report_progress_enabled:
                 current = int(100. * i / length)
                 if current > last:
-                    STIX_LOGGER.info('{}% processed!'.format(current))
+                    STIX_LOGGER.info('{}% processed.'.format(current))
                 last = current
 
         return packets
@@ -1030,19 +1029,19 @@ class StixTCTMParser(StixParameterParser):
         #attach timestamp
         pkt_header = packet['header']
         if not self.packet_reception_utc:
-            packet['header'][
+            pkt_header[
                 'unix_time'] = stix_datetime.convert_SCET_to_unixtimestamp(
                     pkt_header['SCET'])
-            packet['header']['UTC'] = stix_datetime.convert_SCET_to_UTC(
+            pkt_header['UTC'] = stix_datetime.convert_SCET_to_UTC(
                 pkt_header['SCET'])
             return
         try:
             dt = dtparser.parse(self.packet_reception_utc)
-            packet['header']['UTC'] = dt
-            packet['header']['unix_time'] = dt.timestamp()
+            pkt_header['UTC'] = dt
+            pkt_header['unix_time'] = dt.timestamp()
         except ValueError:
             #packet['header']['UTC'] = T0
-            packet['header']['UTC'] = stix_datetime.convert_SCET_to_UTC(
+            pkt_header['UTC'] = stix_datetime.convert_SCET_to_UTC(
                 pkt_header['SCET'])
 
     def parse_moc_xml(self, in_filename):

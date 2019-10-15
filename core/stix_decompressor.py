@@ -343,14 +343,14 @@ class StixDecompressor(object):
         if spid not in SCHEMAS:
             self.compressed = False
             STIX_LOGGER.warn(
-                'The current version  is not able to  decompress the packets of SPID {}'
+                'A compressed packet (SPID {}) is not decompressed'
                 .format(spid))
             return
         try:
             self.schema = SCHEMAS[spid]
         except KeyError:
             STIX_LOGGER.warn(
-                'The current version is not able to decompress the packets (SPID {})'
+                'A compressed packet (SPID {}) is not decompressed'
                 .format(spid))
             self.compressed = False
             return
@@ -377,15 +377,12 @@ class StixDecompressor(object):
             return None
 
     def get_decompressed_value(self, param_name, raw):
+        
 
-        #hualin Xiao 20191001
-        #not working properly in some cases
-        #disabled
-        #return None
 
         if not self.compressed:
             return None
-        if not self.set_SKM(param_name, raw):  #not parameter SKM
+        if not self.set_SKM(param_name, raw):  #they are not  SKM
             skm = self.get_SKM(param_name)  #compressed raw values
             if skm:
                 return decompress(raw, skm[0], skm[1], skm[2])
