@@ -1021,7 +1021,7 @@ class StixTCTMParser(StixParameterParser):
                 if packet:
                     packets.extend(packet)
                 if idx % 10 == 0:
-                    STIX_LOGGER.info('{} packets loaded.'.format(idx))
+                    STIX_LOGGER.info('{} packets processed.'.format(idx))
                 idx += 1
         return packets
 
@@ -1067,7 +1067,7 @@ class StixTCTMParser(StixParameterParser):
             data = data_binary[76:]
             result = self.parse_binary(data)
             if i % freq == 0:
-                STIX_LOGGER.info("{:.0f}% loaded".format(100 * i / num))
+                STIX_LOGGER.info("{:.0f}% processed.".format(100 * i / num))
             if not result:
                 continue
             results.extend(result)
