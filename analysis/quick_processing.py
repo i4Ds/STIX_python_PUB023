@@ -5,6 +5,7 @@
 # @author       : Hualin Xiao
 # @date         : Feb. 11, 2019
 #
+# To process all unprocessed file run ./analysis/quick_processing  --wdb  --all
 
 #from __future__ import (absolute_import, unicode_literals)
 import os
