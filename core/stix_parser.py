@@ -223,7 +223,6 @@ class StixParameterParser(object):
                 x_points = [float(row[0]) for row in rows]
                 y_points = [float(row[1]) for row in rows]
                 tck = interpolate.splrep(x_points, y_points)
-
                 val = interpolate.splev(raw_value, tck)
                 try:
                     ret = round(float(val), 3)
@@ -646,7 +645,7 @@ class StixTelecommandParser(StixParameterParser):
                         self.walk(pnode, param.children)
                     else:
                         STIX_LOGGER.warn(
-                            'Children of {} are not decoded.'.format(
+                            'Children of TC {} are not decoded.'.format(
                                 pnode['name']))
                 parameter_list.append(param.parameter)
 
@@ -681,6 +680,9 @@ class StixTCTMParser(StixParameterParser):
         self.packet_writer = None
 
     def set_store_packet_enabled(self, status):
+        """
+            store packets in a list
+        """
         self.store_packet_enabled = status
 
     def reset_parser(self):

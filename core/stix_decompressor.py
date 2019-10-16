@@ -25,9 +25,9 @@ PACKETS_WITH_COMPRESSION = [
 ]
 SCHEMAS = {
     54120: {
-        'SKM_Groups': ['SPEC', 'TRIG'],
+        'SKM_Groups': ['SPEC', 'TRIG'], #tell the decompressor to  capture the parameters
         'parameters': {
-            'NIX00452': SKM_GROUPS['SPEC'],
+            'NIX00452': SKM_GROUPS['SPEC'],  #the SKM parameters used to decompress it
             'NIX00453': SKM_GROUPS['SPEC'],
             'NIX00454': SKM_GROUPS['SPEC'],
             'NIX00455': SKM_GROUPS['SPEC'],
@@ -378,8 +378,6 @@ class StixDecompressor(object):
 
     def get_decompressed_value(self, param_name, raw):
         
-
-
         if not self.compressed:
             return None
         if not self.set_SKM(param_name, raw):  #they are not  SKM

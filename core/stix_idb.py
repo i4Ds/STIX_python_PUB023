@@ -366,8 +366,3 @@ if __name__ == '__main__':
     import sys
     idb = stix_idb()
     print(idb.is_variable_length_telecommand('ZIX37701'))
-    #if len(sys.argv) > 1:
-    #    ret = idb.get_variable_packet_structure(sys.argv[1])
-    #    for row in ret:
-    #        print('{}  {} {} {}'.format(row['PCF_NAME'], row['PCF_DESCR'],
-    #                                    row['VPD_POS'], row['PCF_WIDTH']))

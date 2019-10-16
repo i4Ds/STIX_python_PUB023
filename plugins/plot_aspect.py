@@ -25,7 +25,7 @@ class Plugin:
             if int(packet['header']['SPID']) != 54102:
                 continue
             header = packet['header']
-            timestamp.append(float(header['time']))
+            timestamp.append(float(header['unix_time']))
             parameters = packet['parameters']
             analyzer.load_packet(packet)
             names = ['NIX00078', 'NIX00079', 'NIX00080', 'NIX00081']

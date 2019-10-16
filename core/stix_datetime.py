@@ -4,7 +4,6 @@ from dateutil import parser as dtparser
 
 SCET_OFFSET = 946684800.
 
-
 #To be checked  2000-01-01T00:00.000Z
 def format_datetime(dt):
     if isinstance(dt, datetime):
@@ -20,7 +19,6 @@ def format_datetime(dt):
         #    return '1970-01-01T00:00:00.000Z'
     else:
         return '1970-01-01T00:00:00.000Z'
-
 
 def convert_SCET_to_UTC(coarse_time, fine_time=0):
     unixtimestamp = coarse_time + fine_time / 65536. + SCET_OFFSET
