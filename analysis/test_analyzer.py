@@ -22,8 +22,6 @@ class Plugin:
         print(self.current_row)
         packet = self.packets[self.current_row]
         analyzer.load(packet)
-        #result = analyzer.to_array("NIX00270/NIX00271/*")
-        #print(len(result[0][4]))
 
         dict_ret=analyzer.to_dict()
         pprint.pprint(dict_ret)

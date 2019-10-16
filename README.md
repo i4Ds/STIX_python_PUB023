@@ -1,9 +1,9 @@
-## STIX raw data parser and data viewer
 
-   A python package allows to parser, display and analysis STIX  packets.  
+## STIX raw data parser and a Qt GUI
+
+  A python package allows parsing, browsing and analyzing STIX raw telemetry packets.  
 Parsing of raw binary packets is based on IDB.  
-Releases: 
-https://github.com/i4Ds/STIX-dataviewer/releases
+
 
 ### 1. Source code download
 
@@ -12,7 +12,7 @@ https://github.com/i4Ds/STIX-dataviewer/releases
     https://github.com/i4Ds/STIX-dataviewer/archive/master.zip
 
 
-### 2. Python environment Setup
+### 2. Python Environment Setup
    The packet relies on python3 and some extra python modules. 
 
 #### 2.1 On Linux 
@@ -34,16 +34,16 @@ pip3 install numpy xmltodict PyQt5 pyqtchart scipy pymongo python-dateutil
 
 #### 2.2 On windows
 
-  - Download  python3.6 executalble installer
+  - Download  python3.6 executable installer
  
-     For 64-bit Windows: https://www.python.org/ftp/python/3.6.7/python-3.6.7-amd64.exe 
+     64-bit Windows: https://www.python.org/ftp/python/3.6.7/python-3.6.7-amd64.exe 
    
-     For 32-bit Windows: https://www.python.org/ftp/python/3.6.7/python-3.6.7.exe 
+     32-bit Windows: https://www.python.org/ftp/python/3.6.7/python-3.6.7.exe 
  
   - Install python3
  
     When installing python, choose `customize installation`, 
-  `install pip` and `add python path to the system enviroment`. 
+  `install pip` and `add python path to the system environment`. 
   
   - Install dependencies
 
@@ -53,7 +53,7 @@ pip3 install numpy xmltodict PyQt5 pyqtchart scipy pymongo python-dateutil
 ````
 
 ### 3. How to use the package
-#### 3.1. Running as a command line parser
+#### 3.1. Running as a command-line parser
 
 Usage:
 python3 applications/parser.py
@@ -72,12 +72,12 @@ Required arguments:
   -i [INPUT]            Input raw data filename.
 
 Optional arguments:
-  -o OUTPUT             Output filename.
-  --idb IDB             IDB sqlite3 filename.
-  --opf {tuple,dict}    format to store output parameters.
+  -o OUTPUT             Output python pickle filename.
+  --idb IDB             IDB filename (sqlite3).
+  --opf {tuple,dict}    format to store output parameters. 
   -t {binary,ascii,xml}
                         Input file type. Three types (binary, ascii or xml)
-                        are supported.
+                        are supported. Filename extensions will be used to detect file types if not specified.
   --wdb                 Write decoded packets to local MongoDB.
   --db-host DB_HOST     MongoDB host IP.
   --db-port DB_PORT     MongoDB host port.
@@ -85,9 +85,9 @@ Optional arguments:
   --db-pwd DB_PWD       MongoDB password.
   -m COMMENT            comment
   --SPID [SPID [SPID ...]]
-                        Only to parse the packets of the given SPIDs.
+                        Only to parse packets of the given SPIDs.
   --services [SERVICES [SERVICES ...]]
-                        Only to parse the packets of the given service types.
+                        Only to parse packets of the given service types.
   -v VERBOSE            Logger verbose level
   -l LOGFILE, --log LOGFILE
                         Log filename
@@ -98,23 +98,21 @@ Example:
 python3 applications/parser.py -i <RAW_DATA_FILENAME> -o <OUTPUT>  -v  <Verbose level>
 ```
 
-#### 3.2. Embeding the parser in your own code.  
+#### 3.2. Embedding the parser in your code.  
   Here are several examples.
  - Example 1
 
-   Parsing a raw data file and writting packets to a python pickle file
+   Parsing a raw data file and dumping the packets to a python pickle file
 
 ```python
 #!/usr/bin/python3 
-from core import stix_logger
 from core import stix_parser
-stix_logger._stix_logger.set_logger(logfile='test.log', verbose=2)
 parser = stix_parser.StixTCTMParser()
 parser.parse_file('raw.binary', 'output.pkl')
 ```
  - Example 2
 
-   Parsing a raw data file and print  the packets. 
+   Parsing a raw data file and print the packets. 
 
 ```python
 #!/usr/bin/python3 
@@ -124,7 +122,7 @@ f=open('raw.binary','rb')
 buffer=f.read()
 
 parser = stix_parser.StixTCTMParser()
-packets=parser.parse(buffer)
+packets=parser.parse_binary(buffer)
 for packet in packets:
   print(packet['header'])
   print(packet['parameters'])
@@ -143,7 +141,65 @@ packets=parser.parse_hex(data)
 pprint.pprint(packets)
 
 ```
-  Output 
+
+Output example:
+
+```python
+{
+ 'header': {'APID': 1509,
+            'APID_pid': 94,
+            'PUS': 16,
+            'SCET': 2147518278.4319916,
+            'SPID': 54103,
+            'SSID': 4,
+            'TMTC': 'TM',
+            'TPSD': -1,
+            'UTC': '2068-01-19T12:51:18.431',
+            'category': 5,
+            'coarse_time': 2147518278,
+            'descr': 'STIX HK report - SID 4',
+            'destination': 14,
+            'fine_time': 28311,
+            'header_flag': 1,
+            'length': 17,
+            'packet_id': 3557,
+            'packet_type': 0,
+            'process_id': 222,
+            'seg_flag': 3,
+            'segmentation': 'stand-alone packet',
+            'seq_count': 974,
+            'service_subtype': 25,
+            'service_type': 3,
+            'unix_time': 3094203078.4319916,
+            'version': 0},
+ 'parameters': [('NIX00020', (4,), '', []),
+                ('NIX00059', (2147518278,), '', []),
+                ('NIXD0059', (0,), 'NotAvailable', []),
+                ('NIXD0060', (0,), 'NoSignNThrFlux', []),
+                ('NIXD0061', (0,), 'NoFlareDetect', []),
+                ('NIXG0020', (0,), '', []),
+                ('NIX00283', (0,), '', []),
+                ('NIX00284', (0,), '', []),
+                ('NIX00063', (0,), '', []),
+                ('NIXD0064', (0,), 'False', []),
+                ('NIXG0064', (0,), '', []),
+                ('ZZPAD032', (0,), '', [])]}
+```
+
+Each parameter has a structure as follows:
+
+ - The first column: Parameter name,  
+ - The second column: raw value in a tuple. Raw parameters can be binary arrays or consist of several integers. 
+ - The third column: engineering value, decompressed value, or an empty string
+ - The fourth column:  an empty list, or its children if it is a repeater. 
+
+
+Output parameters will be stored in python dictionaries if the following line is added:
+ ```python
+   parser.set_parameter_format('dict')
+   ```
+The output will be
+
 ```python
 [{'header': {'APID': 1509,
             'APID_packet_category': 5,
@@ -212,8 +268,6 @@ pprint.pprint(packets)
                  'eng': ''}}
                ]
 ```
- 
-  
 
 #### 3.3 Using the GUI 
 ##### 3.3.1 Run the GUI
@@ -228,11 +282,11 @@ chmod +x run_gui.sh
   The GUI allows parsing/loading and then displaying STIX packets in the following data formats/sources:
    - STIX raw data
    - SOC XML format
-   - MOC ascii format
+   - MOC ASCII format
    - packets stored in  python pickle files (pkl and pklz)
-   - packets stored in Nosql database Mongodb
+   - packets stored in NoSQL database MongoDB
    - packets received from TSC via socket
-   - STIX TM binary hex string copied from clipboard
+   - STIX TM binary hex string copied from the clipboard
 
   The GUI also allows plotting parameters as a function of timestamp or packet number. 
 ##### 3.3.3  GUI plugins
@@ -263,5 +317,43 @@ class Plugin:
 
 ![GU data parser GUI](screenshots/stix_parser_1.jpg)
 ![GU data parser GUI](screenshots/stix_parser_2.jpg)
+
+
+
+### 4. How to convert IDB from mdb format  to a sqlite database on Linux (Ubuntu)
+
+- Install mdbtools and sqlite3
+```sh
+sudo apt-get install mdbtools sqlite3  
+```
+
+- Use the script  idb/mdb2sql.sh to convert mdb to sql
+```bash
+sh idb/mdb2sql.sh  STIX_IDB.mdb > idb.sql
+
+```
+- Append the following lines to the end of the generated sql file
+```sh
+update PCF set PCF_WIDTH=16 where PCF_NAME="NIX00123";
+update PCF set PCF_WIDTH=8 where PCF_NAME="ZZPAD008";
+update PCF set PCF_WIDTH=16 where PCF_NAME='ZZPAD016';
+update PCF set PCF_WIDTH=24 where PCF_NAME='ZZPAD024';
+update PCF set PCF_WIDTH=32 where PCF_NAME='ZZPAD032';
+
+```
+
+- Create IDB sqlite3 database using the sql file
+```bash
+sqlite3 idb.sqlite3 < idb.sql
+```
+
+One may see some errors. For example, " table  Name AutoCorrect Save Failures already exists".  
+Those tables are not used by this parser. They can be removed from the sql script. 
+
+- Copy idb.sqlite3 to idb/
+
+
+
+
 
 

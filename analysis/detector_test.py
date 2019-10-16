@@ -1,4 +1,3 @@
-#plot calibration spectra, whose counts are still compressed
 
 import os
 
@@ -10,7 +9,7 @@ import numpy as np
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib import pyplot as plt
 from datetime import datetime
-from core import stix_packet_analyzer as sta
+from utils import stix_packet_analyzer as sta
 
 analyzer = sta.analyzer()
 
@@ -41,6 +40,7 @@ class Plugin:
                 header = packet['header']
                 fig = None
                 analyzer.load(packet)
-                detector_ids = analyzer.to_array('NIX00103/NIX00100')[0]
-                asic_tmean = analyzer.to_array('NIX00103/NIX00101')[0]
-                asic_tstd = analyzer.to_array('NIX00103/NIX00102')[0]
+                detector_ids = analyzer.to_array('NIX00103>NIX00100')[0]
+                asic_tmean= analyzer.to_array('NIX00103>NIX00101')[0]
+                asic_tstd= analyzer.to_array('NIX00103>NIX00102')[0]
+

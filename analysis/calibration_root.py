@@ -1,11 +1,10 @@
-#plot calibration spectra, whose counts are still compressed
 
 import os
 
 import sys
 sys.path.append('..')
 sys.path.append('.')
-from core import stix_packet_analyzer as sta
+from utils import stix_packet_analyzer as sta
 analyzer = sta.analyzer()
 
 from PyQt5 import QtWidgets, QtCore, QtGui
@@ -75,9 +74,9 @@ class Plugin:
                 self.new_folder('calibration_{}'.format(self.ical))
 
             analyzer.load_packet(packet)
-            detector_ids = analyzer.to_array('NIX00159/NIXD0155')[0]
-            pixels_ids = analyzer.to_array('NIX00159/NIXD0156')[0]
-            spectra = analyzer.to_array('NIX00159/NIX00146/*')[0]
+            detector_ids = analyzer.to_array('NIX00159>NIXD0155')[0]
+            pixels_ids = analyzer.to_array('NIX00159>NIXD0156')[0]
+            spectra = analyzer.to_array('NIX00159>NIX00146>*')[0]
             for i, spec in enumerate(spectra):
                 if sum(spec) > 0:
                     det = detector_ids[i]
