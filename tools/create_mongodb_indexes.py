@@ -5,11 +5,22 @@ try:
     collection_packets = db['packets']
     collection_runs = db['processing_runs']
     collection_calibration = db['calibration_runs']
+    collection_qllc= db['ql_lightcurves']
     print('creating indexes for runs')
     if collection_runs:
         indexes=[[('file',1)],[('date',1)]]
         for index in indexes:
             collection_runs.create_index(index)
+    if collection_calibration:
+        indexes=[[('duration',1)],[('start_unix_time',1)]]
+        for index in indexes:
+            collection_runs.create_index(index)
+
+    if collection_qllc:
+        indexes=[[('duration',1)],[('start_unix_time',1)]]
+        for index in indexes:
+            collection_runs.create_index(index)
+
 
     print('creating indexes for packets')
     if collection_packets:
