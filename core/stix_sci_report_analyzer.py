@@ -32,14 +32,11 @@ class StixCalibrationReportAnalyzer(object):
             return
 
         
-        try:
-            self.analyzer.load(packet)
-            detector_ids = self.analyzer.to_array('NIX00159/NIXD0155')[0]
-            pixels_ids = self.analyzer.to_array('NIX00159/NIXD0156')[0]
-            spectra = self.analyzer.to_array('NIX00159/NIX00146/*')[0]
-        except:
-            pprint.pprint(packet)
-            sys.exit(0)
+        self.analyzer.load(packet)
+        detector_ids = self.analyzer.to_array('NIX00159/NIXD0155')[0]
+        pixels_ids = self.analyzer.to_array('NIX00159/NIXD0156')[0]
+        spectra = self.analyzer.to_array('NIX00159/NIX00146/*', eng_param='*')[0]
+
         for ispec, spectrum in enumerate(spectra):
             self.total_counts.append([packet_id, detector_ids[ispec],pixels_ids[ispec],  sum(spectrum)]) 
 

@@ -11,11 +11,13 @@ try:
         indexes=[[('file',1)],[('date',1)]]
         for index in indexes:
             collection_runs.create_index(index)
+    print('creating indexes for calibration')
     if collection_calibration:
         indexes=[[('duration',1)],[('start_unix_time',1)]]
         for index in indexes:
             collection_runs.create_index(index)
 
+    print('creating indexes for lightcurves')
     if collection_qllc:
         indexes=[[('duration',1)],[('start_unix_time',1)]]
         for index in indexes:
