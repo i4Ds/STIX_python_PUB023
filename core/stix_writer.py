@@ -14,7 +14,7 @@ from core import stix_logger
 from core import stix_global
 from core import stix_packet_analyzer 
 from core import stix_datetime
-from core import stix_sci_report_analyzer
+from core import stix_sci_report_analyzer as scia
 from core import stix_packet_analyzer as sta
 from core import stix_datetime
 STIX_LOGGER = stix_logger.stix_logger()
@@ -144,13 +144,10 @@ class StixMongoDBWriter(StixPacketWriter):
             self.db = self.connect["stix"]
             self.collection_packets = self.db['packets']
             self.collection_runs = self.db['processing_runs']
-            self.collection_calibration = self.db['calibration_runs']
-            #self.create_indexes()
         except Exception as e:
             STIX_LOGGER.error(str(e))
 
-        stix_sci_report_analyzer.analyze(self.db,self.current_run_id,
-            self.current_packet_id,packet)
+        self.science_report_analyzer=scia.StixScienceReportAnalyzer(self.db)
 
 
     def register_run(self, in_filename, filesize=0, comment=''):
@@ -212,7 +209,8 @@ class StixMongoDBWriter(StixPacketWriter):
 
         packet['run_id'] = self.current_run_id
         packet['_id'] = self.current_packet_id
-        stix_sci_report_analyzer.analyze(self.db,self.current_run_id,
+
+        self.science_report_analyzer.start(self.current_run_id,
             self.current_packet_id,packet)
 
         try:
