@@ -1,28 +1,23 @@
-
-server='localhost'
-port=27017
-username=''
-password=''
+import pymongo
 try:
-    self.connect = pymongo.MongoClient(
-        server, port, username=username, password=password)
-    self.db = self.connect["stix"]
-    self.collection_packets = self.db['packets']
-    self.collection_runs = self.db['processing_runs']
-    self.collection_calibration = self.db['calibration_runs']
+    connect = pymongo.MongoClient()
+    db = connect["stix"]
+    collection_packets = db['packets']
+    collection_runs = db['processing_runs']
+    collection_calibration = db['calibration_runs']
     print('creating indexes for runs')
-    if self.collection_runs:
-        indexes=['file','date']
+    if collection_runs:
+        indexes=[[('file',1)],[('date',1)]]
         for index in indexes:
-            self.collection_runs.create_index(indexes)
+            collection_runs.create_index(index)
 
     print('creating indexes for packets')
-    if self.collection_packets:
-        if self.collection_packets.count() == 0:
-            indexes=['header.unix_time','header.SPID','header.service_type',
-                    'header.service_subtype','run_id','TMTC']
-            for index in indexes:
-                self.collection_packets.create_index(index)
+    if collection_packets:
+        indexes=[[('header.unix_time',1)],[('header.SPID',1)],[('header.service_type',1)],
+                [('header.service_subtype',1)],
+                [('run_id',1)],[('TMTC',1)]]
+        for index in indexes:
+            collection_packets.create_index(index)
 
 except Exception as e:
     print(e)
