@@ -112,14 +112,17 @@ class StixQLLightCurveAnalyzer(object):
         detector_mask=self.analyzer.to_array('NIX00407', traverse_children=False)[0]
         pixel_mask=self.analyzer.to_array('NIXD0407', traverse_children=False)[0]
         points=self.analyzer.to_array('NIX00270/NIX00271',once=True)[0][0]
+        start_unix_time=start_coarse_time+start_fine_time/65536.
+        duration=points*0.1*(integrations+1)
         report={
                 '_id': self.current_report_id,
                 'run_id':run_id,
                 'packet_id':packet_id,
-                'start_unix_time': start_coarse_time+start_fine_time/65536.,
+                'start_unix_time': start_unix_time,
                 'packet_header_time':header['unix_time'],
                 'integrations':integrations,
-                'duration':points*0.1*(integrations+1),
+                'duration':duration,
+                'stop_unix_time':start_unix_time+duration,
                 'detector_mask':detector_mask,
                 'pixel_mask':pixel_mask
                 }
