@@ -106,7 +106,7 @@ class StixQLLightCurveAnalyzer(object):
 
         
         self.analyzer.load(packet)
-        start_coarse_time=self.analyzer.to_array('NIX00445', False)[0]
+        start_coarse_time=self.analyzer.to_array('NIX00445', traverse_children=False)[0]
         start_fine_time=self.analyzer.to_array('NIX00446', traverse_children=False)[0]
         integrations=self.analyzer.to_array('NIX00405', traverse_children=False)[0]
         detector_mask=self.analyzer.to_array('NIX00407', traverse_children=False)[0]

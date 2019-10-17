@@ -167,13 +167,15 @@ class StixPacketAnalyzer(object):
     """
 
 
-    def to_array(self, pattern, parameters=None, dtype='raw', traverse_children=True, once=False):
+    def to_array(self, pattern, parameters=None, eng_param='', traverse_children=True, once=False):
         """
           pattern examples:
               pattern='NIX00159/NIX00146'
                   return the values of all NIX00146 under NIX00159
               pattern='NIX00159/NIX00146/*'
                   return the children's value of all NIX00146 
+        eng_param:
+           The name of the parameter which needs engineering value/decompressed value
         """
         pnames = pattern.split('/')
         results = []
@@ -191,16 +193,16 @@ class StixPacketAnalyzer(object):
             if param.name == pname or pname == '*':
                 if pnames and traverse_children:
                     ret = self.to_array('/'.join(pnames), param.children,
-                                        dtype,traverse_children,once)
+                                        eng_param,traverse_children,once)
                     if ret:
                         results.append(ret)
                 else:
-                    if dtype == 'eng':
+                    if eng_param==pname:
                         if param.eng:
                             results.append(param.eng)
                         else:
                             results.append(param.get_raw_int())
-                    elif dtype == 'raw':
+                    else:
                         results.append(param.get_raw_int())
                     if once:
                         #only capture once
