@@ -3,8 +3,9 @@
 # @title        : stix_logger.py
 # @description  : logger
 
-import pprint
 import sys
+from datetime import datetime
+import pprint
 
 
 class StixLogger(object):
@@ -39,6 +40,9 @@ class StixLogger(object):
         self.signal_warn = sig_warn
         self.signal_error = sig_error
         self.signal_enabled = True
+    def get_now(self):
+        now= datetime.now()
+        return  now.strftime("%Y-%m-%d %H:%M:%S")
 
     def emit(self, msg):
         self.info(msg)
@@ -77,21 +81,21 @@ class StixLogger(object):
             print(msg)
 
     def important_info(self, msg):
-        self.printf(('[Info ] : {}'.format(msg)), 'important')
+        self.printf(('[Info {}] : {}'.format(self.get_now(), msg)), 'important')
 
     def error(self, msg):
-        self.printf(('[ERROR  ] : {}'.format(msg)), 'error')
+        self.printf(('[ERROR {}] : {}'.format(self.get_now(),msg)), 'error')
 
     def warn(self, msg):
         if self.verbose < 1:
             return
-        self.printf(('[WARN   ] : {}'.format(msg)), 'warn')
+        self.printf(('[WARN {}] : {}'.format(self.get_now(),msg)), 'warn')
 
     def info(self, msg):
         if self.verbose < 2:
             return
         if not self.signal_enabled:
-            self.printf(('[INFO   ] : {}'.format(msg)), 'info')
+            self.printf(('[INFO {}] : {}'.format(self.get_now(),msg)), 'info')
         else:
             self.printf(msg, 'info')
 
