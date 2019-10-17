@@ -125,15 +125,55 @@ class StixPacketAnalyzer(object):
                     if v:
                         results[k].extend(v)
         return results
+    """
+    def to_array(self, pattern, parameters=None, dtype='raw'):
+      #  
+      #  pattern examples:
+      #      pattern='NIX00159/NIX00146'
+      #          return the values of all NIX00146 under NIX00159
+      #      pattern='NIX00159/NIX00146/*'
+      #          return the children's value of all NIX00146 
+     #
+      #  
+        pnames = pattern.split('/')
+        results = []
+        if not pnames:
+            return []
+        if not parameters:
+            parameters= self._parameters
+        try:
+            pname = pnames.pop(0)
+        except IndexError:
+            return []
+        for e in parameters:
+            param = stp.StixParameter()
+            param.clone(e)
+            if param.name == pname or pname == '*':
+                if pnames :
+                    ret = self.to_array('/'.join(pnames), param.children,
+                                        dtype)
+                    if ret:
+                        results.append(ret)
+                else:
+                    if dtype == 'eng':
+                        if param.eng:
+                            results.append(param.eng)
+                        else:
+                            results.append(param.get_raw_int())
+                    elif dtype == 'raw':
+                        results.append(param.get_raw_int())
+
+        return results
+    """
+
 
     def to_array(self, pattern, parameters=None, dtype='raw', traverse_children=True, once=False):
         """
-        pattern examples:
-            pattern='NIX00159/NIX00146'
-                return the values of all NIX00146 under NIX00159
-            pattern='NIX00159/NIX00146/*'
-                return the children's value of all NIX00146 
-
+          pattern examples:
+              pattern='NIX00159/NIX00146'
+                  return the values of all NIX00146 under NIX00159
+              pattern='NIX00159/NIX00146/*'
+                  return the children's value of all NIX00146 
         """
         pnames = pattern.split('/')
         results = []
