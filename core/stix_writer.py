@@ -14,7 +14,9 @@ from core import stix_logger
 from core import stix_global
 from core import stix_packet_analyzer 
 from core import stix_datetime
-from core import stix_calibration
+from core import stix_sci_report_analyzer
+from core import stix_packet_analyzer as sta
+from core import stix_datetime
 STIX_LOGGER = stix_logger.stix_logger()
 
 
@@ -133,9 +135,6 @@ class StixMongoDBWriter(StixPacketWriter):
         self.current_packet_id = 0
         self.collection_runs = None
         self.current_run_id = 0
-
-        self.current_calibration_run_id = 0
-
         self.start = -1
         self.end = -1
         self.run_info = None
@@ -143,29 +142,16 @@ class StixMongoDBWriter(StixPacketWriter):
             self.connect = pymongo.MongoClient(
                 server, port, username=username, password=password)
             self.db = self.connect["stix"]
-
             self.collection_packets = self.db['packets']
             self.collection_runs = self.db['processing_runs']
             self.collection_calibration = self.db['calibration_runs']
-            self.create_indexes()
+            #self.create_indexes()
         except Exception as e:
             STIX_LOGGER.error(str(e))
-        self.calibration_instance=stix_calibration.StixCalibration(self.collection_calibration)
 
-    def create_indexes(self):
-        """to speed up queries """
-        if self.collection_runs:
-            if self.collection_runs.count() == 0:
-                indexes=['file','date']
-                for index in indexes:
-                    self.collection_runs.create_index(indexes)
+        stix_sci_report_analyzer.analyze(self.db,self.current_run_id,
+            self.current_packet_id,packet)
 
-        if self.collection_packets:
-            if self.collection_packets.count() == 0:
-                indexes=['header.unix_time','header.SPID','header.service_type',
-                        'header.service_subtype','run_id','TMTC']
-                for index in indexes:
-                    self.collection_packets.create_index(index)
 
     def register_run(self, in_filename, filesize=0, comment=''):
         try:
@@ -226,7 +212,8 @@ class StixMongoDBWriter(StixPacketWriter):
 
         packet['run_id'] = self.current_run_id
         packet['_id'] = self.current_packet_id
-        self.calibration_instance.capture(self.current_run_id,self.current_packet_id,packet)
+        stix_sci_report_analyzer.analyze(self.db,self.current_run_id,
+            self.current_packet_id,packet)
 
         try:
             self.collection_packets.insert_one(packet)

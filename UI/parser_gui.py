@@ -14,7 +14,6 @@ import webbrowser
 from functools import partial
 from datetime import datetime
 import numpy as np
-#import datetime
 
 from PyQt5 import uic, QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QThread, pyqtSignal, QTimer
@@ -274,7 +273,6 @@ class Ui(mainwindow.Ui_MainWindow):
 
         self.chartView = QChartView(self.chart)
         self.gridLayout.addWidget(self.chartView, 1, 0, 1, 15)
-        #self.packetTreeWidget.itemDoubleClicked.connect(self.onPacketTreeItemDoubleClicked)
         self.selected_services = SELECTED_SERVICES
         self.selected_SPID = []
 
@@ -456,32 +454,7 @@ class Ui(mainwindow.Ui_MainWindow):
         self.hexParser.setHex(raw_hex)
         self.hexParser.start()
 
-    """
-    #def parseHex(self, raw_hex):
-        #data_hex = re.sub(r"\s+", "", raw_hex)
-        #try:
-            #data_binary = binascii.unhexlify(data_hex)
-            #packets = self.stix_tctm_parser.parse_binary(data_binary)
-            #if not packets:
-                return
-        #    self.showMessage(
-        #        '%d packets read' % len(packets))
-        #    self.onDataReady(packets, clear=False, show_stat=False)
-        #except Exception as e:
-        #   self.showMessageBox(str(e), data_hex)
-
-    #def showMessageBox(self, message, content):
-    #    msg = QtWidgets.QMessageBox()
-    #    msg.setIcon(QtWidgets.QMessageBox.Critical)
-    #    msg.setText("Error")
-    #    msg.setInformativeText(message)
-    #    msg.setWindowTitle("Error")
-    ##    msg.setDetailedText(content)
-    #    msg.setStandardButtons(QtWidgets.QMessageBox.Ok
-    #                           | QtWidgets.QMessageBox.Cancel)
-    #    retval = msg.exec_()
-    """
-
+ 
     def showMessage(self, msg, where=0):
         if where != 1:
             self.statusbar.showMessage(msg)
