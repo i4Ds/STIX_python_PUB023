@@ -48,11 +48,14 @@ class Plugin:
             detector_ids = analyzer.to_array('NIX00159/NIXD0155')[0]
             pixels_ids = analyzer.to_array('NIX00159/NIXD0156')[0]
             spectra = analyzer.to_array('NIX00159/NIX00146/*')[0]
-            live_time = float(analyzer.to_array('NIX00122')[0])
-            quiet_time = float(analyzer.to_array('NIX00123')[0])
-            compression_s = int(analyzer.to_array('NIXD0126')[0])
-            compression_k = int(analyzer.to_array('NIXD0127')[0])
-            compression_m = int(analyzer.to_array('NIXD0128')[0])
+
+            parameters=packet['parameters']
+
+            live_time = parameters[4][1][0]
+            quiet_time = parameters[3][1][0]
+            compression_s = parameters[6][1][0]
+            compression_k =  parameters[7][1][0]
+            compression_m = parameters[8][1][0]
 
             for i, spec in enumerate(spectra):
                 if sum(spec) > 0:
