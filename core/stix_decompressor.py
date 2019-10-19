@@ -5,7 +5,7 @@
 # @description:
 #               decompression of compressed parameters
 
-from core import stix_logger
+from . import stix_logger
 STIX_LOGGER = stix_logger.stix_logger()
 
 SKM_GROUPS = {

@@ -1,7 +1,7 @@
 #!/usr/bin/python3
+import os.path
 import sys
-sys.path.append('..')
-sys.path.append('.')
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import os
 import pickle
 import gzip
@@ -957,7 +957,7 @@ class Ui(mainwindow.Ui_MainWindow):
         self.plotParameter(SPID, it.text(0), it.text(1))
 
 
-if __name__ == '__main__':
+def main():
     filename = None
     if len(sys.argv) >= 2:
         filename = sys.argv[1]
@@ -968,3 +968,5 @@ if __name__ == '__main__':
     if filename:
         window.openFile(filename)
     sys.exit(app.exec_())
+if __name__ == '__main__':
+    main()

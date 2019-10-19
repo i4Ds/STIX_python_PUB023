@@ -16,15 +16,15 @@ import pathlib
 import xmltodict
 from scipy import interpolate
 from dateutil import parser as dtparser
-from core import stix_header
-from core import stix_idb
-from core import stix_global
-from core import stix_logger
-from core import stix_writer
-from core import stix_context
-from core import stix_parameter
-from core import stix_decompressor
-from core import stix_datetime
+from . import stix_header
+from . import stix_idb
+from . import stix_global
+from . import stix_logger
+from . import stix_writer
+from . import stix_context
+from . import stix_parameter
+from . import stix_decompressor
+from . import stix_datetime
 
 from pprint import pprint
 CONTEXT_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I']

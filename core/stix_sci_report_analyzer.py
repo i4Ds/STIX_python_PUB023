@@ -1,5 +1,5 @@
-from core import stix_packet_analyzer as sta
-from core import stix_datetime
+from . import stix_packet_analyzer as sta
+from . import stix_datetime
 import sys
 import pprint
 class StixCalibrationReportAnalyzer(object):

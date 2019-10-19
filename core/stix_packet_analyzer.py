@@ -4,7 +4,7 @@
 import sys
 sys.path.append('..')
 sys.path.append('.')
-from core import stix_parameter as stp
+from . import stix_parameter as stp
 
 
 class StixPacketAnalyzer(object):

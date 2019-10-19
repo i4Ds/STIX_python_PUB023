@@ -4,7 +4,7 @@
 # @date         : Feb. 11, 2019
 # @description:
 #               definitions of structures of decoded parameters
-from core import stix_idb
+from . import stix_idb
 STIX_IDB = stix_idb.stix_idb()
 
 

@@ -56,7 +56,7 @@ pip3 install numpy xmltodict PyQt5 pyqtchart scipy pymongo python-dateutil
 #### 3.1. Running as a command-line parser
 
 Usage:
-python3 applications/parser.py
+python3 apps/parser.py
 ```console
 Usage: parser.py [-h] -i [INPUT] [-o OUTPUT] [--idb IDB] [--opf {tuple,dict}]
                  [-t {binary,ascii,xml}] [--wdb] [--db-host DB_HOST]
@@ -95,7 +95,7 @@ Optional arguments:
 
 Example:
 ```console
-python3 applications/parser.py -i <RAW_DATA_FILENAME> -o <OUTPUT>  -v  <Verbose level>
+python3 apps/parser.py -i <RAW_DATA_FILENAME> -o <OUTPUT>  -v  <Verbose level>
 ```
 
 #### 3.2. Embedding the parser in your code.  

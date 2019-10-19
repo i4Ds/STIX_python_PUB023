@@ -10,13 +10,13 @@ import pickle
 import gzip
 import pymongo
 import time
-from core import stix_logger
-from core import stix_global
-from core import stix_packet_analyzer 
-from core import stix_datetime
-from core import stix_sci_report_analyzer as scia
-from core import stix_packet_analyzer as sta
-from core import stix_datetime
+from . import stix_logger
+from . import stix_global
+from . import stix_packet_analyzer 
+from . import stix_datetime
+from . import stix_sci_report_analyzer as scia
+from . import stix_packet_analyzer as sta
+from . import stix_datetime
 STIX_LOGGER = stix_logger.stix_logger()
 
 
