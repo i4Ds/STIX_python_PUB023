@@ -2,26 +2,28 @@
 # -*- coding: utf-8 -*-
 #
 # @title        : IDB.py
-# @description  : STIX idb python interface
+# @description  : STIX idb interface
 # @author       : Hualin Xiao
 # @date         : Feb. 15, 2019
 from __future__ import (absolute_import, unicode_literals)
 import os
 import sqlite3
 import threading
-IDB_POSSIBLE_FILENAMES = [
-    'idb/idb.sqlite', '../idb/idb.sqlite', '../idb/idb.db', '../idb.sqlite',
-    '../idb.db'
-]
+from . import stix_logger
+STIX_LOGGER = stix_logger.stix_logger()
+
+
 
 
 def find_idb(filename):
     if filename:
         if os.path.exists(filename):
             return filename
-    for fname in IDB_POSSIBLE_FILENAMES:
-        if os.path.exists(fname):
-            return fname
+    default_abs_path= os.path.join(os.path.dirname(os.path.dirname(
+        os.path.realpath(__file__))),'idb/idb.sqlite')
+
+    if os.path.exists(default_abs_path):
+        return default_abs_path
     return None
 
 
@@ -41,7 +43,7 @@ class _IDB(object):
     #make sure only one instance is created
     def __init__(self, filename=''):
         if _IDB.__instance:
-            raise Exception('IDB already initialized')
+            STIX_LOGGER.warn('IDB already initialized')
         else:
             _IDB.__instance = self
         self.conn = None
@@ -54,6 +56,7 @@ class _IDB(object):
         self.parameter_descriptions = dict()
         self.s2k_table_contents = dict()
         self.filename = find_idb(filename)
+        self.num_trials = 0
         if self.filename:
             self.connect_database(self.filename)
 
@@ -81,8 +84,15 @@ class _IDB(object):
     def connect_database(self, filename):
         try:
             self.conn = sqlite3.connect(filename, check_same_thread=False)
+            STIX_LOGGER.info('IDB loaded from {}'.format(filename))
+            self.filename=filename
         except sqlite3.Error:
-            raise Exception('Failed to connect to IDB !')
+            STIX_LOGGER.error('Failed load IDB from {}'.format(filename))
+            if self.num_trials == 0:
+                default_IDB_filepath=find_idb('')
+                STIX_LOGGER.info('Trying to load IDB from {}'.format(filename))
+                self.connect_database(default_IDB_filepath)
+                self.num_trials += 1
         self.cur = self.conn.cursor()
 
     def close(self):
@@ -363,6 +373,8 @@ def stix_idb(filename=''):
 
 if __name__ == '__main__':
     """ test  the database interface"""
-    import sys
-    idb = stix_idb()
-    print(idb.is_variable_length_telecommand('ZIX37701'))
+    #import sys
+    #idb = stix_idb()
+    print(find_idb('test'))
+
+    #print(idb.is_variable_length_telecommand('ZIX37701'))

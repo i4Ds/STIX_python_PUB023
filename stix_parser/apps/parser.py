@@ -6,10 +6,10 @@
 # @date         : Feb. 11, 2019
 #
 
-#from __future__ import (absolute_import, unicode_literals)
-import os.path
+import os
 import sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.append(os.path.abspath(__file__ + "/../../"))
+
 import argparse
 from core import stix_logger
 from core import stix_parser

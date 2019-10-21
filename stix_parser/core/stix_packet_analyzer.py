@@ -1,9 +1,6 @@
 #!/usr/bin/python3
 #stix packet analyzer
 
-import sys
-sys.path.append('..')
-sys.path.append('.')
 from . import stix_parameter as stp
 
 

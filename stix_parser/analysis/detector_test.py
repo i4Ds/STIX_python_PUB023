@@ -2,8 +2,7 @@
 import os
 
 import sys
-sys.path.append('..')
-sys.path.append('.')
+sys.path.append(os.path.abspath(__file__ + "/../../"))
 
 import numpy as np
 from matplotlib.backends.backend_pdf import PdfPages

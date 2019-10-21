@@ -1,9 +1,8 @@
 
 import os
-
 import sys
-sys.path.append('..')
-sys.path.append('.')
+sys.path.append(os.path.abspath(__file__ + "/../../"))
+
 from core import stix_packet_analyzer as sta
 analyzer = sta.analyzer()
 

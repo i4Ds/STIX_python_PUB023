@@ -1,14 +1,13 @@
 
 import os
 
-import sys
-sys.path.append('..')
-sys.path.append('.')
-
 import numpy as np
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib import pyplot as plt
 from datetime import datetime
+import sys
+sys.path.append(os.path.abspath(__file__ + "/../../"))
+
 from core import stix_packet_analyzer as sta
 
 analyzer = sta.analyzer()

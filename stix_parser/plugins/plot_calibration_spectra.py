@@ -5,7 +5,7 @@ import os
 import sys
 sys.path.append('..')
 sys.path.append('.')
-from core import stix_packet_analyzer as sta
+from stix_parser.core import stix_packet_analyzer as sta
 analyzer = sta.analyzer()
 
 from PyQt5 import QtWidgets, QtCore, QtGui

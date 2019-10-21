@@ -388,4 +388,4 @@ class Ui_MainWindow(object):
             _translate("MainWindow", "Binary data viewer"))
 
 
-from UI import mainwindow_rc5
+from . import mainwindow_rc5

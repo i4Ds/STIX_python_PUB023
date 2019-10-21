@@ -1,8 +1,6 @@
 #!/usr/bin/python3
-import os.path
-import sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import os
+import sys
 import pickle
 import gzip
 import re
@@ -19,19 +17,21 @@ from PyQt5 import uic, QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QThread, pyqtSignal, QTimer
 from PyQt5.QtChart import QChart, QChartView, QLineSeries, QValueAxis, QBarSeries, QBarSet, QScatterSeries
 
+sys.path.append(os.path.abspath(__file__ + "/../../"))
+
 from core import stix_parser
 from core import stix_writer
 from core import stix_idb
-from utils import mongo_db as mgdb
+from core import mongo_db as mgdb
 from core.stix_datetime import format_datetime
 from core import stix_logger
-from UI import mainwindow_rc5
-from UI import mainwindow
-from UI import mongo_dialog
-from UI import tsc_connection
-from UI import packet_filter
-from UI import plugin
-from UI import raw_viewer
+from . import mainwindow_rc5
+from . import mainwindow
+from . import mongo_dialog
+from . import tsc_connection
+from . import packet_filter
+from . import plugin
+from . import raw_viewer
 from core import stix_parameter
 
 SELECTED_SERVICES = [1, 3, 5, 6, 17, 21, 22, 236, 237, 238, 239]
@@ -285,8 +285,13 @@ class Ui(mainwindow.Ui_MainWindow):
         if not STIX_IDB.is_connected():
             self.showMessage('IDB has not been set!')
         else:
+            idb_filename=STIX_IDB.get_idb_filename()
             self.showMessage(
-                'IDB location: {} '.format(STIX_IDB.get_idb_filename()), 1)
+                'IDB loaded from : {} '.format(idb_filename), 1)
+            if idb_filename!=self.idb_filename:
+                self.settings.setValue('idb_filename',idb_filename)
+                self.idb_filename=idb_filename
+
 
     def onPlotAutoUpdateButtonClicked(self):
         if not self.timmer_is_on:
