@@ -6,11 +6,11 @@
 # To process all unprocessed file run ./analysis/quick_processing  --wdb  --all
 
 #from __future__ import (absolute_import, unicode_literals)
-import os
 import sys
+import os
+sys.path.append(os.path.abspath(__file__ + "/../../"))
+
 import argparse
-sys.path.append('..')
-sys.path.append('.')
 from matplotlib.backends.backend_pdf import PdfPages
 
 from core import stix_logger
@@ -20,7 +20,7 @@ from analysis import calibration
 from analysis import housekeeping as hk
 from analysis import ql_lightcurve as qllc
 
-from utils import mongo_db
+from core import mongo_db
 STIX_LOGGER = stix_logger.stix_logger()
 
 OUTPUT_PDF_DIRECTORY='pdf'

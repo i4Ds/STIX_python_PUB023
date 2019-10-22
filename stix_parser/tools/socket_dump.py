@@ -2,7 +2,7 @@
 # @file         : socket_dump.py
 # @description  : A tool to receive packets via socket and dump the packets to a file
 # @author       : Hualin Xiao
-# @date         : Feb. 11, 2019
+# @date         : Oct. 11, 2019
 # usage:
 #     python3 socket_dump.py <OUTPUT>
 
