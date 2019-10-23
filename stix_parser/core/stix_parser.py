@@ -89,7 +89,7 @@ def find_next_header(buf, i):
     length = len(buf)
     while i < length:
         x = buf[i]
-        if x == 0x0D or x == 0x1D:
+        if x == 0x0D or x == 0x1D or x==0x1B:
             return i
         else:
             i += 1
@@ -818,7 +818,7 @@ class StixTCTMParser(StixParameterParser):
 
     def parse_telecommand_header(self, buf, ipos):
         # see STIX ICD-0812-ESC  (Page 56)
-        if buf[ipos] != 0x1D:
+        if buf[ipos] != 0x1D and buf[ipos] !=0x1B:
             return stix_global.HEADER_FIRST_BYTE_INVALID, None
         try:
             header_raw = st.unpack('>HHHBBBB', buf[ipos:ipos+10])
@@ -933,7 +933,8 @@ class StixTCTMParser(StixParameterParser):
                 if self.store_binary:
                     packet['bin'] = header_raw + data_field_raw
 
-            elif buf[i] == 0x1D:
+            elif buf[i] == 0x1D or buf[i]==0x1B:
+
 
                 if len(buf)-i < 10:
                     STIX_LOGGER.warn(

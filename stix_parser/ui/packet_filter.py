@@ -69,10 +69,17 @@ class Ui_Dialog(object):
         self.checkBoxS238.setChecked(True)
         self.checkBoxS238.setObjectName("checkBoxS238")
         self.gridLayout.addWidget(self.checkBoxS238, 5, 1, 1, 1)
+
         self.checkBoxS239 = QtWidgets.QCheckBox(self.groupBox)
         self.checkBoxS239.setChecked(True)
         self.checkBoxS239.setObjectName("checkBoxS239")
         self.gridLayout.addWidget(self.checkBoxS239, 6, 0, 1, 1)
+
+        self.checkBoxS20= QtWidgets.QCheckBox(self.groupBox)
+        self.checkBoxS20.setChecked(True)
+        self.checkBoxS20.setObjectName("checkBoxS20")
+        self.gridLayout.addWidget(self.checkBoxS20, 6, 1, 1, 1)
+
         self.horizontalLayout.addLayout(self.gridLayout)
         self.verticalLayout.addWidget(self.groupBox)
         self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
@@ -144,6 +151,9 @@ class Ui_Dialog(object):
             services.append(238)
         if self.checkBoxS239.isChecked():
             services.append(239)
+
+        if self.checkBoxS20.isChecked():
+            services.append(20)
         if self.checkBoxS5.isChecked():
             services.append(5)
 
@@ -160,6 +170,7 @@ class Ui_Dialog(object):
         self.checkBoxS237.setChecked(237 in services)
         self.checkBoxS238.setChecked(238 in services)
         self.checkBoxS239.setChecked(239 in services)
+        self.checkBoxS20.setChecked(20 in services)
 
     def selectAll(self):
         self.checkBoxS1.setChecked(True)
@@ -172,6 +183,7 @@ class Ui_Dialog(object):
         self.checkBoxS237.setChecked(True)
         self.checkBoxS238.setChecked(True)
         self.checkBoxS239.setChecked(True)
+        self.checkBoxS20.setChecked(True)
         self.checkBoxS5.setChecked(True)
 
     def selectNone(self):
@@ -186,6 +198,7 @@ class Ui_Dialog(object):
         self.checkBoxS237.setChecked(False)
         self.checkBoxS238.setChecked(False)
         self.checkBoxS239.setChecked(False)
+        self.checkBoxS20.setChecked(False)
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
@@ -210,5 +223,7 @@ class Ui_Dialog(object):
             _translate("Dialog", "Service 238 (archive)"))
         self.checkBoxS239.setText(
             _translate("Dialog", "Service 239 (test and debug)"))
+        self.checkBoxS20.setText(
+            _translate("Dialog", "Service 20 (clock distribution)"))
         self.label.setText(_translate("Dialog", "or by SPID(s):"))
         self.lineEditSPID.setText(_translate("Dialog", "*"))

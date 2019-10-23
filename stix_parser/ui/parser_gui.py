@@ -34,7 +34,7 @@ from . import plugin
 from . import raw_viewer
 from core import stix_parameter
 
-SELECTED_SERVICES = [1, 3, 5, 6, 17, 21, 22, 236, 237, 238, 239]
+SELECTED_SERVICES = [1, 3, 5, 6, 17,20, 21, 22, 236, 237, 238, 239]
 
 STIX_IDB = stix_idb.stix_idb()
 STIX_LOGGER = stix_logger.stix_logger()
@@ -613,8 +613,7 @@ class Ui(mainwindow.Ui_MainWindow):
                 continue
             header = p['header']
             root = QtWidgets.QTreeWidgetItem(self.packetTreeWidget)
-            timestamp_str = format_datetime(header['UTC'])
-
+            timestamp_str = format_datetime(header['unix_time'])
             root.setText(0, timestamp_str)
             root.setText(
                 1, '{}({},{}) - {}'.format(
