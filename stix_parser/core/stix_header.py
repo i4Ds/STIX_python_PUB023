@@ -2,6 +2,11 @@
 # -*- coding: utf-8 -*-
 #  File: header.py
 #  structure needed to decode headers
+
+TC_HEADER_FIRST_BYTE=[0x1D,0x1B]
+TM_HEADER_FIRST_BYTE=[0x0D]
+HEADER_FIRST_BYTE=[0x0D,0x1D,0x1B]
+
 TELEMETRY_RAW_STRUCTURE = [  # each dictionary
     {  #first byte
         'APID': (0, 11),
@@ -41,6 +46,7 @@ TELEMETRY_RAW_STRUCTURE = [  # each dictionary
 ]
 TELEMETRY_HEADER_CONSTRAINTS = {
     'version': [0],
+    'APID':
     'packet_type': [0],
     'seg_flag': range(0, 4),
     'length': range(0, 4106 + 1),

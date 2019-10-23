@@ -81,7 +81,7 @@ class StixLogger(object):
             print(msg)
 
     def important_info(self, msg):
-        self.printf(('[Info {}] : {}'.format(self.get_now(), msg)), 'important')
+        self.printf(('[INFO {}] : {}'.format(self.get_now(), msg)), 'important')
 
     def error(self, msg):
         self.printf(('[ERROR {}] : {}'.format(self.get_now(),msg)), 'error')

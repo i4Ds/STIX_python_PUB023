@@ -20,6 +20,7 @@ class StixParameter(object):
         self._raw = raw
         self._eng = eng
         self._children = []
+        self._parameter=None
 
         if children:
             self._children = children
@@ -84,6 +85,8 @@ class StixParameter(object):
         return self._name == name
 
     def clone(self, parameter):
+        self._parameter=parameter
+        #useful for setting children
         if isinstance(parameter, dict):
             self._name = parameter['name']
             self._raw = parameter['raw']
@@ -104,8 +107,8 @@ class StixParameter(object):
         return self.get_parameter('tuple')
 
     def set_children(self, children=None):
-        if children:
-            self._children = children
+        if children and self._parameter:
+            self._children.extend(children)
 
     @property
     def name(self):

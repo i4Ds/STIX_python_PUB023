@@ -89,7 +89,7 @@ def find_next_header(buf, i):
     length = len(buf)
     while i < length:
         x = buf[i]
-        if x == 0x0D or x == 0x1D or x==0x1B:
+        if x in stix_header.HEADER_FIRST_BYTE:
             return i
         else:
             i += 1
@@ -141,7 +141,7 @@ class StixParameterParser(object):
                 'Parameter {} length mismatch.  Expect: {} real: {}'.format(
                     param_name, nbytes, len(raw_bin)))
             return None
-        bin_struct = str(nbytes) + 's'
+        bin_struct = str(nbytes) + 's' #signed char
         if param_type == 'U' and nbytes <= 6:
             bin_struct = UNSIGNED_UNPACK_FORMAT[nbytes - 1]
         elif param_type == 'I' and nbytes <= 6:
@@ -154,7 +154,7 @@ class StixParameterParser(object):
         #    bin_struct = str(nbytes) + 's'
         results = ()
         raw = st.unpack(bin_struct, raw_bin)
-        if bin_struct == 'BBB':  # 24-bit integer
+        if bin_struct == 'BBB':  # 24-bit integer, a timestamp probably
             value = (raw[0] << 16) | (raw[1] << 8) | raw[2]
             if length < 16 and length % 8 != 0:
                 start_bit = nbytes * 8 - (offset_bits + length)
@@ -507,7 +507,12 @@ class StixTelecommandParser(StixParameterParser):
         self.param_structure = []
         self.buffer = None
 
+
+
     def parse(self, name, buf):
+        """
+            To parse a telecommand
+        """
         self.buffer = buf
         self.tc_name = name
         self.param_structure = []
@@ -518,15 +523,16 @@ class StixTelecommandParser(StixParameterParser):
             return self.parse_variable_telecommand()
         return self.parse_fixed_telecommand()
 
+
+
     def parse_fixed_telecommand(self):
         params = []
         for par in self.param_structure:
-            result = self.parse_one(par, True, True)
-            if result:
-                params.append(result)
+            result = self.parse_one(par, is_fixed = True, calibration_enabled = True)
+            params.append(result)
         return int(self.current_bit_offset / 8), params, stix_global.OK
 
-    def parse_one(self, par, is_fixed=True, calibration_enabled=True):
+    def parse_one(self, par, is_fixed = True, calibration_enabled = True):
         cdf_type = par['CDF_ELTYPE']
         param_name = ''
         ptc = 0
@@ -551,8 +557,9 @@ class StixTelecommandParser(StixParameterParser):
             #CDF_ELLIEN is not respected  for variable telecommand
             offset = int(self.current_bit_offset / 8)
             offset_bits = int(self.current_bit_offset % 8)
-            # need to be checked
+            # need to be checked, may be wrong
             self.current_bit_offset += width
+
         parameter = self.decode_parameter(
             self.buffer,
             param_name,
@@ -654,7 +661,7 @@ class StixTCTMParser(StixParameterParser):
     def __init__(self):
         super(StixTCTMParser, self).__init__()
         self.vp_tm_parser = StixVariableTelemetryPacketParser()
-        self.vp_tc_parser = StixTelecommandParser()
+        self.tc_parser = StixTelecommandParser()
         self.context_parser = StixContextParser()
         self.selected_services = []
         self.selected_spids = []
@@ -732,7 +739,7 @@ class StixTCTMParser(StixParameterParser):
         if len(packet) < 16:
             STIX_LOGGER.warn("Packet length < 16. Packet ignored!")
             return stix_global.PACKET_TOO_SHORT, None
-        if ord(packet[0:1]) != 0x0D:
+        if ord(packet[0:1]) not in stix_header.TM_HEADER_FIRST_BYTE:
             return stix_global.HEADER_FIRST_BYTE_INVALID, None
         header_raw = st.unpack('>HHHBBBBIH', packet[0:16])
         header = {}
@@ -818,7 +825,7 @@ class StixTCTMParser(StixParameterParser):
 
     def parse_telecommand_header(self, buf, ipos):
         # see STIX ICD-0812-ESC  (Page 56)
-        if buf[ipos] != 0x1D and buf[ipos] !=0x1B:
+        if buf[ipos] not in  stix_header.TC_HEADER_FIRST_BYTE:
             return stix_global.HEADER_FIRST_BYTE_INVALID, None
         try:
             header_raw = st.unpack('>HHHBBBB', buf[ipos:ipos+10])
@@ -857,6 +864,23 @@ class StixTCTMParser(StixParameterParser):
                 status = stix_global.HEADER_KEY_ERROR
         return status, header
 
+    def parse_S20(self, parameters):
+        """
+          The detailed structure of S20 is not defined in IDB
+        """
+        try:
+            param_hb=parameters[9]
+            #platform data parser to be added
+        except IndexError:
+            return
+        param_obj=stix_parameter.StixParameter()
+        param_obj.clone(param_hb)
+        raw_bin=param_obj.raw[0]
+        hb_param_children= self.parse_fixed_telemetry_packet(
+               raw_bin, 54103)
+        #parse them as for HK4
+        param_obj.set_children(hb_param_children)
+
     def parse_binary(self, buf, i=0):
         """
         Inputs:
@@ -873,7 +897,7 @@ class StixTCTMParser(StixParameterParser):
         last = 0
         while i < length:
             packet = None
-            if buf[i] == 0x0D:
+            if buf[i] in stix_header.TM_HEADER_FIRST_BYTE :
                 status, i, header_raw = get_from_bytearray(buf, i, 16)
                 if status == stix_global.EOF:
                     break
@@ -912,7 +936,7 @@ class StixTCTMParser(StixParameterParser):
                         self.num_filtered += 1
                         continue
 
-                STIX_DECOMPRESSOR.initalize_decompressor(spid)
+                STIX_DECOMPRESSOR.initialize_decompressor(spid)
 
                 parameters = None
                 if tpsd == -1:
@@ -933,9 +957,7 @@ class StixTCTMParser(StixParameterParser):
                 if self.store_binary:
                     packet['bin'] = header_raw + data_field_raw
 
-            elif buf[i] == 0x1D or buf[i]==0x1B:
-
-
+            elif buf[i] in stix_header.TC_HEADER_FIRST_BYTE:
                 if len(buf)-i < 10:
                     STIX_LOGGER.warn(
                         "Incomplete packet. The last {} bytes  were not parsed"
@@ -958,12 +980,19 @@ class StixTCTMParser(StixParameterParser):
                     break
 
                 telecommand_name = header['name']
-                num_read, parameters, status = self.vp_tc_parser.parse(
+                num_read, parameters, status = self.tc_parser.parse(
                     telecommand_name, data_field_raw)
                 if num_read != data_field_length - 2:  #the last two bytes is CRC
                     STIX_LOGGER.warn(
                         ' TC {} data field size: {}B, actual read: {}B'.format(
                             telecommand_name, data_field_length, num_read))
+
+
+                if telecommand_name == 'ZIX20128' and parameters:
+                    #S20 detailed structure  not defined in ICD
+                    self.parse_S20(parameters)
+
+
                 packet = {'header': header, 'parameters': parameters}
                 self.num_tc_parsed += 1
                 STIX_LOGGER.pprint(packet)
@@ -972,13 +1001,13 @@ class StixTCTMParser(StixParameterParser):
 
             else:
                 old_i = i
-                STIX_LOGGER.warn('Unknown packet {} at {}'.format(buf[i], i))
+                STIX_LOGGER.warn('Unrecognized byte: {} at Pos {}'.format(hex(buf[i]), i))
                 i = find_next_header(buf, i)
                 if i == stix_global.EOF:
                     break
                 self.num_bad_bytes += i - old_i
                 STIX_LOGGER.warn(
-                    'New header found at {}, {} bytes skipped!'.format(
+                    'New header found at Pos {}, {} bytes ignored!'.format(
                         i, i - old_i))
 
             if packet:

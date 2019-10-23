@@ -330,7 +330,7 @@ class StixDecompressor(object):
     def is_compressed(self):
         return self.compressed
 
-    def initalize_decompressor(self, spid):
+    def initialize_decompressor(self, spid):
         self.compressed = False
         self.spid = spid
         if self.spid not in PACKETS_WITH_COMPRESSION:
@@ -377,7 +377,6 @@ class StixDecompressor(object):
             return None
 
     def get_decompressed_value(self, param_name, raw):
-        
         if not self.compressed:
             return None
         if not self.set_SKM(param_name, raw):  #they are not  SKM
