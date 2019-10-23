@@ -46,7 +46,6 @@ TELEMETRY_RAW_STRUCTURE = [  # each dictionary
 ]
 TELEMETRY_HEADER_CONSTRAINTS = {
     'version': [0],
-    'APID':
     'packet_type': [0],
     'seg_flag': range(0, 4),
     'length': range(0, 4106 + 1),
