@@ -875,7 +875,8 @@ class StixTCTMParser(StixParameterParser):
             return
         param_obj=stix_parameter.StixParameter()
         param_obj.clone(param_hb)
-        raw_bin=param_obj.raw[0]
+        raw_bin=b'\x04'+param_obj.raw[0]
+        #add one byte to make it the same as  HK4
         hb_param_children= self.parse_fixed_telemetry_packet(
                raw_bin, 54103)
         #parse them as for HK4
