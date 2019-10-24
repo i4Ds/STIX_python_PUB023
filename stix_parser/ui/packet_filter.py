@@ -108,12 +108,9 @@ class Ui_Dialog(object):
         return services
 
     def setSelectedServices(self, services):
-        for ser in services:
-            try:
-                index = services.index(ser)
-                self.checkBoxes[index].setChecked(True)
-            except ValueError:
-                pass
+        for i, checkBox in enumerate(self.checkBoxes):
+            checkBox.setChecked(SERVICES[i] in services)
+            
 
     def selectAll(self):
         for checkBox in self.checkBoxes:

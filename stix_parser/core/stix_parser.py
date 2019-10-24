@@ -1162,3 +1162,5 @@ class StixTCTMParser(StixParameterParser):
     def done(self):
         if self.packet_writer:
             self.packet_writer.close()
+    def set_verbose(self,verbose):
+        STIX_LOGGER.set_verbose(verbose)

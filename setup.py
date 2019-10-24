@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
       name='stix_parser',
-      version='1.3',
+      version='1.4',
       description='STIX python data parser',
       author='Hualin Xiao',
       author_email='hualin.xiao@fhnw.ch',
