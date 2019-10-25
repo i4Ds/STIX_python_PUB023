@@ -9,10 +9,8 @@ from __future__ import (absolute_import, unicode_literals)
 import os
 import sqlite3
 import threading
-from . import stix_logger
+from stix_parser.core import stix_logger
 STIX_LOGGER = stix_logger.stix_logger()
-
-
 
 
 def find_idb(filename):
@@ -372,7 +370,8 @@ def stix_idb(filename=''):
 if __name__ == '__main__':
     """ test  the database interface"""
     #import sys
-    #idb = stix_idb()
-    print(find_idb('test'))
+    import pprint
+    idb = stix_idb()
+    #print(find_idb('test'))
+    pprint.pprint(idb.get_fixed_packet_structure(54102))
 
-    #print(idb.is_variable_length_telecommand('ZIX37701'))
