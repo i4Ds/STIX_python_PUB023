@@ -307,7 +307,7 @@ def decompress(x, S, K, M):
     # number of shifted bits during  compression
     mantissa2 = mask2 | mantissa1  #add 1 before mantissa
     low = mantissa2 << exponent  #minimal value
-    high = low | ((1 << exponent) - 1)  #maxima value
+    high = low | ((1 << exponent) - 1)  #maximal value
     mean = (low + high) >> 1  #mean value
 
     if mean > 1e8:

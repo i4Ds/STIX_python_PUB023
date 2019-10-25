@@ -18,7 +18,6 @@ class StixLogger(object):
         return StixLogger.__instance
 
     #singleton
-
     def __init__(self, filename=None, verbose=10):
 
         if StixLogger.__instance:

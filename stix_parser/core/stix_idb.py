@@ -332,8 +332,6 @@ class _IDB(object):
             return rows
 
     def get_textual_mapping(self, parameter_name):
-        #select PCF_NAME, PCF_CURTX, TXP_FROM,TXP_TO, TXP_ALTXT from TXP join PCF on PCF_CURTX=TXP_NUMBR order by PCF_NAME asc
-        #sql='select  TXP_FROM,TXP_TO, TXP_ALTXT from TXP join PCF on PCF_CURTX=TXP_NUMBR where PCF_NAME=? order by PCF_NAME asc'
         sql = 'select  TXP_FROM, TXP_ALTXT from TXP join PCF on PCF_CURTX=TXP_NUMBR where PCF_NAME=? order by TXP_FROM asc'
         args = (parameter_name, )
         rows = self.execute(sql, args)
@@ -344,7 +342,7 @@ class _IDB(object):
 
     def textual_interpret(self, pcf_curtx, raw_value):
         if (pcf_curtx, raw_value) in self.textual_parameter_lut:
-            #build the lookup table
+            #build a lookup table
             return self.textual_parameter_lut[(pcf_curtx, raw_value)]
 
         sql = ('select TXP_ALTXT from TXP where  TXP_NUMBR=? and ?>=TXP_FROM '
