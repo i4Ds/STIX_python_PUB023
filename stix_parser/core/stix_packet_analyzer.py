@@ -2,6 +2,15 @@
 #stix packet analyzer
 
 from . import stix_parameter as stp
+
+class Packet(object):
+    def __init__(self, packet):
+        self._header=packet['header']
+        self._parameters=packet['parameters']
+
+    def __getitem__(object
+
+
 class StixPacketAnalyzer(object):
     def __init__(self):
         self._parameters = []
@@ -34,8 +43,7 @@ class StixPacketAnalyzer(object):
             self._parameter_vector['unix_time'].append(header['unix_time'])
 
         for e in parameters:
-            param = stp.StixParameter()
-            param.clone(e)
+            param = stp.StixParameter(e)
             value = 0
             name = param.name
             if 'NIXG' in name:

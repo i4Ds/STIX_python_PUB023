@@ -101,17 +101,16 @@ class StixQLLightCurveAnalyzer(object):
         parameters=packet['parameters']
         if header['SPID'] not in [54118]:
             return
-
         
-        start_coarse_time=parameters[1][1][0]
-        start_fine_time=parameters[2][1][0]
-        integrations=parameters[3][1][0]
-        detector_mask=parameters[4][1][0]
-        pixel_mask=parameters[5][1][0]
+        start_coarse_time=parameters[1][1]
+        start_fine_time=parameters[2][1]
+        integrations=parameters[3][1]
+        detector_mask=parameters[4][1]
+        pixel_mask=parameters[5][1]
         start_unix_time=stix_datetime.convert_SCET_to_unixtimestamp(start_coarse_time+start_fine_time/65536.)
 
         self.analyzer.load(packet)
-        points=self.analyzer.to_array('NIX00270/NIX00271',once=True)[0][0]
+        points=self.analyzer.to_array('NIX00270/NIX00271',once=True)[0]
         duration=points*0.1*(integrations+1)
         report={
                 '_id': self.current_report_id,

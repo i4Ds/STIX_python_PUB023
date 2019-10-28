@@ -390,8 +390,15 @@ class StixVariableTelemetryPacketParser(StixParameterParser):
                 if pnode['children']:
                     raw = param.get('raw')
                     if raw:
+                        
                         pnode['counter'] = raw[0]
+                        if raw[0]==0:
+                            STIX_LOGGER.warn(
+                                    'Children of {} are not decoded due to invalid repeater value 0 .'.format(
+                                pnode['name']))
+
                         self.walk(pnode, param.children)
+
                     else:
                         STIX_LOGGER.warn(
                             'Children of {} are not decoded.'.format(
@@ -650,6 +657,10 @@ class StixTelecommandParser(StixParameterParser):
                     if raw:
                         pnode['counter'] = raw[0]
                         self.walk(pnode, param.children)
+                        if raw[0]==0:
+                            STIX_LOGGER.warn(
+                                    'Children of {} are not decoded due to invalid repeater value 0 .'.format(
+                                pnode['name']))
                     else:
                         STIX_LOGGER.warn(
                             'Children of TC {} are not decoded.'.format(
