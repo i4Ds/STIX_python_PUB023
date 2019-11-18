@@ -1,21 +1,18 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8 -*-
 # @title        : parser.py
-# @description  : STIX TM packet parser
+# @description  : STIX TCTM packet parser
 # @author       : Hualin Xiao
 # @date         : Feb. 11, 2019
 #
 
-import os
-import sys
-sys.path.append(os.path.abspath(__file__ + "/../../"))
-
 import argparse
-from core import stix_logger
-from core import stix_parser
-from core import stix_idb
+import os
+from stix_parser.core import config
 
-STIX_LOGGER = stix_logger.stix_logger()
+from stix_parser.core import stix_logger, stix_idb, stix_parser
+
+logger = stix_logger.get_logger()
 
 
 def main():
@@ -44,13 +41,6 @@ def main():
         required=False,
         help="IDB sqlite3 filename. ")
 
-    optional.add_argument(
-        "--opf",
-        dest='param_format',
-        default='tuple',
-        required=False,
-        choices=('tuple', 'dict'),
-        help="format to store output parameters. ")
 
     optional.add_argument(
         "-t",
@@ -74,13 +64,14 @@ def main():
     optional.add_argument(
         "--db-port",
         dest='db_port',
-        default=27017,
+        default=config.mongodb['port'],
         type=str,
         help='MongoDB host port.')
     optional.add_argument(
-        "--db-user", dest='db_user', default='', help='MongoDB username.')
+        "--db-user", dest='db_user', 
+        default=config.mongodb['user'], help='MongoDB username.')
     optional.add_argument(
-        "--db-pwd", dest='db_pwd', default='', help='MongoDB password.')
+        "--db-pwd", dest='db_pwd', default=config.mongodb['password'], help='MongoDB password.')
     optional.add_argument(
         "-m", default='', dest='comment', required=False, help="comment")
 
@@ -116,16 +107,19 @@ def main():
         help="Log filename")
 
     args = vars(ap.parse_args())
-    STIX_LOGGER.set_logger(args['logfile'], args['verbose'])
+
+
+    logger.set_logger(args['logfile'], args['verbose'])
+
+    if not os.path.exists(args['input']):
+        logger.error("File {} doesn't exist.".format(args['input']))
+        return
+
     if args['idb']:
         idb_instance = stix_idb.stix_idb(args['idb'])
 
     parser = stix_parser.StixTCTMParser()
-    param_format = args['param_format']
-    if args['wdb']:
-        param_format = 'tuple'
-        #must be tuple as they consume  less storage
-    parser.set_parameter_format(param_format)
+
 
     selected_spids = args['SPID']
     selected_services = args['services']
@@ -136,12 +130,12 @@ def main():
         parser.set_store_binary_enabled(False)
         parser.set_pickle_writer(args['output'], args['comment'])
     if args['wdb']:
-        parser.set_store_packet_enabled(False)
         parser.set_store_binary_enabled(False)
         parser.set_store_packet_enabled(False)
         parser.set_MongoDB_writer(args['db_host'], args['db_port'],
                                   args['db_user'], args['db_pwd'],
                                   args['comment'])
+
 
     parser.parse_file(args['input'], args['input_type'])
     parser.done()

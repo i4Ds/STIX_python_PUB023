@@ -3,15 +3,15 @@
 #  File: header.py
 #  structure needed to decode headers
 
-TC_HEADER_FIRST_BYTE=[0x1D,0x1B]
-TM_HEADER_FIRST_BYTE=[0x0D]
-HEADER_FIRST_BYTE=[0x0D,0x1D,0x1B]
+TC_HEADER_FIRST_BYTE = [0x1D, 0x1B]
+TM_HEADER_FIRST_BYTE = [0x0D]
+HEADER_FIRST_BYTE = [0x0D, 0x1D, 0x1B]
 
 TELEMETRY_RAW_STRUCTURE = [  # each dictionary
     {  #first byte
-        'APID': (0, 11),
+        'apid': (0, 11),
         'category': (0, 4),
-        'APID_pid': (4, 7),
+        'pid': (4, 7),
         'packet_id': (0, 16),
         'version': (13, 3),
         'packet_type': (12, 1),
@@ -26,7 +26,7 @@ TELEMETRY_RAW_STRUCTURE = [  # each dictionary
         'length': (0, 16)  # real length is length+1+6
     },
     {
-        'PUS': (0, 8),
+        'pus': (0, 8),
     },
     {
         'service_type': (0, 8)
@@ -49,12 +49,7 @@ TELEMETRY_HEADER_CONSTRAINTS = {
     'packet_type': [0],
     'seg_flag': range(0, 4),
     'length': range(0, 4106 + 1),
-    'PUS': [16],
-}
-TELECOMMAND_HEADER_CONSTRAINTS = {
-    'version': [0],
-    #'length': range(0, 223 + 1),
-    'seg_flag': [3],
+    'pus': [16],
 }
 
 PACKET_SEG = [
@@ -69,9 +64,9 @@ ACK_MAPPING = {
 
 TELECOMMAND_RAW_STRUCTURE = [  # each dictionary
     {
-        'APID': (0, 11),
+        'apid': (0, 11),
         'category': (0, 4),
-        'APID_pid': (4, 7),
+        'pid': (4, 7),
         'packet_id': (0, 16),
         'version': (13, 3),
         'packet_type': (12, 1),
@@ -86,9 +81,9 @@ TELECOMMAND_RAW_STRUCTURE = [  # each dictionary
         'length': (0, 16)  # real length is length+1+6
     },
     {
-        'CCSDC': (0, 1),
-        'PUS': (1, 3),
-        'ACK': (4, 4),
+        'ccsdc': (0, 1),
+        'pus': (1, 3),
+        'ack': (4, 4),
     },
     {
         'service_type': (0, 8)
@@ -103,3 +98,11 @@ TELECOMMAND_RAW_STRUCTURE = [  # each dictionary
         'subtype': (0, 8)
     }
 ]
+
+TELECOMMAND_HEADER_CONSTRAINTS = {
+    'version': [0],
+    #'length': range(0, 224+1),
+    'seg_flag': [3],
+    #'ccsdc':[0],
+    #'pus':[1]
+}

@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8 -*-
-# @title        : stix_parameter.py
-# @date         : Feb. 11, 2019
+# @title        : stix_decompressor.py
 # @description:
 #               decompression of compressed parameters
+from stix_parser.core import stix_logger
 
-from . import stix_logger
-STIX_LOGGER = stix_logger.stix_logger()
+logger = stix_logger.get_logger()
 
 SKM_GROUPS = {
     'EACC': ("NIXD0007", "NIXD0008", "NIXD0009"),
@@ -19,15 +18,17 @@ SKM_GROUPS = {
     'VAR': ("NIXD0118", "NIXD0119", "NIXD0120"),
     'CALI': ("NIXD0126", "NIXD0127", "NIXD0128")
 }
-PACKETS_WITH_COMPRESSION = [
+COMPRESSED_PACKET_SPIDS = [
     54112, 54113, 54114, 54115, 54116, 54117, 54118, 54119, 54120, 54121,
-     54123, 54124, 54125, 54142, 54143, 54110, 54111
+    54123, 54124, 54125, 54142, 54143, 54110, 54111
 ]
 SCHEMAS = {
     54120: {
-        'SKM_Groups': ['SPEC', 'TRIG'], #tell the decompressor to  capture the parameters
+        'SKM_Groups':
+        ['SPEC', 'TRIG'],  #tell the decompressor to  capture the parameters
         'parameters': {
-            'NIX00452': SKM_GROUPS['SPEC'],  #the SKM parameters used to decompress it
+            'NIX00452':
+            SKM_GROUPS['SPEC'],  #the SKM parameters used to decompress it
             'NIX00453': SKM_GROUPS['SPEC'],
             'NIX00454': SKM_GROUPS['SPEC'],
             'NIX00455': SKM_GROUPS['SPEC'],
@@ -284,14 +285,18 @@ SCHEMAS = {
 
 
 def decompress(x, S, K, M):
+    """
+    decompress x 
+    S, K, M
+    """
     if S + K + M > 8 or S not in (0, 1) or K > 7 or M > 7:
-        STIX_LOGGER.warn('Invalid SKM values: {}{}{}'.format(S, K, M))
+        logger.warning('Invalid SKM values: {}{}{}'.format(S, K, M))
         return None
     if K == 0 or M == 0:
         return None
 
     sign = 1
-    if S == 1:  #decompression for signed byte
+    if S == 1:  #signed 
         MSB = x & (1 << 7)
         if MSB != 0:
             sign = -1
@@ -304,10 +309,10 @@ def decompress(x, S, K, M):
     mask2 = (1 << M)
     mantissa1 = x & mask1
     exponent = (x >> M) - 1
-    # number of shifted bits during  compression
+    # number of shifted bits 
     mantissa2 = mask2 | mantissa1  #add 1 before mantissa
-    low = mantissa2 << exponent  #minimal value
-    high = low | ((1 << exponent) - 1)  #maximal value
+    low = mantissa2 << exponent  #minimal possible value
+    high = low | ((1 << exponent) - 1)  #maximal possible value
     mean = (low + high) >> 1  #mean value
 
     if mean > 1e8:
@@ -324,34 +329,35 @@ class StixDecompressor(object):
         self.SKM_values = dict()
         self.compressed_parameter_names = []
         self.schema = None
-        #STIX_LOGGER.info('Decompression enabled')
-        #print('Decompression enabled')
+
+    def reset(self):
+        self.schema = None
+        self.compressed = False
 
     def is_compressed(self):
         return self.compressed
 
-    def initialize_decompressor(self, spid):
+    def init(self, spid):
         self.compressed = False
         self.spid = spid
-        if self.spid not in PACKETS_WITH_COMPRESSION:
+        if self.spid not in COMPRESSED_PACKET_SPIDS:
             return
         self.compressed = True
-
         self.SKM_parameters_names = []
         self.SKM_values = dict()
         self.compressed_parameter_names = []
         if spid not in SCHEMAS:
             self.compressed = False
-            STIX_LOGGER.warn(
-                'A compressed packet (SPID {}) is not decompressed'
-                .format(spid))
+            logger.warning(
+                'A compressed packet (SPID {}) is not decompressed'.format(
+                    spid))
             return
         try:
             self.schema = SCHEMAS[spid]
         except KeyError:
-            STIX_LOGGER.warn(
-                'A compressed packet (SPID {}) is not decompressed'
-                .format(spid))
+            logger.warning(
+                'A compressed packet (SPID {}) is not decompressed'.format(
+                    spid))
             self.compressed = False
             return
 
@@ -376,7 +382,8 @@ class StixDecompressor(object):
         except KeyError:
             return None
 
-    def get_decompressed_value(self, param_name, raw):
+    def decompress_raw(self, param_name, raw):
+
         if not self.compressed:
             return None
         if not self.set_SKM(param_name, raw):  #they are not  SKM

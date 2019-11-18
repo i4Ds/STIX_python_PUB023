@@ -5,131 +5,130 @@
 
 import sys
 from datetime import datetime
-import pprint
+
+DEBUG = 1
+PROGRESS = 2
+INFO = 3
+WARNING = 4
+ERROR = 5
+CRITICAL = 6
 
 
 class StixLogger(object):
     __instance = None
 
     @staticmethod
-    def get_instance(filename=None, verbose=4):
+    def get_instance(filename=None, level=4):
         if not StixLogger.__instance:
-            StixLogger(filename, verbose)
+            StixLogger(filename, level)
         return StixLogger.__instance
 
     #singleton
-    def __init__(self, filename=None, verbose=10):
+
+    def __init__(self, filename=None, level=10):
 
         if StixLogger.__instance:
             raise Exception('Logger already initialized')
         else:
             StixLogger.__instance = self
-
         self.logfile = None
-        self.signal_info = None
-        self.signal_warn = None
-        self.signal_error = None
-        self.signal_enabled = False
         self.filename = filename
-        self.set_logger(filename, verbose)
+        self.set_logger(filename, level)
 
-    def set_signal(self, sig_info, sig_important_info, sig_warn, sig_error):
-        self.signal_info = sig_info
-        self.signal_important_info = sig_important_info
-        self.signal_warn = sig_warn
-        self.signal_error = sig_error
-        self.signal_enabled = True
+        self.progress_enabled = True
+
+        self.last_progress = 0
+
+        self.signal_handler = None
+        self.progress_bar_last_num = 0
+
+    def set_progress_enabled(self, status):
+        self.progress_enabled = status
+
+    def set_signal_handlers(self, handler):
+        self.signal_handler = handler
+
     def get_now(self):
-        now= datetime.now()
-        return  now.strftime("%Y-%m-%d %H:%M:%S")
+        now = datetime.now()
+        return now.strftime("%Y-%m-%d %H:%M:%S")
 
-    def emit(self, msg):
-        self.info(msg)
+    def emit(self, msg, level):
+        if not self.signal_handler:
+            return
+        self.signal_handler[level].emit(msg)
+
+    def update_console_progress(self, progress):
+        num = int(progress / 2.)
+        if num > self.progress_bar_last_num:
+            bar = '#' * num + ' ' * (50 - num)
+            #print is slow
+            print('\r[{0}] {1}%'.format(bar, progress), end="", flush=True)
+        self.progress_bar_last_num = num
 
     def get_log_filename(self):
         return self.filename
 
-    def set_logger(self, filename=None, verbose=3):
+    def set_logger(self, filename=None, level=3):
         if self.logfile:
             self.logfile.close()
             self.logfile = None
         self.filename = filename
-        self.verbose = verbose
+        self.level = level
         if filename:
             try:
                 self.logfile = open(filename, 'w+')
             except IOError:
                 print('Can not open log file {}'.format(filename))
 
-    def set_verbose(self, verbose):
-        self.verbose = verbose
+    def set_level(self, level):
+        self.level = level
 
-    def printf(self, msg, msg_type="info"):
-        if self.signal_enabled:
-            if msg_type == 'info':
-                self.signal_info.emit(msg)
-            elif msg_type == 'warn':
-                self.signal_warn.emit(msg)
-            elif msg_type == 'error':
-                self.signal_error.emit(msg)
-            elif msg_type == 'important':
-                self.signal_important_info.emit(msg)
+    def write(self, msg, level=INFO):
+        if self.signal_handler:
+            self.emit(msg, level)
         elif self.logfile:
+            if level == PROGRESS:
+                msg = '{}% processed.'.format(msg)
             self.logfile.write(msg + '\n')
         else:
             print(msg)
 
-    def important_info(self, msg):
-        self.printf(('[INFO {}] : {}'.format(self.get_now(), msg)), 'important')
+    def critical(self, msg):
+        self.write(('[INFO {}] : {}'.format(self.get_now(), msg)), CRITICAL)
 
     def error(self, msg):
-        self.printf(('[ERROR {}] : {}'.format(self.get_now(),msg)), 'error')
+        self.write(('[ERROR {}] : {}'.format(self.get_now(), msg)), ERROR)
 
-    def warn(self, msg):
-        if self.verbose < 1:
+    def warning(self, msg):
+        if self.level < WARNING:
             return
-        self.printf(('[WARN {}] : {}'.format(self.get_now(),msg)), 'warn')
+        self.write(('[WARN {}] : {}'.format(self.get_now(), msg)), WARNING)
 
     def info(self, msg):
-        if self.verbose < 2:
+        if self.level < INFO:
             return
-        if not self.signal_enabled:
-            self.printf(('[INFO {}] : {}'.format(self.get_now(),msg)), 'info')
-        else:
-            self.printf(msg, 'info')
-
-    def pprint(self, parameter):
-        if self.verbose > 5:
-            pprint.pprint(parameter)
-
-    def pprint_parameters(self, parameters):
-        if self.verbose < 3 or not parameters:
-            return
-        if isinstance(parameters, list):
-            for par in parameters:
-                if par:
-                    try:
-                        # for tree-like structure
-                        eng = ''
-                        if par['eng'] != par['raw']:
-                            eng = par['eng']
-                        self.printf(('{:<10} {:<30} {:<15} {:15}'.format(
-                            par['name'], par['descr'], par['raw'], eng)))
-                        if 'children' in par:
-                            if par['children']:
-                                self.pprint_parameters(par['children'])
-                    except BaseException:
-                        self.printf(par)
-        else:
-            self.printf(parameters)
+        self.write(('[INFO {}] : {}'.format(self.get_now(), msg)), INFO)
 
     def debug(self, msg):
-        if self.verbose < 4:
+        if self.level < DEBUG:
             return
-        self.printf(msg)
+        self.write(msg)
+
+    def progress(self, i, total):
+        if self.progress_enabled:
+            current = int(100. * i / total)
+            if current > self.last_progress:
+                if self.logfile:
+                    self.write(current, INFO)
+                elif self.signal_handler:
+                    self.emit(current, PROGRESS)
+                else:
+                    self.update_console_progress(current)
+
+            self.last_progress = current
 
     def print_summary(self, summary):
-        self.important_info(
+        self.critical(
             'Size: {} bytes (bad:{});'
             ' Nb. of packets: {} ('
             'TM: {}, TC:{}, Filtered: {}); Parsed {} (TM:{},TC:{}); Bad headers:{} .'
@@ -143,5 +142,5 @@ class StixLogger(object):
                 summary['num_bad_headers']))
 
 
-def stix_logger():
+def get_logger():
     return StixLogger.get_instance()

@@ -395,6 +395,7 @@
     <addaction name="actionPacketFilter"/>
     <addaction name="actionPlugins"/>
     <addaction name="actionViewBinary"/>
+    <addaction name="actionPythonConsole"/>
    </widget>
    <widget class="QMenu" name="menuAction">
     <property name="title">
@@ -449,6 +450,8 @@
    <addaction name="actionLoadMongodb"/>
    <addaction name="actionConnectTSC"/>
    <addaction name="actionViewBinary"/>
+   <addaction name="actionPacketServer"/>
+   <addaction name="actionPythonConsole"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
    <property name="windowTitle">
@@ -592,6 +595,24 @@
    </property>
    <property name="toolTip">
     <string>Binary data viewer</string>
+   </property>
+  </action>
+  <action name="actionPacketServer">
+   <property name="icon">
+    <iconset resource="../resources/mainwindow_rc5.qrc">
+     <normaloff>:/Icons/images/socket.svg</normaloff>:/Icons/images/socket.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Packet server</string>
+   </property>
+  </action>
+  <action name="actionPythonConsole">
+   <property name="icon">
+    <iconset resource="../resources/mainwindow_rc5.qrc">
+     <normaloff>:/Icons/images/console.svg</normaloff>:/Icons/images/console.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Python console</string>
    </property>
   </action>
  </widget>

@@ -2,10 +2,8 @@
 import sys
 sys.path.append('..')
 sys.path.append('.')
-from stix_parser.core import stix_packet_analyzer as sta
+from stix_parser.core import stix_datatypes as sdt
 from matplotlib import pyplot as plt
-
-analyzer = sta.analyzer()
 
 
 class Plugin:
@@ -21,15 +19,13 @@ class Plugin:
         A1_V = []
         B0_V = []
         B1_V = []
-        for packet in self.packets:
-            if int(packet['header']['SPID']) != 54102:
+        for pkt in self.packets:
+            packet = sdt.Packet(pkt)
+            if not packet.isa(54102):
                 continue
-            header = packet['header']
-            timestamp.append(float(header['unix_time']))
-            parameters = packet['parameters']
-            analyzer.load_packet(packet)
+            timestamp.append(float(packet['unix_time']))
             names = ['NIX00078', 'NIX00079', 'NIX00080', 'NIX00081']
-            results = analyzer.get_raw(names)
+            results = packet.children_as_dict()
             A0_V.append(results['NIX00078'])
             A1_V.append(results['NIX00079'])
             B0_V.append(results['NIX00080'])

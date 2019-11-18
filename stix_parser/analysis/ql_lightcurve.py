@@ -8,12 +8,10 @@ from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib import pyplot as plt
 from datetime import datetime
 
-sys.path.append(os.path.abspath(__file__ + "/../../"))
 
-from core import stix_packet_analyzer as sta
+from stix_parser.core import stix_datatypes as sdt
 import pprint
 
-analyzer = sta.analyzer()
 
 SPID = 54118
 
@@ -32,49 +30,39 @@ class Plugin:
         isub = 0
         spectra_container = []
         T0 = 0
-        for packet in self.packets:
-            try:
-                if int(packet['header']['SPID']) != SPID:
-                    continue
-            except ValueError:
+        for pkt in self.packets:
+            packet=sdt.Packet(pkt)
+            if not packet.isa(SPID):
                 continue
-            header = packet['header']
-            seg_flag = header['seg_flag']
+            seg_flag = packet['seg_flag']
             if seg_flag in (1, 3):
                 #first packet
                 self.h2counter.clear()
 
             fig = None
-            analyzer.load(packet)
-
               
-            parameters=packet['parameters']
-            scet_coarse=parameters[1][1][0]
-            scet_fine=parameters[2][1][0]
-            int_duration=parameters[3][1][0]+1
+            scet_coarse=packet[1].raw
+            scet_fine=packet[2].raw
+            int_duration=packet[3].raw+1
 
-            detector_mask=parameters[4][1][0]
-            pixel_mask=parameters[5][1][0]
+            detector_mask=packet[4].raw
+            pixel_mask=packet[6].raw
 
-            num_lc = parameters[14][1][0]
-
-
-            compression_s = parameters[6][1][0]
-            compression_k = parameters[7][1][0]
-            compression_m = parameters[8][1][0]
-
-            num_lc_points = analyzer.to_array('NIX00270/NIX00271')[0]
+            num_lc = packet[17].raw
 
 
-            light_curve = analyzer.to_array(
-                'NIX00270/NIX00271/*', eng_param='*')[0]
-            triggers = analyzer.to_array('NIX00273/*', eng_param='*')
-            rcr = analyzer.to_array('NIX00275/*')
+            compression_s = packet[8].raw
+            compression_k = packet[9].raw
+            compression_m = packet[10].raw
+
+            num_lc_points = packet.get('NIX00270/NIX00271')[0]
 
 
+            light_curve = packet.get('NIX00270/NIX00271/*.eng')[0]
+            triggers = packet.get('NIX00273/*.eng')
+            rcr = packet.get('NIX00275/*.raw')
 
-
-            UTC = header['UTC']
+            UTC = packet['header']['UTC']
 
             fig = plt.figure(figsize=figsize)
             plt.axis('off')

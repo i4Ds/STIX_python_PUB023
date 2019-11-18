@@ -13,15 +13,14 @@ sys.path.append(os.path.abspath(__file__ + "/../../"))
 import argparse
 from matplotlib.backends.backend_pdf import PdfPages
 
-from core import stix_logger
-from core import stix_parser
-from core import stix_idb
-from analysis import calibration
-from analysis import housekeeping as hk
-from analysis import ql_lightcurve as qllc
+from stix_parser.core import stix_parser
+from stix_parser.core import stix_idb
+from stix_parser.analysis import calibration
+from stix_parser.analysis import housekeeping as hk
+from stix_parser.analysis import ql_lightcurve as qllc
+from stix_parser.analysis import ql_background as qlbkg
 
-from core import mongo_db
-STIX_LOGGER = stix_logger.stix_logger()
+from stix_parser.core import mongo_db
 
 OUTPUT_PDF_DIRECTORY='pdf'
 
@@ -32,11 +31,14 @@ def get_pdf_filename(run_id):
     return os.path.abspath(filename)
 
 
+def generate_pdf(packets, pdf_filename=None, process='all', write_db=False, run_id=-1):
+    if not pdf_filename:
+        print("PDF filename can be empty.")
+        return
+    if write_db and run_id==-1:
+        print("run ID invalid.")
+        return 
 
-def process(run_id, pdf_filename=None, process='all', write_db=False):
-    print("Request packet from mongodb...")
-    packets = STIX_MDB.select_packets_by_run(run_id)
-    print('number of packets:{}'.format(len(packets)))
     with PdfPages(pdf_filename) as pdf:
         plugin = None
         if write_db:
@@ -51,11 +53,14 @@ def process(run_id, pdf_filename=None, process='all', write_db=False):
         if process in ['qllc','all']:
             plugin_qllc = qllc.Plugin(packets)
             plugin_qllc.run(pdf)
+        if process in ['qlbkg','all']:
+            plugin_qlbkg = qlbkg.Plugin(packets)
+            plugin_qlbkg.run(pdf)
 
 
 
 
-def main():
+def process_packets_in_database():
 
     ap = argparse.ArgumentParser()
     required = ap.add_argument_group('Required arguments')
@@ -82,7 +87,7 @@ def main():
         dest='process_type',
         required=False,
         default='all',
-        choices=('hk', 'cal', 'qllc', 'all'),
+        choices=('hk', 'cal', 'qllc', 'qlbkg', 'all'),
         help="select the type of processing")
 
     required.add_argument(
@@ -119,8 +124,11 @@ def main():
     for run, out  in zip(runs,outputs):
         print('Processing run # {}'.format(run))
         print('PDF filename:  {}'.format(out))
-        process(run,out, process_type, write_db)
+        packets = STIX_MDB.select_packets_by_run(run)
+        print("Requesting packets from mongodb...")
+        print('Number of packets:{}'.format(len(packets)))
+        generate_pdf(packets,out, process_type, write_db, run)
 
 
 if __name__ == '__main__':
-    main()
+    process_packets_in_database()

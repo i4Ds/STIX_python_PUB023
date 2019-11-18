@@ -1,38 +1,27 @@
 
-## STIX raw data parser and a Qt GUI
+## STIX raw data parser and its Qt GUI
 
   A python package allows parsing, browsing and analyzing STIX raw telemetry packets.  
 Parsing of raw binary packets is based on IDB.  
 
 
-### 1. Source code download
-
-   Download the source code and decompress the zip file. 
- 
-    https://github.com/i4Ds/STIX-dataviewer/archive/master.zip
 
 
-### 2. Python Environment Setup
+
+### 2. Installation
    The packet relies on python3 and some extra python modules. 
+   
 
-#### 2.1 On Linux 
+    
 
-   - To install python3 on ubuntu/debian/Mint, run: 
+#### 2.1 Python3 and pip3 installation
+on Linux (Ubuntu)
+
 ```console
 sudo  apt-get install python3
 sudo apt install python3-pip
-pip3 install numpy xmltodict PyQt5 pyqtchart scipy pymongo python-dateutil
-
 ```
-   - On Redhat/Federo/CentOS/Scientific linux, run (not tested):
-```console
-yum install python36
-yum install python3-pip
-pip3 install numpy xmltodict PyQt5 pyqtchart scipy pymongo python-dateutil
-```
-
-
-#### 2.2 On windows
+On windows
 
   - Download  python3.6 executable installer
  
@@ -45,18 +34,57 @@ pip3 install numpy xmltodict PyQt5 pyqtchart scipy pymongo python-dateutil
     When installing python, choose `customize installation`, 
   `install pip` and `add python path to the system environment`. 
   
-  - Install dependencies
+#### 2.2 STIX parser Installation
 
-    Open Cmd as administrator and run
+##### 2.2.1 User
+This package is hosted on PyPI and the most recent stable version can be installed with pip:
+
+```sh
+  pip3 install stix_parser
+``` 
+
+This package can also be installed step by step:
+
+  (1) Download the source code and then unzip the file: 
+ 
+    https://github.com/i4Ds/STIX-dataviewer/archive/master.zip
+   
+   or 
+   ```sh
+   git clone https://github.com/i4Ds/STIX-python-data-parser
+   
+   ```
+   (2) Dependency installation 
   ```cmd
    pip3 install numpy xmltodict PyQt5 pyqtchart scipy pymongo python-dateutil
 ````
+  (3)Install the package to python libarary path:
 
-### 3. How to use the package
-#### 3.1. Running as a command-line parser
+Note that this step is optional.
+```bash
+python3 setup.py install  
+```
+
+##### 2.2.2 Developer
+```
+pip install -e .[dev]
+```
+
+### 3. Usages
+
+#### 3.1. As a command-line STIX data parser
 
 Usage:
-python3 apps/parser.py
+```bash
+python3 -m stix_parser.apps.parser
+python -m stix_parser.apps.stix_quicklook
+python -m stix_parser.apps.stix_parser_gui
+```
+If you have installed the package to python library path, you just need to execute:
+```bash
+stix-parser
+```
+Arguments:
 ```console
 Usage: parser.py [-h] -i [INPUT] [-o OUTPUT] [--idb IDB] [--opf {tuple,dict}]
                  [-t {binary,ascii,xml}] [--wdb] [--db-host DB_HOST]
@@ -95,28 +123,29 @@ Optional arguments:
 
 Example:
 ```console
-python3 apps/parser.py -i <RAW_DATA_FILENAME> -o <OUTPUT>  -v  <Verbose level>
+python3 stix_parser/apps/parser.py -i <RAW_DATA_FILENAME> -o <OUTPUT>  -v  <Verbose level>
 ```
 
-#### 3.2. Embedding the parser in your code.  
+
+#### 3.2. Using the parser in your own code.  
+  
   Here are several examples.
  - Example 1
 
-   Parsing a raw data file and dumping the packets to a python pickle file
+   Parse a raw data file and dump the decode packets to a python pickle file
 
 ```python
 #!/usr/bin/python3 
-from core import stix_parser
+from stix_parser.core import stix_parser
 parser = stix_parser.StixTCTMParser()
 parser.parse_file('raw.binary', 'output.pkl')
 ```
  - Example 2
-
-   Parsing a raw data file and print the packets. 
+ Parse a raw data file and print the content of the decoded packets:
 
 ```python
 #!/usr/bin/python3 
-from core import stix_parser
+from stix_parser.core import stix_parser
 
 f=open('raw.binary','rb')
 buffer=f.read()
@@ -129,11 +158,13 @@ for packet in packets:
 ```
 
  - Example 3:
+ 
+ Parse a hexadecimal  string: 
 ```python
 
 #!/usr/bin/python3 
 import pprint
-from core import stix_parser
+from stix_parsr.core import stix_parser
 parser = stix_parser.StixTCTMParser()
 data='0d e5 c3 ce 00 1a 10 03 19 0e 80 00 87 46 6e 97 04 80 00 87 46 00 00 00 00 00 00 00 00 00 00 00 00'
 packets=parser.parse_hex(data)
@@ -142,7 +173,7 @@ pprint.pprint(packets)
 
 ```
 
-Output example:
+Output:
 
 ```python
 {
@@ -172,114 +203,45 @@ Output example:
             'service_type': 3,
             'unix_time': 3094203078.4319916,
             'version': 0},
- 'parameters': [('NIX00020', (4,), '', []),
-                ('NIX00059', (2147518278,), '', []),
-                ('NIXD0059', (0,), 'NotAvailable', []),
-                ('NIXD0060', (0,), 'NoSignNThrFlux', []),
-                ('NIXD0061', (0,), 'NoFlareDetect', []),
-                ('NIXG0020', (0,), '', []),
-                ('NIX00283', (0,), '', []),
-                ('NIX00284', (0,), '', []),
-                ('NIX00063', (0,), '', []),
-                ('NIXD0064', (0,), 'False', []),
-                ('NIXG0064', (0,), '', []),
-                ('ZZPAD032', (0,), '', [])]}
+ 'parameters': [('NIX00020', 4, '', []),
+                ('NIX00059', 2147518278, '', []),
+                ('NIXD0059', 0, 'NotAvailable', []),
+                ('NIXD0060', 0, 'NoSignNThrFlux', []),
+                ('NIXD0061', 0, 'NoFlareDetect', []),
+                ('NIXG0020', 0, '', []),
+                ('NIX00283', 0, '', []),
+                ('NIX00284', 0, '', []),
+                ('NIX00063', 0, '', []),
+                ('NIXD0064', 0,, 'False', []),
+                ('NIXG0064', 0, '', []),
+                ('ZZPAD032', 0, '', [])]}
 ```
 
 Each parameter has a structure as follows:
 
  - The first column: Parameter name,  
- - The second column: raw value in a tuple. Raw parameters can be binary arrays or consist of several integers. 
+ - The second column: raw value, 
  - The third column: engineering value, decompressed value, or an empty string
  - The fourth column:  an empty list, or its children if it is a repeater. 
 
 
-Output parameters will be stored in python dictionaries if the following line is added:
- ```python
-   parser.set_parameter_format('dict')
-   ```
-The output will be
 
-```python
-[{'header': {'APID': 1509,
-            'APID_packet_category': 5,
-            'APID_process_ID': 94,
-            'DESCR': 'STIX HK report - SID 4',
-            'PUS': 16,
-            'SPID': 54103,
-            'SSID': 4,
-            'TMTC': 'TM',
-            'TPSD': -1,
-            'coarse_time': 2147518278,
-            'destination': 14,
-            'fine_time': 28311,
-            'header_flag': 1,
-            'length': 17,
-            'packet_id': 3557,
-            'packet_type': 0,
-            'process_id': 222,
-            'seg_flag': 3,
-            'segmentation': 'stand-alone packet',
-            'seq_count': 974,
-            'service_subtype': 25,
-            'service_type': 3,
-            'time': 2147518278.4319916,
-            'version': 0},
- 'parameters': [{'desc': 'SID', 'name': 'NIX00020', 'raw': (4,), 'eng': ''},
-                {'desc': 'Heartbeat value',
-                 'name': 'NIX00059',
-                 'raw': (2147518278,),
-                 'eng': ''},
-                {'desc': 'Flare location',
-                 'name': 'NIXD0059',
-                 'raw': (0,),
-                 'eng': 'NotAvailable'},
-                {'desc': 'Non-thermal flare index',
-                 'name': 'NIXD0060',
-                 'raw': (0,),
-                 'eng': 'NoSignNThrFlux'},
-                {'desc': 'Thermal flare index',
-                 'name': 'NIXD0061',
-                 'raw': (0,),
-                 'eng': 'NoFlareDetect'},
-                {'desc': 'Flare - global',
-                 'name': 'NIXG0020',
-                 'raw': (0,),
-                 'eng': ''},
-                {'desc': 'Flare Location Z',
-                 'name': 'NIX00283',
-                 'raw': (0,),
-                 'eng': ''},
-                {'desc': 'Flare Location Y',
-                 'name': 'NIX00284',
-                 'raw': (0,),
-                 'eng': ''},
-                {'desc': 'Flare Duration',
-                 'name': 'NIX00063',
-                 'raw': (0,),
-                 'eng': ''},
-                {'desc': 'Attenuator motion flag',
-                 'name': 'NIXD0064',
-                 'raw': (0,),
-                 'eng': 'False'},
-                {'desc': 'HK global 15',
-                 'name': 'NIXG0064',
-                 'raw': (0,),
-                 'eng': ''}}
-               ]
-```
+
 
 #### 3.3 Using the GUI 
 ##### 3.3.1 Run the GUI
-- On Linux
-```console
-chmod +x run_gui.sh
-./run_gui.sh
+```bash
+python stix_parser/apps/stix_parser_gui.py
 ```
-- On Windows
-   Double clicking  "run_gui.bat" in the source code directory
+or 
+```bash
+stix-parser-gui
+```
+if you have installed the package to python library path.
+
+
 ##### 3.3.2 GUI basic functions
-  The GUI allows parsing/loading and then displaying STIX packets in the following data formats/sources:
+  The GUI allows parsing/loading and displaying STIX packets in the following data formats/sources:
    - STIX raw data
    - SOC XML format
    - MOC ASCII format
@@ -287,12 +249,12 @@ chmod +x run_gui.sh
    - packets stored in NoSQL database MongoDB
    - packets received from TSC via socket
    - STIX TM binary hex string copied from the clipboard
-
   The GUI also allows plotting parameters as a function of timestamp or packet number. 
+  
 ##### 3.3.3  GUI plugins
-  One could create plugins to analyze the packets loaded in the GUI.
-  The plugin manager can be loaded by clicking "Tool->Plugins" or the plugin icon in the toolbar. 
-  Here is a plugin source code example
+  One could create plugins to analyze the packets displayed in the GUI.
+   The plugin manager can be loaded by clicking "Tool->Plugins" or the plugin icon in the toolbar. 
+  Here is a plugin example:
 ````python
 #plugin example
 import pprint
@@ -310,7 +272,7 @@ class Plugin:
             pprint.pprint(self.packets[self.current_row])
             
 ````
-  More plugin examples are available in  plugins/
+  More plugin examples are available in  stix_parser/plugins/
 
 
 ##### 3.3.4 GUI screenshots
@@ -339,8 +301,15 @@ update PCF set PCF_WIDTH=8 where PCF_NAME="ZZPAD008";
 update PCF set PCF_WIDTH=16 where PCF_NAME='ZZPAD016';
 update PCF set PCF_WIDTH=24 where PCF_NAME='ZZPAD024';
 update PCF set PCF_WIDTH=32 where PCF_NAME='ZZPAD032';
-
+drop table if exists IDB;
+create table IDB(
+creation_datetime  datetime,
+version  varchar(64) not null
+);
+insert into IDB (creation_datetime, version) values (current_timestamp, '2.26.28');
 ```
+Please replace the string "2.26.28" with your actual IDB version.
+
 
 - Create IDB sqlite3 database using the sql file
 ```bash
@@ -351,6 +320,18 @@ One may see some errors. For example, " table  Name AutoCorrect Save Failures al
 Those tables are not used by this parser. They can be removed from the sql script. 
 
 - Copy idb.sqlite3 to idb/
+
+
+
+
+### 5. Compilation with cython for distribution
+execute 
+```sh
+python3 compile.py build_ext --inplace
+```
+The generated *.c and the original *py files can be deleted for distribution.
+
+
 
 
 

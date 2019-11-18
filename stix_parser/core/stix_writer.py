@@ -4,20 +4,20 @@
 # @description  : Write decoded data to a python pickle file, sqlite database or mongo database
 # @author       : Hualin Xiao
 # @date         : Feb. 27, 2019
-import os
 import datetime
-import pickle
 import gzip
-import pymongo
+import os
+import pickle
 import time
-from . import stix_logger
+
+import pymongo
+
 from . import stix_global
-from . import stix_packet_analyzer 
-from . import stix_datetime
+from . import config
+from . import stix_logger
 from . import stix_sci_report_analyzer as scia
-from . import stix_packet_analyzer as sta
-from . import stix_datetime
-STIX_LOGGER = stix_logger.stix_logger()
+
+logger = stix_logger.get_logger()
 
 
 class StixPacketWriter(object):
@@ -53,14 +53,17 @@ class StixPickleWriter(StixPacketWriter):
         else:
             self.fout = open(filename, 'wb')
 
-    def register_run(self, in_filename, filesize=0, comment=''):
+    def register_run(self, in_filename, filesize=0, comment='',
+                     idb_version=''):
         self.run = {
             'Input': in_filename,
             'Output': self.filename,
             'filsize': filesize,
             'comment': comment,
+            'idb_version': idb_version,
             'Date': datetime.datetime.now().isoformat()
         }
+
     def write_all(self, packets):
         if self.fout:
             data = {'run': self.run, 'packet': packets}
@@ -85,10 +88,10 @@ class StixBinaryWriter(StixPacketWriter):
         try:
             self.fout = open(self.filename, 'wb')
         except IOError:
-            STIX_LOGGER.error(
-                'IO error. Can not create file:{}'.format(filename))
+            logger.error('IO error. Can not create file:{}'.format(filename))
 
-    def register_run(self, in_filename, filesize=0, comment=''):
+    def register_run(self, in_filename, filesize=0, comment='',
+                     idb_version=''):
         pass
         #not write them to binary file
     def get_num_sucess(self):
@@ -101,7 +104,7 @@ class StixBinaryWriter(StixPacketWriter):
                 self.fout.write(raw)
                 self.num_success += 1
             except KeyError:
-                STIX_LOGGER.warn('binary data not available')
+                logger.warning('binary data not available')
 
     def write_all(self, packets):
         if self.fout:
@@ -117,10 +120,10 @@ class StixMongoDBWriter(StixPacketWriter):
     """write data to   MongoDB"""
 
     def __init__(self,
-                 server='localhost',
-                 port=27017,
-                 username='',
-                 password=''):
+                 server=config.mongodb['host'],
+                 port=config.mongodb['port'],
+                 username=config.mongodb['user'],
+                 password=config.mongodb['password']):
         super(StixMongoDBWriter, self).__init__()
 
         self.ipacket = 0
@@ -145,12 +148,12 @@ class StixMongoDBWriter(StixPacketWriter):
             self.collection_packets = self.db['packets']
             self.collection_runs = self.db['processing_runs']
         except Exception as e:
-            STIX_LOGGER.error(str(e))
+            logger.error(str(e))
 
-        self.science_report_analyzer=scia.StixScienceReportAnalyzer(self.db)
+        self.science_report_analyzer = scia.StixScienceReportAnalyzer(self.db)
 
-
-    def register_run(self, in_filename, filesize=0, comment=''):
+    def register_run(self, in_filename, filesize=0, comment='',
+                     idb_version=''):
         try:
             self.current_run_id = self.collection_runs.find().sort(
                 '_id', -1).limit(1)[0]['_id'] + 1
@@ -164,8 +167,7 @@ class StixMongoDBWriter(StixPacketWriter):
         except IndexError:
             self.current_packet_id = 0
 
-
-        log_filename = STIX_LOGGER.get_log_filename()
+        log_filename = logger.get_log_filename()
 
         self.filename = os.path.basename(in_filename)
         self.path = os.path.dirname(in_filename)
@@ -183,7 +185,8 @@ class StixMongoDBWriter(StixPacketWriter):
             '_id': self.current_run_id,
             'status': stix_global.UNKNOWN,
             'summary': '',
-            'filesize': filesize
+            'filesize': filesize,
+            'idb_version': idb_version
         }
         #print(self.run_info)
         self.inserted_run_id = self.collection_runs.insert_one(
@@ -211,18 +214,16 @@ class StixMongoDBWriter(StixPacketWriter):
         packet['_id'] = self.current_packet_id
 
         self.science_report_analyzer.start(self.current_run_id,
-            self.current_packet_id,packet)
+                                           self.current_packet_id, packet)
 
         try:
             self.collection_packets.insert_one(packet)
         except Exception as e:
-            STIX_LOGGER.error(
-                'Error occurred when inserting packet to MongoDB')
-            STIX_LOGGER.error(str(e))
-            STIX_LOGGER.info('Packet:' + str(header))
+            logger.error('Error occurred when inserting packet to MongoDB')
+            logger.error(str(e))
+            logger.info('Packet:' + str(packet['header']))
             raise
             return
-
 
         self.current_packet_id += 1
         self.ipacket += 1
@@ -231,11 +232,11 @@ class StixMongoDBWriter(StixPacketWriter):
         #it has to be called at the end
 
         if not self.collection_runs:
-            STIX_LOGGER.warn('MongoDB was not initialized ')
+            logger.warning('MongoDB was not initialized ')
             return
-        STIX_LOGGER.info('{} packets have been inserted into MongoDB'.format(
+        logger.info('{} packets have been inserted into MongoDB'.format(
             self.ipacket))
-        STIX_LOGGER.info('Updating run :'.format(self.inserted_run_id))
+        logger.info('Updating run :'.format(self.inserted_run_id))
         run = self.collection_runs.find_one({'_id': self.inserted_run_id})
         if run:
             run['data_start_unix_time'] = self.start_time
@@ -247,9 +248,7 @@ class StixMongoDBWriter(StixPacketWriter):
             #status ==1 if success  0
             run['summary'] = self.summary
             self.collection_runs.save(run)
-            STIX_LOGGER.info(str(run))
-            STIX_LOGGER.info('Run info updated successfully.')
+            logger.info('Run info updated successfully.')
+            logger.info('Run ID:{}'.format(run['_id']))
         else:
-            STIX_LOGGER.error('Run info not updated.')
-
-
+            logger.error('Run info not updated.')

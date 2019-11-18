@@ -1,51 +1,57 @@
 #!/usr/bin/python3
+# -*- encoding: utf-8 -*-
+
 import os
 import sys
 import pickle
+import time
 import gzip
-import re
 import binascii
-import xmltodict
+import struct
 import pprint
 import socket
+import signal
 import webbrowser
 from functools import partial
 from datetime import datetime
 import numpy as np
 
-from PyQt5 import uic, QtWidgets, QtCore, QtGui
+from PyQt5 import  QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import QThread, pyqtSignal, QTimer
-from PyQt5.QtChart import QChart, QChartView, QLineSeries, QValueAxis, QBarSeries, QBarSet, QScatterSeries
+from PyQt5.QtChart import QChart, QChartView, QLineSeries, QValueAxis
+from PyQt5.QtChart  import QBarSeries, QBarSet, QScatterSeries
 
-sys.path.append(os.path.abspath(__file__ + "/../../"))
+from stix_parser.core import stix_parser
+from stix_parser.core import stix_writer
+from stix_parser.core import stix_idb
+from stix_parser.core import mongo_db as mgdb
+from stix_parser.core.stix_datetime import format_datetime
+from stix_parser.core import stix_logger
+from stix_parser.ui import mainwindow
+from stix_parser.ui import mongo_dialog
+from stix_parser.ui import tsc_connection
+from stix_parser.ui import packet_filter
+from stix_parser.ui import plugin
+from stix_parser.ui import raw_viewer
+from stix_parser.ui import console
+from stix_parser.core.stix_datatypes import Parameter
+from stix_parser.core.stix_datatypes import Packet
 
-from core import stix_parser
-from core import stix_writer
-from core import stix_idb
-from core import mongo_db as mgdb
-from core.stix_datetime import format_datetime
-from core import stix_logger
-from . import mainwindow_rc5
-from . import mainwindow
-from . import mongo_dialog
-from . import tsc_connection
-from . import packet_filter
-from . import plugin
-from . import raw_viewer
-from core import stix_parameter
+SELECTED_SERVICES = [1, 3, 5, 6, 9, 17, 20, 21, 22, 236, 237, 238, 239]
 
-SELECTED_SERVICES = [1, 3, 5, 6,9, 17,20, 21, 22, 236, 237, 238, 239]
 STIX_IDB = stix_idb.stix_idb()
-STIX_LOGGER = stix_logger.stix_logger()
 MAX_NUM_PACKET_IN_BUFFER = 6000
+
+LOGGER = stix_logger.get_logger()
 
 
 class ParserQThread(QThread):
     error = pyqtSignal(str)
     info = pyqtSignal(str)
-    importantInfo = pyqtSignal(str)
-    warn = pyqtSignal(str)
+    critical = pyqtSignal(str)
+    warning = pyqtSignal(str)
     dataLoaded = pyqtSignal(list)
+    progress = pyqtSignal(float)
     packetArrival = pyqtSignal(list)
 
     def __init__(self):
@@ -54,19 +60,23 @@ class ParserQThread(QThread):
         self.stix_tctm_parser.set_store_packet_enabled(True)
         self.stix_tctm_parser.set_store_binary_enabled(True)
 
-        STIX_LOGGER.set_signal(self.info, self.importantInfo, self.warn,
-                               self.error)
+        handlers = {
+            stix_logger.INFO: self.info,
+            stix_logger.CRITICAL: self.critical,
+            stix_logger.WARNING: self.warning,
+            stix_logger.ERROR: self.error,
+            stix_logger.PROGRESS: self.progress
+        }
+        LOGGER.set_signal_handlers(handlers)
 
-    def setSignalHandler(self, info, warn, error, importantInfo, dataLoaded,
-                         packetArrival):
-
-        self.error.connect(error)
-        self.info.connect(info)
-        self.warn.connect(warn)
-
-        self.dataLoaded.connect(dataLoaded)
-        self.packetArrival.connect(packetArrival)
-        self.importantInfo.connect(importantInfo)
+    def connectSignalSlots(self, slots):
+        self.error.connect(slots['error'])
+        self.info.connect(slots['info'])
+        self.warning.connect(slots['warning'])
+        self.dataLoaded.connect(slots['dataLoaded'])
+        self.packetArrival.connect(slots['packetArrival'])
+        self.critical.connect(slots['critical'])
+        self.progress.connect(slots['progress'])
 
 
 class StixSocketPacketReceiver(ParserQThread):
@@ -80,7 +90,7 @@ class StixSocketPacketReceiver(ParserQThread):
         self.port = 9000
         self.host = 'localost'
 
-        self.stix_tctm_parser.set_report_progress_enabled(False)
+        LOGGER.set_progress_enabled(False)
         self.s = None
 
     def connect(self, host, port):
@@ -117,6 +127,89 @@ class StixSocketPacketReceiver(ParserQThread):
                     self.packetArrival.emit(packets)
 
 
+class StixSocketPacketServer(ParserQThread):
+    """
+    QThread to receive packets via socket
+    """
+
+    def __init__(self):
+        super(StixSocketPacketServer, self).__init__()
+        self.working = True
+        self.sock = None
+        self.current_id = 0
+        self.packets = []
+        self.running = False
+        self.connection = None
+
+    def setData(self, current_id, packets):
+        self.current_id = current_id
+        self.packets = packets
+
+    def connect(self, host, port):
+        if self.sock:
+            return
+        try:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.bind((host, port))
+            self.sock.listen(1)
+            self.info.emit('Packet server started: localhost:{}'.format(port))
+        except Exception as e:
+            self.error.emit(str(e))
+
+    def run(self):
+        EOF = b'EOF'
+        if not self.sock:
+            return
+        if self.running:
+            return
+        try:
+            while True:
+                self.running = True
+                self.connection, addr = self.sock.accept()
+                self.info.emit('Connection from {}'.format(addr))
+                control = self.connection.recv(64).decode('utf-8')
+
+                if 'len' in control:
+                    packet_length = len(self.packets)
+                    data = pickle.dumps(packet_length) + EOF
+                    length = len(data)
+                    data_send = struct.pack('>I', length) + data
+                    self.connection.sendall(data_send)
+                else:
+                    index = -1
+                    slice_notation = ''
+                    try:
+                        index = int(control)
+                    except ValueError:
+                        if ':' in control:
+                            slice_notation = control
+                    pkts = []
+                    try:
+                        if index > -1:
+                            pkts = [self.packets[index]]
+                        if slice_notation:
+                            pkts = eval('self.packets[{}]'.format(control))
+                    except:
+                        LOGGER.warn('Request from socket invalid')
+                    data = pickle.dumps(pkts) + EOF
+                    length = len(data)
+                    size = struct.pack('>I', length)
+                    data_send = size + data
+                    self.info.emit('Sending {} kB to {} ...'.format(
+                        round(length / 1024, 2), addr))
+                    self.connection.sendall(data_send)
+                    self.info.emit('{} kB sent.'.format(length / 1024))
+
+                time.sleep(0.2)
+        except Exception as e:
+            self.error.emit(str(e))
+            if self.connection:
+                self.connection.close()
+        finally:
+            if self.connection:
+                self.connection.close()
+
+
 class StixFileReader(ParserQThread):
     """
     thread
@@ -126,6 +219,7 @@ class StixFileReader(ParserQThread):
         super(StixFileReader, self).__init__()
         self.data = []
         self.filename = None
+        LOGGER.set_progress_enabled(True)
 
     def setFilename(self, filename):
         self.filename = filename
@@ -134,6 +228,9 @@ class StixFileReader(ParserQThread):
     def setPacketFilter(self, selected_services, selected_SPID):
         self.stix_tctm_parser.set_packet_filter(selected_services,
                                                 selected_SPID)
+
+    def stopParsing(self):
+        self.stix_tctm_parser.kill()
 
     def run(self):
         self.data = []
@@ -150,7 +247,6 @@ class StixFileReader(ParserQThread):
             f.close()
         else:
             self.data = self.stix_tctm_parser.parse_file(filename)
-
         if self.data:
             self.dataLoaded.emit(self.data)
 
@@ -177,33 +273,29 @@ class Ui(mainwindow.Ui_MainWindow):
         super(Ui, self).setupUi(MainWindow)
         self.MainWindow = MainWindow
         self.socketPacketReceiver = None
-        self.initialize()
-        self.timmer_is_on = False
 
+        self.timmer_is_on = False
         self.hexParser = StixHexStringParser()
         self.socketPacketReceiver = StixSocketPacketReceiver()
+        self.socketPacketServer = StixSocketPacketServer()
         self.dataReader = StixFileReader()
 
-        self.dataReader.setSignalHandler(
-            self.onDataReaderInfo, self.onDataReaderWarn,
-            self.onDataReaderError, self.onDataReaderImportantInfo,
-            self.onDataReady, self.onPacketArrival)
-        self.socketPacketReceiver.setSignalHandler(
-            self.onDataReaderInfo, self.onDataReaderWarn,
-            self.onDataReaderError, self.onDataReaderImportantInfo,
-            self.onDataReady, self.onPacketArrival)
-        self.hexParser.setSignalHandler(
-            self.onDataReaderInfo, self.onDataReaderWarn,
-            self.onDataReaderError, self.onDataReaderImportantInfo,
-            self.onDataReady, self.onPacketArrival)
+        slots = {
+            'info': self.onDataReaderInfo,
+            'warning': self.onDataReaderWarning,
+            'error': self.onDataReaderError,
+            'critical': self.onDataReaderCritical,
+            'dataLoaded': self.onDataReady,
+            'packetArrival': self.onPacketArrival,
+            'progress': self.onProgressUpdated
+        }
 
-    def close(self):
-        self.MainWindow.close()
+        self.socketPacketReceiver.connectSignalSlots(slots)
+        self.dataReader.connectSignalSlots(slots)
+        self.hexParser.connectSignalSlots(slots)
+        self.socketPacketServer.connectSignalSlots(slots)
 
-    def style(self):
-        return self.MainWindow.style()
 
-    def initialize(self):
         self.tabWidget.setCurrentIndex(0)
         self.actionExit.triggered.connect(self.close)
         self.actionPlot.setEnabled(False)
@@ -220,6 +312,7 @@ class Ui(mainwindow.Ui_MainWindow):
         self.actionSave.triggered.connect(self.save)
 
         self.actionOpen.triggered.connect(self.getOpenFilename)
+        self.filterPattern = None
 
         self.actionNext.triggered.connect(self.nextPacket)
         self.actionPrevious.triggered.connect(self.previousPacket)
@@ -240,19 +333,30 @@ class Ui(mainwindow.Ui_MainWindow):
         self.plotButton.clicked.connect(
             partial(self.onPlotButtonClicked, None))
 
+        #self.progressBar = QtWidgets.QProgressBar()
+        #self.statusbar.addPermanentWidget(self.progressBar)
+        self.progressDiag = None
+        #self.progressBar.hide()
+
+        self.actionPacketServer.triggered.connect(self.startPacketServer)
+
         self.exportButton.clicked.connect(self.onExportButtonClicked)
         self.actionPlot.triggered.connect(self.onPlotActionClicked)
         self.actionLoadMongodb.triggered.connect(self.onLoadMongoDBTriggered)
         self.actionConnectTSC.triggered.connect(self.onConnectTSCTriggered)
-        self.actionPacketFilter.triggered.connect(self.onPacketFilterTriggered)
+        self.actionPacketFilter.triggered.connect(self.filter)
         self.actionPlugins.triggered.connect(self.onPluginTriggered)
         self.actionOnlineHelp.triggered.connect(self.onOnlineHelpTriggered)
         self.actionViewBinary.triggered.connect(self.onViewBinaryTriggered)
+        self.actionPythonConsole.triggered.connect(self.startPythonConsole)
         self.autoUpdateButton.clicked.connect(
             self.onPlotAutoUpdateButtonClicked)
 
         self.packetTreeWidget.customContextMenuRequested.connect(
             self.packetTreeContextMenuEvent)
+
+        #self.statusListWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        #self.statusListWidget.customContextMenuRequested.connect(self.statusListContextMenuEvent)
 
         self.mdb = None
 
@@ -274,6 +378,7 @@ class Ui(mainwindow.Ui_MainWindow):
         self.gridLayout.addWidget(self.chartView, 1, 0, 1, 15)
         self.selected_services = SELECTED_SERVICES
         self.selected_SPID = []
+        self.selected_tmtc = 3
 
         # IDB location
 
@@ -284,13 +389,47 @@ class Ui(mainwindow.Ui_MainWindow):
         if not STIX_IDB.is_connected():
             self.showMessage('IDB has not been set!')
         else:
-            idb_filename=STIX_IDB.get_idb_filename()
-            self.showMessage(
-                'IDB loaded from : {} '.format(idb_filename), 1)
-            if idb_filename!=self.idb_filename:
-                self.settings.setValue('idb_filename',idb_filename)
-                self.idb_filename=idb_filename
+            idb_filename = STIX_IDB.get_idb_filename()
+            self.showMessage('IDB loaded from : {} '.format(idb_filename), 1)
+            if idb_filename != self.idb_filename:
+                self.settings.setValue('idb_filename', idb_filename)
+                self.idb_filename = idb_filename
 
+    def startPythonConsole(self):
+        console.start({'packets': self.data})
+    def close(self):
+        self.MainWindow.close()
+    def style(self):
+        return self.MainWindow.style()
+
+    def startPacketServer(self):
+        host = 'localhost'
+        port = 9096
+
+        self.socketPacketServer.connect(host, port)
+        self.socketPacketServer.setData(self.current_row, self.data)
+        self.socketPacketServer.start()
+
+        abspath = os.path.dirname(os.path.abspath(__file__))
+
+        template = (
+            "import sys\nsys.path.append('{}')\nimport client_packet_request as req\n"
+            "packets=req.request(query_str='len', host='{}',port={}, verbose_level=1)\n"
+            "#a query_string can be \n"
+            "#  -  a python slice notation, for example, ':' '0:-1', 3:-1\n"
+            "#  -  'len',  to get the total number of packets,\n"
+            "#  -   index ,  to get a packet of the given index"
+            "#set verbose_level to 0, to suppress print output  ").format(
+                abspath, host, port)
+        cb = QtWidgets.QApplication.clipboard()
+        cb.clear(mode=cb.Clipboard)
+        cb.setText(template, mode=cb.Clipboard)
+        msg = QtWidgets.QMessageBox()
+        msg.setIcon(QtWidgets.QMessageBox.Information)
+        msg.setText(
+            "Packet server started and a template to request packet has been copied to your clipboard!"
+        )
+        retval = msg.exec_()
 
     def onPlotAutoUpdateButtonClicked(self):
         if not self.timmer_is_on:
@@ -313,21 +452,38 @@ class Ui(mainwindow.Ui_MainWindow):
             self.timmer_is_on = False
             self.autoUpdateButton.setText('Start Auto Update')
 
+    #def statusListContextMenuEvent(self,pos):
+    #    menu = QtWidgets.QMenu()
+    #    clearLogAction= menu.addAction('Empty log')
+    #    clearLogAction.triggered.connect(self.clearLog)
+    #def clearLog(self):
+    #    self.statusListWidget.clear()
+
     def packetTreeContextMenuEvent(self, pos):
         menu = QtWidgets.QMenu()
-        rawDataAction = menu.addAction('Show raw data')
+        filterAction = menu.addAction('Filter')
         menu.addSeparator()
-        filterAction = menu.addAction('Filter packets')
+        rawDataAction = menu.addAction('Raw binary data')
+        menu.addSeparator()
         copyPacketAction = menu.addAction('Copy packet')
         menu.addSeparator()
         deleteAllAction = menu.addAction('Delete all packets')
         self.current_row = self.packetTreeWidget.currentIndex().row()
 
         rawDataAction.triggered.connect(self.onViewBinaryTriggered)
-        filterAction.triggered.connect(self.onPacketFilterTriggered)
+        filterAction.triggered.connect(self.filter)
         copyPacketAction.triggered.connect(self.onCopyTriggered)
         deleteAllAction.triggered.connect(self.onDeleteAllTriggered)
         action = menu.exec_(self.packetTreeWidget.viewport().mapToGlobal(pos))
+
+    def filter(self):
+        text, okPressed = QtWidgets.QInputDialog.getText(
+            None, "Packet filtering",
+            "Filtering by SPID or description (! to exclude):",
+            QtWidgets.QLineEdit.Normal, "")
+        if okPressed:
+            self.filterPattern = text
+            self.addPacketsToView(self.data, True, show_stat=False)
 
     def onDeleteAllTriggered(self):
         self.data.clear()
@@ -355,7 +511,8 @@ class Ui(mainwindow.Ui_MainWindow):
         diag.exec_()
 
     def onOnlineHelpTriggered(self):
-        webbrowser.open('https://github.com/i4Ds/STIX-dataviewer', new=2)
+        webbrowser.open(
+            'https://github.com/i4Ds/STIX-python-data-parser', new=2)
 
     def onPluginTriggered(self):
         self.plugin_location = self.settings.value('plugin_location', [], str)
@@ -375,7 +532,9 @@ class Ui(mainwindow.Ui_MainWindow):
         diag = QtWidgets.QDialog()
         diag_ui = packet_filter.Ui_Dialog()
         diag_ui.setupUi(diag)
+        self.filterPattern = ''  #empty search string
         diag_ui.setSelectedServices(self.selected_services)
+
         diag_ui.buttonBox.accepted.connect(
             partial(self.applyServiceFilter, diag_ui))
         diag.exec_()
@@ -383,6 +542,7 @@ class Ui(mainwindow.Ui_MainWindow):
     def applyServiceFilter(self, diag_ui):
         self.selected_SPID = diag_ui.getSelectedSPID()
         self.selected_services = diag_ui.getSelectedServices()
+        self.selected_tmtc = diag_ui.getTMTC()
         self.showMessage('Applying filter...')
 
         self.addPacketsToView(self.data, True, show_stat=False)
@@ -435,6 +595,7 @@ class Ui(mainwindow.Ui_MainWindow):
         try:
             packet = self.data[packet_id]
             ss = pprint.pformat(packet)
+
             cb = QtWidgets.QApplication.clipboard()
             cb.clear(mode=cb.Clipboard)
             cb.setText(ss, mode=cb.Clipboard)
@@ -458,7 +619,6 @@ class Ui(mainwindow.Ui_MainWindow):
         self.hexParser.setHex(raw_hex)
         self.hexParser.start()
 
- 
     def showMessage(self, msg, where=0):
         if where != 1:
             self.statusbar.showMessage(msg)
@@ -492,7 +652,6 @@ class Ui(mainwindow.Ui_MainWindow):
 
         msg = 'Writing data to file %s' % self.output_filename
         self.showMessage(msg)
-
         if self.output_filename.endswith(('.pklz', '.pkl')):
             stw = stix_writer.StixPickleWriter(self.output_filename)
             stw.register_run(str(self.input_filename))
@@ -505,6 +664,8 @@ class Ui(mainwindow.Ui_MainWindow):
                 'The binary data of {} packets written to file {}, total packets {}'
                 .format(num_ok, self.output_filename, len(self.data)))
             self.showMessage(msg)
+        msg = 'Packets have been written to %s' % self.output_filename
+        self.showMessage(msg)
 
     def setListViewSelected(self, row):
         #index = self.model.createIndex(row, 0);
@@ -566,24 +727,46 @@ class Ui(mainwindow.Ui_MainWindow):
 
     def openFile(self, filename, selected_services=None, selected_SPID=None):
         msg = 'Loading file %s ...' % filename
-        self.showMessage(msg)
+        self.progressDiag = QtWidgets.QProgressDialog()
+        #self.showMessage(msg)
+        self.progressDiag.setLabelText(msg)
+        self.progressDiag.setWindowTitle('Loading data')
+        self.progressDiag.setCancelButtonText('Cancel')
+        self.progressDiag.setRange(0, 100)
+        self.progressDiag.setMinimumWidth(300)
+        self.progressDiag.canceled.connect(self.stopParsing)
+        self.filterPattern = ''
         self.dataReader.setPacketFilter(selected_services, selected_SPID)
         self.dataReader.setFilename(filename)
         self.dataReader.start()
+        self.progressDiag.show()
 
-    def onDataReaderImportantInfo(self, msg):
+    def stopParsing(self):
+        if self.dataReader:
+            self.dataReader.stopParsing()
+            self.progressDiag.hide()
+
+    def onProgressUpdated(self, progress):
+        if not self.progressDiag:
+            return
+        self.progressDiag.setValue(progress)
+        if progress >=99:
+            self.progressDiag.hide()
+
+    def onDataReaderCritical(self, msg):
         self.showMessage(msg, 1)
 
     def onDataReaderInfo(self, msg):
         self.showMessage(msg, 0)
 
-    def onDataReaderWarn(self, msg):
+    def onDataReaderWarning(self, msg):
         self.showMessage(msg, 1)
 
     def onDataReaderError(self, msg):
         self.showMessage(msg, 1)
 
     def onDataReady(self, data, clear=True, show_stat=True):
+        #self.progressBar.hide()
         if not clear:
             self.data.extend(data)
         else:
@@ -607,23 +790,70 @@ class Ui(mainwindow.Ui_MainWindow):
     def addPacketsToView(self, data, clear=True, show_stat=True):
         if clear:
             self.packetTreeWidget.clear()
+
         for p in data:
             if not isinstance(p, dict):
                 continue
             header = p['header']
             root = QtWidgets.QTreeWidgetItem(self.packetTreeWidget)
+            colors = {2: '#FFA500', 1: '#000080', 3: '#FF0000', 4: '#800000'}
+            tc_color = '#78281F'
+            if header['TMTC'] == 'TC':
+                root.setForeground(0, QtGui.QBrush(QtGui.QColor(tc_color)))
+                root.setForeground(1, QtGui.QBrush(QtGui.QColor(tc_color)))
+            else:
+                if header['service_type'] == 5:
+                    if header['service_subtype'] in colors.keys():
+                        root.setForeground(
+                            0,
+                            QtGui.QBrush(
+                                QtGui.QColor(
+                                    colors[header['service_subtype']])))
+                        root.setForeground(
+                            1,
+                            QtGui.QBrush(
+                                QtGui.QColor(
+                                    colors[header['service_subtype']])))
+
             timestamp_str = format_datetime(header['unix_time'])
             root.setText(0, timestamp_str)
-            root.setText(
-                1, '{}({},{}) - {}'.format(
-                    header['TMTC'], header['service_type'],
-                    header['service_subtype'], header['descr']))
-            if not self.selected_SPID:
-                if header['service_type'] not in self.selected_services:
-                    root.setHidden(True)
+            description = '{}({},{}) - {}'.format(
+                header['TMTC'], header['service_type'],
+                header['service_subtype'], header['descr'])
+            root.setText(1, description)
+            hidden = False
+
+            if self.selected_SPID:
+                if header['TMTC'] == 'TC':
+                    hidden = True
+                elif -int(header['SPID']) in self.selected_SPID or int(
+                        header['SPID']) not in self.selected_SPID:
+                    hidden = True
             else:
-                if header['SPID'] not in self.selected_SPID:
-                    root.setHidden(True)
+                if int(header['service_type']) not in self.selected_services:
+                    hidden = True
+
+            TMTC = header['TMTC']
+            if TMTC == 'TM' and self.selected_tmtc in [2, 0]:
+                hidden = True
+            if TMTC == 'TC' and self.selected_tmtc in [1, 0]:
+                hidden = True
+
+            if self.filterPattern:
+                to_exclude = False
+                pattern = self.filterPattern.strip()
+                if pattern.startswith('!'):
+                    to_exclude = True
+                    pattern = pattern[1:]
+                try:
+                    spid = int(pattern)
+                    hidden = to_exclude == (header['SPID'] == spid)
+                    #XNOR operation
+                except (TypeError, ValueError):
+                    hidden = to_exclude == (pattern in description)
+
+            root.setHidden(hidden)
+
         if show_stat:
             total_packets = len(self.data)
             self.showMessage(('Total packet(s): %d' % total_packets))
@@ -760,33 +990,39 @@ class Ui(mainwindow.Ui_MainWindow):
         self.paramTreeWidget.expandItem(header_root)
         self.current_row = row
 
-    def showParameterTree(self, params, parent):
+    def showParameterTree(self, params, parent, parent_id=[]):
         if not params:
             return
-        for p in params:
+        for i, p in enumerate(params):
             root = QtWidgets.QTreeWidgetItem(parent)
             if not p:
                 continue
-            param = stix_parameter.StixParameter()
-            param.clone(p)
-            param_name = param.name
-            desc = param.desc
-            scos_desc = STIX_IDB.get_scos_description(param_name)
-            if scos_desc:
-                root.setToolTip(1, scos_desc)
+            param = Parameter(p)
+            param_name = param['name']
+            desc = param['desc']
+            current_ids = parent_id[:]
+            current_ids.append(i)
             root.setText(0, param_name)
+
             root.setText(1, desc)
-            root.setText(2, str(param.raw))
+            root.setText(2, str(param['raw']))
+            tip='parameter'+''.join(['[{}]'.format(x) for x in current_ids])
+            root.setToolTip(0, tip)
+
+            long_desc = STIX_IDB.get_scos_description(param_name)
+            if long_desc:
+                root.setToolTip(1, long_desc)
+
             try:
-                root.setToolTip(2, hex(param.get('raw')[0]))
+                root.setToolTip(2, hex(param['raw_int']))
             except:
                 pass
-            root.setText(3, str(param.eng))
+            root.setText(3, str(param['eng']))
             if 'NIXG' in param_name:
                 root.setHidden(True)
                 #groups should not be shown
             if param.children:
-                self.showParameterTree(param.children, root)
+                self.showParameterTree(param['children'], root, current_ids)
         self.paramTreeWidget.itemDoubleClicked.connect(self.onTreeItemClicked)
 
     def walk(self, name, params, header, ret_x, ret_y, xaxis=0, data_type=0):
@@ -796,21 +1032,15 @@ class Ui(mainwindow.Ui_MainWindow):
         for p in params:
             if not p:
                 continue
-            param = stix_parameter.StixParameter()
-            param.clone(p)
+            param = Parameter(p)
             if name == param.name:
                 values = None
-                #print('data type:{}'.format(data_type))
                 if data_type == 0:
                     values = param.raw
                 else:
                     values = param.eng
                 try:
-                    yvalue = None
-                    if isinstance(values, (tuple, list)):
-                        yvalue = float(values[0])
-                    else:
-                        yvalue = float(values)
+                    yvalue = float(values)
                     ret_y.append(yvalue)
                     if xaxis == 1:
                         ret_x.append(timestamp)
@@ -836,30 +1066,28 @@ class Ui(mainwindow.Ui_MainWindow):
         packet_selection = self.comboBox.currentIndex()
         xaxis_type = self.xaxisComboBox.currentIndex()
         data_type = self.dataTypeComboBox.currentIndex()
-
         timestamp = []
         self.y = []
-
-        #packet_id = self.current_row
         params = self.paramNameEdit.text()
-        #packets[packet_id]['parameters']
         header = packets[0]['header']
         current_spid = 0
         spid_text = self.spidLineEdit.text()
         if spid_text:
             current_spid = int(spid_text)
-
+        selected_packets=[] 
         if packet_selection == 0:
+            selected_packets=[packets[self.current_row]]
+        elif packet_selection == 1:
+            selected_packets=packets
+
+        for packet in selected_packets:
+            header = packet['header']
+            if packet['header']['SPID'] != current_spid:
+                continue
+            params = packet['parameters']
             self.walk(name, params, header, timestamp, self.y, xaxis_type,
                       data_type)
-        elif packet_selection == 1:
-            for packet in packets:
-                header = packet['header']
-                if packet['header']['SPID'] != current_spid:
-                    continue
-                params = packet['parameters']
-                self.walk(name, params, header, timestamp, self.y, xaxis_type,
-                          data_type)
+
 
         self.x = []
 
@@ -932,7 +1160,7 @@ class Ui(mainwindow.Ui_MainWindow):
             self.ylabel = ylabel
             self.chartView.setRubberBand(QChartView.RectangleRubberBand)
             self.chartView.setRenderHint(QtGui.QPainter.Antialiasing)
-            msg = 'Data points: {}, Y ({} - {})'.format(
+            msg = 'Number of data points: {}, Ymin: {}, Ymax: {}'.format(
                 len(self.y), min(self.y), max(self.y))
             self.showMessage(msg, 1)
 
@@ -966,10 +1194,13 @@ def main():
         filename = sys.argv[1]
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
     window = Ui(MainWindow)
     MainWindow.show()
     if filename:
         window.openFile(filename)
     sys.exit(app.exec_())
+
+
 if __name__ == '__main__':
     main()

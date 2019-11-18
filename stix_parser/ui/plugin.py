@@ -12,6 +12,8 @@ import sys
 import importlib
 import tempfile
 import webbrowser
+import traceback
+#import threading
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 PLUGIN_TEMPLATE = """
@@ -32,7 +34,7 @@ class Plugin:
 
 
 def createTemplate(path):
-    filename = 'Unititled_{}.py'
+    filename = 'Untitled_{}.py'
     if path:
         filename = os.path.join(path, 'Untitled_{}.py')
     counter = 0
@@ -134,6 +136,7 @@ class Ui_Dialog(object):
             return
         path = self.getPluginLocation()
         abs_fname = os.path.join(path, fname)
+        msg=''
         try:
             name, ext = os.path.splitext(fname)
             sys.path.insert(0, path)
@@ -142,15 +145,18 @@ class Ui_Dialog(object):
             sys.path.pop(0)
             plugin = mod.Plugin(self.packets, self.current_row)
             old_stdout = sys.stdout
+            old_stderr= sys.stderr
             print_out = StringIO()
             sys.stdout = print_out
             plugin.run()
             msg = print_out.getvalue()
             sys.stdout = old_stdout
-            if msg:
-                self.textBrowser.setText(msg)
+
         except Exception as e:
-            self.textBrowser.setText(str(e))
+            msg+=str(e)
+            msg+=traceback.format_exc()
+
+        self.textBrowser.setText(msg)
 
     def edit(self):
         path = self.getPluginLocation()

@@ -8,12 +8,11 @@ from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 from datetime import datetime
 
-sys.path.append(os.path.abspath(__file__ + "/../../"))
+#sys.path.append(os.path.abspath(__file__ + "/../../"))
 
-from core import stix_packet_analyzer as sta
-from utils import stix_desc
-from core import stix_idb
-analyzer = sta.analyzer()
+from stix_parser.core import stix_datatypes as sdt
+from stix_parser.utils import stix_desc
+from stix_parser.core import stix_idb
 STIX_IDB = stix_idb.stix_idb()
 
 SPIDs = [54101, 54102]
@@ -123,10 +122,8 @@ class Plugin(object):
 
     def run(self,  pdf):
         print('Number of packets : {}'.format(len(self.packets)))
-        num = analyzer.merge_packets(self.packets, SPIDs)
-        print("Nb. of merged packets:{}".format(num))
-        param_values = analyzer.get_merged_parameters()
 
+        param_values= sdt.Packet.merge(self.packets, SPIDs)
         #with PdfPages(filename) as pdf:
         fig = None
         fig = plt.figure(figsize=figsize)

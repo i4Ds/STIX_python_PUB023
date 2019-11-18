@@ -5,21 +5,23 @@
 # @description  : STIX idb interface
 # @author       : Hualin Xiao
 # @date         : Feb. 15, 2019
-from __future__ import (absolute_import, unicode_literals)
 import os
 import sqlite3
 import threading
+from stix_parser.core import config
+
 from stix_parser.core import stix_logger
-STIX_LOGGER = stix_logger.stix_logger()
+
+logger = stix_logger.get_logger()
 
 
 def find_idb(filename):
     if filename:
         if os.path.exists(filename):
             return filename
-    default_abs_path= os.path.join(os.path.dirname(os.path.dirname(
-        os.path.realpath(__file__))),'idb/idb.sqlite')
-
+    default_abs_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
+        'idb/idb.sqlite')
     if os.path.exists(default_abs_path):
         return default_abs_path
     return None
@@ -41,7 +43,8 @@ class _IDB(object):
     #make sure only one instance is created
     def __init__(self, filename=''):
         if _IDB.__instance:
-            STIX_LOGGER.warn('IDB already initialized')
+            logger.warning('IDB already initialized')
+            pass
         else:
             _IDB.__instance = self
         self.conn = None
@@ -53,7 +56,11 @@ class _IDB(object):
         self.soc_descriptions = dict()
         self.parameter_descriptions = dict()
         self.s2k_table_contents = dict()
-        self.filename = find_idb(filename)
+        self.filename = filename
+        if self.filename == "":
+            self.filename = config.idb['filename']
+
+            #self.filename = find_idb(filename)
         self.num_trials = 0
         if self.filename:
             self.connect_database(self.filename)
@@ -64,6 +71,9 @@ class _IDB(object):
         return False
 
     def reload(self, filename):
+        if filename == self.filename:
+            logger.info('IDB already loaded')
+            return
         self.filename = filename
         self.close()
         self.parameter_structures = dict()
@@ -80,15 +90,15 @@ class _IDB(object):
         return os.path.abspath(self.filename)
 
     def connect_database(self, filename):
+        self.filename = filename
         try:
             self.conn = sqlite3.connect(filename, check_same_thread=False)
-            STIX_LOGGER.info('IDB loaded from {}'.format(filename))
-            self.filename=filename
+            logger.info('IDB loaded from {}'.format(filename))
         except sqlite3.Error:
-            STIX_LOGGER.error('Failed load IDB from {}'.format(filename))
+            logger.error('Failed load IDB from {}'.format(filename))
             if self.num_trials == 0:
-                default_IDB_filepath=find_idb('')
-                STIX_LOGGER.info('Trying to load IDB from {}'.format(filename))
+                default_IDB_filepath = find_idb('')
+                logger.info('Trying to load IDB from {}'.format(filename))
                 self.connect_database(default_IDB_filepath)
                 self.num_trials += 1
         self.cur = self.conn.cursor()
@@ -306,7 +316,7 @@ class _IDB(object):
 
     def tcparam_interpret(self, ref, raw):
         """
-         interpret telecommand parameter by using the table PAS  
+         interpret telecommand parameter by using the table PAS
         """
         sql = 'select PAS_ALTXT from PAS where PAS_NUMBR=? and PAS_ALVAL=?'
         args = (ref, raw)
@@ -362,6 +372,15 @@ class _IDB(object):
             self.calibration_polynomial[pcf_curtx] = rows
             return rows
 
+    def get_idb_version(self):
+        try:
+            sql = ('select version from IDB limit 1')
+            rows = self.execute(sql, None, 'list')
+            return rows[0][0]
+        except (sqlite3.OperationalError, IndexError):
+            logger.warning('No IDB version information found in IDB')
+            return '-1'
+
 
 def stix_idb(filename=''):
     return _IDB.get_instance(filename)
@@ -370,8 +389,9 @@ def stix_idb(filename=''):
 if __name__ == '__main__':
     """ test  the database interface"""
     #import sys
-    import pprint
     idb = stix_idb()
-    #print(find_idb('test'))
-    pprint.pprint(idb.get_fixed_packet_structure(54102))
+    print(idb.get_idb_version())
 
+    print(find_idb('test'))
+
+    #print(idb.is_variable_length_telecommand('ZIX37701'))

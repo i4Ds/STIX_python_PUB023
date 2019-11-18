@@ -3767,7 +3767,7 @@ SPID_DESC = {
     54118: 'STIX Science Data Transfer - QL summed light curves',
     54119: 'STIX Science Data Transfer - QL background monitor',
     54120: 'STIX Science Data Transfer - QL detector specific spectra',
-    54121: 'STIX Science Data Transfer - Variance',
+    54121: 'STIX Science Data Transfer - QL Variance',
     54122: 'STIX Science Data Transfer - Flare flag and location',
     54124: 'STIX Science Data Transfer - Bckg spectrum for calibration',
     54125: 'STIX Science Data Transfer - Aspect',

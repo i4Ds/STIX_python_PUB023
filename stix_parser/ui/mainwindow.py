@@ -261,6 +261,20 @@ class Ui_MainWindow(object):
             QtGui.QIcon.Off)
         self.actionViewBinary.setIcon(icon8)
         self.actionViewBinary.setObjectName("actionViewBinary")
+        self.actionPacketServer = QtWidgets.QAction(MainWindow)
+        icon9 = QtGui.QIcon()
+        icon9.addPixmap(
+            QtGui.QPixmap(":/Icons/images/socket.svg"), QtGui.QIcon.Normal,
+            QtGui.QIcon.Off)
+        self.actionPacketServer.setIcon(icon9)
+        self.actionPacketServer.setObjectName("actionPacketServer")
+        self.actionPythonConsole = QtWidgets.QAction(MainWindow)
+        icon10 = QtGui.QIcon()
+        icon10.addPixmap(
+            QtGui.QPixmap(":/Icons/images/console.svg"), QtGui.QIcon.Normal,
+            QtGui.QIcon.Off)
+        self.actionPythonConsole.setIcon(icon10)
+        self.actionPythonConsole.setObjectName("actionPythonConsole")
         self.menu_File.addAction(self.actionOpen)
         self.menu_File.addAction(self.actionSave)
         self.menu_File.addAction(self.actionExit)
@@ -273,6 +287,7 @@ class Ui_MainWindow(object):
         self.menu_Tools.addAction(self.actionPacketFilter)
         self.menu_Tools.addAction(self.actionPlugins)
         self.menu_Tools.addAction(self.actionViewBinary)
+        self.menu_Tools.addAction(self.actionPythonConsole)
         self.menuAction.addAction(self.actionPrevious)
         self.menuAction.addAction(self.actionNext)
         self.menuAction.addAction(self.actionLog)
@@ -301,6 +316,8 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.actionLoadMongodb)
         self.toolBar.addAction(self.actionConnectTSC)
         self.toolBar.addAction(self.actionViewBinary)
+        self.toolBar.addAction(self.actionPacketServer)
+        self.toolBar.addAction(self.actionPythonConsole)
 
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(1)
@@ -334,9 +351,9 @@ class Ui_MainWindow(object):
         self.styleEdit.setText(_translate("MainWindow", "-"))
         self.label_4.setText(_translate("MainWindow", "Type:"))
         self.comboBox.setItemText(
-            0, _translate("MainWindow", "In the same packet"))
+            0, _translate("MainWindow", "Within the packet"))
         self.comboBox.setItemText(
-            1, _translate("MainWindow", "Of all loaded packets"))
+            1, _translate("MainWindow", "All loaded packets"))
         self.label_3.setText(_translate("MainWindow", "Curve Style:"))
         self.plotButton.setText(_translate("MainWindow", "Plot"))
         self.savePlotButton.setText(_translate("MainWindow", "Save"))
@@ -386,6 +403,10 @@ class Ui_MainWindow(object):
             _translate("MainWindow", "Binary data viewer"))
         self.actionViewBinary.setToolTip(
             _translate("MainWindow", "Binary data viewer"))
+        self.actionPacketServer.setText(
+            _translate("MainWindow", "Packet server"))
+        self.actionPythonConsole.setText(
+            _translate("MainWindow", "Python console"))
 
 
 from . import mainwindow_rc5
