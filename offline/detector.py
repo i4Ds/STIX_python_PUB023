@@ -1,3 +1,6 @@
+import sys
+import os
+import colour
 import numpy as np
 DETECTOR_IDs = """
 Detector 01 1 0 0x00000001 -
@@ -91,40 +94,73 @@ Channel number Identification (bit mask) Comment
 """
 
 
-def create_one_detector_svg(detector_id=0):
-    svg_template = """
-    <svg width="120" height="120">
-      <rect width="100" height="100" 
-      style="fill:rgb(255,255,255);stroke-width:2;stroke:rgb(0,0,0)" />
-      {}
-    </svg>
-    """
-    path_template = '''
-      <path id="{}" style="fill:rgb(230,230,230);stroke-width:1;stroke:rgb(0,0,0)"
+def create_one_detector_svg(detector_id=0, data=None,  svg_template=''):
+    if not svg_template:
+        svg_template = """
+        <svg width="140" height="140">
+        <g>
+          {}
+         </g>
+        </svg>
+        """
+    pixel_template = '''
+      <path id="{}" style="fill:{};stroke-width:1;stroke:rgb(200,200,200)"
       d="{}" />'''
+    
+    fill_color='rgb(230,230,230)'
 
     pitch_x = 22
     pitch_y = 46
-    big_p0 = np.array([6, 4])
-    big_pixel_path = 'h 22 v 46 h -11 v -9 h -11 Z'
-    small_p0 = np.array([6, 50 - 4.5])
+    
+    offset=np.array([20,20])
+
+    big_p0_top = offset+ np.array([6, 4])
+    big_p0_bottom= offset+np.array([6, 4+92])
+
+    big_pixel_top= 'h 22 v 46 h -11 v -4.5 h -11 Z'
+    big_pixel_bottom= 'h 22 v -46 h -11 v 4.5 h -11 Z'
+
+    small_p0 =offset+ np.array([6, 50-4.5])
     small_pixel_path = 'h 11 v 9 h -11  Z'
 
-    svg_pixels = []
+    container= []
     #create big pixels
+    
+    guardring='<rect x="{}" y="{}" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:2;stroke:rgb(0,0,0)" />'.format(
+            offset[0],offset[1])
+    container.append(guardring)
+    text='<text x="{}" y="{}" filled="red"> Detector #{} </text>'.format(offset[0]+20,offset[1]+110,  detector_id)
+    container.append(text)
+
+
+    
+    colors=colour.get_colors(data)
+
+
     for i in range(0, 4):
-        for j in range(0, 2):
-            start = big_p0 + np.array([i * pitch_x, j * pitch_y])
-            path = 'M {} {} {}'.format(start[0], start[1], big_pixel_path)
-            pid = 'id-{}-{}'.format(detector_id, i + 4 * j)
-            svg_pixels.append(path_template.format(pid, path))
+        start = big_p0_top + np.array([i * pitch_x, 0])
+        path = 'M {} {} {}'.format(start[0], start[1], big_pixel_top)
+        pid = 'id-{}-{}'.format(detector_id, i )
+        fill_color=colors[i]
+        container.append(pixel_template.format(pid, fill_color,path))
+
+
+    for i in range(0, 4):
+        start = big_p0_bottom + np.array([i * pitch_x, 0])
+        path = 'M {} {} {}'.format(start[0], start[1], big_pixel_bottom)
+        pid = 'id-{}-{}'.format(detector_id, i + 4 )
+        fill_color=colors[i+4]
+        container.append(pixel_template.format(pid, fill_color, path))
+
     for i in range(0, 4):
         start = small_p0 + np.array([i * pitch_x, 0])
         path = 'M {} {} {}'.format(start[0], start[1], small_pixel_path)
         pid = 'id-{}-{}'.format(detector_id, i + 8)
-        svg_pixels.append(path_template.format(pid, path))
+        fill_color=colors[i+8]
 
-    return svg_template.format('\n'.join(svg_pixels))
+        container.append(pixel_template.format(pid, fill_color, path))
+    return svg_template.format('\n'.join(container) )
 
 if __name__=='__main__':
-    print(create_one_detector_svg())
+    with open('detector.svg','w') as f:
+        f.write(create_one_detector_svg())
