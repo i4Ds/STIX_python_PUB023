@@ -1,4 +1,4 @@
-DEFAULT_COLOR='rgb(180, 180, 180)' 
+DEFAULT_COLOR='rgb(200, 200, 200)', 
 COLORS=[[0.0, 'rgb(255, 255, 255)'], 
 		[0.003937007874015748, 'rgb(68, 2, 85)'],
 		[0.007874015748031496, 'rgb(68, 3, 87)'],
@@ -125,7 +125,8 @@ COLORS=[[0.0, 'rgb(255, 255, 255)'],
 		[0.484251968503937, 'rgb(34, 139, 141)'],
 		[0.4881889763779528, 'rgb(33, 140, 141)'],
 		[0.4921259842519685, 'rgb(33, 141, 140)'],
-		[0.49606299212598426, 'rgb(33, 142, 140)'], [0.5, 'rgb(32, 144, 140)'],
+		[0.49606299212598426, 'rgb(33, 142, 140)'], 
+                [0.5, 'rgb(32, 144, 140)'],
 		[0.5039370078740157, 'rgb(32, 145, 140)'],
 		[0.5078740157480315, 'rgb(31, 146, 140)'],
 		[0.5118110236220472, 'rgb(31, 147, 139)'],
@@ -254,24 +255,26 @@ COLORS=[[0.0, 'rgb(255, 255, 255)'],
 		[0.9960629921259843, 'rgb(250, 230, 34)'],
                 [1.0, 'rgb(253, 231, 36)']
                 ]
+WHITE='rgb(255, 255, 255)'
 
 def get_colors(data):
     if not data:
-        return COLORS[-1][1]
+        return None
     try:
         max_value=max(data)
         colors=[]
         for x in data:
-            value=x/max_value
-            col=DEFAULT_COLOR
-            for color in COLORS:
-                if value>color[0]:
-                    col=color[1]
-                    break
+            value=float(x)/max_value
+            col=WHITE
+            if value>0:
+                for color in COLORS:
+                    if value<color[0]:
+                        col=color[1]
+                        break
             colors.append(col)
         return  colors
     except:
-        col=COLORS[-1][1]
-        return [DEFAULT_COLOR]*len(data)
+        col=WHITE
+        return [col]*len(data)
             
 

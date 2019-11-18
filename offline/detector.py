@@ -2,40 +2,43 @@ import sys
 import os
 import colour
 import numpy as np
-DETECTOR_IDs = """
-Detector 01 1 0 0x00000001 -
-Detector 02 2 1 0x00000002 -
-Detector 03 3 2 0x00000004 -
-Detector 04 4 3 0x00000008 -
-Detector 05 5 4 0x00000010 -
-Detector 06 6 5 0x00000020 -
-Detector 07 7 6 0x00000040 -
-Detector 8  8 7 0x00000080 -
-Detector 9 9 8 0x00000100 CFL
-Detector 10 10 9 0x00000200 background
-Detector 11 11 10 0x00000400 -
-Detector 12  12 11 0x00000800 -
-Detector 13 13 12 0x00001000 -
-Detector 14 14 13 0x00002000 -
-Detector 15 15 14 0x00004000 -
-Detector 16 16 15 0x00008000 -
-Detector 17 17 16 0x00010000 -
-Detector 18 18 17 0x00020000 -
-Detector 19 19 18 0x00040000 -
-Detector 20 20 19 0x00080000 -
-Detector 21 21 20 0x00100000 -
-Detector 22 22 21 0x00200000 -
-Detector 23 23 22 0x00400000 -
-Detector 24 24 23 0x00800000 -
-Detector 25 25 24 0x01000000 -
-Detector 26 26 25 0x02000000 -
-Detector 27 27 26 0x04000000 -
-Detector 28 28 27 0x08000000 -
-Detector 29 29 28 0x10000000 -
-Detector 30 30 29 0x20000000 -
-Detector 31 31 30 0x40000000 -
-Detector 32 32 31 0x80000000 -
-"""
+DETECTOR_MASKS=
+{
+        0	,0x00000001,
+        1	,0x00000002,
+        2	,0x00000004,
+        3	,0x00000008,
+        4	,0x00000010,
+        5	,0x00000020,
+        6	,0x00000040,
+        7	,0x00000080,
+        8	,0x00000100,
+        9	,0x00000200,
+        10	,0x00000400,
+        11	,0x00000800,
+        12	,0x00001000,
+        13	,0x00002000,
+        14	,0x00004000,
+        15	,0x00008000,
+        16	,0x00010000,
+        17	,0x00020000,
+        18	,0x00040000,
+        19	,0x00080000,
+        20	,0x00100000,
+        21	,0x00200000,
+        22	,0x00400000,
+        23	,0x00800000,
+        24	,0x01000000,
+        25	,0x02000000,
+        26	,0x04000000,
+        27	,0x08000000,
+        28	,0x10000000,
+        29	,0x20000000,
+        30	,0x40000000,
+        31	,0x80000000
+        }
+
+
 QUARTER_IDs = """
 Q1 0b0001 detectors 1, 2, 5, 6, 7, 11, 12, 13
 Q2 0b0010 detectors 3, 4, 8, 9, 10, 14, 15, 16
@@ -97,7 +100,7 @@ Channel number Identification (bit mask) Comment
 def create_one_detector_svg(detector_id=0, data=None,  svg_template=''):
     if not svg_template:
         svg_template = """
-        <svg width="140" height="140">
+        <svg width="110" height="110">
         <g>
           {}
          </g>
@@ -106,13 +109,13 @@ def create_one_detector_svg(detector_id=0, data=None,  svg_template=''):
     pixel_template = '''
       <path id="{}" style="fill:{};stroke-width:1;stroke:rgb(200,200,200)"
       d="{}" />'''
-    
+
+    offset=np.array([5,5])
     fill_color='rgb(230,230,230)'
 
     pitch_x = 22
     pitch_y = 46
-    
-    offset=np.array([20,20])
+
 
     big_p0_top = offset+ np.array([6, 4])
     big_p0_bottom= offset+np.array([6, 4+92])
@@ -125,23 +128,25 @@ def create_one_detector_svg(detector_id=0, data=None,  svg_template=''):
 
     container= []
     #create big pixels
-    
+
     guardring='<rect x="{}" y="{}" width="100" height="100"  style="fill:rgb(255,255,255);stroke-width:2;stroke:rgb(0,0,0)" />'.format(
             offset[0],offset[1])
     container.append(guardring)
-    text='<text x="{}" y="{}" filled="red"> Detector #{} </text>'.format(offset[0]+20,offset[1]+110,  detector_id)
-    container.append(text)
+    #text='<text x="{}" y="{}" filled="red"> Detector #{} </text>'.format(offset[0]+20,offset[1]+110,  detector_id)
+    #container.append(text)
 
 
-    
+
     colors=colour.get_colors(data)
+    print(colors)
 
 
     for i in range(0, 4):
         start = big_p0_top + np.array([i * pitch_x, 0])
         path = 'M {} {} {}'.format(start[0], start[1], big_pixel_top)
         pid = 'id-{}-{}'.format(detector_id, i )
-        fill_color=colors[i]
+        if colors:
+            fill_color=colors[i]
         container.append(pixel_template.format(pid, fill_color,path))
 
 
@@ -149,18 +154,20 @@ def create_one_detector_svg(detector_id=0, data=None,  svg_template=''):
         start = big_p0_bottom + np.array([i * pitch_x, 0])
         path = 'M {} {} {}'.format(start[0], start[1], big_pixel_bottom)
         pid = 'id-{}-{}'.format(detector_id, i + 4 )
-        fill_color=colors[i+4]
+        if colors:
+            fill_color=colors[i+4]
         container.append(pixel_template.format(pid, fill_color, path))
 
     for i in range(0, 4):
         start = small_p0 + np.array([i * pitch_x, 0])
         path = 'M {} {} {}'.format(start[0], start[1], small_pixel_path)
         pid = 'id-{}-{}'.format(detector_id, i + 8)
-        fill_color=colors[i+8]
+        if colors:
+            fill_color=colors[i+8]
 
         container.append(pixel_template.format(pid, fill_color, path))
     return svg_template.format('\n'.join(container) )
 
 if __name__=='__main__':
     with open('detector.svg','w') as f:
-        f.write(create_one_detector_svg())
+        f.write(create_one_detector_svg(data=[23,5,43,543,53,33,43,33,34,54,55,44]))
