@@ -8,37 +8,64 @@ CANVAS_H = 1105
 RFRAME = 450
 RASPECT = 70
 P0 = np.array([CANVAS_W / 2., CANVAS_H - RFRAME - 5])
-def create_color_bar(x0,y0, width,height, max_value ):
-    path=('<rect x="{x0}" y="{y0}" width="{width}" height="{height}"'
-         'style="fill:rgb(250,250,250); stroke-width:0;stroke:rgb(0,0,255)" />').format(x0=x0,y=y0,width=width,height=height)
-    num=len(colour.COLORS);
-    dl=width/num
+
+
+def create_color_bar(x0, y0, width, height, max_value):
+    path = (
+        '<rect x="{x0}" y="{y0}" width="{width}" height="{height}"'
+        'style="fill:rgb(250,250,250); stroke-width:0;stroke:rgb(0,0,255)" />'
+    ).format(
+        x0=x0, y=y0, width=width, height=height)
+    num = len(colour.COLORS)
+    dl = width / num
     for i, col in enumerate(colour.COLORS):
-        x=dl*i+x0
-        y=y0
-        path+='<rect x="{}" y="{}" width="{}" height="{}"  style="fill:{}; stroke-width:1;stroke:{}" />'.format(
-                x,y,dl,height,col,col)
-    num_ticks=10
-    for i in range(0,num_ticks):
-        x=dl*i+x0
-        y=y0-20
-        path+= '<text x="{}" y="{}" > {} </text>'.format(x,y,max_value*i/num_ticks)
+        x = dl * i + x0
+        y = y0
+        path += '<rect x="{}" y="{}" width="{}" height="{}"  style="fill:{}; stroke-width:1;stroke:{}" />'.format(
+            x, y, dl, height, col, col)
+    num_ticks = 10
+    for i in range(0, num_ticks):
+        x = dl * i + x0
+        y = y0 - 20
+        path += '<text x="{}" y="{}" > {} </text>'.format(
+            x, y, max_value * i / num_ticks)
 
     return path
 
 
-
-
-
 def create_STIX_svg(data=None):
-    positions = [[135, 777.5], [135, 662.5], [135, 527.5], [135, 412.5],
-                 [260, 892.5], [260, 777.5], [260, 662.5], [260, 527.5],
-                 [260, 412.5], [260, 297.5], [385, 962.5], [385, 847.5],
-                 [385, 732.5], [385, 457.5], [385, 342.5], [385, 227.5],
-                 [510, 962.5], [510, 847.5], [510, 732.5], [510, 457.5],
-                 [510, 342.5], [510, 227.5], [635, 892.5], [635, 777.5],
-                 [635, 662.5], [635, 527.5], [635, 412.5], [635, 297.5],
-                 [760, 777.5], [760, 662.5], [760, 527.5], [760, 412.5]]
+    positions = [[	135	,	412.5	],
+[	135	,	527.5	],
+[	135	,	662.5	],
+[	135	,	777.5	],
+[	260	,	297.5	],
+[	260	,	412.5	],
+[	260	,	527.5	],
+[	260	,	662.5	],
+[	260	,	777.5	],
+[	260	,	892.5	],
+[	385	,	227.5	],
+[	385	,	342.5	],
+[	385	,	457.5	],
+[	385	,	732.5	],
+[	385	,	847.5	],
+[	385	,	962.5	],
+[	510	,	227.5	],
+[	510	,	342.5	],
+[	510	,	457.5	],
+[	510	,	732.5	],
+[	510	,	847.5	],
+[	510	,	962.5	],
+[	635	,	297.5	],
+[	635	,	412.5	],
+[	635	,	527.5	],
+[	635	,	662.5	],
+[	635	,	777.5	],
+[	635	,	892.5	],
+[	760	,	412.5	],
+[	760	,	527.5	],
+[	760	,	662.5	],
+[	760	,	777.5	]]
     svg_start = '''
         <svg width="{cw}" height="{ch}">
       <circle
@@ -68,11 +95,11 @@ def create_STIX_svg(data=None):
         x_max=P0[0] + RFRAME)
 
     svg_end = '   </svg>'
-    
-    color_bar=''
+
+    color_bar = ''
     if data:
-        color_bar=create_color_bar(10,100,1000,30,max_value)
-    template = svg_start + color_bar+ '{}' + svg_end
+        color_bar = create_color_bar(10, 100, 1000, 30, max_value)
+    template = svg_start + color_bar + '{}' + svg_end
 
     items = []
     for i, pos in enumerate(positions):
@@ -88,9 +115,9 @@ def create_one_detector_svg(detector_id=0,
                             data=[],
                             svg_template=''):
     """ data is a 32*12 array """
-    max_value=0
+    max_value = 0
     if data:
-        max_value=max(data)
+        max_value = max(data)
 
     if not svg_template:
         svg_template = """
@@ -134,13 +161,13 @@ def create_one_detector_svg(detector_id=0,
         offset[0] + 40, offset[1] + 110, detector_id + 1)
     container.append(text)
 
-
     for i in range(0, 4):
         start = big_p0_top + np.array([i * pitch_x, 0])
         path = 'M {} {} {}'.format(start[0], start[1], big_pixel_top)
         pid = 'id-{}-{}'.format(detector_id, i)
         if data:
-            fill_color = colour.get_color(data[detector_id*12+i],max_value)
+            fill_color = colour.get_color(data[detector_id * 12 + i],
+                                          max_value)
         container.append(pixel_template.format(pid, fill_color, path))
 
     for i in range(0, 4):
@@ -148,7 +175,8 @@ def create_one_detector_svg(detector_id=0,
         path = 'M {} {} {}'.format(start[0], start[1], big_pixel_bottom)
         pid = 'id-{}-{}'.format(detector_id, i + 4)
         if data:
-            fill_color = colour.get_color(data[detector_id*12+i],max_value)
+            fill_color = colour.get_color(data[detector_id * 12 + i],
+                                          max_value)
         container.append(pixel_template.format(pid, fill_color, path))
 
     for i in range(0, 4):
@@ -156,7 +184,8 @@ def create_one_detector_svg(detector_id=0,
         path = 'M {} {} {}'.format(start[0], start[1], small_pixel_path)
         pid = 'id-{}-{}'.format(detector_id, i + 8)
         if data:
-            fill_color = colour.get_color(data[detector_id*12+i],max_value)
+            fill_color = colour.get_color(data[detector_id * 12 + i],
+                                          max_value)
         container.append(pixel_template.format(pid, fill_color, path))
     group = '<g> {} </g>'.format('\n'.join(container))
     return svg_template.format(group)
