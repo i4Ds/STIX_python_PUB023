@@ -116,12 +116,14 @@ def get_group_mask(group_id):
         mask|=DETECTOR_MASKS[detector]
     return hex(mask)
 
-print('Group2:')
-print(get_group_mask(1))
-print(ALL_PIXEL_MASK)
-print(BIG_PIXEL_MASK_HEX)
-print(SMALL_PIXEL_MASK_HEX)
+def syslog(text):
+    print('syslog "{}"'.format(text))
+def send_tc(text):
+    print('tcsend {} checks {{SPTV DPTV CEV}} ack {{ACCEPT COMPLETE}}'.format(text))
 
-
-
-
+def wait(n):
+    print('waittime +{}'.format(n))
+def comment(text):
+    print('#{}'.format(text))
+def info(text):
+    print('#{}'.format(text))
