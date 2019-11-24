@@ -40,8 +40,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         self._ax_spectrum = self._spectrum_canvas.figure.subplots()
 
-
-
     def plot(self, h2counter, spectra):
         self.h2counter = h2counter
         self.spectra = spectra

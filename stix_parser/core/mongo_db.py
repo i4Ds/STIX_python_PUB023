@@ -11,7 +11,7 @@ import uuid
 import bson
 import pymongo
 
-NUM_MAX_PACKETS = 10000
+NUM_MAX_PACKETS = 20000
 
 
 class MongoDB(object):
@@ -64,7 +64,7 @@ class MongoDB(object):
     def select_packets_by_id(self, pid):
         if self.collection_packets:
             cursor = self.collection_packets.find({'_id': int(pid)})
-            return list(cursor)
+            return cursor
         return []
 
     def delete_one_run(self, run_id):
@@ -80,7 +80,7 @@ class MongoDB(object):
         for run in runs:
             self.delete_one_run(run)
 
-    def select_packets_by_run(self, run_id, nmax=NUM_MAX_PACKETS):
+    def select_packets_by_run(self, run_id):
         if self.collection_packets:
             cursor = self.collection_packets.find({
                 'run_id': int(run_id)
@@ -94,8 +94,8 @@ class MongoDB(object):
 
     def select_all_runs(self, order=-1):
         if self.collection_processing_runs:
-            runs = list(self.collection_processing_runs.find().sort(
-                '_id', order))
+            runs = self.collection_processing_runs.find().sort(
+                '_id', order)
             return runs
         else:
             return None

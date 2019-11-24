@@ -932,6 +932,7 @@ class Ui(mainwindow.Ui_MainWindow):
         self.showMessage('connecting Mongo database ...')
         self.mdb = mgdb.MongoDB(server, int(port), user, pwd)
         if not self.mdb.is_connected():
+            self.showMessage('Failed to connect to MongoDB')
             return
 
         dui.treeWidget.clear()
