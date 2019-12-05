@@ -16,7 +16,6 @@ CRITICAL = 6
 
 class StixLogger(object):
     __instance = None
-
     @staticmethod
     def get_instance(filename=None, level=4):
         if not StixLogger.__instance:

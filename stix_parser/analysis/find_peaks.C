@@ -55,10 +55,6 @@ void peaks(TFile *_file0,  TFile *_file1,  Int_t detector, Int_t channel, Double
 		return;
 	}
 	Int_t num_bins=h->GetNbinsX();
-	if (num_bins>512)
-	{
-		h->Rebin(2);
-	}
 	// Generate n peaks at random
 	par[0] = 0;
 	Double_t maxX, maxY;

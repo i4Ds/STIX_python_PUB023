@@ -1,0 +1,239 @@
+KPL/IK
+
+Star Tracker Instrument kernel
+===========================================================================
+
+   This instrument kernel (I-kernel) contains Solar Orbiter Star Trackers 
+   (STR) optics, detector, and field-of-view parameters.
+
+
+Version and Date
+---------------------------------------------------------------------------
+
+   Version 0.0 -- July 6, 2017 -- Marc Costa Sitja, ESAC/ESA
+
+      Initial release.
+
+
+References
+---------------------------------------------------------------------------
+
+   1. ``Kernel Pool Required Reading''.
+
+   2. ``Frames Required Reading''.
+
+   3. ``C-Kernel Required Reading''.  
+
+   4.  Solar Orbiter Spacecraft Frames Definition Kernel.
+
+   5. ``APS Autonomous Star Tracker (AA-STR)'', SOL-B.SG-RP-00001,
+      Selex ES, F. Carnesecchi, Revision C, 16th September 2013.
+
+
+IContact Information
+-----------------------------------------------------------------------------
+
+   If you have any questions regarding this file contact SPICE support at
+   ESAC:
+
+           Marc Costa Sitja
+           (+34) 91-8131-457
+           mcosta@sciops.esa.int, esa_spice@sciops.esa.int
+
+   or the Solar Orbiter Science Operations Center at ESAC:
+
+           sol_soc@esa.int
+
+
+Implementation Notes
+-----------------------------------------------------------------------------
+
+  This file is used by the SPICE system as follows: programs that make use
+  of this frame kernel must "load" the kernel normally during program
+  initialization. Loading the kernel associates the data items with
+  their names in a data structure called the "kernel pool".  The SPICELIB
+  routine FURNSH loads a kernel into the pool as shown below:
+
+    FORTRAN: (SPICELIB)
+
+      CALL FURNSH ( frame_kernel_name )
+
+    C: (CSPICE)
+
+      furnsh_c ( frame_kernel_name );
+
+    IDL: (ICY)
+
+      cspice_furnsh, frame_kernel_name
+
+    MATLAB: (MICE)
+      
+         cspice_furnsh ( 'frame_kernel_name' )
+
+    PYTHON: (SPICEYPY)*
+
+         furnsh( frame_kernel_name )
+
+  In order for a program or routine to extract data from the pool, the
+  SPICELIB routines GDPOOL, GIPOOL, and GCPOOL are used.  See [2] for
+  more details.
+
+  This file was created and may be updated with a text editor or word
+  processor.
+
+  * SPICEPY is a non-official, community developed Python wrapper for the
+    NAIF SPICE toolkit. Its development is managed on Github.
+    It is available at: https://github.com/AndrewAnnex/SpiceyPy
+
+
+Naming Conventions
+-----------------------------------------------------------------------------
+
+   Data items are specified using ''keyword=value'' assignments [1].
+   All keywords referencing values in this I-kernel start with the
+   characters `INS' followed by the NAIF SOLO instrument ID code,
+   constructed using the spacecraft ID number (-144) followed by the NAIF
+   three digit ID number for one of the STR data item.
+
+   These IDs are as follows
+
+       Instrument name          ID
+       --------------------   -------
+       SOLO_STR-1             -144051
+
+
+   The remainder of the name is an underscore character followed by the
+   unique name of the data item.  For example, the SOLOHI boresight direction 
+   in the SOLO_STR frame (see [2]) is specified by:
+
+       INS-144051_BORESIGHT
+
+   The upper bound on the length of the name of any data item identifier
+   is 32 characters.
+
+   If the same item is included in more than one file, or if the same item
+   appears more than once within a single file, the latest value supersedes
+   any earlier values.
+
+
+Overview
+---------------------------------------------------------------------------
+      
+   From [5]:
+
+      The Autonomous Star Tracker (STR) is an equipment whose function is 
+      to provide optical measurements to support navigation and attitude 
+      measurements throughout the Solar Orbiter spacecraft mission.
+
+      AA-STR for Solar Orbiter consists of an unique and compact assembly that 
+      includes the following modules:
+
+         - An electro-optical module including the optical system that images 
+           a zone of the sky on the APS detector. The APS temperature is kept 
+           to its operative value (-5 def) by a thermo-electric cooler.
+
+         - The electronics to control the APS detector, to process the pixel 
+           data and execute the SW program for pattern recognition and 
+           attitude estimation and data /command exchange.
+
+         - The power supply for interfacing the power primary bus.
+
+         - A baffle configuration, providing appropriated protection against 
+           light from the Sun, Earth or other bright objects outside the FOV.
+
+         - A main structure that supports the above indicated modules.
+
+      The optical system has been designed to produce a 20 degrees full cone 
+      over the APS physical size. This FOV, combined with the achievable 
+      detection limits, provide adequate sky coverage for pattern recognition 
+      and tracking purposes.
+
+
+      Summary of STR Characteristics (same for STR-1 and 2)
+
+         Wavelength range (nm):
+            500 - 900
+
+         Field of view (degrees):
+            20 (full cone)
+
+         Number of pixels:
+            1024 x 1024
+
+         Pixel Size (micrometer):
+            18
+
+         Pixel Angular Size (IFOV) (arcsec):
+            71.5
+
+         Relative aperture (F/Number):
+            F/1.48
+
+         Effective Focal length (EFL) (mm):
+            51.9
+
+         Distortion
+            0.72% at 10 deg
+
+         Spot Size (pixels)
+            2 to 4
+
+
+Mounting Alignment
+---------------------------------------------------------------------------
+
+   Refer to the latest version of the Solar Orbiter Frames Definition 
+   Kernel (FK) [1] for the Star Tracker reference frame definitions and
+   mounting alignment information.
+
+
+FOV Definitions
+---------------------------------------------------------------------------
+
+   This section contains definitions for the Star Tracker FOVs. These
+   definitions are provided in the format required by the SPICE
+   (CSPICE) function GETFOV (getfov_c).
+ 
+   As in [3] the Star Tracker detector FOVs are defined with respect to
+   the corresponding Star Tracker frames to be squares with the half
+   angular extent of 8.235 degrees and the boresights along the +Z axes
+   of the corresponding frames. These FOV definitions use angular extent
+   style specification.
+
+      \begindata
+
+         INS-144051_FOV_FRAME                 = 'SOLO_STR-1'
+         INS-144051_FOV_SHAPE                 = 'CIRCLE'
+         INS-144051_BORESIGHT                 = ( 0.0     0.0     1.0 )
+         INS-144051_FOV_CLASS_SPEC            = 'ANGLES'
+         INS-144051_FOV_REF_VECTOR            = ( 1.0     0.0     0.0 )
+         INS-144051_FOV_REF_ANGLE             = ( 10 )
+         INS-144051_FOV_ANGLE_UNITS           = 'DEGREES'
+
+         INS-144052_FOV_FRAME                 = 'SOLO_STR-2'
+         INS-144052_FOV_SHAPE                 = 'CIRCLE'
+         INS-144052_BORESIGHT                 = ( 0.0     0.0     1.0 )
+         INS-144052_FOV_CLASS_SPEC            = 'ANGLES'
+         INS-144052_FOV_REF_VECTOR            = ( 1.0     0.0     0.0 )
+         INS-144052_FOV_REF_ANGLE             = ( 10 )
+         INS-144052_FOV_ANGLE_UNITS           = 'DEGREES'
+
+      \begintext
+
+
+Platform ID
+---------------------------------------------------------------------------
+
+   This number is the NAIF instrument ID of the platform on which the
+   detectors are mounted. For both Star Trackers this platform is the
+   orbiter.
+
+      \begindata
+
+         INS-144051_PLATFORM_ID               = ( -144000 )
+         INS-144052_PLATFORM_ID               = ( -144000 )
+
+      \begintext
+
+
+End of IK file.

@@ -752,7 +752,7 @@ class StixTCTMParser(StixParameterParser):
 
         self.num_bad_bytes = 0
         self.num_bad_headers = 0
-        self.packet_reception_utc = ''
+        self.rec_utc = ''
         self.total_length = 0
         self.num_filtered = 0
 
@@ -1138,7 +1138,7 @@ class StixTCTMParser(StixParameterParser):
             idx = 0
             for line in filein:
                 try:
-                    [self.packet_reception_utc,
+                    [self.rec_utc,
                      data_hex] = line.strip().split()
                     data_binary = binascii.unhexlify(data_hex)
                 except Exception as e:
@@ -1162,21 +1162,26 @@ class StixTCTMParser(StixParameterParser):
             pkt_header['unix_time'] = stix_datetime.get_now('unix')
             pkt_header['UTC'] = stix_datetime.get_now('utc')
             return
+        rec_time=False
+        if self.rec_utc:
+            try:
+                dt = dtparser.parse(self.rec_utc)
+                pkt_header['UTC'] = dt
+                pkt_header['unix_time'] = dt.timestamp()
+                rec_time=True
+            except ValueError:
+                logger.warning('Failed to parse timestamp: {}'.format(self.rec_utc))
 
-        if not self.packet_reception_utc:
-            pkt_header[
-                'unix_time'] = stix_datetime.convert_SCET_to_unixtimestamp(
-                    pkt_header['SCET'])
-            pkt_header['UTC'] = stix_datetime.convert_SCET_to_UTC(
-                pkt_header['SCET'])
-            return
-        try:
-            dt = dtparser.parse(self.packet_reception_utc)
-            pkt_header['UTC'] = dt
-            pkt_header['unix_time'] = dt.timestamp()
-        except ValueError:
-            pkt_header['UTC'] = stix_datetime.convert_SCET_to_UTC(
-                pkt_header['SCET'])
+        if pkt_header['TMTC']=='TM':
+            coarse=pkt_header['coarse_time']
+            fine=pkt_header['fine_time']
+            pkt_header['obt_utc']=stix_datetime.scet2utc(coarse,fine)
+            if not rec_time:
+                pkt_header['unix_time'] = stix_datetime.scet2unix(coarse,fine)
+                pkt_header['UTC'] = stix_datetime.unix2utc(pkt_header['unix_time'])
+
+
+
 
     def parse_moc_xml(self, in_filename):
         packets = []

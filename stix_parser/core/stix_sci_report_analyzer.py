@@ -67,8 +67,7 @@ class StixCalibrationReportAnalyzer(object):
             self.report['duration'] = param_dict['NIX00122'][0].raw
             scet = param_dict['NIX00445'][0].raw
             self.report['SCET'] = scet
-            self.report['start_unix_time'] = stix_datetime.convert_SCET_to_unixtimestamp(
-                    scet)
+            self.report['start_unix_time'] = stix_datetime.scet2unix(scet)
             self.report['auxiliary'] = packet['parameters'][0:14]
             #not to copy repeaters 
 
@@ -105,8 +104,8 @@ class StixQLBackgroundAnalyzer(object):
         start_coarse_time = packet[1].raw
         start_fine_time = packet[2].raw
         integrations = packet[3].raw
-        start_unix_time = stix_datetime.convert_SCET_to_unixtimestamp(
-            start_coarse_time + start_fine_time / 65536.)
+        start_unix_time = stix_datetime.scet2unix(start_coarse_time, 
+            start_fine_time)
 
         #self.analyzer.load(packet)
 
@@ -153,8 +152,7 @@ class StixQLLightCurveAnalyzer(object):
         integrations = packet[3].raw
         detector_mask = packet[4].raw
         pixel_mask = packet[6].raw
-        start_unix_time = stix_datetime.convert_SCET_to_unixtimestamp(
-            start_coarse_time + start_fine_time / 65536.)
+        start_unix_time = stix_datetime.scet2unix(start_coarse_time , start_fine_time)
 
         #self.analyzer.load(packet)
 

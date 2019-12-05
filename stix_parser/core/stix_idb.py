@@ -21,7 +21,7 @@ def find_idb(filename):
             return filename
     default_abs_path = os.path.join(
         os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
-        'idb/idb.sqlite')
+        'data/idb/idb.sqlite')
     if os.path.exists(default_abs_path):
         return default_abs_path
     return None
