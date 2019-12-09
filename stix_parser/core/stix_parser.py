@@ -752,7 +752,7 @@ class StixTCTMParser(StixParameterParser):
 
         self.num_bad_bytes = 0
         self.num_bad_headers = 0
-        self.rec_utc = ''
+        self.receipt_utc = ''
         self.total_length = 0
         self.num_filtered = 0
 
@@ -1138,7 +1138,7 @@ class StixTCTMParser(StixParameterParser):
             idx = 0
             for line in filein:
                 try:
-                    [self.rec_utc,
+                    [self.receipt_utc,
                      data_hex] = line.strip().split()
                     data_binary = binascii.unhexlify(data_hex)
                 except Exception as e:
@@ -1158,27 +1158,30 @@ class StixTCTMParser(StixParameterParser):
     def attach_timestamps(self, packet):
         pkt_header = packet['header']
 
+        pkt_header['UTC'] = ''
+        pkt_header['unix_time'] = 0
         if self.is_live_hex_stream:
             pkt_header['unix_time'] = stix_datetime.get_now('unix')
             pkt_header['UTC'] = stix_datetime.get_now('utc')
             return
-        rec_time=False
-        if self.rec_utc:
+        use_receipt_time=False
+        if self.receipt_utc:
             try:
-                dt = dtparser.parse(self.rec_utc)
+                dt = dtparser.parse(self.receipt_utc)
                 pkt_header['UTC'] = dt
                 pkt_header['unix_time'] = dt.timestamp()
-                rec_time=True
+                use_receipt_time=True
             except ValueError:
-                logger.warning('Failed to parse timestamp: {}'.format(self.rec_utc))
+                logger.warning('Failed to parse timestamp: {}'.format(self.receipt_utc))
 
         if pkt_header['TMTC']=='TM':
             coarse=pkt_header['coarse_time']
             fine=pkt_header['fine_time']
             pkt_header['obt_utc']=stix_datetime.scet2utc(coarse,fine)
-            if not rec_time:
+            if not use_receipt_time:
                 pkt_header['unix_time'] = stix_datetime.scet2unix(coarse,fine)
                 pkt_header['UTC'] = stix_datetime.unix2utc(pkt_header['unix_time'])
+
 
 
 
