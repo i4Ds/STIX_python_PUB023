@@ -395,7 +395,7 @@
     <addaction name="actionPacketFilter"/>
     <addaction name="actionPlugins"/>
     <addaction name="actionViewBinary"/>
-    <addaction name="actionPythonConsole"/>
+    <addaction name="actionTimestampConvertor"/>
    </widget>
    <widget class="QMenu" name="menuAction">
     <property name="title">
@@ -447,11 +447,11 @@
    <addaction name="separator"/>
    <addaction name="actionPlot"/>
    <addaction name="separator"/>
+   <addaction name="actionTimestampConvertor"/>
    <addaction name="actionLoadMongodb"/>
    <addaction name="actionConnectTSC"/>
    <addaction name="actionViewBinary"/>
    <addaction name="actionPacketServer"/>
-   <addaction name="actionPythonConsole"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
    <property name="windowTitle">
@@ -613,6 +613,15 @@
    </property>
    <property name="text">
     <string>Python console</string>
+   </property>
+  </action>
+  <action name="actionTimestampConvertor">
+   <property name="icon">
+    <iconset resource="../resources/mainwindow_rc5.qrc">
+     <normaloff>:/Icons/images/datetime.svg</normaloff>:/Icons/images/datetime.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Timestamp convertor</string>
    </property>
   </action>
  </widget>

@@ -25,15 +25,16 @@ from stix_parser.core import stix_parser
 from stix_parser.core import stix_writer
 from stix_parser.core import stix_idb
 from stix_parser.core import mongo_db as mgdb
-from stix_parser.core.stix_datetime import format_datetime
+from stix_parser.core import stix_datetime 
 from stix_parser.core import stix_logger
 from stix_parser.ui import mainwindow
 from stix_parser.ui import mongo_dialog
 from stix_parser.ui import tsc_connection
 from stix_parser.ui import packet_filter
 from stix_parser.ui import plugin
+from stix_parser.ui import timestamp_convertor
 from stix_parser.ui import raw_viewer
-from stix_parser.ui import console
+#from stix_parser.ui import console
 from stix_parser.core.stix_datatypes import Parameter
 from stix_parser.core.stix_datatypes import Packet
 
@@ -348,7 +349,8 @@ class Ui(mainwindow.Ui_MainWindow):
         self.actionPlugins.triggered.connect(self.onPluginTriggered)
         self.actionOnlineHelp.triggered.connect(self.onOnlineHelpTriggered)
         self.actionViewBinary.triggered.connect(self.onViewBinaryTriggered)
-        self.actionPythonConsole.triggered.connect(self.startPythonConsole)
+        self.actionTimestampConvertor.triggered.connect(self.onTimestampConvertorTriggered)
+        #self.actionPythonConsole.triggered.connect(self.startPythonConsole)
         self.autoUpdateButton.clicked.connect(
             self.onPlotAutoUpdateButtonClicked)
 
@@ -395,8 +397,8 @@ class Ui(mainwindow.Ui_MainWindow):
                 self.settings.setValue('idb_filename', idb_filename)
                 self.idb_filename = idb_filename
 
-    def startPythonConsole(self):
-        console.start({'packets': self.data})
+    #def startPythonConsole(self):
+    #    console.start({'packets': self.data})
     def close(self):
         self.MainWindow.close()
     def style(self):
@@ -513,6 +515,13 @@ class Ui(mainwindow.Ui_MainWindow):
     def onOnlineHelpTriggered(self):
         webbrowser.open(
             'https://github.com/i4Ds/STIX-python-data-parser', new=2)
+
+    def onTimestampConvertorTriggered(self):
+        diag = QtWidgets.QDialog()
+        diag_ui = timestamp_convertor.Ui_Dialog()
+        diag_ui.setupUi(diag)
+        diag.exec_()
+
 
     def onPluginTriggered(self):
         self.plugin_location = self.settings.value('plugin_location', [], str)
@@ -815,7 +824,7 @@ class Ui(mainwindow.Ui_MainWindow):
                                 QtGui.QColor(
                                     colors[header['service_subtype']])))
 
-            timestamp_str = format_datetime(header['unix_time'])
+            timestamp_str = stix_datetime.format_datetime(header['unix_time'])
             root.setText(0, timestamp_str)
             description = '{}({},{}) - {}'.format(
                 header['TMTC'], header['service_type'],
@@ -941,9 +950,9 @@ class Ui(mainwindow.Ui_MainWindow):
             root = QtWidgets.QTreeWidgetItem(dui.treeWidget)
             root.setText(0, str(run['_id']))
             root.setText(1, run['filename'])
-            root.setText(2, format_datetime(run['date']))
-            root.setText(3, format_datetime(run['data_start_unix_time']))
-            root.setText(4, format_datetime(run['data_stop_unix_time']))
+            root.setText(2, stix_datetime.format_datetime(run['date']))
+            root.setText(3, stix_datetime.format_datetime(run['data_start_unix_time']))
+            root.setText(4, stix_datetime.format_datetime(run['data_stop_unix_time']))
 
     def loadDataFromMongoDB(self, dui, diag):
         self.showMessage('Loading packets ...')

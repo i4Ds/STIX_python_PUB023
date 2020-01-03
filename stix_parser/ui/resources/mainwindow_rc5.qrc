@@ -12,5 +12,6 @@
     <file>images/mongodb.svg</file>
     <file>images/copy.svg</file>
     <file>images/link.svg</file>
+    <file>images/datetime.svg</file>
   </qresource>
 </RCC>

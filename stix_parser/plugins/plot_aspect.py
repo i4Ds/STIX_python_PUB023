@@ -25,11 +25,10 @@ class Plugin:
                 continue
             timestamp.append(float(packet['unix_time']))
             names = ['NIX00078', 'NIX00079', 'NIX00080', 'NIX00081']
-            results = packet.children_as_dict()
-            A0_V.append(results['NIX00078'])
-            A1_V.append(results['NIX00079'])
-            B0_V.append(results['NIX00080'])
-            B1_V.append(results['NIX00081'])
+            A0_V.append(packet[86]['raw'])
+            A1_V.append(packet[87]['raw'])
+            B0_V.append(packet[88]['raw'])
+            B1_V.append(packet[89]['raw'])
 
         plt.plot(timestamp, A0_V, label='A0_V')
         plt.plot(timestamp, A1_V, label='A1_V')

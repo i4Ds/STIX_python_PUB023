@@ -8,10 +8,10 @@
 
 import argparse
 import os
+import sys
+sys.path.append('.')
 from stix_parser.core import config
-
 from stix_parser.core import stix_logger, stix_idb, stix_parser
-
 logger = stix_logger.get_logger()
 
 
