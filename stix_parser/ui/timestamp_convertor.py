@@ -67,10 +67,14 @@ class Ui_Dialog(object):
                 utc=stix_datetime.scet2utc(inputData)
             else:
                 unix=int(inputData)
-                utc=stix_datetime.unix2utc(inputData)
+                utc=stix_datetime.unix2utc(unix)
                 scet=stix_datetime.utc2scet(utc)
-            outputText='''UTC: {}\nUNIX:{}\nSCET:{}\n
-            '''.format(utc, unix,scet)
+                
+            gap=946728000
+            J2000=unix-gap
+            scet_utc=stix_datetime.unix2utc(scet+gap)
+            outputText='''UTC: {}\nUNIX:{}\nSCET:{}\nJ2000 (from UNIX epoch):{}\n UTC(from SCET):{}
+            '''.format(utc, unix,scet,J2000, scet_utc)
         except Exception as e:
             outputText=str(e)
 
