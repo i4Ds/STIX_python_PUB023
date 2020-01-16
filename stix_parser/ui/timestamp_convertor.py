@@ -73,7 +73,7 @@ class Ui_Dialog(object):
             gap=946728000
             J2000=unix-gap
             scet_utc=stix_datetime.unix2utc(scet+gap)
-            outputText='''UTC: {}\nUNIX:{}\nSCET:{}\nJ2000 (from UNIX epoch):{}\n UTC(from SCET):{}
+            outputText='''UTC: {}\nUNIX:{}\nSCET:{}\nJ2000 (calculated from UNIX epoch):{}\n UTC(calculated from SCET):{}
             '''.format(utc, unix,scet,J2000, scet_utc)
         except Exception as e:
             outputText=str(e)

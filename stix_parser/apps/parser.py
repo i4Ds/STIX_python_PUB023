@@ -67,6 +67,7 @@ def main():
         default=config.mongodb['port'],
         type=str,
         help='MongoDB host port.')
+
     optional.add_argument(
         "--db-user", dest='db_user', 
         default=config.mongodb['user'], help='MongoDB username.')
@@ -83,6 +84,7 @@ def main():
         default=[],
         type=int,
         help='Only to parse the packets of the given SPIDs.')
+
     optional.add_argument(
         '--services',
         nargs='*',
@@ -117,27 +119,25 @@ def main():
 
     if args['idb']:
         idb_instance = stix_idb.stix_idb(args['idb'])
-
-    parser = stix_parser.StixTCTMParser()
-
-
     selected_spids = args['SPID']
     selected_services = args['services']
+    comment=args['comment']
+    process_single_file(args['input'], args['input_type'],args['output'], args['SPID'],
+            args['services'],args['comment'], args['wdb'], args['db_host'],
+            args['db_port'], args['db_user'], args['db_pwd'])
+
+def process_single_file(filename, filetype, output_filename, selected_spids,selected_services ,comment, wdb, db_host,db_port, db_user, db_pwd):
+    parser = stix_parser.StixTCTMParser()
     parser.set_packet_filter(selected_services, selected_spids)
-
-    if args['output']:
+    if output_filename:
         parser.set_store_packet_enabled(False)
         parser.set_store_binary_enabled(False)
-        parser.set_pickle_writer(args['output'], args['comment'])
-    if args['wdb']:
+        parser.set_pickle_writer(output_filename, comment)
+    if wdb:
         parser.set_store_binary_enabled(False)
         parser.set_store_packet_enabled(False)
-        parser.set_MongoDB_writer(args['db_host'], args['db_port'],
-                                  args['db_user'], args['db_pwd'],
-                                  args['comment'])
-
-
-    parser.parse_file(args['input'], args['input_type'])
+        parser.set_MongoDB_writer(db_host,db_port,db_user, db_pwd,comment)
+    parser.parse_file(filename, filetype) 
     parser.done()
 
 

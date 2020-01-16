@@ -173,13 +173,20 @@ class Ui_Dialog(object):
             return
 
         abs_fname = os.path.join(path, fname)
-        webbrowser.open(abs_fname)
+        self.editPlugin(abs_fname)
+    def editPlugin(self,filename):
+        editor = os.getenv('EDITOR')
+        if editor:
+            os.system(editor + ' ' + filename)
+        else:
+            webbrowser.open(filename)
+
 
     def createNew(self):
         try:
             folder = self.getPluginLocation()
             new_filename = createTemplate(folder)
-            webbrowser.open(new_filename)
+            self.editPlugin(new_filename)
         except Exception as e:
             print(e)
         self.updatePluginList()

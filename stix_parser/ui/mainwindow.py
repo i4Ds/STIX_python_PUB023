@@ -356,4 +356,4 @@ class Ui_MainWindow(object):
         self.actionPacketServer.setText(_translate("MainWindow", "Packet server"))
         self.actionPythonConsole.setText(_translate("MainWindow", "Python console"))
         self.actionTimestampConvertor.setText(_translate("MainWindow", "Timestamp convertor"))
-import mainwindow_rc5
+from stix_parser.ui import mainwindow_rc5

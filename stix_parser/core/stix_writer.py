@@ -152,6 +152,21 @@ class StixMongoDBWriter(StixPacketWriter):
 
         self.science_report_analyzer = scia.StixScienceReportAnalyzer(self.db)
 
+    def is_processed(self, in_filename):
+        filename = os.path.basename(in_filename)
+        abspath=os.path.abspath(in_filename)
+        path = os.path.dirname(abspath)
+        try:
+            run = self.collection_runs.find_one({'path': path,'filename':filename})
+            if run:
+                return True
+        except Exception as e:
+            logger.error(str(e))
+
+        return False
+
+
+
     def register_run(self, in_filename, filesize=0, comment='',
                      idb_version=''):
         try:
@@ -170,7 +185,8 @@ class StixMongoDBWriter(StixPacketWriter):
         log_filename = logger.get_log_filename()
 
         self.filename = os.path.basename(in_filename)
-        self.path = os.path.dirname(in_filename)
+        abspath=os.path.abspath(in_filename)
+        self.path = os.path.dirname(abspath)
 
         self.run_info = {
             'filename': self.filename,
@@ -194,7 +210,8 @@ class StixMongoDBWriter(StixPacketWriter):
 
     def set_filename(self, fname):
         self.filename = os.path.basename(fname)
-        self.path = os.path.dirname(fname)
+        abspath=os.path.abspath(fname)
+        self.path = os.path.dirname(abspath)
 
     def set_summary(self, summary):
         self.summary = summary
