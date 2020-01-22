@@ -77,7 +77,12 @@ def get_now(dtype='unix'):
 
 
 def scet2utc(coarse, fine=0):
-    return spice_manager.scet2utc(coarse,fine)
+    try:
+        return spice_manager.scet2utc(coarse,fine)
+    except spiceypy.utils.support_types.SpiceyError:
+        return ''
+
+
 def utc2scet(utc):
     return spice_manager.utc2obt(utc)
 
@@ -129,8 +134,11 @@ def datetime2unix(timestamp):
 
 
 def scet2unix(coarse, fine=0):
-    utc=scet2utc(coarse,fine)
-    return utc2unix(utc)
+    try:
+        utc=scet2utc(coarse,fine)
+        return utc2unix(utc)
+    except spiceypy.utils.support_types.SpiceyError:
+        return 0
 
 
 def unix2utc(ts):
@@ -151,10 +159,10 @@ def utc2datetime(utc):
         utc += 'Z'
     return dtparser.parse(utc)
 
-#if __name__=='__main__':
-#    print("UTC at T0:")
-#    print(scet2utc(0))
-#    print("Unix at T0:")
-#    print(scet2unix(0))
-#    print(scet2datetime(0))
+if __name__=='__main__':
+    print("UTC at T0:")
+    print(scet2utc(0))
+    #print("Unix at T0:")
+    #print(scet2unix(0))
+    #print(scet2datetime(0))
 

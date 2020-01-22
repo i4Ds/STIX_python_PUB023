@@ -32,7 +32,12 @@ CONTEXT_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I']
 UNSIGNED_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I', 'BBBBB', '>IH']
 SIGNED_UNPACK_FORMAT = ['b', '>h', 'bbb', '>i', 'bbbbb', '>ih']
 HEX_SPACE = '0123456789ABCDEFabcdef'
+SCET_PARAMETERS=['NIX00402', 'NIX00445','NIX00287','PIX00455',
+        'PIX00456','PIX0021','PIX0022', 'PIX0025','PIX0026',
+        'PIX00086','PIX00087']
+
 PARMETERS_CALIBRATION_ENABLED = ['NIX00101', 'NIX00102']
+PARMETERS_CALIBRATION_ENABLED.extend(SCET_PARAMETERS)
 
 STIX_IDB = stix_idb.stix_idb()
 STIX_DECOMPRESSOR = stix_decompressor.StixDecompressor()
@@ -212,6 +217,10 @@ class StixParameterParser(object):
 
         if raw_value is None:
             return ''
+        if param_name in SCET_PARAMETERS:
+            #convert SCET to UTC
+            return stix_datetime.scet2utc(int(raw_value))
+
 
         if tmtc == 'TC':
             if ref:
