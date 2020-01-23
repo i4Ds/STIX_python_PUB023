@@ -32,6 +32,12 @@ CONTEXT_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I']
 UNSIGNED_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I', 'BBBBB', '>IH']
 SIGNED_UNPACK_FORMAT = ['b', '>h', 'bbb', '>i', 'bbbbb', '>ih']
 HEX_SPACE = '0123456789ABCDEFabcdef'
+QMap<QString, QString> ASIC2PIXEL{
+      {"PIX00122", "7"},        {"PIX00123", "3"}, {"PIX00125", "11"},
+      {"PIX00127", "6"},        {"PIX00130", "2"}, {"PIX00133", "10"},
+      {"PIX00137", "1"},        {"PIX00140", "5"}, {"PIX00143", "9"},
+      {"PIX00148", "0"},        {"PIX00151", "4"}, {"PIX00152", "8"},
+      {"PIX00152", "Guardring"}};
 SCET_PARAMETERS=['NIX00402', 'NIX00445','NIX00287','PIX00455',
         'PIX00456','PIX0021','PIX0022', 'PIX0025','PIX0026',
         'PIX00086','PIX00087','PIX00009']
