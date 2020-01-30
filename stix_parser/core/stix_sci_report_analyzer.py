@@ -41,7 +41,8 @@ class StixCalibrationReportAnalyzer(object):
             try:
                 total_counts=sum(spectrum)
             except TypeError:
-                logger.warning("Failed to sum up spectrum {}".format(str(spectrum)))
+                logger.warning("Unable to sum up spectrum. File id: {}, Packet id:{}".format(run_id, 
+                    packet_id))
                 
             self.total_counts.append([
                 packet_id, detector_ids[ispec], pixels_ids[ispec],
