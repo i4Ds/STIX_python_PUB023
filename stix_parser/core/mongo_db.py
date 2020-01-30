@@ -97,8 +97,7 @@ class MongoDB(object):
             runs = self.collection_processing_runs.find().sort(
                 '_id', order)
             return runs
-        else:
-            return None
+        return None
 
     def get_unprocessed(self):
         unprocess_run_ids = []

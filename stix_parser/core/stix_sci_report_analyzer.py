@@ -36,9 +36,16 @@ class StixCalibrationReportAnalyzer(object):
         spectra = packet.get('NIX00159/NIX00146/*.eng')[0]
 
         for ispec, spectrum in enumerate(spectra):
+
+            total_counts=0
+            try:
+                total_counts=sum(spectrum)
+            except TypeError:
+                logger.warning("Failed to sum up spectrum {}".format(str(spectrum)))
+                
             self.total_counts.append([
                 packet_id, detector_ids[ispec], pixels_ids[ispec],
-                sum(spectrum)
+                total_counts
             ])
 
         if packet['seg_flag'] in [1, 3]:
