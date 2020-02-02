@@ -1,3 +1,3 @@
-from utils import mongo_db
+from stix_parser.core import mongo_db
 mdb = MongoDB()
-mdb_delete_runs(range(23, 28))
+mdb.delete_runs([15,16,17])

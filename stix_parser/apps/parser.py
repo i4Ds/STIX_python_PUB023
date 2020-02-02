@@ -108,6 +108,13 @@ def main():
         required=False,
         help="Log filename")
 
+    optional.add_argument(
+        "--no-S20",
+        dest='S20_excluded',
+        action='store_true',
+        default=True,
+        help="to exclude S20 packets")
+
     args = vars(ap.parse_args())
 
 
@@ -123,12 +130,15 @@ def main():
     selected_services = args['services']
     comment=args['comment']
     process_single_file(args['input'], args['input_type'],args['output'], args['SPID'],
-            args['services'],args['comment'], args['wdb'], args['db_host'],
+            args['services'],args['comment'], args['S20_excluded'],args['wdb'], args['db_host'],
             args['db_port'], args['db_user'], args['db_pwd'])
 
-def process_single_file(filename, filetype, output_filename, selected_spids,selected_services ,comment, wdb, db_host,db_port, db_user, db_pwd):
+def process_single_file(filename, filetype, output_filename, selected_spids,selected_services ,comment, S20_excluded,
+        wdb, db_host,db_port, db_user, db_pwd):
     parser = stix_parser.StixTCTMParser()
     parser.set_packet_filter(selected_services, selected_spids)
+    if S20_excluded:
+        parser.exclude_S20()
     if output_filename:
         parser.set_store_packet_enabled(False)
         parser.set_store_binary_enabled(False)

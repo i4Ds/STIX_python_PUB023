@@ -767,9 +767,13 @@ class StixTCTMParser(StixParameterParser):
 
         self.store_packet_enabled = True
         self.packet_writer = None
+        self.S20_excluded=False
 
     def kill(self):
         self.stop_parsing = True
+
+    def exclude_S20(self):
+        self.S20_excluded = True
 
     def set_store_packet_enabled(self, status):
         """
@@ -1086,6 +1090,9 @@ class StixTCTMParser(StixParameterParser):
 
                 if telecommand_name == 'ZIX20128' and parameters:
                     #S20 detailed structure  not defined in ICD
+                    if self.S20_excluded:
+                        continue
+
                     self.parse_service_20(parameters)
 
                 packet = {'header': header, 'parameters': parameters}
