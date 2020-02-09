@@ -3,7 +3,7 @@
 # @title        : parser.py
 # @description  : STIX TCTM packet parser
 # @author       : Hualin Xiao
-# @date         : Feb. 11, 2019
+# @date         : Feb. 11, 2020
 #
 
 import os
