@@ -86,9 +86,9 @@ class StixLogger(object):
         if self.signal_handler:
             self.emit(msg, level)
         elif self.logfile:
-            if level == PROGRESS:
-                msg = '{}% processed.'.format(msg)
-            self.logfile.write(msg + '\n')
+            #if level == PROGRESS:
+            #    msg = '{}% processed.'.format(msg)
+            self.logfile.write('{}\n'.format(msg) )
         else:
             print(msg)
 
@@ -141,5 +141,5 @@ class StixLogger(object):
                 summary['num_bad_headers']))
 
 
-def get_logger():
-    return StixLogger.get_instance()
+def get_logger(filename=None):
+    return StixLogger.get_instance(filename)

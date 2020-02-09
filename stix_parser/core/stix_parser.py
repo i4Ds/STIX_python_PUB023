@@ -749,7 +749,7 @@ class StixTCTMParser(StixParameterParser):
         self.store_binary = True
         self.is_live_hex_stream = False
         #self.decoded_packets = []
-        self.in_filename = ''
+        self.raw_filename = ''
         self.in_filesize = 0
         self.stop_parsing = False
 
@@ -775,7 +775,7 @@ class StixTCTMParser(StixParameterParser):
     def exclude_S20(self):
         self.S20_excluded = True
 
-    def set_store_packet_enabled(self, status):
+    def set_packet_buffer_enabled(self, status):
         """
             store packets in a list
         """
@@ -1127,7 +1127,7 @@ class StixTCTMParser(StixParameterParser):
         #used to parse live hex stream from TSC
         self.is_live_hex_stream = True
         self.set_store_binary_enabled(False)
-        self.set_store_packet_enabled(False)
+        self.set_packet_buffer_enabled(False)
         self.parse_hex(raw)
 
     def parse_hex(self, raw_hex):
@@ -1202,12 +1202,12 @@ class StixTCTMParser(StixParameterParser):
 
 
 
-    def parse_moc_xml(self, in_filename):
+    def parse_moc_xml(self, raw_filename):
         packets = []
         results = []
         logger.set_progress_enabled(False)
-        with open(in_filename) as filein:
-            logger.info('Parsing {}'.format(in_filename))
+        with open(raw_filename) as filein:
+            logger.info('Parsing {}'.format(raw_filename))
             doc = xmltodict.parse(filein.read())
             for e in doc['ns2:ResponsePart']['Response']['PktRawResponse'][
                     'PktRawResponseElement']:
@@ -1228,33 +1228,33 @@ class StixTCTMParser(StixParameterParser):
             results.extend(result)
         return results
 
-    def parse_file(self, in_filename, file_type=None, clear=True):
+    def parse_file(self, raw_filename, file_type=None, clear=True):
         packets = []
         if clear:
             self.reset_parser()
 
         if self.packet_writer:
-            self.packet_writer.set_filename(in_filename)
+            self.packet_writer.set_filename(raw_filename)
 
-        logger.info('Processing file: {}'.format(in_filename))
-        self.in_filename = in_filename
-        self.in_filesize = os.path.getsize(in_filename)
+        logger.info('Processing file: {}'.format(raw_filename))
+        self.raw_filename = raw_filename
+        self.in_filesize = os.path.getsize(raw_filename)
 
         if not file_type:
-            file_type = detect_filetype(in_filename)
+            file_type = detect_filetype(raw_filename)
 
         if file_type == 'bin':
-            with open(in_filename, 'rb') as in_file:
+            with open(raw_filename, 'rb') as in_file:
                 data = in_file.read()
                 packets = self.parse_binary(data)
         elif file_type == 'ascii':
-            packets = self.parse_moc_ascii(in_filename)
+            packets = self.parse_moc_ascii(raw_filename)
         elif file_type == 'xml':
-            packets = self.parse_moc_xml(in_filename)
+            packets = self.parse_moc_xml(raw_filename)
         elif file_type == 'hex':
-            packets = self.parse_hex_file(in_filename)
+            packets = self.parse_hex_file(raw_filename)
         else:
-            logger.error('{} has unknown input file type'.format(in_filename))
+            logger.error('{} has unknown input file type'.format(raw_filename))
             return []
 
         summary = self.get_summary()
@@ -1266,15 +1266,20 @@ class StixTCTMParser(StixParameterParser):
     def set_pickle_writer(self, out_filename, comment=''):
         self.packet_writer = stix_writer.StixPickleWriter(out_filename)
         idb_version = STIX_IDB.get_idb_version()
-        self.packet_writer.register_run(self.in_filename, self.in_filename,
+        self.packet_writer.register_run(self.raw_filename, self.raw_filename,
                                         comment, idb_version)
 
-    def set_MongoDB_writer(self, server, port, username, password, comment=''):
+    def set_MongoDB_writer(self, server, port, username, password, comment='', raw_filename=''):
         self.packet_writer = stix_writer.StixMongoDBWriter(
             server, port, username, password)
         idb_version = STIX_IDB.get_idb_version()
-        self.packet_writer.register_run(self.in_filename, self.in_filesize,
+        self.raw_filename=raw_filename
+        self.packet_writer.register_run(raw_filename, self.in_filesize,
                                         comment, idb_version)
+
+    def is_processed(self, filename):
+        return self.packet_writer.is_processed(filename)
+
 
     def done(self):
         if self.packet_writer:

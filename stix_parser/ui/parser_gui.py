@@ -58,7 +58,7 @@ class ParserQThread(QThread):
     def __init__(self):
         super(ParserQThread, self).__init__()
         self.stix_tctm_parser = stix_parser.StixTCTMParser()
-        self.stix_tctm_parser.set_store_packet_enabled(True)
+        self.stix_tctm_parser.set_packet_buffer_enabled(True)
         self.stix_tctm_parser.set_store_binary_enabled(True)
 
         handlers = {

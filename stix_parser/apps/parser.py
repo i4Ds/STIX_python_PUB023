@@ -140,13 +140,13 @@ def process_single_file(filename, filetype, output_filename, selected_spids,sele
     if S20_excluded:
         parser.exclude_S20()
     if output_filename:
-        parser.set_store_packet_enabled(False)
+        parser.set_packet_buffer_enabled(False)
         parser.set_store_binary_enabled(False)
         parser.set_pickle_writer(output_filename, comment)
     if wdb:
         parser.set_store_binary_enabled(False)
-        parser.set_store_packet_enabled(False)
-        parser.set_MongoDB_writer(db_host,db_port,db_user, db_pwd,comment)
+        parser.set_packet_buffer_enabled(False)
+        parser.set_MongoDB_writer(db_host,db_port,db_user, db_pwd,comment, filename)
     parser.parse_file(filename, filetype) 
     parser.done()
 

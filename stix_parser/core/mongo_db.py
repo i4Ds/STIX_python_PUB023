@@ -5,6 +5,7 @@
 # @author       : Hualin Xiao
 # @date         : May. 12, 2019
 #import json
+import os
 import pprint
 import datetime
 import uuid
@@ -20,7 +21,7 @@ class MongoDB(object):
         self.packets = []
         self.db = None
         self.collection_packets = None
-        self.collection_processing_runs = None
+        self.collection_raw_files = None
         self.collection_calibration_runs = None
         try:
             if server == 'localhost' and user == '' and pwd == '':
@@ -34,7 +35,7 @@ class MongoDB(object):
                     authSource='stix')
             self.db = self.connect["stix"]
             self.collection_packets = self.db['packets']
-            self.collection_processing_runs = self.db['processing_runs']
+            self.collection_raw_files = self.db['raw_files']
             self.collection_calibration_runs = self.db['calibration_runs']
         except Exception as e:
             print('can not connect to mongodb')
@@ -43,7 +44,7 @@ class MongoDB(object):
         return self.collection_calibration_runs
 
     def get_collection_processing(self):
-        return self.collection_processing_runs
+        return self.collection_raw_files
 
     def get_collection_packets(self):
         return self.collection_packets
@@ -55,11 +56,26 @@ class MongoDB(object):
             return False
 
     def get_filename_of_run(self, run_id):
-        if self.collection_processing_runs:
-            cursor = self.collection_processing_runs.find({'_id': int(run_id)})
+        if self.collection_raw_files:
+            cursor = self.collection_raw_files.find({'_id': int(run_id)})
             for x in cursor:
                 return x['filename']
         return ''
+
+    def get_file_id(self, filename):
+        
+        if not self.collection_raw_files:
+            return -1 
+        basename= os.path.basename(filename)
+        abspath=os.path.abspath(filename)
+        path = os.path.dirname(abspath)
+        cursor = self.collection_raw_files.find({'filename': basename})
+        #,'path':path})
+        for x in cursor:
+            return x['_id']
+
+        return -2
+
 
     def select_packets_by_id(self, pid):
         if self.collection_packets:
@@ -72,8 +88,8 @@ class MongoDB(object):
             cursor = self.collection_packets.delete_many(
                 {'run_id': int(run_id)})
 
-        if self.collection_processing_runs:
-            cursor = self.collection_processing_runs.delete_many(
+        if self.collection_raw_files:
+            cursor = self.collection_raw_files.delete_many(
                 {'_id': int(run_id)})
 
     def delete_runs(self, runs):
@@ -92,36 +108,28 @@ class MongoDB(object):
         if self.connect:
             self.connect.close()
 
+
     def select_all_runs(self, order=-1):
-        if self.collection_processing_runs:
-            runs = self.collection_processing_runs.find().sort(
+        if self.collection_raw_files:
+            runs = self.collection_raw_files.find().sort(
                 '_id', order)
             return runs
         return None
 
-    def get_unprocessed(self):
-        unprocess_run_ids = []
-        if self.collection_processing_runs:
-            unprocess_runs = self.collection_processing_runs.find(
-                {'quicklook_pdf': {
-                    '$exists': False
-                }}, {'_id': 1})
-            if unprocess_runs:
-                return [x['_id'] for x in unprocess_runs]
-        return []
-
     def set_run_ql_pdf(self, _id, pdf_filename):
-        if self.collection_processing_runs:
-            run = self.collection_processing_runs.find_one({'_id': _id})
+        if self.collection_raw_files:
+            run = self.collection_raw_files.find_one({'_id': _id})
             run['quicklook_pdf'] = pdf_filename
-            self.collection_processing_runs.save(run)
+            self.collection_raw_files.save(run)
 
     def get_run_ql_pdf(self, _id):
-        if self.collection_processing_runs:
-            run = self.collection_processing_runs.find_one({'_id': _id})
+        if self.collection_raw_files:
+            run = self.collection_raw_files.find_one({'_id': _id})
             if 'quicklook_pdf' in run:
                 return run['quicklook_pdf']
         return None
+
+
 
 
 if __name__ == '__main__':

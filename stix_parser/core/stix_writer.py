@@ -38,6 +38,9 @@ class StixPacketWriter(object):
 
     def close(self):
         pass
+    def is_processed(self, filename):
+        return False
+
 
 
 class StixPickleWriter(StixPacketWriter):
@@ -136,7 +139,7 @@ class StixMongoDBWriter(StixPacketWriter):
         self.summary = ''
         self.collection_packets = None
         self.current_packet_id = 0
-        self.collection_runs = None
+        self.collection_raw_files = None
         self.current_run_id = 0
         self.start = -1
         self.end = -1
@@ -146,7 +149,7 @@ class StixMongoDBWriter(StixPacketWriter):
                 server, port, username=username, password=password)
             self.db = self.connect["stix"]
             self.collection_packets = self.db['packets']
-            self.collection_runs = self.db['processing_runs']
+            self.collection_raw_files = self.db['raw_files']
         except Exception as e:
             logger.error(str(e))
 
@@ -157,8 +160,8 @@ class StixMongoDBWriter(StixPacketWriter):
         abspath=os.path.abspath(in_filename)
         path = os.path.dirname(abspath)
         try:
-            run = self.collection_runs.find_one({'path': path,'filename':filename})
-            if run:
+            run = self.collection_raw_files.find_one({'path': path,'filename':filename})
+            for x in run:
                 return True
         except Exception as e:
             logger.error(str(e))
@@ -167,10 +170,11 @@ class StixMongoDBWriter(StixPacketWriter):
 
 
 
+
     def register_run(self, in_filename, filesize=0, comment='',
                      idb_version=''):
         try:
-            self.current_run_id = self.collection_runs.find().sort(
+            self.current_run_id = self.collection_raw_files.find().sort(
                 '_id', -1).limit(1)[0]['_id'] + 1
         except IndexError:
             self.current_run_id = 0
@@ -183,7 +187,6 @@ class StixMongoDBWriter(StixPacketWriter):
             self.current_packet_id = 0
 
         log_filename = logger.get_log_filename()
-
         self.filename = os.path.basename(in_filename)
         abspath=os.path.abspath(in_filename)
         self.path = os.path.dirname(abspath)
@@ -204,8 +207,9 @@ class StixMongoDBWriter(StixPacketWriter):
             'filesize': filesize,
             'idb_version': idb_version
         }
-        #print(self.run_info)
-        self.inserted_run_id = self.collection_runs.insert_one(
+        print(self.run_info)
+
+        self.inserted_run_id = self.collection_raw_files.insert_one(
             self.run_info).inserted_id
 
     def set_filename(self, fname):
@@ -248,13 +252,13 @@ class StixMongoDBWriter(StixPacketWriter):
     def close(self):
         #it has to be called at the end
 
-        if not self.collection_runs:
-            logger.warning('MongoDB was not initialized ')
+        if not self.collection_raw_files:
+            logger.warning('MongoDB is not initialized ')
             return
         logger.info('{} packets have been inserted into MongoDB'.format(
             self.ipacket))
         logger.info('Updating run :'.format(self.inserted_run_id))
-        run = self.collection_runs.find_one({'_id': self.inserted_run_id})
+        run = self.collection_raw_files.find_one({'_id': self.inserted_run_id})
         if run:
             run['data_start_unix_time'] = self.start_time
             run['data_stop_unix_time'] = self.end_time
@@ -264,7 +268,7 @@ class StixMongoDBWriter(StixPacketWriter):
             run['status'] = stix_global.OK
             #status ==1 if success  0
             run['summary'] = self.summary
-            self.collection_runs.save(run)
+            self.collection_raw_files.save(run)
             logger.info('Run info updated successfully.')
             logger.info('Run ID:{}'.format(run['_id']))
         else:
