@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8 -*-
-# @title        : parser.py
-# @description  : STIX TCTM packet parser
+# @title        : parser_deamon.py
+# @description  : STIX packet parser daemon
 # @author       : Hualin Xiao
 # @date         : Feb. 11, 2020
 #
@@ -33,7 +33,11 @@ def process(filename, log_path):
         parser.exclude_S20()
     parser.set_store_binary_enabled(False)
     parser.set_packet_buffer_enabled(False)
-    parser.parse_file(filename) 
+    try:
+        parser.parse_file(filename) 
+    except Exception as e:
+        logger.error(str(e))
+        return
     parser.done()
 
 def main_loop():
@@ -44,6 +48,7 @@ def main_loop():
                 config.mongodb['user'], config.mongodb['password'])
         
         for pattern in config.deamon['raw_patterns']:
+            #raw filename selector
             filenames=glob.glob(pattern)
             for filename in filenames:
                 file_id=mdb.get_file_id(filename)
@@ -52,7 +57,6 @@ def main_loop():
         mdb.close()
         for filename in unprocessed_files:
             process(filename, config.deamon['log_path'])
-            #break
 
         time.sleep(60)
 
