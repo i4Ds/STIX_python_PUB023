@@ -23,7 +23,6 @@ from . import stix_logger
 from . import stix_writer
 from . import stix_context
 from .stix_datatypes import Parameter
-#from .stix_datatypes import Packet
 from . import stix_decompressor
 from . import stix_datetime
 from . import config

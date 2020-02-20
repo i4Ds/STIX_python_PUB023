@@ -141,8 +141,14 @@ def scet2unix(coarse, fine=0):
         return 0
 
 
+
 def unix2utc(ts):
     return datetime.utcfromtimestamp(ts).isoformat(timespec='milliseconds')
+
+def unix2scet(unix):
+    utc=unix2utc(int(unix))
+    return utc2scet(utc)
+
 
 
 def scet2datetime(coarse, fine=0):
