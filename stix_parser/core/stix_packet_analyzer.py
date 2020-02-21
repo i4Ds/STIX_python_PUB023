@@ -3,12 +3,6 @@
 
 from . import stix_parameter as stp
 
-#class Packet(object):
-#    def __init__(self, packet):
-#        self._header=packet['header']
-#        self._parameters=packet['parameters']
-#
-#    def __getitem__(object
 
 
 class StixPacketAnalyzer(object):
@@ -68,7 +62,7 @@ class StixPacketAnalyzer(object):
             self._parameters = packet['parameters']
             self._header = packet['header']
         except KeyError:
-            print('Unrecognized packet')
+            print('Unknown packet type')
 
 
     def to_dict(self, parameter_names=None, parameters=None,  dtype='raw', traverse_children=False):

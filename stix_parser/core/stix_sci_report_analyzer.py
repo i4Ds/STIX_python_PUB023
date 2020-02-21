@@ -1,5 +1,4 @@
 import sys
-import pprint
 from . import stix_datatypes as sdt
 from . import stix_datetime
 from . import stix_logger
@@ -18,6 +17,7 @@ class StixCalibrationReportAnalyzer(object):
         self.db_collection = None
         self.current_calibration_run_id = 0
         self.db_collection = collection
+        self.background_spectra=[[] for x in range(0,12*32)]
         try:
             self.current_calibration_run_id = self.db_collection.find().sort(
                 '_id', -1).limit(1)[0]['_id'] + 1
@@ -48,14 +48,15 @@ class StixCalibrationReportAnalyzer(object):
                 packet_id, detector_ids[ispec], pixels_ids[ispec],
                 total_counts
             ])
+            self.background_spectra[detector_ids[ispec]*12+pixels_ids[ispec]]=spectrum
 
         if packet['seg_flag'] in [1, 3]:
-            #first or standard alone packet
+            #first or standalone packet
             self.report = {
                 'run_id': run_id,
                 'packet_ids': [packet_id],
                 'header_unix_time': packet['unix_time'],
-                '_id': self.current_calibration_run_id
+                '_id': self.current_calibration_run_id,
             }
         else:
             #continuation packet
@@ -65,9 +66,10 @@ class StixCalibrationReportAnalyzer(object):
                 self.report['packet_ids'].append(packet_id)
 
         if packet['seg_flag'] in [2, 3]:
+            #last packet or standalone 
             if not self.report:
                 logger.warning(
-                    'One calibration run is not recorded due to missing the first packet!'
+                        'A calibration run (last packet ID:{}) is not recorded due to missing the first packet!'.format(packet_id)
                 )
                 return
 
@@ -77,19 +79,20 @@ class StixCalibrationReportAnalyzer(object):
             self.report['SCET'] = scet
             self.report['start_unix_time'] = stix_datetime.scet2unix(scet)
             self.report['auxiliary'] = packet['parameters'][0:14]
-            #not to copy repeaters 
-
+            #Don't copy repeaters 
             self.report['total_counts'] = self.total_counts
-
+            self.report['spectra'] = self.background_spectra
+            #spectra
             self.db_collection.insert_one(self.report)
             self.current_calibration_run_id += 1
             self.report = None
             self.total_counts = []
+            self.background_spectra=[[] for x in range(0,12*32)]
 
 
 class StixQLBackgroundAnalyzer(object):
     """
-    capture quicklook reports and fill packet information into a MongoDB collection
+    capture quicklook reports and dump information into database
 
     """
 

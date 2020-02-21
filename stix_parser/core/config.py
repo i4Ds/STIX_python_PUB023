@@ -8,7 +8,9 @@ spice={
         'sclk_filename':'stix_parser/data/SPICE/kernels/sclk/solo_ANC_soc-sclk_20000101_V01.tsc'
         }
 deamon={
-        'raw_patterns':['/opt/stix/testdata/*ascii', '/home/xiaohl/data/*ascii'],
+        #'raw_patterns':['/opt/stix/testdata/*ascii', '/home/xiaohl/data/*ascii'],
+        'raw_patterns':['/opt/stix/testdata/*ascii',
+        '/home/xiaohl/FHNW/STIX/GroundTests/NECP_Dryrun/*ascii'],
         'log_path': '/opt/stix/log/'
         #'log_path': '/home/xiaohl/test/'
         }

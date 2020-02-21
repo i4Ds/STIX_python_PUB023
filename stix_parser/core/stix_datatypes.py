@@ -3,7 +3,7 @@
 # @title        : stix_datatypes.py
 # @date         : Oct. 28, 2019
 # @description:
-#               definitions of structures of decoded parameters
+#               definitions of structures of decoded parameters and packets
 import os
 import pprint
 import copy
