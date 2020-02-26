@@ -251,11 +251,12 @@ class StixParameterParser(object):
             if rows:
                 x_points = [float(row[0]) for row in rows]
                 y_points = [float(row[1]) for row in rows]
-                tck = interpolate.splrep(x_points, y_points)
-                val = interpolate.splev(raw_value, tck)
                 try:
+                    tck = interpolate.splrep(x_points, y_points)
+                    val = interpolate.splev(raw_value, tck)
                     ret = round(float(val), 3)
-                except TypeError:
+                except Exception as e:
+                    logger.warning('Failed to calibrate {} due to {}'.format(ref, str(e))
                     ret = ''
                 return ret
             logger.warning('No calibration factors for {}'.format(ref))
