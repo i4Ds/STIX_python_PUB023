@@ -260,8 +260,6 @@ class StixParameterParser(object):
 
                 if len(rows) == 2:
                     return round((y_points[1]-y_points[0])/(x_points[1]-x_points[0]) * (raw_value - x_points[0])+ y_points[0],3)
-                x_points = [float(row[0]) for row in rows]
-                y_points = [float(row[1]) for row in rows]
                 try:
                     tck = interpolate.splrep(x_points, y_points)
                     val = interpolate.splev(raw_value, tck)
