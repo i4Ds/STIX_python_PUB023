@@ -50,6 +50,7 @@ class _IDB(object):
         self.conn = None
         self.cur = None
         self.parameter_structures = dict()
+        self.parameter_units = dict()
         self.calibration_polynomial = dict()
         self.calibration_curves = dict()
         self.textual_parameter_lut = dict()
@@ -194,6 +195,15 @@ class _IDB(object):
                 return res
             return ''
 
+    def get_parameter_unit(self,name):
+        if not self.parameter_units:
+            results = self.execute('select PCF_NAME, PCF_UNIT from PCF where PCF_UNIT!=""')
+            self.parameter_units={ row[0]:row[1] for row in results }
+        if name in self.parameter_units:
+            return self.parameter_units[name]
+        return ''
+
+
     def get_packet_type_info(self, packet_type, packet_subtype, pi1_val=-1):
         """
         Identify packet type using service, service subtype and information in IDB table PID
@@ -252,7 +262,7 @@ class _IDB(object):
             return self.parameter_structures[spid]
         sql = (
             'select PCF.PCF_DESCR, PLF.PLF_OFFBY, PLF.PLF_OFFBI, PCF.PCF_NAME,'
-            ' PCF.PCF_WIDTH, PCF.PCF_PFC,PCF.PCF_PTC, PCF.PCF_CURTX '
+            ' PCF.PCF_WIDTH, PCF.PCF_PFC,PCF.PCF_PTC, PCF.PCF_CURTX'
             ' from PLF   inner join PCF  on PLF.PLF_NAME = PCF.PCF_NAME '
             ' and PLF.PLF_SPID=? order by PLF.PLF_OFFBY asc')
         args = (spid, )
@@ -307,7 +317,7 @@ class _IDB(object):
             return self.parameter_structures[spid]
         sql = (
             'select PCF.PCF_NAME,  VPD.VPD_POS,PCF.PCF_WIDTH,PCF.PCF_PFC, PCF.PCF_PTC,VPD.VPD_OFFSET,'
-            ' VPD.VPD_GRPSIZE,PCF.PCF_DESCR ,PCF.PCF_CURTX '
+            ' VPD.VPD_GRPSIZE,PCF.PCF_DESCR ,PCF.PCF_CURTX'
             ' from VPD inner join PCF on  VPD.VPD_NAME=PCF.PCF_NAME and VPD.VPD_TPSD=? order by '
             ' VPD.VPD_POS asc')
         res = self.execute(sql, (spid, ), 'dict')

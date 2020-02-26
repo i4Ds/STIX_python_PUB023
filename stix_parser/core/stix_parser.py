@@ -220,21 +220,24 @@ class StixParameterParser(object):
             #convert SCET to UTC
             return stix_datetime.scet2utc(int(raw_value))
 
+        
 
         if tmtc == 'TC':
             if ref:
                 return STIX_IDB.tcparam_interpret(ref, raw_value)
             return ''
-        elif param_name == 'NIX00101':
+        #elif param_name == 'NIX00101':
             #conversion based on the equation in SIRIUS source code
-            return (raw_value * 1.1 * 3.0 / 4095 - 1.281) * 213.17
-        elif param_name == 'NIX00102':
+        #    return (raw_value * 1.1 * 3.0 / 4095 - 1.281) * 213.17
+        #elif param_name == 'NIX00102':
             #temperature std. deviations
-            return (raw_value * 1.1 * 3.0 / 4095) * 213.17
+        #    return (raw_value * 1.1 * 3.0 / 4095) * 213.17
 
         if not ref:
             return ''
         prefix = re.split(r'\d+', ref)[0]
+
+
 
         if prefix in ['CIXTS', 'CAAT', 'CIXT']:
             # textual interpret
@@ -248,7 +251,15 @@ class StixParameterParser(object):
             # calibration
             # Ref SCOS-2000 Database Import ICD
             rows = STIX_IDB.get_calibration_curve(ref)
-            if rows:
+            if len(rows) <= 1:
+                logger.warning('Invalid calibration parameter {}: at least two data points needed '.format(ref))
+                return ''
+            elif len(rows) >= 2:
+                x_points= [float(row[0]) for row in rows]
+                y_points= [float(row[1]) for row in rows]
+
+                if len(rows) == 2:
+                    return round((y_points[1]-y_points[0])/(x_points[1]-x_points[0]) * (raw_value - x_points[0])+ y_points[0],3)
                 x_points = [float(row[0]) for row in rows]
                 y_points = [float(row[1]) for row in rows]
                 try:
@@ -256,10 +267,10 @@ class StixParameterParser(object):
                     val = interpolate.splev(raw_value, tck)
                     ret = round(float(val), 3)
                 except Exception as e:
-                    logger.warning('Failed to calibrate {} due to {}'.format(ref, str(e))
+                    logger.warning('Failed to calibrate {} due to {}'.format(ref, str(e)))
                     ret = ''
                 return ret
-            logger.warning('No calibration factors for {}'.format(ref))
+            logger.warning('Missing calibration factors for {}'.format(ref))
             return ''
         elif prefix == 'NIX':
             logger.warning('No information to convert {} . '.format(ref))

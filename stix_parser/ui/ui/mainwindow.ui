@@ -136,6 +136,11 @@
               <string>Eng. /Decomp. Value</string>
              </property>
             </column>
+            <column>
+             <property name="text">
+              <string>Unit</string>
+             </property>
+            </column>
            </widget>
           </widget>
          </widget>

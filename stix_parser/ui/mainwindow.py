@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'mainwindow.ui'
+# Form implementation generated from reading ui file 'ui/mainwindow.ui'
 #
-# Created by: PyQt5 UI code generator 5.13.2
+# Created by: PyQt5 UI code generator 5.14.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -20,7 +20,6 @@ class Ui_MainWindow(object):
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(":/Icons/images/app.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
-
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.centralwidget)
@@ -306,6 +305,7 @@ class Ui_MainWindow(object):
         self.paramTreeWidget.headerItem().setText(1, _translate("MainWindow", "Description"))
         self.paramTreeWidget.headerItem().setText(2, _translate("MainWindow", "Raw"))
         self.paramTreeWidget.headerItem().setText(3, _translate("MainWindow", "Eng. /Decomp. Value"))
+        self.paramTreeWidget.headerItem().setText(4, _translate("MainWindow", "Unit"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.packetTab), _translate("MainWindow", "Packets"))
         self.plotTab.setToolTip(_translate("MainWindow", "plot parameters\n"
 ""))

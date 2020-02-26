@@ -712,13 +712,20 @@ class Ui(mainwindow.Ui_MainWindow):
         self.setListViewSelected(self.current_row)
 
     def getOpenFilename(self):
+
+        location = self.settings.value('location', [], str) 
+        if not location:
+            location = '.'
+
+
         filetypes = (
             'Supported file (*.dat *.bin *.binary *.pkl *.pklz *.xml *ascii *BDF *txt) ;; All(*)'
         )
         self.input_filename = QtWidgets.QFileDialog.getOpenFileName(
-            None, 'Select file', '.', filetypes)[0]
+            None, 'Select file', location, filetypes)[0]
         if not self.input_filename:
             return
+        self.settings.setValue('location', os.path.abspath(self.input_filename))
 
         diag = QtWidgets.QDialog()
         diag_ui = packet_filter.Ui_Dialog()
@@ -1027,7 +1034,10 @@ class Ui(mainwindow.Ui_MainWindow):
                 root.setToolTip(2, hex(param['raw_int']))
             except:
                 pass
-            root.setText(3, str(param['eng']))
+            unit=STIX_IDB.get_parameter_unit(param_name)
+            eng=str(param['eng'])
+            root.setText(3, eng)
+            root.setText(4, unit)
             if 'NIXG' in param_name:
                 root.setHidden(True)
                 #groups should not be shown
