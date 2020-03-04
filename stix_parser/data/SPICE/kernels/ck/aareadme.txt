@@ -4,7 +4,7 @@ Solar Orbiter CK files
      This ``aareadme.txt'' file describes the contents of the kernels/ck
      directory of the Solar Orbiter SPICE Kernel Dataset.
 
-     It was last modified on July 4, 2019 by Marc Costa Sitja, ESAC/ESA.
+     It was last modified on January 4, 2020 by Marc Costa Sitja, ESAC/ESA.
 
 
 Brief Summary
@@ -23,7 +23,7 @@ File naming conventions
       S/C Roll SOLAR ORBITER S/C CKs are:
 
           solo_ANC_soc-default-att_YYYYMMDD-YYYYMMDD_VOEM_VNN.bc
-          solo_ANC_soc-pred-roll_YYYYMMDD-YYYYMMDD_VOEM_VFECS_VNN.bc
+          solo_ANC_soc-pred-roll-att_YYYYMMDD-YYYYMMDD_VOEM_VFECS_VNN.bc
 
       where
 

@@ -1,6 +1,6 @@
 KPL/MK
 
-Meta-kernel for Solar Orbiter Dataset v101 -- Predicted 20191028_001
+Meta-kernel for Solar Orbiter Dataset v104 -- Predicted 20200302_002
 ==========================================================================
 
    This meta-kernel lists the Solar_Orbiter Predicted SPICE kernels
@@ -9,6 +9,9 @@ Meta-kernel for Solar Orbiter Dataset v101 -- Predicted 20191028_001
    The kernels listed in this meta-kernel and the order in which
    they are listed are picked to provide the best data available and
    the most complete coverage for the Solar_Orbiter Predicted scenario.
+
+   This meta-kernel was generated with the Auxiliary Data Conversion
+   System version: ADCSng v1.0.3.
 
 
 Usage of the Meta-kernel
@@ -38,8 +41,8 @@ Implementation Notes
 
 -------------------
 
-   This file was created on October 28, 2019 by Marc Costa Sitja ESA/ESAC.
-   The original name of this file was solo_ANC_soc-pred-mk_V101_20191028_001.tm.
+   This file was created on March 2, 2020 by Marc Costa Sitja ESA/ESAC.
+   The original name of this file was solo_ANC_soc-pred-mk_V104_20200302_002.tm.
 
 
    \begindata
@@ -65,14 +68,13 @@ Implementation Notes
                            '$KERNELS/ck/solo_ANC_soc-spice-sw-ck_20180930-21000101_V02.bc'
                            '$KERNELS/ck/solo_ANC_soc-spice-lw-ck_20180930-21000101_V02.bc'
                            '$KERNELS/ck/solo_ANC_soc-stix-ck_20180930-21000101_V02.bc'
-                           '$KERNELS/ck/solo_ANC_soc-default-att_20200206-20300902_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-default-att_20200210-20301118_L002_V1_00014_V01.bc'
 
-                           '$KERNELS/fk/solo_ANC_soc-sc-fk_V04.tf'
+                           '$KERNELS/fk/solo_ANC_soc-sc-fk_V05.tf'
                            '$KERNELS/fk/solo_ANC_soc-ops-fk_V02.tf'
-                           '$KERNELS/fk/solo_ANC_soc-sci-fk_V04.tf'
+                           '$KERNELS/fk/solo_ANC_soc-sci-fk_V06.tf'
                            '$KERNELS/fk/earth_topo_050714.tf'
-                           '$KERNELS/fk/new_norcia_topo.tf'
-                           '$KERNELS/fk/estrack_v01.tf'
+                           '$KERNELS/fk/estrack_v02.tf'
 
                            '$KERNELS/ik/solo_ANC_soc-epd-ik_V02.ti'
                            '$KERNELS/ik/solo_ANC_soc-eui-ik_V01.ti'
@@ -87,11 +89,13 @@ Implementation Notes
 
                            '$KERNELS/pck/pck00010.tpc'
 
+                           '$KERNELS/pck/earth_070425_370426_predict.bpc'
+
                            '$KERNELS/sclk/solo_ANC_soc-sclk-fict_20000101_V01.tsc'
 
-                           '$KERNELS/spk/solo_ANC_soc-orbit_20200207-20300902_V01.bsp'
+                           '$KERNELS/spk/solo_ANC_soc-orbit_20200210-20301118_L002_V1_00014_V01.bsp'
                            '$KERNELS/spk/de421.bsp'
-                           '$KERNELS/spk/estrack_v01.bsp'
+                           '$KERNELS/spk/estrack_v02.bsp'
 
                          )
 
@@ -107,7 +111,7 @@ SPICE Kernel Dataset Version
 
    \begindata
 
-      SKD_VERSION = 'v101_20191028_001'
+      SKD_VERSION = 'v104_20200302_002'
 
    \begintext
 

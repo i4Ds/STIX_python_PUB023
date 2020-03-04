@@ -65,13 +65,13 @@ Implementation Notes
                            '$KERNELS/ck/solo_ANC_soc-spice-sw-ck_20180930-21000101_V02.bc'
                            '$KERNELS/ck/solo_ANC_soc-spice-lw-ck_20180930-21000101_V02.bc'
                            '$KERNELS/ck/solo_ANC_soc-stix-ck_20180930-21000101_V02.bc'
-                           '$KERNELS/../former_versions/misc'
+                           '$KERNELS/../misc/deprecated_kernels/ck/+'
                            'solo_ANC_soc-default-att_20180929-20290412_V01.bc'
-                           '$KERNELS/../former_versions/misc'
+                           '$KERNELS/../misc/deprecated_kernels/ck/+'
                            'solo_ANC_soc-spot-track-att_20220303-20220304_V01.bc'
-                           '$KERNELS/../former_versions/misc'
+                           '$KERNELS/../misc/deprecated_kernels/ck/+'
                            'solo_ANC_soc-pred-roll-att_20190214-20290611_V01.bc'
-                           '$KERNELS/../former_versions/misc'
+                           '$KERNELS/../misc/deprecated_kernels/ck/+'
                            'solo_ANC_soc-pred-roll-att_20250701-20251202_V01.bc'
 
                            '$KERNELS/fk/solo_ANC_soc-sc-fk_V03.tf'
@@ -94,9 +94,10 @@ Implementation Notes
 
                            '$KERNELS/pck/pck00010.tpc'
 
-                           '$KERNELS/sclk/solo_ANC_soc-sclk_20000101_V01.tsc'
+                           '$KERNELS/../misc/deprecated_kernels/sclk/+'
+                           'solo_ANC_soc-sclk_20000101_V01.tsc'
 
-                           '$KERNELS/../former_versions/misc'
+                           '$KERNELS/../misc/deprecated_kernels/spk/+'
                            'solo_ANC_soc-orbit_20180930-20290412_V01.bsp'
                            '$KERNELS/spk/de421.bsp'
                            '$KERNELS/spk/estrack_v01.bsp'
