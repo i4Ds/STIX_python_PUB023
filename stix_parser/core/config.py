@@ -5,12 +5,12 @@ idb = {
 }
 spice={
         'tls_filename':'stix_parser/data/SPICE/kernels/lsk/naif0012.tls',
-        'sclk_filename':'stix_parser/data/SPICE/kernels/sclk/solo_ANC_soc-sclk_20000101_V01.tsc'
+        'sclk_filename':'stix_parser/data/SPICE/kernels/sclk/solo_ANC_soc-sclk_20200301_V01.tsc'
         }
 deamon={
         #'raw_patterns':['/opt/stix/testdata/*ascii', '/home/xiaohl/data/*ascii'],
         'raw_patterns':['/opt/stix/testdata/*ascii',
-        '/home/xiaohl/FHNW/STIX/GroundTests/NECP_Dryrun/*ascii'],
+        '/home/xiaohl/FHNW/STIX/NECP/NECP_IX2/GroundTests/*ascii'],
         'log_path': '/opt/stix/log/'
         #'log_path': '/home/xiaohl/test/'
         }
