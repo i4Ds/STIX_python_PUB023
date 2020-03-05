@@ -23,6 +23,8 @@ class MongoDB(object):
         self.collection_packets = None
         self.collection_raw_files = None
         self.collection_calibration_runs = None
+        self.collection_qllc=None
+        self.collection_qlbkg=None
         try:
             if server == 'localhost' and user == '' and pwd == '':
                 self.connect = pymongo.MongoClient(server, port)
@@ -37,6 +39,10 @@ class MongoDB(object):
             self.collection_packets = self.db['packets']
             self.collection_raw_files = self.db['raw_files']
             self.collection_calibration_runs = self.db['calibration_runs']
+
+            self.collection_qllc=self.db['ql_lightcurves']
+            self.collection_qlbkg=self.db['ql_background']
+
         except Exception as e:
             print('can not connect to mongodb')
 
@@ -91,6 +97,18 @@ class MongoDB(object):
         if self.collection_raw_files:
             cursor = self.collection_raw_files.delete_many(
                 {'_id': int(run_id)})
+
+        if self.collection_calibration_runs:
+            cursor = self.collection_calibration_runs.delete_many(
+                {'run_id': int(run_id)})
+        if self.collection_qllc:
+            cursor = self.collection_qllc.delete_many(
+                {'run_id': int(run_id)})
+
+        if self.collection_qlbkg:
+            cursor = self.collection_qlbkg.delete_many(
+                {'run_id': int(run_id)})
+
 
     def delete_runs(self, runs):
         for run in runs:
