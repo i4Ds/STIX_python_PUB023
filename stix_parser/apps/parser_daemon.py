@@ -20,7 +20,7 @@ logger = stix_logger.get_logger()
 S20_EXCLUDED=True
 
 
-def process(filename, log_path):
+def process(instrument, filename, log_path):
     
     base= os.path.basename(filename)
     name=os.path.splitext(base)[0]
@@ -28,7 +28,7 @@ def process(filename, log_path):
     logger.set_logger(log_filename, level=3)
     parser = stix_parser.StixTCTMParser()
     parser.set_MongoDB_writer(config.mongodb['host'],config.mongodb['port'],
-            config.mongodb['user'], config.mongodb['password'],'',filename)
+            config.mongodb['user'], config.mongodb['password'],'',filename, instrument)
     logger.info('Processing {} ...'.format(filename))
     if S20_EXCLUDED:
         parser.exclude_S20()
@@ -44,20 +44,27 @@ def process(filename, log_path):
 def main_loop():
     while True:
         print('Start checking ...')
-        unprocessed_files=[]
         mdb=mongo_db.MongoDB(config.mongodb['host'], config.mongodb['port'], 
                 config.mongodb['user'], config.mongodb['password'])
+
+        filelist={}
         
-        for pattern in config.deamon['raw_patterns']:
-            #raw filename selector
-            filenames=glob.glob(pattern)
-            for filename in filenames:
-                file_id=mdb.get_file_id(filename)
-                if file_id == -2 :
-                    unprocessed_files.append(filename)
+        for instrument, selectors in config.deamon['data_source'].items():
+            for pattern in selectors:
+                filenames=glob.glob(pattern)
+                for filename in filenames:
+                    file_id=mdb.get_file_id(filename)
+                    if file_id == -2 :
+                        if instrument not in filelist:
+                            filelist[instrument]=[]
+                        filelist[instrument].append(filename)
+
         mdb.close()
-        for filename in unprocessed_files:
-            process(filename, config.deamon['log_path'])
+        for instrument, files in filelist.items():
+            for filename in files:
+                process(instrument, filename, config.deamon['log_path'])
+
+
 
         time.sleep(60)
 
