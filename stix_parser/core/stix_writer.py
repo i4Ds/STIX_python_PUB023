@@ -57,7 +57,7 @@ class StixPickleWriter(StixPacketWriter):
             self.fout = open(filename, 'wb')
 
     def register_run(self, in_filename, filesize=0, comment='',
-                     idb_version=''):
+                     idb_version='' ):
         self.run = {
             'Input': in_filename,
             'Output': self.filename,
@@ -169,10 +169,8 @@ class StixMongoDBWriter(StixPacketWriter):
         return False
 
 
-
-
     def register_run(self, in_filename, filesize=0, comment='',
-                     idb_version=''):
+                     idb_version='', instrument=''):
         try:
             self.current_run_id = self.collection_raw_files.find().sort(
                 '_id', -1).limit(1)[0]['_id'] + 1
@@ -205,6 +203,7 @@ class StixMongoDBWriter(StixPacketWriter):
             'status': stix_global.UNKNOWN,
             'summary': '',
             'filesize': filesize,
+            'instrument':instrument,
             'idb_version': idb_version
         }
         print(self.run_info)

@@ -21,6 +21,7 @@ def main():
     required = ap.add_argument_group('Required arguments')
     optional = ap.add_argument_group('Optional arguments')
 
+
     required.add_argument(
         "-i",
         dest='input',
@@ -56,6 +57,15 @@ def main():
         default=False,
         action='store_true',
         help='Write decoded packets to local MongoDB.')
+
+    optional.add_argument(
+        "-s",
+        dest='source',
+        default='',
+        required=False
+        help='data source: GU or PFM')
+
+
     optional.add_argument(
         "--db-host",
         dest='db_host',
@@ -131,10 +141,10 @@ def main():
     comment=args['comment']
     process_single_file(args['input'], args['input_type'],args['output'], args['SPID'],
             args['services'],args['comment'], args['S20_excluded'],args['wdb'], args['db_host'],
-            args['db_port'], args['db_user'], args['db_pwd'])
+            args['db_port'], args['db_user'], args['db_pwd'], args['source'])
 
 def process_single_file(filename, filetype, output_filename, selected_spids,selected_services ,comment, S20_excluded,
-        wdb, db_host,db_port, db_user, db_pwd):
+        wdb, db_host,db_port, db_user, db_pwd, source):
     parser = stix_parser.StixTCTMParser()
     parser.set_packet_filter(selected_services, selected_spids)
     if S20_excluded:

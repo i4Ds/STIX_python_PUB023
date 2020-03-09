@@ -778,6 +778,7 @@ class StixTCTMParser(StixParameterParser):
         self.packet_writer = None
         self.S20_excluded=False
 
+
     def kill(self):
         self.stop_parsing = True
 
@@ -1278,13 +1279,15 @@ class StixTCTMParser(StixParameterParser):
         self.packet_writer.register_run(self.raw_filename, self.raw_filename,
                                         comment, idb_version)
 
-    def set_MongoDB_writer(self, server, port, username, password, comment='', raw_filename=''):
+    def set_MongoDB_writer(self, server, port, username, password, comment='', raw_filename='', instrument=''):
+        #instrument: GU or PFM
+        #server, port, username and password are required by MongoDB 
         self.packet_writer = stix_writer.StixMongoDBWriter(
             server, port, username, password)
         idb_version = STIX_IDB.get_idb_version()
         self.raw_filename=raw_filename
         self.packet_writer.register_run(raw_filename, self.in_filesize,
-                                        comment, idb_version)
+                                        comment, idb_version, instrument)
 
     def is_processed(self, filename):
         return self.packet_writer.is_processed(filename)
