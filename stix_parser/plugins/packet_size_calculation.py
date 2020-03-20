@@ -4,12 +4,10 @@ import pprint
 
 class Plugin:
     """ don't modify here """
-
     def __init__(self, packets=[], current_row=0):
         self.packets = packets
         self.current_row = current_row
         print("Plugin  loaded ...")
-
     def run(self, istart=2500, istop=2574):
         print('current row')
         print(self.current_row)
@@ -41,18 +39,11 @@ class Plugin:
                 if apid not in counter:
                     counter[apid] = 0
                 counter[apid] += header['raw_length']
-
                 extra = ';'
-
             if spid == 54102:
                 if header['SCET'] < last_time + 14:
                     continue
                 last_time = header['SCET']
-
-            #print('{}; {} {}({},{}) - {}; {} {}; {}'.format(header['UTC'], extra, header['TMTC'], int(header['service_type']),
-            #                                      int(header['service_subtype']),
-            #                                      header['descr'], extra2, leng, header['apid'],))
-
         print('TM Total size,', total_size)
         print('APID, length')
         for key, value in counter.items():

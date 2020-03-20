@@ -62,7 +62,7 @@ def main():
         "-s",
         dest='source',
         default='',
-        required=False
+        required=False,
         help='data source: GU or PFM')
 
 
