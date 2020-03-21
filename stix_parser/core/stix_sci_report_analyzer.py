@@ -19,6 +19,7 @@ class StixCalibrationReportAnalyzer(object):
         self.db_collection = None
         self.current_calibration_run_id = 0
         self.db_collection = collection
+        self.spectra=[]
         #self.background_spectra=[[] for x in range(0,12*32)]
         try:
             self.current_calibration_run_id = self.db_collection.find().sort(
@@ -43,12 +44,14 @@ class StixCalibrationReportAnalyzer(object):
         pixel_ids = packet.get('NIX00159/NIXD0156')[0]
         subspc_ids=packet.get('NIX00159/NIXD0157')[0]
         sbspec_spectra = packet.get('NIX00159/NIX00146/*.eng')[0]
+        sbspec_formats=[(packet[i*4+15].raw, packet[i*4+16].raw, packet[i*4+17].raw) for i in range(0,8)]
 
         for i in range(0, len(detector_ids)):
             sbspec_id=subspc_ids[i]
             detector_id=detector_ids[i]
             pixel_id=pixel_ids[i]
             sbspec_spectrum=sbspec_spectra[i]
+            self.spectra.append((sbspec_id, detector_id, pixel_id,sbspec_spectrum))
             num_counts=0
             try:
                 num_counts=sum(sbspec_spectrum)
@@ -61,7 +64,6 @@ class StixCalibrationReportAnalyzer(object):
 
         if packet['seg_flag'] in [1, 3]:
             #first or standalone packet
-            sbspec_formats=[(packet[i*4+15].raw, packet[i*4+16].raw, packet[i*4+17].raw) for i in range(0,8)]
             sbspec_mask=packet[13].raw
             sbspec_status=[False for i in range(0,8)]
             for i in range(0,8):
@@ -102,11 +104,14 @@ class StixCalibrationReportAnalyzer(object):
             self.report['sbspec_counts_sum']=np.sum(self.sbspec_counts,axis=1).tolist()
             
             self.report['counts'] = self.sbspec_counts.tolist()
+            self.report['spectra'] = self.spectra;
             self.report['packet_index'] = self.packet_index.tolist()
             #spectra
             self.db_collection.insert_one(self.report)
+
             self.current_calibration_run_id += 1
             self.report = None
+            self.spectra=[]
             self.counts= np.zeros((8,12*32), dtype=np.int32)
             self.packet_index= np.zeros((8,12*32), dtype=np.int32)
 
