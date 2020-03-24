@@ -21,22 +21,22 @@ from PyQt5.QtCore import QThread, pyqtSignal, QTimer
 from PyQt5.QtChart import QChart, QChartView, QLineSeries, QValueAxis
 from PyQt5.QtChart  import QBarSeries, QBarSet, QScatterSeries
 
-from stix_parser.core import stix_parser
-from stix_parser.core import stix_writer
-from stix_parser.core import stix_idb
-from stix_parser.core import mongo_db as mgdb
-from stix_parser.core import stix_datetime 
-from stix_parser.core import stix_logger
-from stix_parser.ui import mainwindow
-from stix_parser.ui import mongo_dialog
-from stix_parser.ui import tsc_connection
-from stix_parser.ui import packet_filter
-from stix_parser.ui import plugin
-from stix_parser.ui import timestamp_convertor
-from stix_parser.ui import raw_viewer
-#from stix_parser.ui import console
-from stix_parser.core.stix_datatypes import Parameter
-from stix_parser.core.stix_datatypes import Packet
+from stix.core import stix_parser
+from stix.core import stix_writer
+from stix.core import stix_idb
+from stix.core import mongo_db as mgdb
+from stix.core import stix_datetime 
+from stix.core import stix_logger
+from stix.ui import mainwindow
+from stix.ui import mongo_dialog
+from stix.ui import tsc_connection
+from stix.ui import packet_filter
+from stix.ui import plugin
+from stix.ui import timestamp_convertor
+from stix.ui import raw_viewer
+#from stix.ui import console
+from stix.core.stix_datatypes import Parameter
+from stix.core.stix_datatypes import Packet
 
 SELECTED_SERVICES = [1, 3, 5, 6, 9, 17, 20, 21, 22, 236, 237, 238, 239]
 

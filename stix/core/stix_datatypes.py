@@ -7,8 +7,8 @@
 import os
 import pprint
 import copy
-from stix_parser.core import stix_idb
-from stix_parser.core import stix_logger
+from . import stix_idb
+from . import stix_logger
 STIX_IDB = stix_idb.stix_idb()
 logger = stix_logger.get_logger()
 

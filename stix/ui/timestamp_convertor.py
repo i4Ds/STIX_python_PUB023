@@ -8,7 +8,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from stix_parser.core import stix_datetime 
+from stix.core import stix_datetime 
 from PyQt5.QtCore import QDateTime,Qt
 
 class Ui_Dialog(object):

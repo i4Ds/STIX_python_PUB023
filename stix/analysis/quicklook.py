@@ -18,7 +18,7 @@ from analysis import calibration
 from analysis import housekeeping as hk2
 from analysis import ql_lightcurve as qllc
 
-from stix_parser.core import mongo_db
+from stix.core import mongo_db
 STIX_LOGGER = stix_logger.stix_logger()
 
 

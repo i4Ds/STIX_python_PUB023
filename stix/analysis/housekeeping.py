@@ -10,9 +10,9 @@ from datetime import datetime
 
 #sys.path.append(os.path.abspath(__file__ + "/../../"))
 
-from stix_parser.core import stix_datatypes as sdt
-from stix_parser.utils import stix_desc
-from stix_parser.core import stix_idb
+from stix.core import stix_datatypes as sdt
+from stix.utils import stix_desc
+from stix.core import stix_idb
 STIX_IDB = stix_idb.stix_idb()
 
 SPIDs = [54101, 54102]

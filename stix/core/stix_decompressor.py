@@ -3,7 +3,7 @@
 # @title        : stix_decompressor.py
 # @description:
 #               decompression of compressed parameters
-from stix_parser.core import stix_logger
+from . import stix_logger
 
 logger = stix_logger.get_logger()
 

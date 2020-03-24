@@ -13,14 +13,14 @@ sys.path.append(os.path.abspath(__file__ + "/../../"))
 import argparse
 from matplotlib.backends.backend_pdf import PdfPages
 
-from stix_parser.core import stix_parser
-from stix_parser.core import stix_idb
-from stix_parser.analysis import calibration
-from stix_parser.analysis import housekeeping as hk
-from stix_parser.analysis import ql_lightcurve as qllc
-from stix_parser.analysis import ql_background as qlbkg
+from stix.core import stix_parser
+from stix.core import stix_idb
+from stix.analysis import calibration
+from stix.analysis import housekeeping as hk
+from stix.analysis import ql_lightcurve as qllc
+from stix.analysis import ql_background as qlbkg
 
-from stix_parser.core import mongo_db
+from stix.core import mongo_db
 
 OUTPUT_PDF_DIRECTORY='pdf'
 

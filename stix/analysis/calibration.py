@@ -6,8 +6,8 @@ import numpy as np
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib import pyplot as plt
 from datetime import datetime
-from stix_parser.core import stix_datatypes as sdt 
-from stix_parser.core import mongo_db  as db
+from stix.core import stix_datatypes as sdt 
+from stix.core import mongo_db  as db
 
 
 from ROOT import TGraph, TFile, TCanvas, TH1F, gROOT, TBrowser, gSystem, TH2F, gPad

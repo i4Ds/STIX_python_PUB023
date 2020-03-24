@@ -12,9 +12,9 @@ import sys
 import glob
 import time
 sys.path.append('.')
-from stix_parser.core import config
-from stix_parser.core import mongo_db 
-from stix_parser.core import stix_logger, stix_idb, stix_parser
+from stix.core import config
+from stix.core import mongo_db 
+from stix.core import stix_logger, stix_idb, stix_parser
 logger = stix_logger.get_logger()
 
 S20_EXCLUDED=True

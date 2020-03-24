@@ -9,7 +9,7 @@ from matplotlib import pyplot as plt
 from datetime import datetime
 
 
-from stix_parser.core import stix_datatypes as sdt
+from stix.core import stix_datatypes as sdt
 import pprint
 
 

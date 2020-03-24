@@ -8,9 +8,9 @@
 import os
 import sqlite3
 import threading
-from stix_parser.core import config
+from stix.core import config
 
-from stix_parser.core import stix_logger
+from stix.core import stix_logger
 
 logger = stix_logger.get_logger()
 

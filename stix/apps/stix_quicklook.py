@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-from stix_parser.analysis import quick_processing
+from stix.analysis import quick_processing
 
 
 def main():
