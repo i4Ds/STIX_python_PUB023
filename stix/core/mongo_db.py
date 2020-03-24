@@ -22,7 +22,7 @@ class MongoDB(object):
         self.db = None
         self.collection_packets = None
         self.collection_raw_files = None
-        self.collection_calibration_runs = None
+        self.collection_calibration = None
         self.collection_qllc=None
         self.collection_qlbkg=None
         try:
@@ -38,16 +38,15 @@ class MongoDB(object):
             self.db = self.connect["stix"]
             self.collection_packets = self.db['packets']
             self.collection_raw_files = self.db['raw_files']
-            self.collection_calibration_runs = self.db['calibration_runs']
-
+            self.collection_calibration = self.db['calibration_runs']
             self.collection_qllc=self.db['ql_lightcurves']
             self.collection_qlbkg=self.db['ql_background']
 
         except Exception as e:
-            print('can not connect to mongodb')
+            print('Error occurred while initializing mongodb: {}'.format(str(e)))
 
     def get_collection_calibration(self):
-        return self.collection_calibration_runs
+        return self.collection_calibration
 
     def get_collection_processing(self):
         return self.collection_raw_files
@@ -98,8 +97,8 @@ class MongoDB(object):
             cursor = self.collection_raw_files.delete_many(
                 {'_id': int(run_id)})
 
-        if self.collection_calibration_runs:
-            cursor = self.collection_calibration_runs.delete_many(
+        if self.collection_calibration:
+            cursor = self.collection_calibration.delete_many(
                 {'run_id': int(run_id)})
         if self.collection_qllc:
             cursor = self.collection_qllc.delete_many(
@@ -146,11 +145,16 @@ class MongoDB(object):
             if 'quicklook_pdf' in run:
                 return run['quicklook_pdf']
         return None
+    def get_calibration_run_data(self,calibration_id):
+        _id = int(calibration_id)
+        rows = []
+        if self.collection_calibration:
+            rows = self.collection_calibration.find({'_id': _id})
+        return rows
 
 
 
-
-if __name__ == '__main__':
-    mdb = MongoDB()
-    #print(mdb.get_packet_for_header(318))
-    mdb.set_quicklook_pdf(0, '/data/a.pdf')
+#if __name__ == '__main__':
+#    mdb = MongoDB()
+#    #print(mdb.get_packet_for_header(318))
+#    mdb.set_quicklook_pdf(0, '/data/a.pdf')

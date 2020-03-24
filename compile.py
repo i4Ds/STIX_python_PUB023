@@ -11,8 +11,8 @@ from distutils.core import setup
 from distutils.extension import Extension
 import os
 from Cython.Distutils import build_ext
-files=glob.glob('stix_parser/core/*py')
-files.extend(glob.glob('stix_parser/ui/*py'))
+files=glob.glob('stix/core/*py')
+files.extend(glob.glob('stix/ui/*py'))
 print(files)
 modules=[os.path.splitext(x)[0].replace('/','.') for x in files]
 ext_modules = []

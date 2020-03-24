@@ -49,7 +49,7 @@ void findMaxBinX(TH1F *h, Double_t min, Double_t max,  Double_t &maxX, Double_t 
 }
 void peaks(TFile *_file0,  TFile *_file1,  Int_t detector, Int_t channel, Double_t *par)
 {
-	TH1F *h = (TH1F *)_file0->Get(Form("hcal_%d_%d",detector,channel));
+	TH1F *h = (TH1F *)_file0->Get(Form("back",detector,channel));
 	if(!h)
 	{
 		return;
@@ -88,16 +88,21 @@ void peaks(TFile *_file0,  TFile *_file1,  Int_t detector, Int_t channel, Double
 	}
 	f->GetParameters(&par[0]);
 }
-void find_peaks(TString filename="calibration_spec_1.root", TString filename_out="test.root")
+void find_peaks(TString filename="spectra.root", TString filename_out="test.root")
 {
 	TFile *fin=new TFile(filename);
 	TFile *fout=new TFile(filename_out,"recreate");
+	cout<<"Output:"<<filename_out<<endl;
 	Double_t par[10]={0};
 	cout<<"detector, pixel, 35 keV peak, sigma, 80 keV, sigma, Emin, Emax, factor"<<endl;
 	TH2F hcal("hcal","calibration factors", 32,0,32,12,0,12);
-	for(int i=0;i<32;i++)
-		for(int j=0;j<12;j++)
+//	for(int i=0;i<32;i++)
+//		for(int j=0;j<12;j++)
+ int i=0;
+ int j=0;
+if(true)
 		{
+
 			peaks(fin, fout,i, j,par);
 			Double_t factor= (par[5]-par[2])/(81-35.);
 			if(par[5]>par[2]){

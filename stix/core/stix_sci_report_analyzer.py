@@ -51,7 +51,12 @@ class StixCalibrationReportAnalyzer(object):
             detector_id=detector_ids[i]
             pixel_id=pixel_ids[i]
             sbspec_spectrum=sbspec_spectra[i]
-            self.spectra.append((sbspec_id, detector_id, pixel_id,sbspec_spectrum))
+            try:
+                self.spectra.append((detector_id, pixel_id,sbspec_id,sbspec_formats[sbspec_id][2], 
+                    int(sbspec_formats[sbspec_id][1])+1 ,sbspec_spectrum))
+            except Exception as e:
+                logger.warning('Error occurred when formatting spectra: {}'.format(str(e)))
+
             num_counts=0
             try:
                 num_counts=sum(sbspec_spectrum)

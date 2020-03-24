@@ -114,7 +114,6 @@ class Plugin:
                     canvas[i].cd()
                     gPad.BuildLegend()
                     canvas[i].Write()
-
                 spectra_container.clear()
                 self.ical += 1
         self.fout.Close()
