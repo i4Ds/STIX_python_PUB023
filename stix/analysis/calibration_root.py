@@ -1,6 +1,7 @@
 
 import os
 import sys
+import array
 sys.path.append(os.path.abspath(__file__ + "/../../"))
 
 from core import stix_packet_analyzer as sta
@@ -13,7 +14,7 @@ from ROOT import TGraph, TFile, TCanvas, TH1F, gROOT, TBrowser, gSystem, TH2F, g
 
 def graph2(x, y, title, xlabel, ylabel):
     n = len(x)
-    g = TGraph(n, array('d', x), array('d', y))
+    g = TGraph(n, array.array('d', x), array.array('d', y))
     g.GetXaxis().SetTitle(xlabel)
     g.GetYaxis().SetTitle(ylabel)
     g.SetTitle(title)

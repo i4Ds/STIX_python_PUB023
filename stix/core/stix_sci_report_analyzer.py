@@ -8,7 +8,7 @@ logger = stix_logger.get_logger()
 
 class StixCalibrationReportAnalyzer(object):
     """
-      Capture calibration reports and fill calibration information into a MongoDB collection
+      Capture calibration reports and fill calibration information into MongoDB 
 
     """
 
@@ -39,7 +39,6 @@ class StixCalibrationReportAnalyzer(object):
         pixel_mask=packet[12]
 
 
-
         detector_ids = packet.get('NIX00159/NIXD0155')[0]
         pixel_ids = packet.get('NIX00159/NIXD0156')[0]
         subspc_ids=packet.get('NIX00159/NIXD0157')[0]
@@ -68,7 +67,6 @@ class StixCalibrationReportAnalyzer(object):
 
 
         if packet['seg_flag'] in [1, 3]:
-            #first or standalone packet
             sbspec_mask=packet[13].raw
             sbspec_status=[False for i in range(0,8)]
             for i in range(0,8):
@@ -107,13 +105,14 @@ class StixCalibrationReportAnalyzer(object):
             self.report['auxiliary'] = packet['parameters'][0:14]
             #Don't copy repeaters 
             self.report['sbspec_counts_sum']=np.sum(self.sbspec_counts,axis=1).tolist()
-            
             self.report['counts'] = self.sbspec_counts.tolist()
-            self.report['spectra'] = self.spectra;
+            self.report['spectra'] = self.spectra
             self.report['packet_index'] = self.packet_index.tolist()
+            #packet id, used by web applications
             #spectra
             self.db_collection.insert_one(self.report)
 
+            #reset report
             self.current_calibration_run_id += 1
             self.report = None
             self.spectra=[]
