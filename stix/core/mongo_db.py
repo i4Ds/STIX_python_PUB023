@@ -151,6 +151,15 @@ class MongoDB(object):
         if self.collection_calibration:
             rows = self.collection_calibration.find({'_id': _id})
         return rows
+    def update_calibration_analysis_report(self,calibration_id, data):
+        _id = int(calibration_id)
+        if self.collection_calibration:
+            doc = self.collection_calibration.find_one({'_id': _id})
+            doc['analysis_report']=data
+            self.collection_calibration.save(doc)
+
+
+
 
 
 

@@ -1,3 +1,16 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+This script relies on pyroot
+It can downloaded from http://root.cern.ch
+As the pre-compiled version doesn't support python3, one needs to download the source code and compile on your local PC according to steps as below:
+1. cmake 
+cmake ../source   -Dpython3=ON -DPYTHON_EXECUTABLE=/usr/bin/python3 
+-DPYTHON_INCLUDE_DIR=/usr/include/python3.8 -DPYTHON_LIBRARY=/usr/lib/x86_64-linux-gnu/libpython3.8.so -DCMAKE_INSTALL_PREFIX=/opt/root6_python3/
+2. make 
+3. make install
+
+"""
 
 import os
 import sys
@@ -9,9 +22,9 @@ from matplotlib import pyplot as plt
 from datetime import datetime
 from stix.core import stix_datatypes as sdt 
 from stix.core import mongo_db  as db
+from ROOT import TGraph, TFile, TCanvas, TH1F, gROOT, TBrowser, gSystem, TH2F, gPad, TF1, TGraphErrors, gStyle
 
 
-from ROOT import TGraph, TFile, TCanvas, TH1F, gROOT, TBrowser, gSystem, TH2F, gPad, TF1
 
 FIT_MIN_X=260
 FIT_MAX_X=550
@@ -22,17 +35,14 @@ mdb = db.MongoDB()
 
 MIN_COUNTS_PEAK_FIND=100
 
-spectrum_mc=[13,14,12,18,20,17,13,18,13,12,20,12,18,11,22,17,20,11,16,12,22,26,17,23,27,15,10,22,44,102,225,611,1457,3091,5867,10085,15395,20816,25295,26842,25283,21478,16208,10544,6187,3176,1462,661,439,522,974,1650,2550,3742,4639,5153,5385,4940,4065,3002,1986,1332,751,384,202,104,41,25,25,23,13,20,17,19,18,17,16,13,10,13,14,22,11,15,17,11,23,18,15,13,16,23,13,13,17,11,18,13,16,20,12,16,21,17,21,14,16,20,20,24,20,22,28,27,40,39,44,51,61,103,150,227,320,384,485,559,497,489,382,246,161,97,38,24,19,13,12,8,16,18,8,10,15,11,12,9,15,12,11,13,16,14,21,33,45,73,108,112,134,125,99,88,62,39,21,19,11,13,16,29,40,44,70,104,112,119,107,112,68,54,58,35,33,16,20,9,22,12,9,12,6,22,20,22,27,40,46,69,104,153,190,210,302,339,344,395,392,439,390,472,495,532,524,538,590,653,685,760,778,799,899,1051,1093,1223,1358,1599,1833,2065,2399,2852,3378,3761,4122,4301,4068,3283,2553,1860,1171,608,324,145,74,33,17,22,23,14,17,12,12,11,10,4,7,5,15,6,5,11,10,12,8,13,11,9,10,14,13,7,11,11,12,10,13,19,9,11,15]
-#realistic spectrum from Monte Carlo simulation
 
-def specfun(x, par):
-    index=int(((x[0]-par[0])*par[1]-20)*4)
-    #print(x[0],par[0], par[1], par[2], index)
-    try:
-        return spectrum_mc[index] * par[2]
-    except IndexError:
-        return 0
-
+def graph_errors(x,y,ex,ey, title, xlabel="x", ylabel="y"):
+    n = len(x)
+    g = TGraphErrors(n, array('d', x), array('d', y), array('d',ex), array('d',ey))
+    g.GetXaxis().SetTitle(xlabel)
+    g.GetYaxis().SetTitle(ylabel)
+    g.SetTitle(title)
+    return g
 
 
 def graph2(x, y, title="", xlabel="x", ylabel="y"):
@@ -42,6 +52,12 @@ def graph2(x, y, title="", xlabel="x", ylabel="y"):
     g.GetYaxis().SetTitle(ylabel)
     g.SetTitle(title)
     return g
+def graph(y):
+    n=len(y)
+    x = range(0,n)
+    g = TGraph(n, array('d', x), array('d', y))
+    return g
+
 
 
 def hist(x, y, title, xlabel, ylabel):
@@ -51,12 +67,18 @@ def hist(x, y, title, xlabel, ylabel):
     h2.GetXaxis().SetTitle(xlabel)
     h2.GetYaxis().SetTitle(ylabel)
     h2.SetTitle(title)
+    return h2
 
+def heatmap(arr, htitle, title, xlabel='detector', ylabel='pixel', zlabel='value'):
+    h2=TH2F(title, '{};{};{};{}'.format(title,xlabel, ylabel, zlabel),  32, 0, 32, 12, 0, 12)
+    for i in range(0,32):
+        for j in range(0,12):
+            h2.SetBinContent(i+1, j+1, arr[i][j])
     return h2
 
 
 
-def find_peaks(detector, pixel, subspec, start, num_summed, spec, fo):
+def find_peaks(detector, pixel, subspec, start, num_summed, spec, fo, pdf):
     x_full=[start+i*num_summed+0.5*num_summed for i in range(0,len(spec))]
     x=[]
     y=[]
@@ -80,13 +102,13 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spec, fo):
     g2 = TF1( 'g2_{}_{}_{}'.format(detector, pixel, subspec), 'gaus', max_x+5, max_x+30)
     g3 = TF1( 'g3_{}_{}_{}'.format(detector, pixel, subspec), 'gaus', max_x2-3, max_x2+15)
 
-    total = TF1( 'total_{}_{}_{}'.format(detector, pixel, subspec), 'gaus(0)+gaus(3)', max_x-15, max_x+30)
-    g=graph2(x,y, 'g_{}_{}_{}'.format(detector, pixel, subspec))
-    g.Fit(g1,'R')
-    g.Fit(g2,'R+')
-    g.Fit(g3,'R+')
-    g.Fit(total,'R+')
-    par = array( 'd', 9*[0.] )
+    total = TF1( 'total_{}_{}_{}'.format(detector, pixel, subspec), 'gaus(0)+gaus(3)', max_x-15, max_x+30, 6)
+    g=graph2(x,y, 'detector {} pixel {} sbspec {}'.format(detector, pixel, subspec), 'ADC channel','Counts')
+    g.Fit(g1,'RQ')
+    g.Fit(g2,'RQ+')
+    g.Fit(g3,'RQ')
+    g.Fit(total,'RQ+')
+    par = array( 'd', 6*[0.] )
     par1 = g1.GetParameters()
     par2 = g2.GetParameters()
     par3 = g3.GetParameters()
@@ -94,52 +116,70 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spec, fo):
     par[3], par[4], par[5] = par2[0], par2[1], par2[2]
     total.SetParameters(par)
     g.Fit( total, 'R+' )
+    param=total.GetParameters()
 
     fo.cd()
     g.Write()
     total.Write()
-    #g1.Write()
-    #g2.Write()
-    #g3.Write()
-    
-    parameters=[]
+    result={}
+
     try:
-        parameters=[p  for p in par]
-    except: 
-        pass
-    return parameters
+        result={'peak1':
+                (param[0],param[1],param[2]),
+                'peak2':(param[3],param[4],param[5]),'peak3':(par3[0],par3[1],par3[2])
+                }
+    except Exception as e:
+        print(str(e))
+    peak_y=[param[1],param[4],par3[1]]
+    peak_ey=[param[2],param[5],par3[2]]
 
-def fit_mc(detector, pixel, subspec, start, num_summed, spec, fo):
-    x_full=[start+i*num_summed+0.5*num_summed for i in range(0,len(spec))]
-    x=[]
-    y=[]
-    for ix, iy in zip(x_full,spec):
-        if ix>FIT_MIN_X and ix<FIT_MAX_X:
-            x.append(ix)
-            y.append(iy)
-    max_y=max(y)
-    total = TF1( 'total_{}_{}_{}'.format(detector, pixel, subspec), specfun, FIT_MIN_X, FIT_MAX_X,3)
-    nor=max(spectrum_mc)/max_y
-    total.SetParLimits(0,200,400)
-    total.SetParLimits(1,0.2, 1)
-    #total.SetParLimits(2,0.1*nor, 1.1*nor)
+    peak_x=[30.8, 34.9, 81]
+    peak_ex=[.1, 0., 0.]
+    gpeaks=None
+    if result:
+        gpeaks=graph_errors(peak_x, peak_y, peak_ex,peak_ey,
+                'Detector {} pixel {} sbspec {}'.format(detector, pixel, subspec),
+                'Energy (keV)', 'Peak position (ADC)')
+        gpeaks.Fit('pol1')
+        gpeaks.GetYaxis().SetRangeUser(0.9*peak_y[0], peak_y[-1]*1.1)
+        gStyle.SetOptFit(111)
+        gpeaks.Write('gpeaks_{}_{}_{}'.format(detector, pixel, subspec))
+        
+        calibration_params=gpeaks.GetFunction('pol1').GetParameters()
+        chisquare=gpeaks.GetFunction('pol1').GetChisquare()
+        result['fcal']=(calibration_params[0],calibration_params[1], chisquare)
+        result['pdf']=pdf
+    if pdf:
+        c=TCanvas()
+        c.Divide(2,1)
+        c.cd(1)
+        g.Draw("ALP")
+        c.cd(2)
+        if gpeaks:
+            gpeaks.Draw()
+        c.Print(pdf)
 
-    g=graph2(x,y, 'g_{}_{}_{}'.format(detector, pixel, subspec))
-    g.Fit(total,'R')
-    fo.cd()
-    g.Write()
-    par = array( 'd', 3*[0.] )
-    return total.GetParameters()
-    #return [p for p in par]
-
+    return result
     
 
 class Analyzer(object):
-    def __init__(self, calibration_id):
+    def __init__(self, calibration_id, output_dir='./'):
         self.data=mdb.get_calibration_run_data(calibration_id)[0]
         sbspec_formats=self.data['sbspec_formats']
         spectra=self.data['spectra']
-        f=TFile("test.root","recreate")
+
+        fname_out=os.path.abspath(os.path.join(output_dir, 'calibration_{}'.format(calibration_id)))
+
+        f=TFile("{}.root".format(fname_out),"recreate")
+        c=TCanvas()
+        pdf='{}.pdf'.format(fname_out)
+        c.Print(pdf+'[')
+
+        slope = np.zeros((32,12))
+        baseline = np.zeros((32,12))
+
+        
+
         for spec in spectra:
             if sum(spec[5]) <MIN_COUNTS_PEAK_FIND:
                 continue
@@ -149,8 +189,28 @@ class Analyzer(object):
             if start >FIT_MAX_X  or end<FIT_MIN_X:
                 #print('Ignored sub-spectra:',spec[3], start, end)
                 continue
-            par=find_peaks(spec[0], spec[1], spec[2], start, num_summed,  spec[5], f)
-            #par=fit_mc(spec[0], spec[1], spec[2], start, num_summed,  spec[5], f)
+            par=find_peaks(spec[0], spec[1], spec[2], start, num_summed,  spec[5], f, pdf)
+            if par:
+                if 'fcal' in par:
+                    mdb.update_calibration_analysis_report(calibration_id, par)
+                    slope[spec[0]][spec[1]]=par['fcal'][1]
+                    baseline[spec[0]][spec[1]]=par['fcal'][0]
+
+
+        h2slope=heatmap(slope, 'Energy conversion factor', 'Conversion factor', 'Detector', 'Pixel', 'Energy conversion factor (ADC/keV)')
+        h2baseline=heatmap(baseline,'baseline', 'baseline', 'Detector', 'Pixel', 'baseline (E=0)')
+        c2=TCanvas()
+        c2.Divide(2,1)
+        c2.cd(1)
+        h2baseline.Draw("colz")
+        c2.cd(2)
+        h2slope.Draw("colz")
+        c2.Print(pdf)
+        
+
+
+        c.Print(pdf+']')
+
         f.Close()
             #print(par)
 
