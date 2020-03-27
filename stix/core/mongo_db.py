@@ -152,11 +152,24 @@ class MongoDB(object):
             rows = self.collection_calibration.find({'_id': _id})
         return rows
     def update_calibration_analysis_report(self,calibration_id, data):
+        #save calibration data analysis results to mongodb
         _id = int(calibration_id)
         if self.collection_calibration:
             doc = self.collection_calibration.find_one({'_id': _id})
             doc['analysis_report']=data
             self.collection_calibration.save(doc)
+    def get_calibration_runs_for_processing(self):
+        #return unprocessed calibration run 
+        docs=[]
+        try:
+            docs = list(self.collection_calibration.find())
+        except Exception as e:
+            pass
+        if docs:
+            return  [ doc['_id'] for doc in docs if ('spectra' in doc) and 
+                    ('sbspec_formats' in doc) and 'analysis_report' not in doc]
+        return []
+
 
 
 
