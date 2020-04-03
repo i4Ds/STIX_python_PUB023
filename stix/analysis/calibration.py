@@ -22,7 +22,7 @@ from array import array
 from datetime import datetime
 from stix.core import stix_datatypes as sdt 
 from stix.core import mongo_db  as db
-from ROOT import TGraph, TFile, TCanvas, TH1F, gROOT, TBrowser, gSystem, TH2F, gPad, TF1, TGraphErrors, gStyle, TSpectrum
+from ROOT import TGraph, TFile, TCanvas, TH1F, gROOT, TBrowser, gSystem, TH2F, gPad, TF1, TGraphErrors, gStyle, TSpectrum, gRandom, TPaveLabel
 
 
 BA133_SPECTRUM=[41,46,68,74,78,79,74,67,81,83,68,78,72,55,59,62,47,44,63,58,53,59,49,49,53,50,52,53,50,50,47,41,45,45,50,46,40,42,41,33,36,45,34,27,35,36,40,30,35,27,27,50,53,48,43,61,84,251,2399,114172,78265,38,31,29,32,42,97,33987,157,6764,39,27,28,29,33,20,27,36,21,33,25,23,33,34,45,34,30,41,34,37,24,26,34,40,27,40,59,68,73,98,175,343,1106,2410,33,25,27,23,23,30,21,16,19,19,23,24,19,27,65,835,25,27,33,16,24,28,39,628,82,113,25,20,19,23,20,45,32,65,73,71,491,732,731,815,910,941,1041,1211,1361,1569,1761,2067,2625,3328,5113,5027,9227,17082,25,35,27,30,55,54,23,20,14,24,19,19,29,22,17,18,21,15,25,20,19,19,18,23,17,26,14,14,11,20,12,22,18,18,16,17,11,18,14,22,21,21]
@@ -137,19 +137,39 @@ def heatmap(arr, htitle, title, xlabel='detector', ylabel='pixel', zlabel='value
     return h2
 
 
+def get_subspec(x, y, xmin, xmax):
+    a=[]
+    b=[]
+    for ix, iy in zip(x,y):
+        if ix>xmin and ix<xmax:
+            a.append(ix)
+            b.append(iy)
+    return a,b
+
+def add_test_noise(spectrum):
+    bkg=TF1("fbkg","0.5e3*exp(-x/400)",0,1024);
+    s=[]
+    for i in range(0,len(spectrum)):
+        spectrum[i]=(spectrum[i]+bkg.Eval(i)+gRandom.Uniform(10));
+
+
 
 def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo, pdf):
     gStyle.SetOptFit(111)
+    #add_test_noise(spectrum)
 
-    bkg, spec=sub_bkg(spectrum)
+    x0=[start+i*num_summed+0.5*num_summed for i in range(0,len(spectrum))]
+    x, y_all=get_subspec(x0, spectrum, FIT_MIN_X, FIT_MAX_X)
+    if not x:
+        return
 
-    x_full=[start+i*num_summed+0.5*num_summed for i in range(0,len(spec))]
-    x=[]
-    y=[]
-    for ix, iy in zip(x_full,spec):
-        if ix>FIT_MIN_X and ix<FIT_MAX_X:
-            x.append(ix)
-            y.append(iy)
+    bkg, y=sub_bkg(y_all)
+
+
+    gsig=graph2(x,y_all, 'Original spec - detector {} pixel {} sbspec {}'.format(detector, pixel, subspec), 'ADC channel','Counts')
+    gbkg=graph2(x,bkg, 'Background - detector {} pixel {} sbspec {}'.format(detector, pixel, subspec), 'ADC channel','Counts')
+
+
     max_y=max(y)
     max_x=x[y.index(max_y)]
 
@@ -162,15 +182,16 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo, pdf):
             max_x2=ix
             max_y2=iy
             
-    g1 = TF1( 'g1_{}_{}_{}'.format(detector, pixel, subspec), 'gaus',  max_x-15,  max_x+ 15)
-    g2 = TF1( 'g2_{}_{}_{}'.format(detector, pixel, subspec), 'gaus', max_x+5, max_x+30)
-    g3 = TF1( 'g3_{}_{}_{}'.format(detector, pixel, subspec), 'gaus', max_x2-3, max_x2+15)
+    name='{}_{}_{}'.format(detector, pixel, subspec)
+    title='detector {} pixel {} subspec {}'.format(detector, pixel, subspec)
+    g1 = TF1( 'g1_{}'.format(name), 'gaus',  max_x-15,  max_x+ 15)
+    g2 = TF1( 'g2_{}'.format(name), 'gaus', max_x+5, max_x+30)
+    g3 = TF1( 'g3_{}'.format(name), 'gaus', max_x2-3, max_x2+15)
 
-    total = TF1( 'total_{}_{}_{}'.format(detector, pixel, subspec), 'gaus(0)+gaus(3)', max_x-15, max_x+30, 6)
-    gsig=graph2(x,spectrum, 'detector {} pixel {} sbspec {}'.format(detector, pixel, subspec), 'ADC channel','Counts')
-    gbkg=graph2(x,bkg, 'detector {} pixel {} sbspec {}'.format(detector, pixel, subspec), 'ADC channel','Counts')
+    total = TF1( 'total_{}'.format(name), 'gaus(0)+gaus(3)', max_x-15, max_x+30, 6)
 
-    g=graph2(x,y, 'detector {} pixel {} sbspec {}'.format(detector, pixel, subspec), 'ADC channel','Counts')
+    g=graph2(x,y, 'Bkg subtracted - {}'.format(title), 'ADC channel','Counts')
+
 
     g.Fit(g1,'RQ')
     g.Fit(g2,'RQ+')
@@ -216,26 +237,34 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo, pdf):
     gpeaks=None
     if result:
         gpeaks=graph_errors(peak_x, peak_y, peak_ex,peak_ey,
-                'Detector {} pixel {} sbspec {}'.format(detector, pixel, subspec),
+                title,
                 'Energy (keV)', 'Peak position (ADC)')
         gpeaks.Fit('pol1')
         gpeaks.GetYaxis().SetRangeUser(0.9*peak_y[0], peak_y[-1]*1.1)
-        gpeaks.Write('gpeaks_{}_{}_{}'.format(detector, pixel, subspec))
+        gpeaks.Write('gpeaks_{}'.format(name))
         
         calibration_params=gpeaks.GetFunction('pol1').GetParameters()
         chisquare=gpeaks.GetFunction('pol1').GetChisquare()
         result['fcal']={'p0':calibration_params[0],'p1':calibration_params[1], 'chi2':chisquare}
     if pdf:
-        c=TCanvas()
+        c=TCanvas("c","c", 800, 800)
+        ctitle = TPaveLabel(0.1,0.96,0.9,0.99,title);
+        ctitle.Draw()
+        c.Divide(2,2)
+        c.cd(1)
+        gsig.Draw("ALP")
+        c.cd(2)
+        gsig.SetTitle("Original spectrum")
+        gbkg.SetTitle("Background")
         gsig.SetLineColor(1)
         gbkg.SetLineColor(2)
+        gbkg.SetMarkerColor(2)
         gsig.Draw("ALP")
-        gbkg.Draw("LP+same")
-        c.Divide(1,3)
-        c.cd(2)
-
-        g.Draw("ALP")
+        gbkg.Draw("LP+SAME")
+        gPad.BuildLegend()
         c.cd(3)
+        g.Draw("ALP")
+        c.cd(4)
         if gpeaks:
             gpeaks.Draw()
         c.Print(pdf)
@@ -305,9 +334,6 @@ def analyze(calibration_id, output_dir='./'):
     c2.cd(2)
     h2slope.Draw("colz")
     c2.Print(pdf)
-    
-
-
     c.Print(pdf+']')
 
     f.Close()
