@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+A program to perform energy calibration. 
 This script relies on pyroot
 It can downloaded from http://root.cern.ch
 As the pre-compiled version doesn't support python3, one needs to download the source code and compile on your local PC according to steps as below:
@@ -18,22 +19,22 @@ sys.path.append('../../')
 import numpy as np
 import time
 from array import array
-from matplotlib.backends.backend_pdf import PdfPages
-from matplotlib import pyplot as plt
 from datetime import datetime
 from stix.core import stix_datatypes as sdt 
 from stix.core import mongo_db  as db
-from ROOT import TGraph, TFile, TCanvas, TH1F, gROOT, TBrowser, gSystem, TH2F, gPad, TF1, TGraphErrors, gStyle
+from ROOT import TGraph, TFile, TCanvas, TH1F, gROOT, TBrowser, gSystem, TH2F, gPad, TF1, TGraphErrors, gStyle, TSpectrum
 
 
+BA133_SPECTRUM=[41,46,68,74,78,79,74,67,81,83,68,78,72,55,59,62,47,44,63,58,53,59,49,49,53,50,52,53,50,50,47,41,45,45,50,46,40,42,41,33,36,45,34,27,35,36,40,30,35,27,27,50,53,48,43,61,84,251,2399,114172,78265,38,31,29,32,42,97,33987,157,6764,39,27,28,29,33,20,27,36,21,33,25,23,33,34,45,34,30,41,34,37,24,26,34,40,27,40,59,68,73,98,175,343,1106,2410,33,25,27,23,23,30,21,16,19,19,23,24,19,27,65,835,25,27,33,16,24,28,39,628,82,113,25,20,19,23,20,45,32,65,73,71,491,732,731,815,910,941,1041,1211,1361,1569,1761,2067,2625,3328,5113,5027,9227,17082,25,35,27,30,55,54,23,20,14,24,19,19,29,22,17,18,21,15,25,20,19,19,18,23,17,26,14,14,11,20,12,22,18,18,16,17,11,18,14,22,21,21]
 
 FIT_MIN_X=260
 FIT_MAX_X=550
 FIT_LEFT_DELTA_X=15
 FIT_RIGHT_DELTA_X=30
 
-mdb = db.MongoDB()
 
+DEFAULT_OUTPUT_DIR='/data/'
+mdb = db.MongoDB()
 MIN_COUNTS_PEAK_FIND=100
 ELUT_ENERGIES=[
 4, 5, 6, 7,
@@ -57,7 +58,41 @@ def compute_elut(baseline, slope):
                 elut.append(row)
     return elut
 
+def find_peaks2(detector, pixel, subspec, start, num_summed, spec, fo, pdf):
+    #find peaks using TSpectrum
+    x_full=[start+i*num_summed+0.5*num_summed for i in range(0,len(spec))]
+    nbins=len(subspec)
+    sigma=2
+    threshold=10
+    background_remove=True
+    decon_interations=1000
+    markov=True
+    averg_window=3
 
+    print(threshold)
+
+    y=array('d',subspec)
+    des=array('d',[0]*nbins)
+    s=TSpectrum()
+    num_found=s.SearchHighRes(y, des,nbins,sigma, threshold, background_remove, decon_interations,
+            markov, averg_window)
+    xp=s.GetPositionX()
+    xpeaks=[]
+    for i in range(num_found):
+        xpeaks.append(xp[i])
+
+def sub_bkg(spec):
+    bkg=array('d',spec)
+    s=TSpectrum()
+    nbins=len(spec)
+    back_decreasing_window=1
+    back_order_2=0
+    back_smoothing=3
+    num_interations=6
+    s.Background(bkg, nbins, num_interations, back_decreasing_window, 
+            back_order_2, False, back_smoothing, False)
+    bkgsub=np.array(spec)-np.array(bkg)
+    return bkg,  bkgsub.tolist()
 
 
 
@@ -103,8 +138,11 @@ def heatmap(arr, htitle, title, xlabel='detector', ylabel='pixel', zlabel='value
 
 
 
-def find_peaks(detector, pixel, subspec, start, num_summed, spec, fo, pdf):
+def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo, pdf):
     gStyle.SetOptFit(111)
+
+    bkg, spec=sub_bkg(spectrum)
+
     x_full=[start+i*num_summed+0.5*num_summed for i in range(0,len(spec))]
     x=[]
     y=[]
@@ -129,7 +167,11 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spec, fo, pdf):
     g3 = TF1( 'g3_{}_{}_{}'.format(detector, pixel, subspec), 'gaus', max_x2-3, max_x2+15)
 
     total = TF1( 'total_{}_{}_{}'.format(detector, pixel, subspec), 'gaus(0)+gaus(3)', max_x-15, max_x+30, 6)
+    gsig=graph2(x,spectrum, 'detector {} pixel {} sbspec {}'.format(detector, pixel, subspec), 'ADC channel','Counts')
+    gbkg=graph2(x,bkg, 'detector {} pixel {} sbspec {}'.format(detector, pixel, subspec), 'ADC channel','Counts')
+
     g=graph2(x,y, 'detector {} pixel {} sbspec {}'.format(detector, pixel, subspec), 'ADC channel','Counts')
+
     g.Fit(g1,'RQ')
     g.Fit(g2,'RQ+')
     g.Fit(g3,'RQ')
@@ -185,10 +227,15 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spec, fo, pdf):
         result['fcal']={'p0':calibration_params[0],'p1':calibration_params[1], 'chi2':chisquare}
     if pdf:
         c=TCanvas()
-        c.Divide(2,1)
-        c.cd(1)
-        g.Draw("ALP")
+        gsig.SetLineColor(1)
+        gbkg.SetLineColor(2)
+        gsig.Draw("ALP")
+        gbkg.Draw("LP+same")
+        c.Divide(1,3)
         c.cd(2)
+
+        g.Draw("ALP")
+        c.cd(3)
         if gpeaks:
             gpeaks.Draw()
         c.Print(pdf)
@@ -196,99 +243,94 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spec, fo, pdf):
     return result
     
 
-class Analyzer(object):
-    def __init__(self, output_dir='./'):
-        self.output_dir=output_dir
-        gROOT.SetBatch(True)
 
-    def run(self,calibration_id):
-        self.data=mdb.get_calibration_run_data(calibration_id)[0]
-        if not self.data:
-            print("Calibration run {} doesn't exist".format(calibration_id))
-            return
+def analyze(calibration_id, output_dir='./'):
+    gROOT.SetBatch(True)
+    data=mdb.get_calibration_run_data(calibration_id)[0]
+    if not data:
+        print("Calibration run {} doesn't exist".format(calibration_id))
+        return
 
-        sbspec_formats=self.data['sbspec_formats']
-        spectra=self.data['spectra']
+    sbspec_formats=data['sbspec_formats']
+    spectra=data['spectra']
 
-        fname_out=os.path.abspath(os.path.join(self.output_dir, 'calibration_{}'.format(calibration_id)))
+    fname_out=os.path.abspath(os.path.join(output_dir, 'calibration_{}'.format(calibration_id)))
 
-        f=TFile("{}.root".format(fname_out),"recreate")
-        c=TCanvas()
-        pdf='{}.pdf'.format(fname_out)
-        c.Print(pdf+'[')
+    f=TFile("{}.root".format(fname_out),"recreate")
+    c=TCanvas()
+    pdf='{}.pdf'.format(fname_out)
+    c.Print(pdf+'[')
 
-        slope = np.zeros((32,12))
-        baseline = np.zeros((32,12))
+    slope = np.zeros((32,12))
+    baseline = np.zeros((32,12))
 
-        
-        report={}
-        report['fit_parameters']=[]
+    
+    report={}
+    report['fit_parameters']=[]
 
-        for spec in spectra:
-            if sum(spec[5]) <MIN_COUNTS_PEAK_FIND:
-                continue
-            detector=spec[0]
-            pixel=spec[1]
-            sbspec_id=spec[2]
-            start=spec[3]
-            num_summed=spec[4]
-            end=start+num_summed*len(spec[5])
-            spectrum=spec[5]
+    for spec in spectra:
+        if sum(spec[5]) <MIN_COUNTS_PEAK_FIND:
+            continue
+        detector=spec[0]
+        pixel=spec[1]
+        sbspec_id=spec[2]
+        start=spec[3]
+        num_summed=spec[4]
+        end=start+num_summed*len(spec[5])
+        spectrum=spec[5]
 
 
-            if start >FIT_MAX_X  or end<FIT_MIN_X:
-                #print('Ignored sub-spectra:',spec[3], start, end)
-                continue
-            par=find_peaks(detector, pixel, sbspec_id,  start, num_summed,  spectrum, f, pdf)
-            report['fit_parameters'].append(par)
-            if par:
-                if 'fcal' in par:
-                    slope[detector][pixel]=par['fcal']['p1']
-                    baseline[detector][pixel]=par['fcal']['p0']
+        if start >FIT_MAX_X  or end<FIT_MIN_X:
+            #print('Ignored sub-spectra:',spec[3], start, end)
+            continue
+        par=find_peaks(detector, pixel, sbspec_id,  start, num_summed,  spectrum, f, pdf)
+        report['fit_parameters'].append(par)
+        if par:
+            if 'fcal' in par:
+                slope[detector][pixel]=par['fcal']['p1']
+                baseline[detector][pixel]=par['fcal']['p0']
 
 
-        report['pdf']=pdf
-        report['elut']=compute_elut(baseline,slope)
-        
-        mdb.update_calibration_analysis_report(calibration_id, report)
+    report['pdf']=pdf
+    report['elut']=compute_elut(baseline,slope)
+    
+    mdb.update_calibration_analysis_report(calibration_id, report)
 
-        h2slope=heatmap(slope, 'Energy conversion factor', 'Conversion factor', 'Detector', 'Pixel', 'Energy conversion factor (ADC/keV)')
-        h2baseline=heatmap(baseline,'baseline', 'baseline', 'Detector', 'Pixel', 'baseline (E=0)')
-        c2=TCanvas()
-        c2.Divide(2,1)
-        c2.cd(1)
-        h2baseline.Draw("colz")
-        c2.cd(2)
-        h2slope.Draw("colz")
-        c2.Print(pdf)
-        
-
-
-        c.Print(pdf+']')
-
-        f.Close()
-            #print(par)
-    def daemon(self):
-        while True:
-            calibration_run_ids=mdb.get_calibration_runs_for_processing()
-            print(calibration_run_ids)
-            for run_id in calibration_run_ids:
-                self.run(run_id)
-            time.sleep(60)
-            break
+    h2slope=heatmap(slope, 'Energy conversion factor', 'Conversion factor', 'Detector', 'Pixel', 'Energy conversion factor (ADC/keV)')
+    h2baseline=heatmap(baseline,'baseline', 'baseline', 'Detector', 'Pixel', 'baseline (E=0)')
+    c2=TCanvas()
+    c2.Divide(2,1)
+    c2.cd(1)
+    h2baseline.Draw("colz")
+    c2.cd(2)
+    h2slope.Draw("colz")
+    c2.Print(pdf)
+    
 
 
+    c.Print(pdf+']')
 
-        
+    f.Close()
+        #print(par)
+def daemon():
+    while True:
+        calibration_run_ids=mdb.get_calibration_runs_for_processing()
+        print(calibration_run_ids)
+        for run_id in calibration_run_ids:
+            analyze(run_id, DEFAULT_OUTPUT_DIR)
+        time.sleep(60)
+        break
 
 
 
 
 if __name__=='__main__':
+    output_dir=DEFAULT_OUTPUT_DIR
     if len(sys.argv)==1:
         analyzer=Analyzer()
         analyzer.daemon()
-    else:
-        analyzer=Analyzer()
-        analyzer.run(int(sys.argv[1]))
+    elif len(sys.argv)>=2:
+        if len(sys.argv)>=3:
+            output_dir=sys.argv[2]
+        analyze(int(sys.argv[1]), output_dir)
 

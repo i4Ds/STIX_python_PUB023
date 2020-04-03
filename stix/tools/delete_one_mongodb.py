@@ -1,7 +1,7 @@
 import sys
 import os
 sys.path.append('.')
-from stix_parser.core import mongo_db 
+from stix.core import mongo_db 
 def delete_one(run):
     ret=input('Do you want to delete run:{}? Y/N \n'.format(run))
     if ret=='Y':

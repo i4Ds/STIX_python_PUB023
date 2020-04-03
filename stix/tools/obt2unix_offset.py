@@ -1,6 +1,6 @@
 # a script used to generate a list of offsets between OBT and UNIX epoch
 # the list is used by web data browsers and Starlet
-from stix_parser.core import stix_datetime
+from stix.core import stix_datetime
 import pprint
 
 start = 1582150894
