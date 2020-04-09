@@ -31,6 +31,7 @@ FIT_MIN_X=260
 FIT_MAX_X=550
 FIT_LEFT_DELTA_X=15
 FIT_RIGHT_DELTA_X=30
+MAX_ALLOWED_SIGMA_ERROR = 5  #maximum allowed peak error
 
 
 DEFAULT_OUTPUT_DIR='/data/'
@@ -79,7 +80,7 @@ def find_peaks2(detector, pixel, subspec, start, num_summed, spec, fo, pdf):
     xp=s.GetPositionX()
     xpeaks=[]
     for i in range(num_found):
-        xpeaks.append(xp[i])
+        xpeaks.append(x_full[xp[i]])
 
 def sub_bkg(spec):
     bkg=array('d',spec)
@@ -112,12 +113,12 @@ def graph2(x, y, title="", xlabel="x", ylabel="y"):
     g.GetYaxis().SetTitle(ylabel)
     g.SetTitle(title)
     return g
+"""
 def graph(y):
     n=len(y)
     x = range(0,n)
     g = TGraph(n, array('d', x), array('d', y))
     return g
-
 
 
 def hist(x, y, title, xlabel, ylabel):
@@ -128,6 +129,7 @@ def hist(x, y, title, xlabel, ylabel):
     h2.GetYaxis().SetTitle(ylabel)
     h2.SetTitle(title)
     return h2
+    """
 
 def heatmap(arr, htitle, title, xlabel='detector', ylabel='pixel', zlabel='value'):
     h2=TH2F(title, '{};{};{};{}'.format(title,xlabel, ylabel, zlabel),  32, 0, 32, 12, 0, 12)
@@ -146,7 +148,7 @@ def get_subspec(x, y, xmin, xmax):
             b.append(iy)
     return a,b
 
-def add_test_noise(spectrum):
+def add_test_background(spectrum):
     bkg=TF1("fbkg","0.5e3*exp(-x/400)",0,1024);
     s=[]
     for i in range(0,len(spectrum)):
@@ -156,7 +158,7 @@ def add_test_noise(spectrum):
 
 def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo, pdf):
     gStyle.SetOptFit(111)
-    #add_test_noise(spectrum)
+    #add_test_background(spectrum)
 
     x0=[start+i*num_summed+0.5*num_summed for i in range(0,len(spectrum))]
     x, y_all=get_subspec(x0, spectrum, FIT_MIN_X, FIT_MAX_X)
@@ -164,10 +166,12 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo, pdf):
         return
 
     bkg, y=sub_bkg(y_all)
+    name='{}_{}_{}'.format(detector, pixel, subspec)
+    title='detector {} pixel {} subspec {}'.format(detector, pixel, subspec)
 
 
-    gsig=graph2(x,y_all, 'Original spec - detector {} pixel {} sbspec {}'.format(detector, pixel, subspec), 'ADC channel','Counts')
-    gbkg=graph2(x,bkg, 'Background - detector {} pixel {} sbspec {}'.format(detector, pixel, subspec), 'ADC channel','Counts')
+    gsig=graph2(x,y_all, 'Original spec - {}'.format(name), 'ADC channel','Counts')
+    gbkg=graph2(x,bkg, 'Background - {}'.format(name), 'ADC channel','Counts')
 
 
     max_y=max(y)
@@ -182,8 +186,6 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo, pdf):
             max_x2=ix
             max_y2=iy
             
-    name='{}_{}_{}'.format(detector, pixel, subspec)
-    title='detector {} pixel {} subspec {}'.format(detector, pixel, subspec)
     g1 = TF1( 'g1_{}'.format(name), 'gaus',  max_x-15,  max_x+ 15)
     g2 = TF1( 'g2_{}'.format(name), 'gaus', max_x+5, max_x+30)
     g3 = TF1( 'g3_{}'.format(name), 'gaus', max_x2-3, max_x2+15)
@@ -229,13 +231,32 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo, pdf):
                 }
     except Exception as e:
         print(str(e))
-    peak_y=[param[1],param[4],par3[1]]
-    peak_ey=[param_errors[1],param_errors[4],par3_errors[1]]
+    peak_x=[]
+    peak_ex=[]
+    peak_y=[]
+    peak_ey=[]
 
-    peak_x=[30.8, 34.9, 81]
-    peak_ex=[.1, 0., 0.]
+    if param_errors[2]<MAX_ALLOWED_SIGMA_ERROR:
+        peak_x.append(30.8)
+        peak_ex.append(0.)
+        peak_y.append(param[1])
+        peak_ey.append(param_errors[1])
+
+    if param_errors[5]<MAX_ALLOWED_SIGMA_ERROR:
+        peak_x.append(34.9)
+        peak_ex.append(0.)
+        peak_y.append(param[4])
+        peak_ey.append(param_errors[4])
+
+    if par3_errors[2]<MAX_ALLOWED_SIGMA_ERROR:
+        peak_x.append(81)
+        peak_ex.append(0.)
+        peak_y.append(par3[1])
+        peak_ey.append(par3_errors[1])
+    #peak_x=[30.8, 34.9, 81]
+    #peak_ex=[.0, 0., 0.]
     gpeaks=None
-    if result:
+    if len(peak_x)>=2:
         gpeaks=graph_errors(peak_x, peak_y, peak_ex,peak_ey,
                 title,
                 'Energy (keV)', 'Peak position (ADC)')
@@ -351,7 +372,9 @@ def daemon():
 
 
 if __name__=='__main__':
-    output_dir=DEFAULT_OUTPUT_DIR
+    #output_dir=DEFAULT_OUTPUT_DIR
+    output_dir='./'
+
     if len(sys.argv)==1:
         analyzer=Analyzer()
         analyzer.daemon()
