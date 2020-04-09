@@ -1,6 +1,6 @@
 KPL/MK
 
-Meta-kernel for Solar Orbiter Dataset v104 -- Predicted 20200302_002
+Meta-kernel for Solar Orbiter Dataset v105 -- Predicted 20200318_001
 ==========================================================================
 
    This meta-kernel lists the Solar_Orbiter Predicted SPICE kernels
@@ -11,7 +11,7 @@ Meta-kernel for Solar Orbiter Dataset v104 -- Predicted 20200302_002
    the most complete coverage for the Solar_Orbiter Predicted scenario.
 
    This meta-kernel was generated with the Auxiliary Data Conversion
-   System version: ADCSng v1.0.3.
+   System version: ADCSng v1.0.4.
 
 
 Usage of the Meta-kernel
@@ -41,8 +41,8 @@ Implementation Notes
 
 -------------------
 
-   This file was created on March 2, 2020 by Marc Costa Sitja ESA/ESAC.
-   The original name of this file was solo_ANC_soc-pred-mk_V104_20200302_002.tm.
+   This file was created on March 18, 2020 by Marc Costa Sitja ESA/ESAC.
+   The original name of this file was solo_ANC_soc-pred-mk_V105_20200318_001.tm.
 
 
    \begindata
@@ -68,17 +68,17 @@ Implementation Notes
                            '$KERNELS/ck/solo_ANC_soc-spice-sw-ck_20180930-21000101_V02.bc'
                            '$KERNELS/ck/solo_ANC_soc-spice-lw-ck_20180930-21000101_V02.bc'
                            '$KERNELS/ck/solo_ANC_soc-stix-ck_20180930-21000101_V02.bc'
-                           '$KERNELS/ck/solo_ANC_soc-default-att_20200210-20301118_L002_V1_00014_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-default-att_20200210-20301118_L005_V1_00017_V01.bc'
 
-                           '$KERNELS/fk/solo_ANC_soc-sc-fk_V05.tf'
+                           '$KERNELS/fk/solo_ANC_soc-sc-fk_V06.tf'
                            '$KERNELS/fk/solo_ANC_soc-ops-fk_V02.tf'
                            '$KERNELS/fk/solo_ANC_soc-sci-fk_V06.tf'
                            '$KERNELS/fk/earth_topo_050714.tf'
-                           '$KERNELS/fk/estrack_v02.tf'
+                           '$KERNELS/fk/estrack_v03.tf'
 
                            '$KERNELS/ik/solo_ANC_soc-epd-ik_V02.ti'
                            '$KERNELS/ik/solo_ANC_soc-eui-ik_V01.ti'
-                           '$KERNELS/ik/solo_ANC_soc-metis-ik_V02.ti'
+                           '$KERNELS/ik/solo_ANC_soc-metis-ik_V03.ti'
                            '$KERNELS/ik/solo_ANC_soc-phi-ik_V01.ti'
                            '$KERNELS/ik/solo_ANC_soc-solohi-ik_V01.ti'
                            '$KERNELS/ik/solo_ANC_soc-spice-ik_V02.ti'
@@ -93,9 +93,10 @@ Implementation Notes
 
                            '$KERNELS/sclk/solo_ANC_soc-sclk-fict_20000101_V01.tsc'
 
-                           '$KERNELS/spk/solo_ANC_soc-orbit_20200210-20301118_L002_V1_00014_V01.bsp'
+                           '$KERNELS/spk/solo_ANC_soc-orbit_20200210-20301118_L005_V1_00017_V01.bsp'
                            '$KERNELS/spk/de421.bsp'
-                           '$KERNELS/spk/estrack_v02.bsp'
+                           '$KERNELS/spk/earthstns_itrf93_050714.bsp'
+			   '$KERNELS/spk/estrack_v03.bsp'
 
                          )
 
@@ -111,7 +112,7 @@ SPICE Kernel Dataset Version
 
    \begindata
 
-      SKD_VERSION = 'v104_20200302_002'
+      SKD_VERSION = 'v105_20200318_001'
 
    \begintext
 

@@ -1,6 +1,6 @@
 KPL/MK
 
-Meta-kernel for Solar Orbiter Dataset v104 -- As Flown 20200302_006
+Meta-kernel for Solar Orbiter Dataset v105 -- As Flown 20200402_001
 ==========================================================================
 
    This meta-kernel lists the Solar_Orbiter As Flown SPICE kernels
@@ -11,7 +11,7 @@ Meta-kernel for Solar Orbiter Dataset v104 -- As Flown 20200302_006
    the most complete coverage for the Solar_Orbiter As Flown scenario.
 
    This meta-kernel was generated with the Auxiliary Data Conversion
-   System version: ADCSng v1.0.3.
+   System version: ADCSng v1.0.4.
 
 
 Usage of the Meta-kernel
@@ -41,8 +41,8 @@ Implementation Notes
 
 -------------------
 
-   This file was created on March 2, 2020 by Marc Costa Sitja ESA/ESAC.
-   The original name of this file was solo_ANC_soc-flown-mk_V104_20200302_006.tm.
+   This file was created on April 2, 2020 by Marc Costa Sitja ESA/ESAC.
+   The original name of this file was solo_ANC_soc-flown-mk_V105_20200402_001.tm.
 
 
    \begindata
@@ -69,21 +69,52 @@ Implementation Notes
                            '$KERNELS/ck/solo_ANC_soc-spice-lw-ck_20180930-21000101_V02.bc'
                            '$KERNELS/ck/solo_ANC_soc-stix-ck_20180930-21000101_V02.bc'
                            '$KERNELS/ck/solo_ANC_soc-flown-att_20200210-20200214_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200212-20200214_V01.bc'
                            '$KERNELS/ck/solo_ANC_soc-flown-att_20200214-20200216_V01.bc'
                            '$KERNELS/ck/solo_ANC_soc-flown-att_20200218-20200221_V01.bc'
                            '$KERNELS/ck/solo_ANC_soc-flown-att_20200222-20200224_V01.bc'
-						   '$KERNELS/ck/solo_ANC_soc-flown-att_20200225-20200228_V01.bc'
-						   '$KERNELS/ck/solo_ANC_soc-flown-att_20200229-20200301_V01.bc'
-						   
-                           '$KERNELS/fk/solo_ANC_soc-sc-fk_V05.tf'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200225-20200228_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200228-20200301_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200229-20200301_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200229-20200302_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200302-20200303_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200303-20200304_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200304-20200305_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200305-20200306_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200306-20200307_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200307-20200308_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200308-20200309_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200309-20200310_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200310-20200311_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200311-20200312_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200312-20200313_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200313-20200314_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200314-20200315_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200315-20200316_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200316-20200317_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200317-20200318_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200318-20200319_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200319-20200320_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200320-20200321_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200321-20200322_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200322-20200323_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200323-20200326_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200324-20200324_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200325-20200325_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200326-20200330_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200330-20200331_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200331-20200401_V01.bc'
+                           '$KERNELS/ck/solo_ANC_soc-flown-att_20200401-20200402_V01.bc'
+
+                           '$KERNELS/fk/solo_ANC_soc-sc-fk_V06.tf'
                            '$KERNELS/fk/solo_ANC_soc-ops-fk_V02.tf'
                            '$KERNELS/fk/solo_ANC_soc-sci-fk_V06.tf'
                            '$KERNELS/fk/earth_topo_050714.tf'
-                           '$KERNELS/fk/estrack_v02.tf'
+                           '$KERNELS/fk/estrack_v03.tf'
 
                            '$KERNELS/ik/solo_ANC_soc-epd-ik_V02.ti'
                            '$KERNELS/ik/solo_ANC_soc-eui-ik_V01.ti'
-                           '$KERNELS/ik/solo_ANC_soc-metis-ik_V02.ti'
+                           '$KERNELS/ik/solo_ANC_soc-metis-ik_V03.ti'
                            '$KERNELS/ik/solo_ANC_soc-phi-ik_V01.ti'
                            '$KERNELS/ik/solo_ANC_soc-solohi-ik_V01.ti'
                            '$KERNELS/ik/solo_ANC_soc-spice-ik_V02.ti'
@@ -96,11 +127,11 @@ Implementation Notes
 
                            '$KERNELS/pck/earth_070425_370426_predict.bpc'
 
-                           '$KERNELS/sclk/solo_ANC_soc-sclk_20200301_V01.tsc'
+                           '$KERNELS/sclk/solo_ANC_soc-sclk_20200401_V01.tsc'
 
-                           '$KERNELS/spk/solo_ANC_soc-orbit_20200210-20301118_L002_V1_00014_V01.bsp'
+                           '$KERNELS/spk/solo_ANC_soc-orbit_20200210-20301118_L005_V1_00017_V01.bsp'
                            '$KERNELS/spk/de421.bsp'
-                           '$KERNELS/spk/estrack_v02.bsp'
+                           '$KERNELS/spk/estrack_v03.bsp'
 
                          )
 
@@ -116,7 +147,7 @@ SPICE Kernel Dataset Version
 
    \begindata
 
-      SKD_VERSION = 'v104_20200302_006'
+      SKD_VERSION = 'v105_20200402_001'
 
    \begintext
 
