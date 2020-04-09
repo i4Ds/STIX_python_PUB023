@@ -5,7 +5,7 @@ idb = {
         }
 spice={
         'tls_filename':'stix/data/SPICE/kernels/lsk/naif0012.tls',
-        'sclk_filename':'stix/data/SPICE/kernels/sclk/solo_ANC_soc-sclk_20200301_V01.tsc'
+        'sclk_filename':'stix/data/SPICE/kernels/sclk/solo_ANC_soc-sclk_20200401_V01.tsc'
         }
 deamon={
         #'raw_patterns':['/opt/stix/testdata/*ascii', '/home/xiaohl/data/*ascii'],
