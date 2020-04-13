@@ -15,7 +15,7 @@ from datetime import datetime
 sys.path.append(os.path.abspath('../../'))
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvas, NavigationToolbar2QT as NavigationToolbar)
-from stix_parser.core import stix_datatypes as sdt
+from stix.core import stix_datatypes as sdt
 SPID = 54114
 
 class ApplicationWindow(QtWidgets.QMainWindow):

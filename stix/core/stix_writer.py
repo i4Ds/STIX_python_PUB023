@@ -206,7 +206,7 @@ class StixMongoDBWriter(StixPacketWriter):
             'instrument':instrument,
             'idb_version': idb_version
         }
-        print(self.run_info)
+        #print(self.run_info)
 
         self.inserted_run_id = self.collection_raw_files.insert_one(
             self.run_info).inserted_id

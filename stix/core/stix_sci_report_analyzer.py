@@ -6,6 +6,27 @@ from . import stix_logger
 logger = stix_logger.get_logger()
 
 
+
+class StixScienceReportAnalyzer(object):
+    def __init__(self, db):
+        self.calibration_analyzer = StixCalibrationReportAnalyzer(
+            db['calibration_runs'])
+        self.qllc_analyzer = StixQLLightCurveAnalyzer(db['ql_lightcurves'])
+        self.qlbkg_analyzer = StixQLBackgroundAnalyzer(db['ql_background'])
+        self.bsdl0_analyzer = StixBSDL0Analyzer(db['bsd_l0'])
+        #self.qllc_analyzer = StixQLSpecificSpectrumAnalyzer(db['ql_spectra'])
+
+    def start(self, run_id, packet_id, packet):
+        self.calibration_analyzer.capture(run_id, packet_id, packet)
+        self.qllc_analyzer.capture(run_id, packet_id, packet)
+        self.qlbkg_analyzer.capture(run_id, packet_id, packet)
+        self.bsdl0_analyzer.capture(run_id, packet_id, packet)
+
+
+
+
+
+
 class StixCalibrationReportAnalyzer(object):
     """
       Capture calibration reports and fill calibration information into MongoDB 
@@ -44,7 +65,6 @@ class StixCalibrationReportAnalyzer(object):
         subspc_ids=packet.get('NIX00159/NIXD0157')[0]
         sbspec_spectra = packet.get('NIX00159/NIX00146/*.eng')[0]
         sbspec_formats=[(packet[i*4+15].raw, packet[i*4+16].raw, packet[i*4+17].raw) for i in range(0,8)]
-
         for i in range(0, len(detector_ids)):
             sbspec_id=subspc_ids[i]
             detector_id=detector_ids[i]
@@ -214,16 +234,125 @@ class StixQLLightCurveAnalyzer(object):
         self.db_collection.insert_one(report)
         self.current_report_id += 1
 
-
-class StixScienceReportAnalyzer(object):
+class StixBSDL0Analyzer(object):
     def __init__(self, db):
-        self.calibration_analyzer = StixCalibrationReportAnalyzer(
-            db['calibration_runs'])
-        self.qllc_analyzer = StixQLLightCurveAnalyzer(db['ql_lightcurves'])
-        self.qlbkg_analyzer = StixQLBackgroundAnalyzer(db['ql_background'])
-        #self.qllc_analyzer = StixQLSpecificSpectrumAnalyzer(db['ql_spectra'])
+        self.db=db
+        self.current_report_id=-1
+        try:
+            self.current_report_id = self.db.find().sort(
+                '_id', -1).limit(1)[0]['_id'] + 1
+        except IndexError:
+            self.current_report_id=0
 
-    def start(self, run_id, packet_id, packet):
-        self.calibration_analyzer.capture(run_id, packet_id, packet)
-        self.qllc_analyzer.capture(run_id, packet_id, packet)
-        self.qlbkg_analyzer.capture(run_id, packet_id, packet)
+        self.reset()
+    def reset(self):
+        self.time=[]
+        self.rcr=[]
+        self.dt=[]
+        self.pmask=[]
+        self.dmask=[]
+        self.triggers=[]
+        self.hits=[]
+        self.hits_time_int=np.zeros((33,12,32)) #total hits
+        self.hits_time_ene_int=np.zeros((33,12)) # energy integrated total hits
+        #self.T0=[]
+        self.accu_SKM=()
+        self.trig_SKM=()
+        self.packet_ids=[]
+        self.run_id=-1
+        self.request_id=-1
+        self.packet_unix=0
+
+    def insert_report(self):
+        report={
+                '_id':self.current_report_id,
+                'run_id':self.run_id,
+                'packet_ids':self.packet_ids,
+                'request_id':self.request_id,
+                'packet_unix':self.packet_unix,
+                'time':self.time,
+                'dt':self.dt,
+                #'T0':self.T0,
+                'rcr':self.rcr,
+                'pixel_mask':self.pmask,
+                'detector_mask':self.dmask,
+                'triggers':self.triggers,
+                'hits':self.hits, #data
+                'hits_time_int':self.hits_time_int.tolist(),
+                'hits_time_ene_int':self.hits_time_ene_int.tolist(),
+                'acc_skm':self.accu_SKM,
+                'level': 0,
+                'trig_skm':self.trig_SKM,
+                }
+        if(self.db):
+            self.db.insert_one(report)
+        
+    def capture(self, run_id, packet_id, pkt):
+        packet = sdt.Packet(pkt)
+        if not packet.isa(54114):
+            return
+
+        if packet['seg_flag'] in [1,3] :
+            self.reset()
+
+        self.request_id=packet[3].raw
+        self.run_id=run_id
+        self.packet_ids.append(packet_id)
+        self.packet_unix=packet['unix_time']
+        T0=packet[12].raw
+        num_structures=packet[13].raw
+        self.accu_SKM=(packet[5].raw, packet[6].raw, packet[7].raw) 
+        self.trig_SKM=(packet[9].raw, packet[10].raw, packet[11].raw) 
+
+
+
+        trig_idx = 1 
+        #uncompressed counts
+        if sum(self.trig_SKM)>0:
+            trig_idx=2
+
+        counts_idx= 1 #raw value
+        if sum(self.accu_SKM) >0:
+            counts_idx=2
+        children=packet[13].children
+
+
+        for i in range(0, num_structures):
+            offset=i*23
+            self.time.append(children[offset][1]*0.1+T0)
+            self.rcr.append(children[offset+1][1])
+            self.dt.append(children[offset+2][1]*0.1)
+            self.pmask.append(children[offset+4][1])
+            self.dmask.append(children[offset+5][1])
+            spectrum=np.zeros((32,12,32))
+            self.triggers.append( [children[k+6][trig_idx] for k in range(0,16)] )
+            #id 6-22, 16 trigger accumulators
+            num_samples=children[22][1]
+            samples=children[22][3]
+            for j in range(0,num_samples):
+                offset_2=j*5
+                pixel=samples[offset_2+1][1]
+                detector=samples[offset_2+2][1]
+                energy_bin=samples[offset_2+3][1]
+                num_bits=samples[offset_2+4][1]
+                continous_counts=samples[offset_2+4][3]
+                counts=1
+                if num_bits==1:
+                    counts=continous_counts[0][counts_idx]
+                if num_bits==2:
+                    counts=continous_counts[0][counts_idx]<<8
+                    counts+=continous_counts[1][counts_idx]
+                spectrum[detector][pixel][energy_bin]=counts
+                self.hits_time_int[detector][pixel][energy_bin]+=counts
+                self.hits_time_ene_int[detector][pixel]+=counts
+            self.hits.append(spectrum.tolist())
+            
+
+
+        if packet['seg_flag'] in [2,3] :
+            #the last or standalone 
+            self.insert_report()
+                    
+
+
+
