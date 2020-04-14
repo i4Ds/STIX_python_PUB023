@@ -23,27 +23,27 @@ class MongoDB(object):
         self.collection_packets = None
         self.collection_raw_files = None
         self.collection_calibration = None
-        self.collection_qllc=None
-        self.collection_qlbkg=None
+        self.collection_qllc = None
+        self.collection_qlbkg = None
         try:
             if server == 'localhost' and user == '' and pwd == '':
                 self.connect = pymongo.MongoClient(server, port)
             else:
-                self.connect = pymongo.MongoClient(
-                    server,
-                    port,
-                    username=user,
-                    password=pwd,
-                    authSource='stix')
+                self.connect = pymongo.MongoClient(server,
+                                                   port,
+                                                   username=user,
+                                                   password=pwd,
+                                                   authSource='stix')
             self.db = self.connect["stix"]
             self.collection_packets = self.db['packets']
             self.collection_raw_files = self.db['raw_files']
             self.collection_calibration = self.db['calibration_runs']
-            self.collection_qllc=self.db['ql_lightcurves']
-            self.collection_qlbkg=self.db['ql_background']
+            self.collection_qllc = self.db['ql_lightcurves']
+            self.collection_qlbkg = self.db['ql_background']
 
         except Exception as e:
-            print('Error occurred while initializing mongodb: {}'.format(str(e)))
+            print('Error occurred while initializing mongodb: {}'.format(
+                str(e)))
 
     def get_collection_calibration(self):
         return self.collection_calibration
@@ -68,11 +68,11 @@ class MongoDB(object):
         return ''
 
     def get_file_id(self, filename):
-        
+
         if not self.collection_raw_files:
-            return -1 
-        basename= os.path.basename(filename)
-        abspath=os.path.abspath(filename)
+            return -1
+        basename = os.path.basename(filename)
+        abspath = os.path.abspath(filename)
         path = os.path.dirname(abspath)
         cursor = self.collection_raw_files.find({'filename': basename})
         #,'path':path})
@@ -80,7 +80,6 @@ class MongoDB(object):
             return x['_id']
 
         return -2
-
 
     def select_packets_by_id(self, pid):
         if self.collection_packets:
@@ -101,13 +100,10 @@ class MongoDB(object):
             cursor = self.collection_calibration.delete_many(
                 {'run_id': int(run_id)})
         if self.collection_qllc:
-            cursor = self.collection_qllc.delete_many(
-                {'run_id': int(run_id)})
+            cursor = self.collection_qllc.delete_many({'run_id': int(run_id)})
 
         if self.collection_qlbkg:
-            cursor = self.collection_qlbkg.delete_many(
-                {'run_id': int(run_id)})
-
+            cursor = self.collection_qlbkg.delete_many({'run_id': int(run_id)})
 
     def delete_runs(self, runs):
         for run in runs:
@@ -125,11 +121,9 @@ class MongoDB(object):
         if self.connect:
             self.connect.close()
 
-
     def select_all_runs(self, order=-1):
         if self.collection_raw_files:
-            runs = self.collection_raw_files.find().sort(
-                '_id', order)
+            runs = self.collection_raw_files.find().sort('_id', order)
             return runs
         return None
 
@@ -145,35 +139,35 @@ class MongoDB(object):
             if 'quicklook_pdf' in run:
                 return run['quicklook_pdf']
         return None
-    def get_calibration_run_data(self,calibration_id):
+
+    def get_calibration_run_data(self, calibration_id):
         _id = int(calibration_id)
         rows = []
         if self.collection_calibration:
             rows = self.collection_calibration.find({'_id': _id})
         return rows
-    def update_calibration_analysis_report(self,calibration_id, data):
+
+    def update_calibration_analysis_report(self, calibration_id, data):
         #save calibration data analysis results to mongodb
         _id = int(calibration_id)
         if self.collection_calibration:
             doc = self.collection_calibration.find_one({'_id': _id})
-            doc['analysis_report']=data
+            doc['analysis_report'] = data
             self.collection_calibration.save(doc)
+
     def get_calibration_runs_for_processing(self):
-        #return unprocessed calibration run 
-        docs=[]
+        #return unprocessed calibration run
+        docs = []
         try:
             docs = list(self.collection_calibration.find())
         except Exception as e:
             pass
         if docs:
-            return  [ doc['_id'] for doc in docs if ('spectra' in doc) and 
-                    ('sbspec_formats' in doc) and 'analysis_report' not in doc]
+            return [
+                doc['_id'] for doc in docs if ('spectra' in doc) and (
+                    'sbspec_formats' in doc) and 'analysis_report' not in doc
+            ]
         return []
-
-
-
-
-
 
 
 #if __name__ == '__main__':

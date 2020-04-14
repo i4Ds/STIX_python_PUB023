@@ -42,7 +42,6 @@ class Parameter(object):
         self._eng = eng
         self._children = children
 
-
     def get_raw_int(self):
         try:
             return int(self._raw)
@@ -132,6 +131,7 @@ class Packet(object):
             self._header = copy_object(a, deep_copy)
             if isinstance(b, list):
                 self._parameters = copy_object(b, deep_copy)
+
     def get_raw_length(self):
         if not self._header:
             return 0
@@ -330,7 +330,7 @@ class Packet(object):
             result[name].append(value)
 
             if param['children']:
-               Packet.merge_parameters(result, param.children, value_type)
+                Packet.merge_parameters(result, param.children, value_type)
             #dosen't work
 
     def children_as_dict(self, parameter_names=None, children=None):

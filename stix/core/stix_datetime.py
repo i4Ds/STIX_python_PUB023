@@ -6,6 +6,7 @@ from . import config
 from datetime import datetime
 from dateutil import parser as dtparser
 
+
 class SpiceManager:
     """taken from https://issues.cosmos.esa.int/solarorbiterwiki/display/SOSP/Translate+from+OBT+to+UTC+and+back
     """
@@ -13,24 +14,23 @@ class SpiceManager:
     solar_orbiter_naif_id = -144
 
     __instance = None
+
     @staticmethod
     def get_instance():
         if not SpiceManager.__instance:
             SpiceManager()
         return SpiceManager.__instance
 
-
-
-    def __init__(self): 
+    def __init__(self):
         if SpiceManager.__instance:
             raise Exception('SpiceManager already initialized')
         else:
             SpiceManager.__instance = self
-        tls_filename=config.spice['tls_filename'] 
-        sclk_filename=config.spice['sclk_filename']
+        tls_filename = config.spice['tls_filename']
+        sclk_filename = config.spice['sclk_filename']
         spiceypy.furnsh(tls_filename)
         spiceypy.furnsh(sclk_filename)
- 
+
     def obt2utc(self, obt_string):
         # Obt to Ephemeris time (seconds past J2000)
         ephemeris_time = spiceypy.scs2e(self.solar_orbiter_naif_id, obt_string)
@@ -38,7 +38,7 @@ class SpiceManager:
         # Format of output epoch: ISOC (ISO Calendar format, UTC)
         # Digits of precision in fractional seconds: 3
         return spiceypy.et2utc(ephemeris_time, "ISOC", 3)
- 
+
     def utc2obt(self, utc_string):
         # Utc to Ephemeris time (seconds past J2000)
         ephemeris_time = spiceypy.utc2et(utc_string)
@@ -46,11 +46,12 @@ class SpiceManager:
         return ephemeris_time
         #return spiceypy.sce2s(self.solar_orbiter_naif_id,ephemeris_time)
 
-    def scet2utc(self,coarse, fine=0):
-        obt_string='{}:{}'.format(coarse,fine)
+    def scet2utc(self, coarse, fine=0):
+        obt_string = '{}:{}'.format(coarse, fine)
         return self.obt2utc(obt_string)
 
-spice_manager=SpiceManager.get_instance()
+
+spice_manager = SpiceManager.get_instance()
 
 
 def format_datetime(dt):
@@ -78,7 +79,7 @@ def get_now(dtype='unix'):
 
 def scet2utc(coarse, fine=0):
     try:
-        return spice_manager.scet2utc(coarse,fine)
+        return spice_manager.scet2utc(coarse, fine)
     except spiceypy.utils.support_types.SpiceyError:
         return ''
 
@@ -95,7 +96,7 @@ def utc2unix(utc):
             return dtparser.parse(utc).timestamp()
         except:
             return 0
-    elif isinstance(utc, int) or isinstance(utc,float):
+    elif isinstance(utc, int) or isinstance(utc, float):
         return utc
     else:
         return 0
@@ -135,24 +136,23 @@ def datetime2unix(timestamp):
 
 def scet2unix(coarse, fine=0):
     try:
-        utc=scet2utc(coarse,fine)
+        utc = scet2utc(coarse, fine)
         return utc2unix(utc)
     except spiceypy.utils.support_types.SpiceyError:
         return 0
 
 
-
 def unix2utc(ts):
     return datetime.utcfromtimestamp(ts).isoformat(timespec='milliseconds')
 
+
 def unix2scet(unix):
-    utc=unix2utc(int(unix))
+    utc = unix2utc(int(unix))
     return utc2scet(utc)
 
 
-
 def scet2datetime(coarse, fine=0):
-    unixtimestamp = scet2unix(coarse,fine)
+    unixtimestamp = scet2unix(coarse, fine)
     return datetime.utcfromtimestamp(unixtimestamp)
 
 
@@ -165,10 +165,10 @@ def utc2datetime(utc):
         utc += 'Z'
     return dtparser.parse(utc)
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     print("UTC at T0:")
     print(scet2utc(0))
     #print("Unix at T0:")
     #print(scet2unix(0))
     #print(scet2datetime(0))
-

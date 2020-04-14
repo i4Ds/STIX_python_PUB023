@@ -6,7 +6,6 @@ from . import stix_logger
 logger = stix_logger.get_logger()
 
 
-
 class StixScienceReportAnalyzer(object):
     def __init__(self, db):
         self.calibration_analyzer = StixCalibrationReportAnalyzer(
@@ -23,24 +22,19 @@ class StixScienceReportAnalyzer(object):
         self.bsdl0_analyzer.capture(run_id, packet_id, packet)
 
 
-
-
-
-
 class StixCalibrationReportAnalyzer(object):
     """
       Capture calibration reports and fill calibration information into MongoDB 
 
     """
-
     def __init__(self, collection):
         self.report = None
-        self.sbspec_counts = np.zeros((8,12*32), dtype=np.int32)
-        self.packet_index= np.zeros((8,12*32), dtype=np.int32)
+        self.sbspec_counts = np.zeros((8, 12 * 32), dtype=np.int32)
+        self.packet_index = np.zeros((8, 12 * 32), dtype=np.int32)
         self.db_collection = None
         self.current_calibration_run_id = 0
         self.db_collection = collection
-        self.spectra=[]
+        self.spectra = []
         #self.background_spectra=[[] for x in range(0,12*32)]
         try:
             self.current_calibration_run_id = self.db_collection.find().sort(
@@ -55,50 +49,55 @@ class StixCalibrationReportAnalyzer(object):
         if packet.SPID != 54124:
             return
 
-
-        detector_mask=packet[10]
-        pixel_mask=packet[12]
-
+        detector_mask = packet[10]
+        pixel_mask = packet[12]
 
         detector_ids = packet.get('NIX00159/NIXD0155')[0]
         pixel_ids = packet.get('NIX00159/NIXD0156')[0]
-        subspc_ids=packet.get('NIX00159/NIXD0157')[0]
+        subspc_ids = packet.get('NIX00159/NIXD0157')[0]
         sbspec_spectra = packet.get('NIX00159/NIX00146/*.eng')[0]
-        sbspec_formats=[(packet[i*4+15].raw, packet[i*4+16].raw, packet[i*4+17].raw) for i in range(0,8)]
+        sbspec_formats = [(packet[i * 4 + 15].raw, packet[i * 4 + 16].raw,
+                           packet[i * 4 + 17].raw) for i in range(0, 8)]
         for i in range(0, len(detector_ids)):
-            sbspec_id=subspc_ids[i]
-            detector_id=detector_ids[i]
-            pixel_id=pixel_ids[i]
-            sbspec_spectrum=sbspec_spectra[i]
+            sbspec_id = subspc_ids[i]
+            detector_id = detector_ids[i]
+            pixel_id = pixel_ids[i]
+            sbspec_spectrum = sbspec_spectra[i]
             try:
-                self.spectra.append((detector_id, pixel_id,sbspec_id,sbspec_formats[sbspec_id][2], 
-                    int(sbspec_formats[sbspec_id][1])+1 ,sbspec_spectrum))
+                self.spectra.append(
+                    (detector_id, pixel_id, sbspec_id,
+                     sbspec_formats[sbspec_id][2],
+                     int(sbspec_formats[sbspec_id][1]) + 1, sbspec_spectrum))
             except Exception as e:
-                logger.warning('Error occurred when formatting spectra: {}'.format(str(e)))
+                logger.warning(
+                    'Error occurred when formatting spectra: {}'.format(
+                        str(e)))
 
-            num_counts=0
+            num_counts = 0
             try:
-                num_counts=sum(sbspec_spectrum)
+                num_counts = sum(sbspec_spectrum)
             except TypeError:
-                logger.warning("Counts not decompressed. File id: {}, Packet id:{}".format(run_id, 
-                    packet_id))
-            self.sbspec_counts[sbspec_id][detector_id*12+pixel_id] = num_counts
-            self.packet_index[sbspec_id][detector_id*12+pixel_id]= packet_id
-
+                logger.warning(
+                    "Counts not decompressed. File id: {}, Packet id:{}".
+                    format(run_id, packet_id))
+            self.sbspec_counts[sbspec_id][detector_id * 12 +
+                                          pixel_id] = num_counts
+            self.packet_index[sbspec_id][detector_id * 12 +
+                                         pixel_id] = packet_id
 
         if packet['seg_flag'] in [1, 3]:
-            sbspec_mask=packet[13].raw
-            sbspec_status=[False for i in range(0,8)]
-            for i in range(0,8):
-                if sbspec_mask & (1<<i) !=0:
-                    sbspec_status[i]=True
+            sbspec_mask = packet[13].raw
+            sbspec_status = [False for i in range(0, 8)]
+            for i in range(0, 8):
+                if sbspec_mask & (1 << i) != 0:
+                    sbspec_status[i] = True
 
             self.report = {
                 'run_id': run_id,
                 'packet_ids': [packet_id],
-                'sbspec_formats':sbspec_formats,
-                'sbspec_status':sbspec_status,
-                'sbspec_mask':sbspec_mask,
+                'sbspec_formats': sbspec_formats,
+                'sbspec_status': sbspec_status,
+                'sbspec_mask': sbspec_mask,
                 'header_unix_time': packet['unix_time'],
                 '_id': self.current_calibration_run_id,
             }
@@ -112,9 +111,9 @@ class StixCalibrationReportAnalyzer(object):
         if packet['seg_flag'] in [2, 3]:
             if not self.report:
                 logger.warning(
-                        'A calibration run (last packet ID:{}) is'
-                        ' not recorded due to missing the first packet!'.format(packet_id)
-                )
+                    'A calibration run (last packet ID:{}) is'
+                    ' not recorded due to missing the first packet!'.format(
+                        packet_id))
                 return
 
             param_dict = packet.children_as_dict()
@@ -123,8 +122,9 @@ class StixCalibrationReportAnalyzer(object):
             self.report['SCET'] = scet
             self.report['start_unix_time'] = stix_datetime.scet2unix(scet)
             self.report['auxiliary'] = packet['parameters'][0:14]
-            #Don't copy repeaters 
-            self.report['sbspec_counts_sum']=np.sum(self.sbspec_counts,axis=1).tolist()
+            #Don't copy repeaters
+            self.report['sbspec_counts_sum'] = np.sum(self.sbspec_counts,
+                                                      axis=1).tolist()
             self.report['counts'] = self.sbspec_counts.tolist()
             self.report['spectra'] = self.spectra
             self.report['packet_index'] = self.packet_index.tolist()
@@ -135,9 +135,9 @@ class StixCalibrationReportAnalyzer(object):
             #reset report
             self.current_calibration_run_id += 1
             self.report = None
-            self.spectra=[]
-            self.counts= np.zeros((8,12*32), dtype=np.int32)
-            self.packet_index= np.zeros((8,12*32), dtype=np.int32)
+            self.spectra = []
+            self.counts = np.zeros((8, 12 * 32), dtype=np.int32)
+            self.packet_index = np.zeros((8, 12 * 32), dtype=np.int32)
 
 
 class StixQLBackgroundAnalyzer(object):
@@ -145,7 +145,6 @@ class StixQLBackgroundAnalyzer(object):
     capture quicklook reports and dump information into database
 
     """
-
     def __init__(self, collection):
         self.db_collection = collection
         self.report = None
@@ -165,8 +164,8 @@ class StixQLBackgroundAnalyzer(object):
         start_coarse_time = packet[1].raw
         start_fine_time = packet[2].raw
         integrations = packet[3].raw
-        start_unix_time = stix_datetime.scet2unix(start_coarse_time, 
-            start_fine_time)
+        start_unix_time = stix_datetime.scet2unix(start_coarse_time,
+                                                  start_fine_time)
 
         #self.analyzer.load(packet)
 
@@ -191,7 +190,6 @@ class StixQLLightCurveAnalyzer(object):
     capture quicklook reports and fill packet information into a MongoDB collection
 
     """
-
     def __init__(self, collection):
         self.db_collection = collection
         self.report = None
@@ -213,7 +211,8 @@ class StixQLLightCurveAnalyzer(object):
         integrations = packet[3].raw
         detector_mask = packet[4].raw
         pixel_mask = packet[6].raw
-        start_unix_time = stix_datetime.scet2unix(start_coarse_time , start_fine_time)
+        start_unix_time = stix_datetime.scet2unix(start_coarse_time,
+                                                  start_fine_time)
 
         #self.analyzer.load(packet)
 
@@ -234,125 +233,233 @@ class StixQLLightCurveAnalyzer(object):
         self.db_collection.insert_one(report)
         self.current_report_id += 1
 
+
 class StixBSDL0Analyzer(object):
     def __init__(self, db):
-        self.db=db
-        self.current_report_id=-1
+        self.db = db
+        self.current_report_id = -1
         try:
             self.current_report_id = self.db.find().sort(
                 '_id', -1).limit(1)[0]['_id'] + 1
         except IndexError:
-            self.current_report_id=0
+            self.current_report_id = 0
 
         self.reset()
+
     def reset(self):
-        self.time=[]
-        self.rcr=[]
-        self.dt=[]
-        self.pmask=[]
-        self.dmask=[]
-        self.triggers=[]
-        self.hits=[]
-        self.hits_time_int=np.zeros((33,12,32)) #total hits
-        self.hits_time_ene_int=np.zeros((33,12)) # energy integrated total hits
+        self.time = []
+        self.rcr = []
+        self.dt = []
+        self.pixel_mask = []
+        self.detector_mask = []
+        self.triggers = []
+        self.hits = []
+        self.hits_time_int = np.zeros((33, 12, 32))  #total hits
+        self.hits_time_ene_int = np.zeros(
+            (33, 12))  # energy integrated total hits
         #self.T0=[]
-        self.accu_SKM=()
-        self.trig_SKM=()
-        self.packet_ids=[]
-        self.run_id=-1
-        self.request_id=-1
-        self.packet_unix=0
+        self.eacc_SKM = ()
+        self.trig_SKM = ()
+        self.packet_ids = []
+        self.run_id = -1
+        self.request_id = -1
+        self.packet_unix = 0
 
     def insert_report(self):
-        report={
-                '_id':self.current_report_id,
-                'run_id':self.run_id,
-                'packet_ids':self.packet_ids,
-                'request_id':self.request_id,
-                'packet_unix':self.packet_unix,
-                'time':self.time,
-                'dt':self.dt,
-                #'T0':self.T0,
-                'rcr':self.rcr,
-                'pixel_mask':self.pmask,
-                'detector_mask':self.dmask,
-                'triggers':self.triggers,
-                'hits':self.hits, #data
-                'hits_time_int':self.hits_time_int.tolist(),
-                'hits_time_ene_int':self.hits_time_ene_int.tolist(),
-                'acc_skm':self.accu_SKM,
-                'level': 0,
-                'trig_skm':self.trig_SKM,
-                }
-        if(self.db):
+        report = {
+            '_id': self.current_report_id,
+            'run_id': self.run_id,
+            'packet_ids': self.packet_ids,
+            'request_id': self.request_id,
+            'packet_unix': self.packet_unix,
+            'time': self.time,
+            'dt': self.dt,
+            'rcr': self.rcr,
+            'pixel_mask': self.pixel_mask,
+            'detector_mask': self.detector_mask,
+            'triggers': self.triggers,
+            'hits': self.hits,  #data
+            'hits_time_int': self.hits_time_int.tolist(),
+            'hits_time_ene_int': self.hits_time_ene_int.tolist(),
+            'eacc_SKM': self.eacc_SKM,
+            'bsd_level': 0,
+            'trig_SKM': self.trig_SKM,
+        }
+        if (self.db):
             self.db.insert_one(report)
-        
+
     def capture(self, run_id, packet_id, pkt):
         packet = sdt.Packet(pkt)
         if not packet.isa(54114):
             return
 
-        if packet['seg_flag'] in [1,3] :
+        if packet['seg_flag'] in [1, 3]:
             self.reset()
 
-        self.request_id=packet[3].raw
-        self.run_id=run_id
+        self.request_id = packet[3].raw
+        self.run_id = run_id
         self.packet_ids.append(packet_id)
-        self.packet_unix=packet['unix_time']
-        T0=packet[12].raw
-        num_structures=packet[13].raw
-        self.accu_SKM=(packet[5].raw, packet[6].raw, packet[7].raw) 
-        self.trig_SKM=(packet[9].raw, packet[10].raw, packet[11].raw) 
+        self.packet_unix = packet['unix_time']
+        T0 = packet[12].raw
+        num_structures = packet[13].raw
+        self.eacc_SKM = (packet[5].raw, packet[6].raw, packet[7].raw)
+        self.trig_SKM = (packet[9].raw, packet[10].raw, packet[11].raw)
 
-
-
-        trig_idx = 1 
+        trig_idx = 1
         #uncompressed counts
-        if sum(self.trig_SKM)>0:
-            trig_idx=2
+        if sum(self.trig_SKM) > 0:
+            trig_idx = 2
 
-        counts_idx= 1 #raw value
-        if sum(self.accu_SKM) >0:
-            counts_idx=2
-        children=packet[13].children
-
+        counts_idx = 1  #raw value
+        if sum(self.eacc_SKM) > 0:
+            counts_idx = 2
+        children = packet[13].children
 
         for i in range(0, num_structures):
-            offset=i*23
-            self.time.append(children[offset][1]*0.1+T0)
-            self.rcr.append(children[offset+1][1])
-            self.dt.append(children[offset+2][1]*0.1)
-            self.pmask.append(children[offset+4][1])
-            self.dmask.append(children[offset+5][1])
-            spectrum=np.zeros((32,12,32))
-            self.triggers.append( [children[k+6][trig_idx] for k in range(0,16)] )
+            offset = i * 23
+            self.time.append(children[offset][1] * 0.1 + T0)
+            self.rcr.append(children[offset + 1][1])
+            self.dt.append(children[offset + 2][1] * 0.1)
+            self.pixel_mask.append(children[offset + 4][1])
+            self.detector_mask.append(children[offset + 5][1])
+            spectrum = np.zeros((32, 12, 32))
+            self.triggers.append(
+                [children[k + 6][trig_idx] for k in range(0, 16)])
             #id 6-22, 16 trigger accumulators
-            num_samples=children[22][1]
-            samples=children[22][3]
-            for j in range(0,num_samples):
-                offset_2=j*5
-                pixel=samples[offset_2+1][1]
-                detector=samples[offset_2+2][1]
-                energy_bin=samples[offset_2+3][1]
-                num_bits=samples[offset_2+4][1]
-                continous_counts=samples[offset_2+4][3]
-                counts=1
-                if num_bits==1:
-                    counts=continous_counts[0][counts_idx]
-                if num_bits==2:
-                    counts=continous_counts[0][counts_idx]<<8
-                    counts+=continous_counts[1][counts_idx]
-                spectrum[detector][pixel][energy_bin]=counts
-                self.hits_time_int[detector][pixel][energy_bin]+=counts
-                self.hits_time_ene_int[detector][pixel]+=counts
+            num_samples = children[22][1]
+            samples = children[22][3]
+            for j in range(0, num_samples):
+                k = j * 5
+                pixel = samples[k+ 1][1]
+                detector = samples[k+ 2][1]
+                energy_bin = samples[k+ 3][1]
+                num_bits = samples[k+ 4][1]
+                continous_counts = samples[k+ 4][3]
+                counts = 1
+                if num_bits == 1:
+                    counts = continous_counts[0][counts_idx]
+                if num_bits == 2:
+                    counts = continous_counts[0][counts_idx] << 8
+                    counts += continous_counts[1][counts_idx]
+                spectrum[detector][pixel][energy_bin] = counts
+                self.hits_time_int[detector][pixel][energy_bin] += counts
+                self.hits_time_ene_int[detector][pixel] += counts
             self.hits.append(spectrum.tolist())
-            
 
-
-        if packet['seg_flag'] in [2,3] :
-            #the last or standalone 
+        if packet['seg_flag'] in [2, 3]:
+            #the last or standalone
             self.insert_report()
-                    
 
 
+class StixBSDL1Analyzer(object):
+    def __init__(self, db):
+        self.db = db
+        self.current_report_id = -1
+        try:
+            self.current_report_id = self.db.find().sort(
+                '_id', -1).limit(1)[0]['_id'] + 1
+        except IndexError:
+            self.current_report_id = 0
 
+        self.reset()
+
+    def reset(self):
+        self.time = []
+        self.rcr = []
+        self.dt = []
+        self.pixel_mask = []
+        self.detector_mask = []
+        self.triggers = []
+        self.hits = []
+        self.hits_time_int = np.zeros((33, 12, 32))  #total hits
+        self.hits_time_ene_int = np.zeros(
+            (33, 12))  # energy integrated total hits
+        #self.T0=[]
+        self.eacc_SKM = ()
+        self.trig_SKM = ()
+        self.packet_ids = []
+        self.run_id = -1
+        self.request_id = -1
+        self.packet_unix = 0
+        self.groups=[]
+
+    def insert_report(self):
+        report = {
+            '_id': self.current_report_id,
+            'run_id': self.run_id,
+            'packet_ids': self.packet_ids,
+            'request_id': self.request_id,
+            'packet_unix': self.packet_unix,
+            #'time': self.time,
+            #'rcr': self.rcr,
+            #'pixel_mask': self.pixel_mask,
+            #'detector_mask': self.detector_mask,
+            #'triggers': self.triggers,
+            'eacc_SKM': self.eacc_SKM,
+            'bsd_level': 1,
+            'trig_SKM': self.trig_SKM,
+            'groups':self.groups
+        }
+        if (self.db):
+            self.db.insert_one(report)
+
+    def capture(self, run_id, packet_id, pkt):
+        packet = sdt.Packet(pkt)
+        if not packet.isa(54115):
+            return
+
+        if packet['seg_flag'] in [1, 3]:
+            self.reset()
+
+        self.request_id = packet[3].raw
+        self.run_id = run_id
+        self.packet_ids.append(packet_id)
+        self.packet_unix = packet['unix_time']
+        T0 = packet[12].raw
+        num_structures = packet[13].raw
+        self.eacc_SKM = (packet[5].raw, packet[6].raw, packet[7].raw)
+        self.trig_SKM = (packet[9].raw, packet[10].raw, packet[11].raw)
+
+        trig_idx = 1
+        #uncompressed counts
+        if sum(self.trig_SKM) > 0:
+            trig_idx = 2
+
+        counts_idx = 1  #raw value
+        if sum(self.eacc_SKM) > 0:
+            counts_idx = 2
+        children = packet[13].children
+        group={}
+
+        for i in range(0, num_structures):
+            offset = i * 23
+            time=children[offset][1] * 0.1 + T0
+            rcr=children[offset + 1][1]
+            pixel_mask=[e[1] for e in children[offset + 2].children]
+            detector_mask=children[offset + 5][1]
+            triggers=[children[k + 6][trig_idx] for k in range(0, 16)]
+            #id 6-22, 16 trigger accumulators
+            num_samples = children[21][1]
+            samples = children[21][3]
+            energies=[]
+            for j in range(0, num_samples):
+                k= j * 3
+                E1_low = samples[k+ 1][1]
+                E2_high = samples[k+ 2][1]
+                pixel_counts = [ e[counts_idx] for e in  samples[k+ 3][3] ]
+                #extract raw or eng. value of NIX00259's children
+                energies.append([E1_low,E2_high, pixel_counts)
+            group={
+                'time':time,
+                'rcr':rcr,
+                'pixel_mask':pixel_mask,
+                'detector_mask':detector_mask,
+                'triggers':triggers,
+                'energies':energies
+                }
+
+            self.groups.append(group)
+
+        if packet['seg_flag'] in [2, 3]:
+            #the last or standalone
+            self.insert_report()

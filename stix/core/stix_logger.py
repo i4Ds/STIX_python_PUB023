@@ -16,6 +16,7 @@ CRITICAL = 6
 
 class StixLogger(object):
     __instance = None
+
     @staticmethod
     def get_instance(filename=None, level=4):
         if not StixLogger.__instance:
@@ -88,7 +89,7 @@ class StixLogger(object):
         elif self.logfile:
             #if level == PROGRESS:
             #    msg = '{}% processed.'.format(msg)
-            self.logfile.write('{}\n'.format(msg) )
+            self.logfile.write('{}\n'.format(msg))
         else:
             print(msg)
 

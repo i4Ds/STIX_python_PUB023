@@ -7,6 +7,9 @@ from . import stix_logger
 
 logger = stix_logger.get_logger()
 
+MAX_STORED_INTEGER = 1e8
+#numbers greater than this value will be converted to float type
+
 SKM_GROUPS = {
     'EACC': ("NIXD0007", "NIXD0008", "NIXD0009"),
     'ETRIG': ("NIXD0010", "NIXD0011", "NIXD0012"),
@@ -20,7 +23,7 @@ SKM_GROUPS = {
 }
 COMPRESSED_PACKET_SPIDS = [
     54112, 54113, 54114, 54115, 54116, 54117, 54118, 54119, 54120, 54121,
-    54123, 54124,  54142, 54143, 54110, 54111
+    54123, 54124, 54142, 54143, 54110, 54111
 ]
 SCHEMAS = {
     54120: {
@@ -296,7 +299,7 @@ def decompress(x, S, K, M):
         return None
 
     sign = 1
-    if S == 1:  #signed 
+    if S == 1:  #signed
         MSB = x & (1 << 7)
         if MSB != 0:
             sign = -1
@@ -309,13 +312,13 @@ def decompress(x, S, K, M):
     mask2 = (1 << M)
     mantissa1 = x & mask1
     exponent = (x >> M) - 1
-    # number of shifted bits 
+    # number of shifted bits
     mantissa2 = mask2 | mantissa1  #add 1 before mantissa
     low = mantissa2 << exponent  #minimal possible value
     high = low | ((1 << exponent) - 1)  #maximal possible value
     mean = (low + high) >> 1  #mean value
 
-    if mean > 1e8:
+    if mean > MAX_STORED_INTEGER:
         return float(mean)
 
     return sign * mean

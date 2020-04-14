@@ -195,14 +195,14 @@ class _IDB(object):
                 return res
             return ''
 
-    def get_parameter_unit(self,name):
+    def get_parameter_unit(self, name):
         if not self.parameter_units:
-            results = self.execute('select PCF_NAME, PCF_UNIT from PCF where PCF_UNIT!=""')
-            self.parameter_units={ row[0]:row[1] for row in results }
+            results = self.execute(
+                'select PCF_NAME, PCF_UNIT from PCF where PCF_UNIT!=""')
+            self.parameter_units = {row[0]: row[1] for row in results}
         if name in self.parameter_units:
             return self.parameter_units[name]
         return ''
-
 
     def get_packet_type_info(self, packet_type, packet_subtype, pi1_val=-1):
         """

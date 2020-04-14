@@ -38,9 +38,9 @@ class StixPacketWriter(object):
 
     def close(self):
         pass
+
     def is_processed(self, filename):
         return False
-
 
 
 class StixPickleWriter(StixPacketWriter):
@@ -56,8 +56,11 @@ class StixPickleWriter(StixPacketWriter):
         else:
             self.fout = open(filename, 'wb')
 
-    def register_run(self, in_filename, filesize=0, comment='',
-                     idb_version='' ):
+    def register_run(self,
+                     in_filename,
+                     filesize=0,
+                     comment='',
+                     idb_version=''):
         self.run = {
             'Input': in_filename,
             'Output': self.filename,
@@ -93,7 +96,10 @@ class StixBinaryWriter(StixPacketWriter):
         except IOError:
             logger.error('IO error. Can not create file:{}'.format(filename))
 
-    def register_run(self, in_filename, filesize=0, comment='',
+    def register_run(self,
+                     in_filename,
+                     filesize=0,
+                     comment='',
                      idb_version=''):
         pass
         #not write them to binary file
@@ -121,7 +127,6 @@ class StixBinaryWriter(StixPacketWriter):
 
 class StixMongoDBWriter(StixPacketWriter):
     """write data to   MongoDB"""
-
     def __init__(self,
                  server=config.mongodb['host'],
                  port=config.mongodb['port'],
@@ -145,8 +150,10 @@ class StixMongoDBWriter(StixPacketWriter):
         self.end = -1
         self.run_info = None
         try:
-            self.connect = pymongo.MongoClient(
-                server, port, username=username, password=password)
+            self.connect = pymongo.MongoClient(server,
+                                               port,
+                                               username=username,
+                                               password=password)
             self.db = self.connect["stix"]
             self.collection_packets = self.db['packets']
             self.collection_raw_files = self.db['raw_files']
@@ -157,10 +164,13 @@ class StixMongoDBWriter(StixPacketWriter):
 
     def is_processed(self, in_filename):
         filename = os.path.basename(in_filename)
-        abspath=os.path.abspath(in_filename)
+        abspath = os.path.abspath(in_filename)
         path = os.path.dirname(abspath)
         try:
-            run = self.collection_raw_files.find_one({'path': path,'filename':filename})
+            run = self.collection_raw_files.find_one({
+                'path': path,
+                'filename': filename
+            })
             for x in run:
                 return True
         except Exception as e:
@@ -168,9 +178,12 @@ class StixMongoDBWriter(StixPacketWriter):
 
         return False
 
-
-    def register_run(self, in_filename, filesize=0, comment='',
-                     idb_version='', instrument=''):
+    def register_run(self,
+                     in_filename,
+                     filesize=0,
+                     comment='',
+                     idb_version='',
+                     instrument=''):
         try:
             self.current_run_id = self.collection_raw_files.find().sort(
                 '_id', -1).limit(1)[0]['_id'] + 1
@@ -186,7 +199,7 @@ class StixMongoDBWriter(StixPacketWriter):
 
         log_filename = logger.get_log_filename()
         self.filename = os.path.basename(in_filename)
-        abspath=os.path.abspath(in_filename)
+        abspath = os.path.abspath(in_filename)
         self.path = os.path.dirname(abspath)
 
         self.run_info = {
@@ -203,7 +216,7 @@ class StixMongoDBWriter(StixPacketWriter):
             'status': stix_global.UNKNOWN,
             'summary': '',
             'filesize': filesize,
-            'instrument':instrument,
+            'instrument': instrument,
             'idb_version': idb_version
         }
         #print(self.run_info)
@@ -213,7 +226,7 @@ class StixMongoDBWriter(StixPacketWriter):
 
     def set_filename(self, fname):
         self.filename = os.path.basename(fname)
-        abspath=os.path.abspath(fname)
+        abspath = os.path.abspath(fname)
         self.path = os.path.dirname(abspath)
 
     def set_summary(self, summary):

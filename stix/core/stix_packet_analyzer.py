@@ -4,7 +4,6 @@
 from . import stix_parameter as stp
 
 
-
 class StixPacketAnalyzer(object):
     def __init__(self):
         self._parameters = []
@@ -64,39 +63,42 @@ class StixPacketAnalyzer(object):
         except KeyError:
             print('Unknown packet type')
 
-
-    def to_dict(self, parameter_names=None, parameters=None,  dtype='raw', traverse_children=False):
+    def to_dict(self,
+                parameter_names=None,
+                parameters=None,
+                dtype='raw',
+                traverse_children=False):
         if not parameters:
             parameters = self._parameters
-        param_dict={}
+        param_dict = {}
         for e in parameters:
             param = stp.StixParameter()
             param.clone(e)
             if 'NIXG' in param.name:
                 continue
-            value=param.get_raw_int()
+            value = param.get_raw_int()
 
             if parameter_names:
                 if param.name not in parameter_names:
                     continue
 
-            if dtype=='eng':
-                value=param.eng
+            if dtype == 'eng':
+                value = param.eng
 
             if param.name in param_dict:
                 param_dict[param.name].append(value)
             else:
-                param_dict[param.name]=[value]
+                param_dict[param.name] = [value]
 
             if param.children and traverse_children:
-                children_results=self.to_dict(parameter_names, param.children,dtype,traverse_children)
+                children_results = self.to_dict(parameter_names,
+                                                param.children, dtype,
+                                                traverse_children)
                 for k, v in children_results:
                     if v:
                         param_dict[k].extend(v)
-                
-        return param_dict
-                
 
+        return param_dict
 
     def find(self, name_list, parameters=None, traverse_children=True):
         if not isinstance(name_list, list):
@@ -117,9 +119,13 @@ class StixPacketAnalyzer(object):
                     if v:
                         results[k].extend(v)
         return results
-  
 
-    def to_array(self, pattern, parameters=None, eng_param='', traverse_children=True, once=False):
+    def to_array(self,
+                 pattern,
+                 parameters=None,
+                 eng_param='',
+                 traverse_children=True,
+                 once=False):
         """
           pattern examples:
               pattern='NIX00159/NIX00146'
@@ -134,7 +140,7 @@ class StixPacketAnalyzer(object):
         if not pnames:
             return []
         if not parameters:
-            parameters= self._parameters
+            parameters = self._parameters
         try:
             pname = pnames.pop(0)
         except IndexError:
@@ -145,11 +151,11 @@ class StixPacketAnalyzer(object):
             if param.name == pname or pname == '*':
                 if pnames and traverse_children:
                     ret = self.to_array('/'.join(pnames), param.children,
-                                        eng_param,traverse_children,once)
+                                        eng_param, traverse_children, once)
                     if ret:
                         results.append(ret)
                 else:
-                    if eng_param==pname:
+                    if eng_param == pname:
                         if param.eng:
                             results.append(param.eng)
                         else:
@@ -160,5 +166,7 @@ class StixPacketAnalyzer(object):
                         #only capture once
                         break
         return results
+
+
 def analyzer():
     return StixPacketAnalyzer()
