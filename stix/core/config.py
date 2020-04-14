@@ -11,11 +11,11 @@ spice = {
 }
 deamon = {
     'data_source': {
-        'GU': ['/opt/stix/testdata/*ascii'],
+        'GU': ['/opt/stix/testdata/*ascii'], 
         'PFM': [
             '/opt/stix/gfts/solmoc/from_moc/*Raw*xml',
-            '/opt/stix/gfts/solmoc/from_moc/*ascii'
-        ]
+            '/opt/stix/gfts/solmoc/from_moc/*ascii',
+         '/home/xiaohl/FHNW/STIX/NECP/PFM_data/*.xml'],
     },
     'log_path': '/opt/stix/log/'
 }

@@ -350,6 +350,7 @@ class StixBSDL0Analyzer(object):
             #the last or standalone
             self.insert_report()
 
+'''
 
 class StixBSDL1Analyzer(object):
     def __init__(self, db):
@@ -463,3 +464,4 @@ class StixBSDL1Analyzer(object):
         if packet['seg_flag'] in [2, 3]:
             #the last or standalone
             self.insert_report()
+            '''

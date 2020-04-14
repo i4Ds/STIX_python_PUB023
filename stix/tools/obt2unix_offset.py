@@ -9,6 +9,7 @@ span = 15 * 365 * 84000
 offset = 0
 last_offset = 0
 i = start
+#this script is wrong
 while i < span + start:
     obt = stix_datetime.unix2scet(i)
     offset = i - obt

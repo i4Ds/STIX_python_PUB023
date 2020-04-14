@@ -2,9 +2,12 @@
 
 import spiceypy
 from . import config
+from . import stix_logger
+import re
 
 from datetime import datetime
 from dateutil import parser as dtparser
+logger = stix_logger.get_logger()
 
 
 class SpiceManager:
@@ -43,8 +46,15 @@ class SpiceManager:
         # Utc to Ephemeris time (seconds past J2000)
         ephemeris_time = spiceypy.utc2et(utc_string)
         # Ephemeris time to Obt
-        return ephemeris_time
-        #return spiceypy.sce2s(self.solar_orbiter_naif_id,ephemeris_time)
+        #return ephemeris_time
+        obt_string=spiceypy.sce2s(self.solar_orbiter_naif_id,ephemeris_time)
+        time_fields =re.search('\/(.*?):(\d*)',obt_string)
+        group=time_fields.groups()
+        try:
+            return int(group[0]) + int(group[1])/65536.
+        except Exception as e:
+            logger.warning(str(e))
+            return 0
 
     def scet2utc(self, coarse, fine=0):
         obt_string = '{}:{}'.format(coarse, fine)
