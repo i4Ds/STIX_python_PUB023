@@ -25,18 +25,19 @@ from stix.core import mongo_db  as db
 from ROOT import TGraph, TFile, TCanvas, TH1F, gROOT, TBrowser, gSystem, TH2F, gPad, TF1, TGraphErrors, gStyle, TSpectrum, gRandom, TPaveLabel
 
 
-BA133_SPECTRUM=[41,46,68,74,78,79,74,67,81,83,68,78,72,55,59,62,47,44,63,58,53,59,49,49,53,50,52,53,50,50,47,41,45,45,50,46,40,42,41,33,36,45,34,27,35,36,40,30,35,27,27,50,53,48,43,61,84,251,2399,114172,78265,38,31,29,32,42,97,33987,157,6764,39,27,28,29,33,20,27,36,21,33,25,23,33,34,45,34,30,41,34,37,24,26,34,40,27,40,59,68,73,98,175,343,1106,2410,33,25,27,23,23,30,21,16,19,19,23,24,19,27,65,835,25,27,33,16,24,28,39,628,82,113,25,20,19,23,20,45,32,65,73,71,491,732,731,815,910,941,1041,1211,1361,1569,1761,2067,2625,3328,5113,5027,9227,17082,25,35,27,30,55,54,23,20,14,24,19,19,29,22,17,18,21,15,25,20,19,19,18,23,17,26,14,14,11,20,12,22,18,18,16,17,11,18,14,22,21,21]
+
 
 FIT_MIN_X=260
 FIT_MAX_X=550
 FIT_LEFT_DELTA_X=15
-FIT_RIGHT_DELTA_X=30
-MAX_ALLOWED_SIGMA_ERROR = 5  #maximum allowed peak error
+FIT_RIGHT_DELTA_X=50
+MAX_ALLOWED_SIGMA_ERROR = 20  #maximum allowed peak error
+
 
 
 DEFAULT_OUTPUT_DIR='/data/'
 mdb = db.MongoDB()
-MIN_COUNTS_PEAK_FIND=100
+MIN_COUNTS_PEAK_FIND=50
 ELUT_ENERGIES=[
 4, 5, 6, 7,
 8, 9, 10,11,
@@ -46,12 +47,19 @@ ELUT_ENERGIES=[
 40, 45, 50,56,
 63, 70, 76, 84,
 100,120, 150]
+
+gROOT.SetBatch(True)
+
+
 def compute_elut(baseline, slope):
     elut=[]
     for det in range(0,32):
         for pix in range(0,12):
             p0=baseline[det][pix]
             p1=slope[det][pix]
+            #print(det, pix, p0, p1)
+
+
             if p0>0 and p1>0:
                 row=[det,pix]
                 Elows=[int(4*(p0+p1*x)) for x in ELUT_ENERGIES]
@@ -70,7 +78,7 @@ def find_peaks2(detector, pixel, subspec, start, num_summed, spec, fo, pdf):
     markov=True
     averg_window=3
 
-    print(threshold)
+    #print(threshold)
 
     y=array('d',subspec)
     des=array('d',[0]*nbins)
@@ -112,24 +120,23 @@ def graph2(x, y, title="", xlabel="x", ylabel="y"):
     g.GetXaxis().SetTitle(xlabel)
     g.GetYaxis().SetTitle(ylabel)
     g.SetTitle(title)
+    
     return g
-"""
-def graph(y):
-    n=len(y)
-    x = range(0,n)
-    g = TGraph(n, array('d', x), array('d', y))
-    return g
-
-
-def hist(x, y, title, xlabel, ylabel):
-    h2 = TH1F("h%d" % k, "%s; %s; %s" % (title, xlabel, ylabel), len(x), min(x), max(x))
-    for i, val in enumerate(y):
-        h2.SetBinContent(i + 1, val)
-    h2.GetXaxis().SetTitle(xlabel)
-    h2.GetYaxis().SetTitle(ylabel)
-    h2.SetTitle(title)
-    return h2
-    """
+#def graph(y):
+#    n=len(y)
+#    x = range(0,n)
+#    g = TGraph(n, array('d', x), array('d', y))
+#    return g
+#
+#
+#def hist(x, y, title, xlabel, ylabel):
+#    h2 = TH1F("h%d" % k, "%s; %s; %s" % (title, xlabel, ylabel), len(x), min(x), max(x))
+#    for i, val in enumerate(y):
+#        h2.SetBinContent(i + 1, val)
+#    h2.GetXaxis().SetTitle(xlabel)
+#    h2.GetYaxis().SetTitle(ylabel)
+#    h2.SetTitle(title)
+#    return h2
 
 def heatmap(arr, htitle, title, xlabel='detector', ylabel='pixel', zlabel='value'):
     h2=TH2F(title, '{};{};{};{}'.format(title,xlabel, ylabel, zlabel),  32, 0, 32, 12, 0, 12)
@@ -156,13 +163,15 @@ def add_test_background(spectrum):
 
 
 
-def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo, pdf):
+def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
+
     gStyle.SetOptFit(111)
     #add_test_background(spectrum)
 
     x0=[start+i*num_summed+0.5*num_summed for i in range(0,len(spectrum))]
     x, y_all=get_subspec(x0, spectrum, FIT_MIN_X, FIT_MAX_X)
     if not x:
+        print('Can not find sub spectrum of ERROR:', detector, pixel)
         return
 
     bkg, y=sub_bkg(y_all)
@@ -180,7 +189,7 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo, pdf):
     max_x2=0
     max_y2=0
     for ix, iy in zip(x,y):
-        if ix<max_x+FIT_RIGHT_DELTA_X:
+        if ix< max_x+FIT_RIGHT_DELTA_X:
             continue
         if iy>max_y2:
             max_x2=ix
@@ -207,7 +216,7 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo, pdf):
     par[0], par[1], par[2] = par1[0], par1[1], par1[2]
     par[3], par[4], par[5] = par2[0], par2[1], par2[2]
     total.SetParameters(par)
-    g.Fit( total, 'R+' )
+    g.Fit( total, 'RQ+' )
     param=total.GetParameters()
     param_errors=total.GetParErrors()
 
@@ -260,42 +269,20 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo, pdf):
         gpeaks=graph_errors(peak_x, peak_y, peak_ex,peak_ey,
                 title,
                 'Energy (keV)', 'Peak position (ADC)')
-        gpeaks.Fit('pol1')
+        gpeaks.Fit('pol1','Q')
         gpeaks.GetYaxis().SetRangeUser(0.9*peak_y[0], peak_y[-1]*1.1)
         gpeaks.Write('gpeaks_{}'.format(name))
         
         calibration_params=gpeaks.GetFunction('pol1').GetParameters()
         chisquare=gpeaks.GetFunction('pol1').GetChisquare()
         result['fcal']={'p0':calibration_params[0],'p1':calibration_params[1], 'chi2':chisquare}
-    if pdf:
-        c=TCanvas("c","c", 800, 800)
-        ctitle = TPaveLabel(0.1,0.96,0.9,0.99,title);
-        ctitle.Draw()
-        c.Divide(2,2)
-        c.cd(1)
-        gsig.Draw("ALP")
-        c.cd(2)
-        gsig.SetTitle("Original spectrum")
-        gbkg.SetTitle("Background")
-        gsig.SetLineColor(1)
-        gbkg.SetLineColor(2)
-        gbkg.SetMarkerColor(2)
-        gsig.Draw("ALP")
-        gbkg.Draw("LP+SAME")
-        gPad.BuildLegend()
-        c.cd(3)
-        g.Draw("ALP")
-        c.cd(4)
-        if gpeaks:
-            gpeaks.Draw()
-        c.Print(pdf)
+    
 
-    return result
+    return result, [gsig, g, gpeaks]
     
 
 
 def analyze(calibration_id, output_dir='./'):
-    gROOT.SetBatch(True)
     data=mdb.get_calibration_run_data(calibration_id)[0]
     if not data:
         print("Calibration run {} doesn't exist".format(calibration_id))
@@ -307,9 +294,9 @@ def analyze(calibration_id, output_dir='./'):
     fname_out=os.path.abspath(os.path.join(output_dir, 'calibration_{}'.format(calibration_id)))
 
     f=TFile("{}.root".format(fname_out),"recreate")
-    c=TCanvas()
-    pdf='{}.pdf'.format(fname_out)
-    c.Print(pdf+'[')
+
+
+    is_top=True
 
     slope = np.zeros((32,12))
     baseline = np.zeros((32,12))
@@ -317,12 +304,21 @@ def analyze(calibration_id, output_dir='./'):
     
     report={}
     report['fit_parameters']=[]
+    print('Processing calibration run {} ...'.format(calibration_id))
+
+    canvas=TCanvas("c","canvas", 1200, 500)
+    pdf='{}.pdf'.format(fname_out)
+    canvas.Print(pdf+'[')
+    canvas.Divide(3,2)
+    last_plots=None
 
     for spec in spectra:
         if sum(spec[5]) <MIN_COUNTS_PEAK_FIND:
             continue
         detector=spec[0]
         pixel=spec[1]
+
+
         sbspec_id=spec[2]
         start=spec[3]
         num_summed=spec[4]
@@ -331,14 +327,44 @@ def analyze(calibration_id, output_dir='./'):
 
 
         if start >FIT_MAX_X  or end<FIT_MIN_X:
-            #print('Ignored sub-spectra:',spec[3], start, end)
+            #break
             continue
-        par=find_peaks(detector, pixel, sbspec_id,  start, num_summed,  spectrum, f, pdf)
+
+        par,plots=find_peaks(detector, pixel, sbspec_id,  start, num_summed,  spectrum, f)
+
+
+
+        if last_plots:
+            canvas.cd(1)
+            last_plots[0].Draw("AL")
+            canvas.cd(2)
+            last_plots[1].Draw("AL")
+            canvas.cd(3)
+            last_plots[2].Draw("ALP")
+            canvas.cd(4)
+            plots[0].Draw("AL")
+            canvas.cd(5)
+            plots[1].Draw("AL")
+            canvas.cd(6)
+            plots[2].Draw("ALP")
+            canvas.Print(pdf)
+            last_plots=[]
+        else:
+            last_plots=plots
+
+
+    
+
+
         report['fit_parameters'].append(par)
         if par:
             if 'fcal' in par:
                 slope[detector][pixel]=par['fcal']['p1']
                 baseline[detector][pixel]=par['fcal']['p0']
+
+
+
+
 
 
     report['pdf']=pdf
@@ -348,24 +374,31 @@ def analyze(calibration_id, output_dir='./'):
 
     h2slope=heatmap(slope, 'Energy conversion factor', 'Conversion factor', 'Detector', 'Pixel', 'Energy conversion factor (ADC/keV)')
     h2baseline=heatmap(baseline,'baseline', 'baseline', 'Detector', 'Pixel', 'baseline (E=0)')
+
     c2=TCanvas()
     c2.Divide(2,1)
     c2.cd(1)
     h2baseline.Draw("colz")
     c2.cd(2)
+
     h2slope.Draw("colz")
     c2.Print(pdf)
-    c.Print(pdf+']')
+    canvas.Print(pdf+']')
+
+    h2slope.Write("h2slop")
+    h2baseline.Write("h2baseline")
+
+    print('done.\nFile {} generated'.format(pdf))
 
     f.Close()
-        #print(par)
+    #print(par)
 def daemon():
     while True:
         calibration_run_ids=mdb.get_calibration_runs_for_processing()
         print(calibration_run_ids)
         for run_id in calibration_run_ids:
             analyze(run_id, DEFAULT_OUTPUT_DIR)
-        time.sleep(60)
+        time.sleep(600)
         break
 
 
@@ -376,8 +409,7 @@ if __name__=='__main__':
     output_dir='./'
 
     if len(sys.argv)==1:
-        analyzer=Analyzer()
-        analyzer.daemon()
+        daemon()
     elif len(sys.argv)>=2:
         if len(sys.argv)>=3:
             output_dir=sys.argv[2]
