@@ -334,19 +334,27 @@ def analyze(calibration_id, output_dir='./'):
 
 
 
+
         if last_plots:
             canvas.cd(1)
-            last_plots[0].Draw("AL")
+        
+            if last_plots[0]:
+                last_plots[0].Draw("AL")
             canvas.cd(2)
-            last_plots[1].Draw("AL")
+            if last_plots[1]:
+                last_plots[1].Draw("AL")
             canvas.cd(3)
-            last_plots[2].Draw("ALP")
+            if last_plots[2]:
+                last_plots[2].Draw("ALP")
             canvas.cd(4)
-            plots[0].Draw("AL")
+            if plots[0]:
+                plots[0].Draw("AL")
             canvas.cd(5)
-            plots[1].Draw("AL")
+            if plots[1]:
+                plots[1].Draw("AL")
             canvas.cd(6)
-            plots[2].Draw("ALP")
+            if plots[2]:
+                plots[2].Draw("ALP")
             canvas.Print(pdf)
             last_plots=[]
         else:
