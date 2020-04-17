@@ -406,8 +406,8 @@ def daemon():
         print(calibration_run_ids)
         for run_id in calibration_run_ids:
             analyze(run_id, DEFAULT_OUTPUT_DIR)
+        print('waiting for new data...')
         time.sleep(600)
-        break
 
 
 

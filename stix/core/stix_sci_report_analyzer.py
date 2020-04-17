@@ -12,14 +12,14 @@ class StixScienceReportAnalyzer(object):
             db['calibration_runs'])
         self.qllc_analyzer = StixQLLightCurveAnalyzer(db['ql_lightcurves'])
         self.qlbkg_analyzer = StixQLBackgroundAnalyzer(db['ql_background'])
-        self.bsdl0_analyzer = StixBSDL0Analyzer(db['bsd_l0'])
+        #self.bsdl0_analyzer = StixBSDL0Analyzer(db['bsd_l0'])
         #self.qllc_analyzer = StixQLSpecificSpectrumAnalyzer(db['ql_spectra'])
 
     def start(self, run_id, packet_id, packet):
         self.calibration_analyzer.capture(run_id, packet_id, packet)
         self.qllc_analyzer.capture(run_id, packet_id, packet)
         self.qlbkg_analyzer.capture(run_id, packet_id, packet)
-        self.bsdl0_analyzer.capture(run_id, packet_id, packet)
+        #self.bsdl0_analyzer.capture(run_id, packet_id, packet)
 
 
 class StixCalibrationReportAnalyzer(object):
@@ -234,6 +234,7 @@ class StixQLLightCurveAnalyzer(object):
         self.current_report_id += 1
 
 
+'''
 class StixBSDL0Analyzer(object):
     def __init__(self, db):
         self.db = db
@@ -287,6 +288,7 @@ class StixBSDL0Analyzer(object):
         }
         if (self.db):
             self.db.insert_one(report)
+            self.current_report_id+=1
 
     def capture(self, run_id, packet_id, pkt):
         packet = sdt.Packet(pkt)
@@ -349,8 +351,6 @@ class StixBSDL0Analyzer(object):
         if packet['seg_flag'] in [2, 3]:
             #the last or standalone
             self.insert_report()
-
-'''
 
 class StixBSDL1Analyzer(object):
     def __init__(self, db):
@@ -464,4 +464,4 @@ class StixBSDL1Analyzer(object):
         if packet['seg_flag'] in [2, 3]:
             #the last or standalone
             self.insert_report()
-            '''
+'''

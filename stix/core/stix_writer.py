@@ -19,6 +19,8 @@ from . import stix_sci_report_analyzer as scia
 
 logger = stix_logger.get_logger()
 
+MAX_POSSIBLE_UNIX_TIME=2051222400 #2035-01-01
+
 
 class StixPacketWriter(object):
     def __init__(self):
@@ -237,10 +239,13 @@ class StixMongoDBWriter(StixPacketWriter):
             self.write_one(packets)
 
     def write_one(self, packet):
-
-        if self.ipacket == 0:
-            self.start_time = packet['header']['unix_time']
-        self.end_time = packet['header']['unix_time']
+        header_unix =  packet['header']['unix_time']
+        if self.start_time == 0:
+            if header_unix < MAX_POSSIBLE_UNIX_TIME:
+                self.start_time= header_unix
+        #exclude invalid timestamps 
+        if header_unix < MAX_POSSIBLE_UNIX_TIME:
+            self.end_time = header_unix
         #insert header
 
         packet['run_id'] = self.current_run_id

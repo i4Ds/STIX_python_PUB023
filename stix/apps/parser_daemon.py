@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8 -*-
-# @title        : parser_deamon.py
+# @title        : parser_daemon.py
 # @description  : STIX packet parser daemon. It detects new files in the given folder, 
 #                 parses them  and stores the decoded packets in the MongoDB
 # @author       : Hualin Xiao
