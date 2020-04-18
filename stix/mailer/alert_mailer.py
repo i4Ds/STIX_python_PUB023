@@ -1,8 +1,21 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+""" This script is used to send stix instrument alerts (e.g. TM(5,2)) to STIX team
+    parser daemon writes alerts to a file whose filename defined in core/config.py (default path is /opt/stix/log)
+    As pub023 is not able to send email, the log is rsync to gfts by /opt/stix/rsync-pub023.
+    This script thus runs on gfts server. The work flow is as below
+    1) parser_daemon write message to /opt/stix/log/stix_alerts.log on pub023
+    2) rsync running on gfts fetches the file and delete it from pub023 after rsync every 1 minute
+    3) mailer send message to STIX team
+    4) mailer delete the file on GFTS
+
+"""
 import sys
 import os
 import smtplib
 import socket
+import time
 import datetime
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
@@ -59,26 +72,29 @@ def send_email(subject, content,logging, conf):
 
 
 
-def main_loop():
-    while True:
+def main():
         alert_file=config['stix_alerts']
+        if not os.path.exists(alert_file):
+            print('no alert')
+            return
         with open(alert_file) as f:
             content=f.read()
             if content:
                 subject='STIX instrument critical message'
+                content+='\nMore info at: http://pub023.cs.technik.fhnw.ch/view/packet/request\n'
                 content+='*** This is an automatically generated email, please do not reply ***'
+                
                 if send_email(subject,content,logging,config):
                     f.close()
-                    f.open(alert_file,'w').close()
+                    os.remove(alert_file)
                 else:
                     loging.warning('Failed to send the notice to emails')
             else:
                 logging.info('No new alerts')
 
-        time.sleep(600)
 
 
 
 
 if __name__ == "__main__":
-    main_loop()
+    main()

@@ -20,17 +20,16 @@ logger = stix_logger.get_logger()
 S20_EXCLUDED=True
 
 def write_alerts(raw_filename, alert_headers):
-    print(alert_headers)
+    #print(alert_headers)
     if not alert_headers:
         logger.info('No instrument warning or error message.')
         return
-    with open(config.daemon['alert_log'],'w') as log:
-        log.write('STIX critical message  (File {})\n'.format(raw_filename))
+    with open(config.daemon['alert_log'],'a+') as log:
+        log.write('File: {}\n'.format(raw_filename))
         for header in alert_headers:
-            msg='At {}, TM({},{}) {}\n'.format(header['UTC'], header['service_type'],
+            msg='\tAt {}, TM({},{}) {}\n'.format(header['UTC'], header['service_type'],
                 header['service_subtype'],header['descr'] )
             log.write(msg)
-        log.write('More info at: http://pub023.cs.technik.fhnw.ch/view/packet/request\n')
         log.close()
 
 
