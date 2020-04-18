@@ -16,6 +16,7 @@ cmake ../source   -Dpython3=ON -DPYTHON_EXECUTABLE=/usr/bin/python3
 import os
 import sys
 sys.path.append('../../')
+sys.path.append('./')
 import numpy as np
 import time
 from array import array

@@ -67,7 +67,7 @@ def main_loop():
             if content:
                 subject='STIX instrument critical message'
                 content+='*** This is an automatically generated email, please do not reply ***'
-                if mailer.send_email(subject,content,logging,config):
+                if send_email(subject,content,logging,config):
                     f.close()
                     f.open(alert_file,'w').close()
                 else:
