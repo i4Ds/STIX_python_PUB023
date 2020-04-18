@@ -783,6 +783,11 @@ class StixTCTMParser(StixParameterParser):
         self.packet_writer = None
         self.S20_excluded = False
 
+        self.stix_alerts=[]
+    def get_stix_alerts(self):
+        #TM(5, 2..4)  and TM(1,2), TM(1,8)
+        return self.stix_alerts
+
     def kill(self):
         self.stop_parsing = True
 
@@ -1062,10 +1067,17 @@ class StixTCTMParser(StixParameterParser):
                             ' Packet (SPID {}) data field size: {}B, actual read: {}B'
                             .format(spid, data_field_length, num_read))
 
+
+                if (header['service_type']==5 and header['service_subtype'] >=1) or  (header['service_type']==1 and 
+                        header['service_subtype'] in [2,8]):
+                    self.stix_alerts.append(header)
+
                 packet = {'header': header, 'parameters': parameters}
                 self.num_tm_parsed += 1
                 if self.store_binary:
                     packet['bin'] = header_raw + data_field_raw
+
+
 
             elif buf[i] in stix_header.TC_HEADER_FIRST_BYTE:
 
@@ -1106,13 +1118,19 @@ class StixTCTMParser(StixParameterParser):
                     #S20 detailed structure  not defined in ICD
                     if self.S20_excluded:
                         continue
-
                     self.parse_service_20(parameters)
+
+                if header['service_type'] == 5 and header['service_subtype']>1:
+                    self.instrument_message.append(header)
+                    #used for instrument health tracking
+
 
                 packet = {'header': header, 'parameters': parameters}
                 self.num_tc_parsed += 1
                 if self.store_binary:
                     packet['bin'] = buf[i:i + 10] + data_field_raw
+
+            
 
             else:
                 old_i = i
