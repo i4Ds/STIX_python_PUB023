@@ -333,6 +333,17 @@ The generated *.c and the original *py files can be deleted for distribution.
 
 
 
+### 6. Run daemons
+ 1) Parser daemons
+  ```sh
+  nohup python3 stix/app/parser_daemon.py &
+  ```
+  It checks the directories defined in stix/core/config.py if there is a new data file every minute. If so, the file will be parsed and the decoded packets will be written to MongoDB
+  2) Calibration
+  ```sh
+  nohup python3 stix/analysis/calibration.py &
+  ```
+  It performs calibration analysis every 10 minutes for new calibration spectrum.
 
 
 
