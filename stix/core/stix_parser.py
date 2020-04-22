@@ -1068,7 +1068,7 @@ class StixTCTMParser(StixParameterParser):
                             .format(spid, data_field_length, num_read))
 
 
-                if (header['service_type']==5 and header['service_subtype'] >1) or  (header['service_type']==1 and 
+                if header['service_type']==5  or  (header['service_type']==1 and 
                         header['service_subtype'] in [2,8]):
                     self.stix_alerts.append(header)
 

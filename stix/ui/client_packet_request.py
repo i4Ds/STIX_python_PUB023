@@ -15,7 +15,7 @@ def update_console_progress(progress):
     print('\r[{0}] {1}%'.format(bar, progress), end="", flush=True)
 
 
-def request(query_str=':', host='localhost', port=9096, verbose_level=1):
+def request(query_str=':', host='localhost', port=9096,  verbose_level=1):
     """
        query_string can be 
          -  a python slice notation, for example, ':' '0:-1', 3:-1

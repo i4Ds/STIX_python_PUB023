@@ -81,8 +81,6 @@ def main():
             content=f.read()
             if content:
                 subject='STIX instrument critical message'
-                content+='\nMore info at: http://pub023.cs.technik.fhnw.ch/view/packet/request\n'
-                content+='*** This is an automatically generated email, please do not reply ***'
                 
                 if send_email(subject,content,logging,config):
                     f.close()
