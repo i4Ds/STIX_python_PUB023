@@ -30,14 +30,13 @@ from ROOT import TGraph, TFile, TCanvas, TH1F, gROOT, TBrowser, gSystem, TH2F, g
 
 FIT_MIN_X=260
 FIT_MAX_X=550
-FIT_LEFT_DELTA_X=15
-FIT_RIGHT_DELTA_X=50
 MAX_ALLOWED_SIGMA_ERROR = 20  #maximum allowed peak error
-
+ENERGY_CONVERSION_FACTOR=2.3 
+#2.3 ADC/keV
+#Estimated energy conversion factor
 
 
 DEFAULT_OUTPUT_DIR='/data/'
-mdb = db.MongoDB()
 MIN_COUNTS_PEAK_FIND=50
 ELUT_ENERGIES=[
 4, 5, 6, 7,
@@ -49,20 +48,22 @@ ELUT_ENERGIES=[
 63, 70, 76, 84,
 100,120, 150]
 
+
+mdb = db.MongoDB()
 gROOT.SetBatch(True)
 
 
-def compute_elut(baseline, slope):
+def compute_elut(offset, slope):
     elut=[]
     for det in range(0,32):
         for pix in range(0,12):
-            p0=baseline[det][pix]
+            p0=offset[det][pix]
             p1=slope[det][pix]
             #print(det, pix, p0, p1)
 
 
             if p0>0 and p1>0:
-                row=[det,pix]
+                row=[det,pix, p0, p1]
                 Elows=[int(4*(p0+p1*x)) for x in ELUT_ENERGIES]
                 row.extend(Elows)
                 elut.append(row)
@@ -91,7 +92,11 @@ def find_peaks2(detector, pixel, subspec, start, num_summed, spec, fo, pdf):
     for i in range(num_found):
         xpeaks.append(x_full[xp[i]])
 
+"""
 def sub_bkg(spec):
+    #subtract background using ROOT
+    #returns:
+    #   background spectrum, bkg subtracted spectrum
     bkg=array('d',spec)
     s=TSpectrum()
     nbins=len(spec)
@@ -104,6 +109,7 @@ def sub_bkg(spec):
     bkgsub=np.array(spec)-np.array(bkg)
     return bkg,  bkgsub.tolist()
 
+"""
 
 
 def graph_errors(x,y,ex,ey, title, xlabel="x", ylabel="y"):
@@ -167,63 +173,70 @@ def add_test_background(spectrum):
 def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
 
     gStyle.SetOptFit(111)
-    #add_test_background(spectrum)
-
-    x0=[start+i*num_summed+0.5*num_summed for i in range(0,len(spectrum))]
-    x, y_all=get_subspec(x0, spectrum, FIT_MIN_X, FIT_MAX_X)
+    x_full_range=[start+i*num_summed+0.5*num_summed for i in range(0,len(spectrum))]
+    #bin center
+    x, y=get_subspec(x_full_range, spectrum, FIT_MIN_X, FIT_MAX_X)
+    #spectrum in the predefined range 
     if not x:
         print('Can not find sub spectrum of ERROR:', detector, pixel)
         return
 
-    bkg, y=sub_bkg(y_all)
     name='{}_{}_{}'.format(detector, pixel, subspec)
     title='detector {} pixel {} subspec {}'.format(detector, pixel, subspec)
+    g_full_spec=graph2(x_full_range,spectrum, 'Original spec - {}'.format(name), 'ADC channel','Counts')
+    peak1_y=max(y)
+    peak1_x=x[y.index(peak1_y)]
+    #find the peak with highest counts in the predefined range
+
+    x_shift=ENERGY_CONVERSION_FACTOR*(81-31)
+    peak3_xmin=peak1_x+ 0.9*x_shift
+    peak3_xmax=peak1_x+ 1.1*x_shift
+
+    # max conversion factor = 2.5 ADC/keV
+    fit_range_x_left=15
+    fit_range_x_right=15
+    fit_range_peak3_x_left=3
+
+    peak3_max_x=0
+    peak3_max_y=0
+
+    peak2_x=peak1_x+4.1*ENERGY_CONVERSION_FACTOR
 
 
-    gsig=graph2(x,y_all, 'Original spec - {}'.format(name), 'ADC channel','Counts')
-    gbkg=graph2(x,bkg, 'Background - {}'.format(name), 'ADC channel','Counts')
-
-
-    max_y=max(y)
-    max_x=x[y.index(max_y)]
-
-    max_x2=0
-    max_y2=0
+    
     for ix, iy in zip(x,y):
-        if ix< max_x+FIT_RIGHT_DELTA_X:
+        if ix< peak3_xmin or ix>peak3_xmax:
             continue
-        if iy>max_y2:
-            max_x2=ix
-            max_y2=iy
-            
-    g1 = TF1( 'g1_{}'.format(name), 'gaus',  max_x-15,  max_x+ 15)
-    g2 = TF1( 'g2_{}'.format(name), 'gaus', max_x+5, max_x+30)
-    g3 = TF1( 'g3_{}'.format(name), 'gaus', max_x2-3, max_x2+15)
+        if iy>peak3_max_y:
+            peak3_max_x=ix
+            peak3_max_y=iy
+    fgaus1 = TF1( 'fgaus1_{}'.format(name), 'gaus',  peak1_x-fit_range_x_left,  peak1_x+ fit_range_x_right)
+    fgaus2 = TF1( 'fgaus2_{}'.format(name), 'gaus', peak2_x - 5, peak2_x + fit_range_x_right)
+    fgaus3 = TF1( 'fgaus3_{}'.format(name), 'gaus', peak3_max_x- fit_range_peak3_x_left,  peak3_max_x + fit_range_x_right)
 
-    total = TF1( 'total_{}'.format(name), 'gaus(0)+gaus(3)', max_x-15, max_x+30, 6)
-
-    g=graph2(x,y, 'Bkg subtracted - {}'.format(title), 'ADC channel','Counts')
+    fgaus12 = TF1( 'fgaus12_{}'.format(name), 'gaus(0)+gaus(3)', peak1_x-fit_range_x_left, peak2_x+fit_range_x_right, 6)
+    gspec=graph2(x,y, 'Spectrum - {}'.format(title), 'ADC channel','Counts')
 
 
-    g.Fit(g1,'RQ')
-    g.Fit(g2,'RQ+')
-    g.Fit(g3,'RQ')
-    g.Fit(total,'RQ+')
+    gspec.Fit(fgaus1,'RQ')
+    gspec.Fit(fgaus2,'RQ+')
+    gspec.Fit(fgaus3,'RQ')
+    gspec.Fit(fgaus12,'RQ+')
     par = array( 'd', 6*[0.] )
-    par1 = g1.GetParameters()
-    par2 = g2.GetParameters()
-    par3 = g3.GetParameters()
-    par3_errors = g3.GetParErrors()
+    par1 = fgaus1.GetParameters()
+    par2 = fgaus2.GetParameters()
+    par3 = fgaus3.GetParameters()
+    par3_errors = fgaus3.GetParErrors()
     par[0], par[1], par[2] = par1[0], par1[1], par1[2]
     par[3], par[4], par[5] = par2[0], par2[1], par2[2]
-    total.SetParameters(par)
-    g.Fit( total, 'RQ+' )
-    param=total.GetParameters()
-    param_errors=total.GetParErrors()
+    fgaus12.SetParameters(par)
+    gspec.Fit( fgaus12, 'RQ+' )
+    param=fgaus12.GetParameters()
+    param_errors=fgaus12.GetParErrors()
 
     fo.cd()
-    g.Write()
-    total.Write()
+    gspec.Write()
+    fgaus12.Write()
     result={
             'detector':detector,
             'pixel':pixel,
@@ -245,19 +258,16 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
     peak_ex=[]
     peak_y=[]
     peak_ey=[]
-
     if param_errors[2]<MAX_ALLOWED_SIGMA_ERROR:
         peak_x.append(30.8)
         peak_ex.append(0.)
         peak_y.append(param[1])
         peak_ey.append(param_errors[1])
-
     if param_errors[5]<MAX_ALLOWED_SIGMA_ERROR:
         peak_x.append(34.9)
         peak_ex.append(0.)
         peak_y.append(param[4])
         peak_ey.append(param_errors[4])
-
     if par3_errors[2]<MAX_ALLOWED_SIGMA_ERROR:
         peak_x.append(81)
         peak_ex.append(0.)
@@ -279,7 +289,7 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
         result['fcal']={'p0':calibration_params[0],'p1':calibration_params[1], 'chi2':chisquare}
     
 
-    return result, [gsig, g, gpeaks]
+    return result, [g_full_spec, gspec, gpeaks]
     
 
 
@@ -300,7 +310,7 @@ def analyze(calibration_id, output_dir='./'):
     is_top=True
 
     slope = np.zeros((32,12))
-    baseline = np.zeros((32,12))
+    offset = np.zeros((32,12))
 
     
     report={}
@@ -369,7 +379,7 @@ def analyze(calibration_id, output_dir='./'):
         if par:
             if 'fcal' in par:
                 slope[detector][pixel]=par['fcal']['p1']
-                baseline[detector][pixel]=par['fcal']['p0']
+                offset[detector][pixel]=par['fcal']['p0']
 
 
 
@@ -377,25 +387,40 @@ def analyze(calibration_id, output_dir='./'):
 
 
     report['pdf']=pdf
-    report['elut']=compute_elut(baseline,slope)
+    report['elut']=compute_elut(offset,slope)
+
+    slope1d=slope.flatten()
+    offset1d=offset.flatten()
     
     mdb.update_calibration_analysis_report(calibration_id, report)
 
-    h2slope=heatmap(slope, 'Energy conversion factor', 'Conversion factor', 'Detector', 'Pixel', 'Energy conversion factor (ADC/keV)')
-    h2baseline=heatmap(baseline,'baseline', 'baseline', 'Detector', 'Pixel', 'baseline (E=0)')
+    hist_slope=TH1F("hist_slope","Energy conversion factors; Conversion factors (ADC / keV); Counts",100, 0.8*min(slope1d), 1.2*max(slope1d))
+    for s in slope1d:
+        hist_slope.Fill(s)
+    hist_offset=TH1F("hist_offset","Baseline; Baseline (ADC); Counts",100, 0.8*min(offset1d), 1.2*max(offset1d))
+    for s in offset1d:
+        hist_offset.Fill(s)
+    ids=range(0,len(slope1d))
+    g_slope=graph2(ids,slope1d, 'conversion factor', ' pixel #', 'conversion factor')
+    g_offset=graph2(ids,offset1d, 'baseline', ' pixel #', 'baseline')
 
     c2=TCanvas()
-    c2.Divide(2,1)
+    c2.Divide(2,2)
     c2.cd(1)
-    h2baseline.Draw("colz")
+    hist_slope.Draw('hist')
     c2.cd(2)
-
-    h2slope.Draw("colz")
+    hist_offset.Draw('hist')
+    c2.cd(3)
+    g_slope.Draw('AL')
+    c2.cd(4)
+    g_offset.Draw('AL')
     c2.Print(pdf)
     canvas.Print(pdf+']')
 
-    h2slope.Write("h2slop")
-    h2baseline.Write("h2baseline")
+    hist_slope.Write("hist_slope")
+    hist_offset.Write("hist_offset")
+    g_slope.Write("g_slope")
+    g_offset.Write("g_offset")
 
     print('done.\nFile {} generated'.format(pdf))
 
