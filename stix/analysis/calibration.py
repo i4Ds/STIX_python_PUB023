@@ -389,10 +389,19 @@ def analyze(calibration_id, output_dir='./'):
     report['pdf']=pdf
     report['elut']=compute_elut(offset,slope)
 
-    slope1d=slope.flatten()
-    offset1d=offset.flatten()
+    slope1d=[]
+    offset1d=[]
+
+    for det in range(0,32):
+        for pix in range(0,12):
+            slope1d.append(slope[det][pix])
+            offset1d.append(slope[det][pix])
+
+    report['slope']=slope1d
+    report['offset']=offset1d
     
     mdb.update_calibration_analysis_report(calibration_id, report)
+
 
     hist_slope=TH1F("hist_slope","Energy conversion factors; Conversion factors (ADC / keV); Counts",100, 0.8*min(slope1d), 1.2*max(slope1d))
     for s in slope1d:
@@ -439,8 +448,8 @@ def daemon():
 
 
 if __name__=='__main__':
-    #output_dir=DEFAULT_OUTPUT_DIR
-    output_dir='./'
+    output_dir=DEFAULT_OUTPUT_DIR
+    #output_dir='./'
 
     if len(sys.argv)==1:
         daemon()
