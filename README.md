@@ -1,5 +1,5 @@
 
-## STIX raw data parser and its Qt GUI
+## STIX raw data parser
 
   A python package allows parsing, browsing and analyzing STIX raw telemetry packets.  
 Parsing of raw binary packets is based on IDB.  
@@ -346,6 +346,14 @@ The generated *.c and the original *py files can be deleted for distribution.
   It performs calibration analysis every 10 minutes for new calibration spectrum.
 
 
+### 7. SPICE kernel data update
+  1) download the latest SPICE kernel from STIX GFTS server
+  2) Unzip the zip file, replace the following file with the latest version
+      stix/data/SPICE/kernels/sclk/solo_ANC_soc-sclk_xxxx_V01.tsc
+  
+      
+      
+   3) Edit stix/core/config.py, update the tsc filename
 
 
 

@@ -395,7 +395,7 @@ def analyze(calibration_id, output_dir='./'):
     for det in range(0,32):
         for pix in range(0,12):
             slope1d.append(slope[det][pix])
-            offset1d.append(slope[det][pix])
+            offset1d.append(offset[det][pix])
 
     report['slope']=slope1d
     report['offset']=offset1d
@@ -430,6 +430,7 @@ def analyze(calibration_id, output_dir='./'):
     hist_offset.Write("hist_offset")
     g_slope.Write("g_slope")
     g_offset.Write("g_offset")
+    #png_filename=os.path.splitext(pdf)[0]+'png'
 
     print('done.\nFile {} generated'.format(pdf))
 
