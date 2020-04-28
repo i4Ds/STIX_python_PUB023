@@ -20,6 +20,8 @@ class StixScienceReportAnalyzer(object):
         self.qllc_analyzer.capture(run_id, packet_id, packet)
         self.qlbkg_analyzer.capture(run_id, packet_id, packet)
         #self.bsdl0_analyzer.capture(run_id, packet_id, packet)
+    def get_calibration_run_ids(self):
+        return self.calibration_analyzer.get_calibration_run_ids()
 
 
 class StixCalibrationReportAnalyzer(object):
@@ -34,6 +36,7 @@ class StixCalibrationReportAnalyzer(object):
         self.db_collection = None
         self.current_calibration_run_id = 0
         self.db_collection = collection
+        self.calibration_run_ids=[]
         self.spectra = []
         #self.background_spectra=[[] for x in range(0,12*32)]
         try:
@@ -41,6 +44,9 @@ class StixCalibrationReportAnalyzer(object):
                 '_id', -1).limit(1)[0]['_id'] + 1
         except IndexError:
             self.current_calibration_run_id = 0
+
+    def get_calibration_run_ids(self):
+        return self.calibration_run_ids
 
     def capture(self, run_id, packet_id, pkt):
         if not self.db_collection:
@@ -131,6 +137,7 @@ class StixCalibrationReportAnalyzer(object):
             #packet id, used by web applications
             #spectra
             self.db_collection.insert_one(self.report)
+            self.calibration_run_ids.append(self.current_calibration_run_id)
 
             #reset report
             self.current_calibration_run_id += 1

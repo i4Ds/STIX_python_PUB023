@@ -274,7 +274,6 @@ class StixMongoDBWriter(StixPacketWriter):
             return
         logger.info('{} packets have been inserted into MongoDB'.format(
             self.ipacket))
-        logger.info('Updating run :'.format(self.inserted_run_id))
         run = self.collection_raw_files.find_one({'_id': self.inserted_run_id})
         if run:
             run['data_start_unix_time'] = self.start_time
@@ -285,8 +284,12 @@ class StixMongoDBWriter(StixPacketWriter):
             run['status'] = stix_global.OK
             #status ==1 if success  0
             run['summary'] = self.summary
+            run['calibration_run_ids']=self.science_report_analyzer.get_calibration_run_ids()
             self.collection_raw_files.save(run)
-            logger.info('Run info updated successfully.')
-            logger.info('Run ID:{}'.format(run['_id']))
+            logger.info('File info updated successfully.')
+            logger.info('File ID:{}'.format(run['_id']))
+
+
+
         else:
-            logger.error('Run info not updated.')
+            logger.error('File info not updated.')

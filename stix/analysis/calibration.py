@@ -92,6 +92,12 @@ def find_peaks2(detector, pixel, subspec, start, num_summed, spec, fo, pdf):
     for i in range(num_found):
         xpeaks.append(x_full[xp[i]])
 
+def rebin(spec, h, offset, slope):
+    pass
+
+
+
+
 """
 def sub_bkg(spec):
     #subtract background using ROOT

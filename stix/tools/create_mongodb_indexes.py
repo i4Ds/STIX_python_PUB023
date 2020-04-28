@@ -13,7 +13,7 @@ try:
             collection_raw_files.create_index(index)
     print('creating indexes for calibration')
     if collection_calibration:
-        indexes=[[('duration',1)],[('start_unix_time',1)]]
+        indexes=[[('duration',1)],[('start_unix_time',1)],[('run_id',1)]]
         for index in indexes:
             collection_raw_files.create_index(index)
 
