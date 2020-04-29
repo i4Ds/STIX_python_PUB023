@@ -42,9 +42,6 @@ class Plugin:
             num_spectra.extend(num)
         
 
-
-
-
         fig = plt.figure(figsize=figsize)
         lc={}
         print(num_spectra[0])
