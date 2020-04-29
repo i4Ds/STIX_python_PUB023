@@ -767,41 +767,45 @@ class StixTCTMParser(StixParameterParser):
         self.in_filesize = 0
         self.stop_parsing = False
 
-
         self.receipt_utc = ''
 
         self.store_packet_enabled = True
         self.packet_writer = None
         self.S20_excluded = False
 
-        self.stix_alerts=[]
-        self.parser_counter={} 
+        self.stix_alerts = []
+        self.parser_counter = {}
         #parser counter
         self.reset_counter()
 
     def reset_counter(self):
-        self.parser_counter={
-                'num_tm':0,
-                'num_tc':0,
-                'num_tm_parsed':0,
-                'num_tc_parsed':0,
-                'num_bad_bytes':0,
-                'num_bad_headers':0,
-                'total_length':0,
-                'num_filtered':0,
-            }
+        self.parser_counter = {
+            'num_tm': 0,
+            'num_tc': 0,
+            'num_tm_parsed': 0,
+            'num_tc_parsed': 0,
+            'num_bad_bytes': 0,
+            'num_bad_headers': 0,
+            'total_length': 0,
+            'num_filtered': 0,
+            'spid':{}
+        }
 
+    def inc_counter(self, t, value=1):
+        #increase count t by the given value or increase spid counters
+        if t=='spid':
+            if value not in self.parser_counter['spid']:
+                self.parser_counter['spid'][value] = 0
+            self.parser_counter['spid'][value]+=1
+            return
+        self.parser_counter[t] += value
 
-    def inc_counter(self, t, num=1):
-        if t not in self.parser_counter:
-            self.parser_counter[t]=0
-        self.parser_counter[t] += num
 
     def get_summary(self):
         return self.parser_counter
 
     def get_stix_alerts(self):
-        #TM(5, 2..4)  and TM(1,2), TM(1,8)
+        # return a summary of TM(5, 2..4)  and TM(1,2), TM(1,8)
         return self.stix_alerts
 
     def kill(self):
@@ -815,7 +819,6 @@ class StixTCTMParser(StixParameterParser):
             store packets in a list
         """
         self.store_packet_enabled = status
-
 
     def set_packet_filter(self, selected_services=None, selected_spids=None):
         """ only decoded packets with the given services or spids
@@ -833,7 +836,6 @@ class StixTCTMParser(StixParameterParser):
           store raw binary  in the output 
         """
         self.store_binary = status
-
 
     def parse_telemetry_header(self, packet):
         """ see STIX ICD-0812-ESC  (Page # 57) """
@@ -1038,6 +1040,7 @@ class StixTCTMParser(StixParameterParser):
                     continue
                 tpsd = header['TPSD']
                 spid = header['SPID']
+                self.inc_counter('spid',spid)
                 if self.selected_services:
                     if header['service_type'] not in self.selected_services:
                         self.inc_counter('num_filtered')
@@ -1063,17 +1066,15 @@ class StixTCTMParser(StixParameterParser):
                             ' Packet (SPID {}) data field size: {}B, actual read: {}B'
                             .format(spid, data_field_length, num_read))
 
-
-                if header['service_type']==5  or  (header['service_type']==1 and 
-                        header['service_subtype'] in [2,8]):
+                if header['service_type'] == 5 or (
+                        header['service_type'] == 1
+                        and header['service_subtype'] in [2, 8]):
                     self.stix_alerts.append(header)
 
                 packet = {'header': header, 'parameters': parameters}
                 self.inc_counter('num_tm_parsed')
                 if self.store_binary:
                     packet['bin'] = header_raw + data_field_raw
-
-
 
             elif buf[i] in stix_header.TC_HEADER_FIRST_BYTE:
 
@@ -1116,17 +1117,15 @@ class StixTCTMParser(StixParameterParser):
                         continue
                     self.parse_service_20(parameters)
 
-                if header['service_type'] == 5 and header['service_subtype']>1:
+                if header[
+                        'service_type'] == 5 and header['service_subtype'] > 1:
                     self.instrument_message.append(header)
                     #used for instrument health tracking
-
 
                 packet = {'header': header, 'parameters': parameters}
                 self.inc_counter('num_tc_parsed')
                 if self.store_binary:
                     packet['bin'] = buf[i:i + 10] + data_field_raw
-
-            
 
             else:
                 old_i = i
@@ -1135,7 +1134,7 @@ class StixTCTMParser(StixParameterParser):
                 i = find_next_header(buf, i)
                 if i == stix_global.EOF:
                     break
-                self.inc_counter('num_bad_bytes', i-old_i)
+                self.inc_counter('num_bad_bytes', i - old_i)
                 logger.warning(
                     'New header found at Pos {}, {} bytes ignored!'.format(
                         i, i - old_i))
