@@ -795,8 +795,9 @@ class StixTCTMParser(StixParameterParser):
         #increase count t by the given value or increase spid counters
         if t=='spid':
             if value not in self.parser_counter['spid']:
-                self.parser_counter['spid'][value] = 0
-            self.parser_counter['spid'][value]+=1
+                self.parser_counter['spid'][str(value)] = 0
+            self.parser_counter['spid'][str(value)]+=1
+            #mongodb only supports string as keys
             return
         self.parser_counter[t] += value
 
