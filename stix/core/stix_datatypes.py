@@ -86,7 +86,7 @@ class Parameter(object):
 
     def __getattr__(self, key):
         """
-         support parameter[key] to access the value
+         support parameter.key to access the value
         """
         if key == 'name':
             return self._name
@@ -260,6 +260,7 @@ class Packet(object):
         print('current path: {}'.format(self._current_node_name))
 
     def __getitem__(self, key):
+        #access parameter like packet['parameter']
         if isinstance(key, str):
             return self.__getattr__(key)
         elif isinstance(key, int):

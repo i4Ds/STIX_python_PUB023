@@ -4,7 +4,7 @@ from . import stix_datatypes as sdt
 from . import stix_datetime
 from . import stix_logger
 logger = stix_logger.get_logger()
-
+DATA_REQUEST_REPORT_SPIDS=[54115, 54116,54117, 54143, 54125]
 
 class StixScienceReportAnalyzer(object):
     def __init__(self, db):
@@ -12,6 +12,7 @@ class StixScienceReportAnalyzer(object):
             db['calibration_runs'])
         self.qllc_analyzer = StixQLLightCurveAnalyzer(db['ql_lightcurves'])
         self.qlbkg_analyzer = StixQLBackgroundAnalyzer(db['ql_background'])
+        #self.user_request_analyzer=StixUserDataRequestReportAnalyzer(db['data_requests'])
         #self.bsdl0_analyzer = StixBSDL0Analyzer(db['bsd_l0'])
         #self.qllc_analyzer = StixQLSpecificSpectrumAnalyzer(db['ql_spectra'])
 
@@ -239,6 +240,64 @@ class StixQLLightCurveAnalyzer(object):
         }
         self.db_collection.insert_one(report)
         self.current_report_id += 1
+
+class  StixUserDataRequestReportAnalyzer(object):
+    def __init__(self,db):
+        self.db=db
+        self.last_unique_id=-1
+        self.last_request_spid=-1
+        self.packet_ids=[]
+        self.start_time=0
+        self.stop_time=0
+        
+    def capture(self, run_id, packet_id, pkt):
+        if not self.db:
+            return
+        packet = sdt.Packet(pkt)
+        if packet.SPID not in DATA_REQUEST_REPORT_SPIDS:
+            return
+        if packet.SPID == 54125: 
+            #aspect data
+            self.process_aspect(run_id,packet_id,packet)
+        else:
+            self.process_bulk_science(run_id,packet_id,packet)
+    def process_bulk_science(run_id,packet_id,packet):
+        pass
+
+    def process_aspect(self,run_id,packet_id,packet):
+        start=packet[1].raw+packet[2].raw/65536
+        summing=packet[3].raw
+        samples=packet[4].raw
+        duration=samples/64.*summing
+
+        if packet['seg_flag'] in [1,3]:
+            self.packet_ids=[]
+            self.start_time=start
+        self.packet_ids.append(packet_id)
+
+        end_time=start+duration
+
+
+
+        if packet['seg_flag'] in [2, 3]:
+            #the last or standalone
+            if self.db:
+                report={
+                        'start_utc':stix_datetime.scet2unix(self.start),
+                        'end_utc':stix_datetime.scet2unix(self.end_time),
+                        'packet_ids':self.packet_ids,
+                        'run_id':run_id
+                        }
+                self.db.insert_one(report)
+
+
+
+
+        
+
+        
+
+
 
 
 '''
