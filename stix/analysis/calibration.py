@@ -28,10 +28,11 @@ from ROOT import TGraph, TFile, TCanvas, TH1F, gROOT, TBrowser, gSystem, TH2F, g
 
 
 
-FIT_MIN_X=260
-FIT_MAX_X=550
+FIT_MIN_X=250
+FIT_MAX_X=529
 MAX_ALLOWED_SIGMA_ERROR = 20  #maximum allowed peak error
 ENERGY_CONVERSION_FACTOR=2.3 
+MIN_COUNTS=100
 #2.3 ADC/keV
 #Estimated energy conversion factor
 
@@ -185,7 +186,14 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
     #spectrum in the predefined range 
     if not x:
         print('Can not find sub spectrum of ERROR:', detector, pixel)
-        return
+        return None, None
+
+    total_counts=sum(y)
+    if total_counts<MIN_COUNTS:
+        print('Too less counts:', detector, pixel)
+        return None, None
+
+
 
     name='{}_{}_{}'.format(detector, pixel, subspec)
     title='detector {} pixel {} subspec {}'.format(detector, pixel, subspec)
@@ -348,6 +356,8 @@ def analyze(calibration_id, output_dir='./'):
             continue
 
         par,plots=find_peaks(detector, pixel, sbspec_id,  start, num_summed,  spectrum, f)
+        if not par and not plots:
+            continue
 
 
 
