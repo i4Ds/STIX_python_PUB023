@@ -43,8 +43,8 @@ class Plugin:
 
 
 def test(filename='../GU/raw/asw164_calibration_test1.dat'):
-    from core import stix_parser
-    parser = stix_parser.StixTCTMParser()
+    from core import stix
+    parser = stix.StixTCTMParser()
     parser.parse_file(filename)
     packets = parser.get_decoded_packets()
     p = Plugin(packets)

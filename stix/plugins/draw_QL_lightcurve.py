@@ -6,7 +6,7 @@ sys.path.append(os.path.abspath('../../'))
 import numpy as np
 from matplotlib import pyplot as plt
 from datetime import datetime
-from stix_parser.core import stix_datatypes as sdt
+from stix.core import stix_datatypes as sdt
 
 SPID = 54118
 

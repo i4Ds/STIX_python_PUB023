@@ -2,7 +2,7 @@
 import sys
 sys.path.append('..')
 sys.path.append('.')
-from stix_parser.core import stix_packet_analyzer as sta
+from stix.core import stix_packet_analyzer as sta
 from matplotlib import pyplot as plt
 
 analyzer = sta.analyzer()

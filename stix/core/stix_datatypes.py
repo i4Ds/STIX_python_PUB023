@@ -284,6 +284,7 @@ class Packet(object):
         num_fields = len(node_name.split('/'))
         pprint.pprint(self.get_nodes(node_name))
 
+
     @staticmethod
     def merge(packets, SPIDs, value_type='raw'):
 
@@ -351,3 +352,28 @@ class Packet(object):
                 param_dict[param.name] = [param]
 
         return param_dict
+
+    def index(self, parameter_name):
+        #get parameter index
+        #only looks for parameters whose depth == 0 
+        for i, e in enumerate(self._parameters):
+            if e[0]==parameter_name:
+                return i
+        return -1
+    def get_one(self,parameter_name, parameters=None):
+        #get the first parameter
+        if parameters == None:
+            parameters=self._parameters
+        for e in parameters:
+            if e[0]==parameter_name:
+                return e
+            if e[3]:
+                ret=self.get_one(parameter_name, e[3])
+                if ret:
+                    return ret
+
+        return None
+
+
+
+

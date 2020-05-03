@@ -56,15 +56,19 @@ class StixCalibrationReportAnalyzer(object):
         if packet.SPID != 54124:
             return
 
-        detector_mask = packet[10]
-        pixel_mask = packet[12]
+        detector_mask = packet.get_one('NIX00407')[1] #raw value
+        pixel_mask = packet.get_one('NIXD0407')[1] #raw value
 
         detector_ids = packet.get('NIX00159/NIXD0155')[0]
         pixel_ids = packet.get('NIX00159/NIXD0156')[0]
         subspc_ids = packet.get('NIX00159/NIXD0157')[0]
         sbspec_spectra = packet.get('NIX00159/NIX00146/*.eng')[0]
-        sbspec_formats = [(packet[i * 4 + 15].raw, packet[i * 4 + 16].raw,
-                           packet[i * 4 + 17].raw) for i in range(0, 8)]
+
+        start_index=packet.index('NIXD0129')
+
+        sbspec_formats = [(packet[i * 4 + start_index].raw, packet[i * 4 + start_index+1].raw,
+                           packet[i * 4 + start_index+2].raw) for i in range(0, 8)]
+
         for i in range(0, len(detector_ids)):
             sbspec_id = subspc_ids[i]
             detector_id = detector_ids[i]

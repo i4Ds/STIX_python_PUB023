@@ -12,7 +12,7 @@ sys.path.append(os.path.abspath('../../'))
 import numpy as np
 from matplotlib import pyplot as plt
 from datetime import datetime
-from stix_parser.core import stix_datatypes as sdt
+from stix.core import stix_datatypes as sdt
 
 SPIDs = [54132, 54133, 54134, 54130]
 #On demand readout or baseline
