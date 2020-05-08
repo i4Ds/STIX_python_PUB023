@@ -4,7 +4,8 @@ from . import stix_datatypes as sdt
 from . import stix_datetime
 from . import stix_logger
 logger = stix_logger.get_logger()
-DATA_REQUEST_REPORT_SPIDS=[54115, 54116,54117, 54143, 54125]
+DATA_REQUEST_REPORT_SPIDS=[54114, 54115, 54116,54117, 54143, 54125]
+DATA_REQUEST_REPORT_NAME={54114:'L0', 54115:'L1',54116:'L2', 54117:'L3', 54143:'L4', 54125:'ASP'}
 
 class StixScienceReportAnalyzer(object):
     def __init__(self, db):
@@ -12,7 +13,7 @@ class StixScienceReportAnalyzer(object):
             db['calibration_runs'])
         self.qllc_analyzer = StixQLLightCurveAnalyzer(db['ql_lightcurves'])
         self.qlbkg_analyzer = StixQLBackgroundAnalyzer(db['ql_background'])
-        #self.user_request_analyzer=StixUserDataRequestReportAnalyzer(db['data_requests'])
+        self.user_request_analyzer=StixUserDataRequestReportAnalyzer(db['data_requests'])
         #self.bsdl0_analyzer = StixBSDL0Analyzer(db['bsd_l0'])
         #self.qllc_analyzer = StixQLSpecificSpectrumAnalyzer(db['ql_spectra'])
 
@@ -20,6 +21,7 @@ class StixScienceReportAnalyzer(object):
         self.calibration_analyzer.capture(run_id, packet_id, packet)
         self.qllc_analyzer.capture(run_id, packet_id, packet)
         self.qlbkg_analyzer.capture(run_id, packet_id, packet)
+        self.user_request_analyzer.capture(run_id,packet_id,packet)
         #self.bsdl0_analyzer.capture(run_id, packet_id, packet)
     def get_calibration_run_ids(self):
         return self.calibration_analyzer.get_calibration_run_ids()
@@ -132,7 +134,8 @@ class StixCalibrationReportAnalyzer(object):
             scet = param_dict['NIX00445'][0].raw
             self.report['SCET'] = scet
             self.report['start_unix_time'] = stix_datetime.scet2unix(scet)
-            self.report['auxiliary'] = packet['parameters'][0:14]
+            spectra_index = packet.index('NIX00159')
+            self.report['auxiliary'] = packet['parameters'][0:spectra_index]
             #Don't copy repeaters
             self.report['sbspec_counts_sum'] = np.sum(self.sbspec_counts,
                                                       axis=1).tolist()
@@ -253,6 +256,11 @@ class  StixUserDataRequestReportAnalyzer(object):
         self.packet_ids=[]
         self.start_time=0
         self.stop_time=0
+        try:
+            self.current_id= self.db.find().sort('_id', -1).limit(1)[0]['_id'] + 1
+        except IndexError:
+            self.current_id= 0
+
         
     def capture(self, run_id, packet_id, pkt):
         if not self.db:
@@ -265,34 +273,73 @@ class  StixUserDataRequestReportAnalyzer(object):
             self.process_aspect(run_id,packet_id,packet)
         else:
             self.process_bulk_science(run_id,packet_id,packet)
-    def process_bulk_science(run_id,packet_id,packet):
-        pass
+    def process_bulk_science(self, run_id,packet_id,packet):
+        try:
+            unique_id=packet[3].raw
+            start= packet[12].raw
+        except Exception as e:
+            logger.warning(str(e))
+            return
+        if packet['seg_flag'] in [1, 3]:
+            self.packet_ids=[]
+        self.packet_ids.append(packet_id)
+        
+        if self.last_unique_id!=unique_id or self.last_request_spid != packet['SPID']  or packet['seg_flag'] in [2, 3]:
+            #the last or standalone
+            if self.db:
+                report={
+                        'start_unix_time':stix_datetime.scet2unix(start),
+                        'unique_id':unique_id,
+                        'packet_ids':self.packet_ids,
+                        'run_id':run_id,
+                        'SPID': packet['SPID'],
+                        'name': DATA_REQUEST_REPORT_NAME[packet['SPID']],
+                        'header_unix_time': packet['unix_time'],
+                        '_id':self.current_id,
+                        }
+                self.db.insert_one(report)
+                self.current_id+=1
+                self.packet_ids=[]
+
+        self.last_unique_id=unique_id
+        self.last_request_spid=packet['SPID']
+            
+
+
+        
+
 
     def process_aspect(self,run_id,packet_id,packet):
-        start=packet[1].raw+packet[2].raw/65536
+        start_obt=packet[1].raw+packet[2].raw/65536
         summing=packet[3].raw
         samples=packet[4].raw
         duration=samples/64.*summing
 
         if packet['seg_flag'] in [1,3]:
             self.packet_ids=[]
-            self.start_time=start
+            self.start_obt_time=start_obt
         self.packet_ids.append(packet_id)
 
-        end_time=start+duration
+        end_time=start_obt+duration
 
 
 
         if packet['seg_flag'] in [2, 3]:
             #the last or standalone
             if self.db:
+
                 report={
-                        'start_utc':stix_datetime.scet2unix(self.start),
-                        'end_utc':stix_datetime.scet2unix(self.end_time),
+                        'start_unix_time':stix_datetime.scet2unix(self.start_obt_time),
+                        'end_unix_time':stix_datetime.scet2unix(end_time),
                         'packet_ids':self.packet_ids,
-                        'run_id':run_id
+                        'SPID':packet['SPID'],
+                        'run_id':run_id,
+                        'name': DATA_REQUEST_REPORT_NAME[packet['SPID']],
+                        'header_unix_time': packet['unix_time'],
+                        '_id':self.current_id,
                         }
                 self.db.insert_one(report)
+                self.current_id+=1
 
 
 

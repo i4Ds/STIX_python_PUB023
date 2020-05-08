@@ -146,7 +146,14 @@ def datetime2unix(timestamp):
 
 def scet2unix(coarse, fine=0):
     try:
-        utc = scet2utc(coarse, fine)
+        coarse_int=coarse
+        fine_int=fine
+        if isinstance(coarse, float):
+            coarse_int=int(coarse)
+
+        fine_int=int((coarse-coarse_int)*65535)
+        
+        utc = scet2utc(coarse_int, fine_int)
         return utc2unix(utc)
     except spiceypy.utils.support_types.SpiceyError:
         return 0

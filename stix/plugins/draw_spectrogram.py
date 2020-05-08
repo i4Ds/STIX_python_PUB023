@@ -56,23 +56,5 @@ class Plugin:
         plt.ylabel('Counts in 20 seconds')
         plt.legend()
         plt.show()
-
-        '''
-            plt.subplot(312)
-            for lt in triggers:
-                print("Length of trigger counter accumulator:")
-                print(len(lt))
-                plt.plot(lt, label='triggers')
-            plt.title('Triggers')
-            plt.xlabel('Time / {} (s)'.format(int_duration * 0.1))
-            plt.ylabel('Counts in {} s '.format(int_duration * 0.1))
-            plt.subplot(313)
-            for lt in rcr:
-                plt.plot(lt, label='RCR')
-            plt.title('RCR')
-            plt.xlabel('Time / {} (s)'.format(int_duration * 0.1))
-            plt.ylabel('RCR ')
-            plt.tight_layout()
-            '''
         plt.show()
             
