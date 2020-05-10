@@ -12,12 +12,17 @@ import sys
 import glob
 import time
 sys.path.append('.')
+from datetime import datetime
 from stix.core import config
 from stix.core import mongo_db 
 from stix.core import stix_logger, stix_idb, stix_parser
 logger = stix_logger.get_logger()
 
 S20_EXCLUDED=True
+
+def get_now():
+    return datetime.now().isoformat()
+
 
 def write_alerts(raw_filename, alert_headers):
     #print(alert_headers)
@@ -44,8 +49,8 @@ def process(instrument, filename):
     parser = stix_parser.StixTCTMParser()
     parser.set_MongoDB_writer(config.mongodb['host'],config.mongodb['port'],
             config.mongodb['user'], config.mongodb['password'],'',filename, instrument)
-    logger.info('Processing {} ...'.format(filename))
-    print('Processing {} ...'.format(filename))
+    logger.info('{}, processing {} ...'.format(get_now(), filename))
+    print('{}, processing {} ...'.format(get_now(), filename))
     if S20_EXCLUDED:
         parser.exclude_S20()
     parser.set_store_binary_enabled(False)
@@ -61,7 +66,9 @@ def process(instrument, filename):
 
 def main_loop():
     while True:
+
         print('Start checking ...')
+        print(get_now())
         mdb=mongo_db.MongoDB(config.mongodb['host'], config.mongodb['port'], 
                 config.mongodb['user'], config.mongodb['password'])
 

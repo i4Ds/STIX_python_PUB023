@@ -40,6 +40,7 @@ class MongoDB(object):
             self.collection_calibration = self.db['calibration_runs']
             self.collection_qllc = self.db['ql_lightcurves']
             self.collection_qlbkg = self.db['ql_background']
+            self.collection_data_requests= self.db['data_requests']
 
         except Exception as e:
             print('Error occurred while initializing mongodb: {}'.format(
@@ -104,6 +105,8 @@ class MongoDB(object):
 
         if self.collection_qlbkg:
             cursor = self.collection_qlbkg.delete_many({'run_id': int(run_id)})
+        if self.collection_data_requests:
+            cursor = self.collection_data_requests.delete_many({'run_id': int(run_id)})
 
     def delete_runs(self, runs):
         for run in runs:

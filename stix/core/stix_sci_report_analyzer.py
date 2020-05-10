@@ -280,11 +280,13 @@ class  StixUserDataRequestReportAnalyzer(object):
         except Exception as e:
             logger.warning(str(e))
             return
-        if packet['seg_flag'] in [1, 3]:
+        if packet['seg_flag'] in [1, 3]:#first or standalone
             self.packet_ids=[]
         self.packet_ids.append(packet_id)
         
-        if self.last_unique_id!=unique_id or self.last_request_spid != packet['SPID']  or packet['seg_flag'] in [2, 3]:
+        
+        if packet['seg_flag'] in [2, 3]:
+            #if self.last_unique_id!=unique_id or self.last_request_spid != packet['SPID']:  
             #the last or standalone
             if self.db:
                 report={
