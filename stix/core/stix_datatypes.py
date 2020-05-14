@@ -18,6 +18,23 @@ def copy_object(x, deep_copy):
         return copy.deepcopy(x)
     return x
 
+def any_list_contains(parents, child):
+    for parent in parents:
+        if list_contains(parent, child):
+            return True
+    return False
+
+def list_contains(parent,child):
+    if not child or not parent:
+        return False
+
+    if len(child) > len(parent):
+        return False
+    for i,e in enumerate(child):
+        if parent[i]!=child[i]:
+            return False
+    return True
+
 
 class Parameter(object):
 
@@ -335,6 +352,8 @@ class Packet(object):
                 Packet.merge_parameters(result, param.children, value_type)
             #dosen't work
 
+
+
     def children_as_dict(self, parameter_names=None, children=None):
         if not children:
             children = self._parameters
@@ -376,4 +395,55 @@ class Packet(object):
 
 
 
+
+
+
+    def get_many(self, selectors, parent=[],  parameters=None):
+        """
+        Extract parameter values from packet
+          supports multiple selectors 
+
+          selectors = ['NIX00159/NIX00146.eng', 'NIXG0020/*.name']
+          pattern examples:
+              pattern='NIX00159/NIX00146.eng'
+                  return the eng. values of all NIX00146 under NIX00159
+              pattern='NIX00159/NIX00146.raw/*.eng'
+                  return the children's eng. value of all NIX00146
+            examples:
+            p2.get('NIXG0020/*.name','raw <0 and eng >0')
+            p2.get('NIXG0020/*.raw','raw <0 and eng >0')
+
+        """
+        if not parameters:
+            parameters = self._parameters
+
+        for e in parameters:
+            param = Parameter(e)
+            parent.append(param['name'])
+
+            if param['children'] and any_list_contains(selectors, parent):
+                self.get_many(selectors, parent, param['children'])
+                
+
+
+        '''
+            
+            if param['name'] in field or '*' in field:
+                if fields:
+                    ret = self.get('/'.join(fields), conditions,
+                                   param['children'])
+                    if ret:
+                        results.append(ret)
+                else:
+                    if not self.test_conditions(param, conditions):
+                        continue
+
+                    if field.endswith('eng'):
+                        results.append(param['eng'])
+                    elif field.endswith('name'):
+                        results.append(param['name'])
+                    else:
+                        results.append(param['raw_int'])
+        return results
+        '''
 

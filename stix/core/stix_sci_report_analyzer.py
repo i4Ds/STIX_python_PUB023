@@ -19,8 +19,7 @@ class StixScienceReportAnalyzer(object):
 
     def start(self, run_id, packet_id, packet):
         self.calibration_analyzer.capture(run_id, packet_id, packet)
-        self.qllc_analyzer.capture(run_id, packet_id, packet)
-        self.qlbkg_analyzer.capture(run_id, packet_id, packet)
+        self.qllc_analyzer.capture(run_id, packet_id, packet) self.qlbkg_analyzer.capture(run_id, packet_id, packet)
         self.user_request_analyzer.capture(run_id,packet_id,packet)
         #self.bsdl0_analyzer.capture(run_id, packet_id, packet)
     def get_calibration_run_ids(self):
@@ -552,7 +551,7 @@ class StixBSDL1Analyzer(object):
         group={}
 
         for i in range(0, num_structures):
-            offset = i * 23
+            offset = i * 21
             time=children[offset][1] * 0.1 + T0
             rcr=children[offset + 1][1]
             pixel_mask=[e[1] for e in children[offset + 2].children]
@@ -568,7 +567,7 @@ class StixBSDL1Analyzer(object):
                 E2_high = samples[k+ 2][1]
                 pixel_counts = [ e[counts_idx] for e in  samples[k+ 3][3] ]
                 #extract raw or eng. value of NIX00259's children
-                energies.append([E1_low,E2_high, pixel_counts)
+                energies.append([E1_low,E2_high, pixel_counts])
             group={
                 'time':time,
                 'rcr':rcr,
