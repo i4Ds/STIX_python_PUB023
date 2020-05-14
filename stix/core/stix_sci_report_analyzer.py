@@ -19,7 +19,8 @@ class StixScienceReportAnalyzer(object):
 
     def start(self, run_id, packet_id, packet):
         self.calibration_analyzer.capture(run_id, packet_id, packet)
-        self.qllc_analyzer.capture(run_id, packet_id, packet) self.qlbkg_analyzer.capture(run_id, packet_id, packet)
+        self.qllc_analyzer.capture(run_id, packet_id, packet) 
+        self.qlbkg_analyzer.capture(run_id, packet_id, packet)
         self.user_request_analyzer.capture(run_id,packet_id,packet)
         #self.bsdl0_analyzer.capture(run_id, packet_id, packet)
     def get_calibration_run_ids(self):
