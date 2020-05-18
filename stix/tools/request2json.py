@@ -34,7 +34,7 @@ def form_request(start_unix, level, detector_mask,
             ['PIX00070',level],
             ['PIX00072', start_obt],
             ['PIX00073',0], #subseconds
-            ['PIX00248', detector_mask],
+            ['PIX00248', "0x%X"%detector_mask],
             ['PIX00071', 1], #number of structure
             ['PIX00077', tmin],
             ['PIX00078', tmax],
@@ -66,7 +66,7 @@ def main():
                 ],
                 [
                     "XF414A03",
-                    "{}".format(detector_mask),
+                    "0x%X"%detector_mask
                 ]
             ]
         },
@@ -83,7 +83,7 @@ def main():
                 ],
                 [
                     "XF414A03",
-                    "{}".format(pixel_mask),
+                    "0x%X"%pixel_mask
                 ]
             ]
         },
@@ -92,8 +92,12 @@ def main():
     for i in range(0,15):
         dt=5760
         unix=unix_t0+i*dt
+        tbin=20
+        emin=3
+        emax=17
+        eunit=0
         print(stix_datetime.unix2utc(unix))
-        TC=form_request(unix, 1, detector_mask, 0, dt*10, 20,  3, 17, 0)
+        TC=form_request(unix, 1, detector_mask, 0, dt*10, tbin*10,  emin, emax, 0)
         requests['occurrences'].append(TC)
     json_file.write(json.dumps(requests, indent=4))
     print('Operation requests have been written to crab.json!')
