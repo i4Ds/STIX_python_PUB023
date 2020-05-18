@@ -2,17 +2,16 @@
 import sys
 import numpy as np
 import pymongo
+from pprint import pprint
 from core import stix_datatypes as sdt
 DATA_REQUEST_REPORT_SPIDS=[54114, 54115, 54116,54117, 54143, 54125]
+
+SUPPORTED_SPIDS=[54114,54115,54116,54125]
+
 DATA_REQUEST_REPORT_NAME={54114:'L0', 54115:'L1',54116:'L2', 54117:'L3', 54143:'L4', 54125:'ASP'}
 
-class StixBSDL0Analyzer(object):
-    def __init__(self, db):
-        self.db = db
-        self.collection_requests=db['data_requests']
-        self.collection_packets=db['packets']
-        self.reset()
-    def reset(self):
+class StixBulkL0Analyzer(object):
+    def __init__(self):
         self.time = []
         self.rcr = []
         self.dt = []
@@ -41,27 +40,13 @@ class StixBSDL0Analyzer(object):
             'hits': self.hits,  #data
             'hits_time_int': self.hits_time_int.tolist(),
             'hits_time_ene_int': self.hits_time_ene_int.tolist(),
-            'bsd_level': 0
+            'status':'OK',
         }
         return report
 
-    def process(self, record_id): 
-        if not self.collection_requests or not self.collection_packets:
-            print('no collection')
-            return {}
+    def merge(self, cursor): 
 
-        requests=list(self.collection_requests.find({'_id':record_id}).limit(1))
-        if not requests:
-            print('no request ',record_id)
-            return {}
-        request=requests[0]
 
-        packet_ids=request['packet_ids']
-        cursor=self.collection_packets.find({'_id':{'$in':packet_ids}})
-        if request['SPID']!=54114:
-            print('invalid spid')
-            return {}
-        self.reset()
         for pkt in cursor:
 
             packet = sdt.Packet(pkt)
@@ -81,6 +66,7 @@ class StixBSDL0Analyzer(object):
             if sum(self.eacc_SKM) > 0:
                 counts_idx = 2
             children = packet[13].children
+            print(len(children))
 
             for i in range(0, num_structures):
                 offset = i * 23
@@ -115,13 +101,8 @@ class StixBSDL0Analyzer(object):
 
         return self.format_report()
 
-class StixBSDL1L2Analyzer(object):
-    def __init__(self, db):
-        self.db = db
-        self.collection_requests=db['data_requests']
-        self.collection_packets=db['packets']
-
-    def reset(self):
+class StixBulkL1L2Analyzer(object):
+    def __init__(self):
         self.time = []
         self.rcr = []
         self.dt = []
@@ -137,42 +118,20 @@ class StixBSDL1L2Analyzer(object):
         self.request_id = -1
         self.packet_unix = 0
         self.groups=[]
-        self.SPID=0
-
     def format_report(self):
         report = {
             'request_id': self.request_id,
             'packet_unix': self.packet_unix,
-            #'time': self.time,
-            #'rcr': self.rcr,
-            #'pixel_mask': self.pixel_mask,
-            #'detector_mask': self.detector_mask,
-            #'triggers': self.triggers,
             'eacc_SKM': self.eacc_SKM,
-            'bsd_level': 1,
             'trig_SKM': self.trig_SKM,
-            'SPID': self.SPID,
-            'groups':self.groups
+            'groups':self.groups,
+            'status':'OK',
         }
         return report
 
-    def process(self, record_id):
-        if not self.collection_requests or not self.collection_packets:
-            return {}
-        requests=list(self.collection_requests.find({'_id':record_id}).limit(1))
-        if not requests:
-            return {}
-        request=requests[0]
-        self.SPID=request['SPID']
-
-        if request['SPID'] not in [54115,54116]:
-            return {}
-        packet_ids=request['packet_ids']
-        cursor=self.collection_packets.find({'_id':{'$in':packet_ids}})
-        self.reset()
+    def merge(self,  cursor):
         for pkt in cursor:
             packet = sdt.Packet(pkt)
-
             self.request_id = packet[3].raw
             self.packet_unix = packet['unix_time']
             T0 = packet[12].raw
@@ -214,24 +173,70 @@ class StixBSDL1L2Analyzer(object):
                     'detector_mask':detector_mask,
                     'triggers':triggers,
                     'integrations':integrations,
-                    'energies':energies
+                    'energies':energies,
+                    'status':'OK',
                     }
 
                 self.groups.append(group)
         return self.format_report()
 
-def main():
-    connect= pymongo.MongoClient('localhost', 27017)
-    db = connect["stix"]
-    l0=StixBSDL0Analyzer(db)
-    result_l0=l0.process(76)
+class StixBulkAspectAnalyzer(object):
+    def __init__(self):
+        pass
 
-    pprint(result_l0)
+    def merge(self,  cursor):
+        readouts=[[],[],[],[]]
+        read_time=[]
+        packet_utc=''
+        for pkt in cursor:
+            packet = sdt.Packet(pkt)
+            packet_utc=packet['UTC']
+            T0= packet[1].raw+packet[2].raw/65536.
+            dt= packet[4].raw /64 * ( 1/64.) #has to be fixed
+            children=packet[5].children
+            for i, param in enumerate(children):
+                readouts[i%4].append(param[1])
+                if i%4==0:
+                    read_time.append(dt * int(i/4) +T0)
 
-    l1=StixBSDL1L2Analyzer(db)
-    result_l1=l1.process(77)
 
-    pprint(result_l1)
+        return {'packet_utc':packet_utc,
+                'readouts':readouts,
+                'read_time':read_time,
+                'status':'OK',
+                }
+
+def to_dict(db, record_id):
+    collection_requests=db['data_requests']
+    collection_packets=db['packets']
+    if not collection_requests or not collection_packets:
+        return {'status': 'DB_ERROR'}
+    requests=list(collection_requests.find({'_id':record_id}).limit(1))
+    if not requests:
+        return {'status': 'INVALID_REQUEST_ID'}
+    request=requests[0]
+    SPID=request['SPID']
+    if request['SPID'] not in SUPPORTED_SPIDS:
+        return {'status':'UNSUPPORTED_PACKET'}
+    packet_ids=request['packet_ids']
+    cursor=collection_packets.find({'_id':{'$in':packet_ids}})
+    result={'status':'OK'}
+    if SPID == 54125:
+        analyzer=StixBulkAspectAnalyzer()
+        result=analyzer.merge(cursor)
+    elif SPID == 54114:
+        analyzer=StixBulkL0Analyzer()
+        result=analyzer.merge(cursor)
+    else:
+        analyzer=StixBulkL1L2Analyzer()
+        result=analyzer.merge(cursor)
+    if result:
+        result['packet_ids']=packet_ids
+        result['SPID']=SPID
+    return result
 
 
-main()
+
+
+
+
