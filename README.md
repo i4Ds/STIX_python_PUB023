@@ -1,9 +1,7 @@
 
-## STIX raw data parser
+## STIX Python tools
 
-  A python package allows parsing, browsing and analyzing STIX raw telemetry packets.  
-Parsing of raw binary packets is based on IDB.  
-
+STIX python tools including STIX raw data parser, ior reader, data parser Qt GUI, and STIX data analysis scripts. 
 
 
 

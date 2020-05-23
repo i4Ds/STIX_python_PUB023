@@ -15,11 +15,11 @@ def start(folder=MIB_FOLDER, output=OUTPUT):
     conn = sqlite3.connect('mib.sqlite')
     cur = conn.cursor()
     create_table = open('create_mib.sql', 'r').read()
-    print 'creating database'
+    print('creating database')
     try:
         cur.executescript(create_table)
     except Exception as e:
-        print e
+        print(e)
         raise
 
     for fname in file_list:
@@ -45,7 +45,7 @@ def start(folder=MIB_FOLDER, output=OUTPUT):
             sql = ('''insert into {tb} values ({q})'''.format(
                 tb=name, q=qmark))
             if num != len(cols):
-                print names, cols
+                print(names, cols)
             else:
                 cur.execute(sql, cols)
 
