@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from dateutil import parser as dtparser
 from copy import deepcopy
-MIB_PATH=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'MIB')
+MIB_PATH=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../data/MIB')
 
 
 def to_epoch(time_str, dformat='%Y-%jT%H:%M:%SZ'):

@@ -1,0 +1,20 @@
+HPC1_TC	Version Number	F	3	0		0	H
+HPC1_TC	Type	F	1	3		1	H
+HPC1_TC	DataFieldHeaderFlag	F	1	4		0	H
+HPC1_TC	APID	A	11	5	PH_APID	0	H
+HPC1_TC	Sequence Flags	F	2	16		3	H
+HPC1_TC	Sequence Count	P	14	18	PH_SSC	0	H
+HPC1_TC	Packet Length	P	16	32	PH_LEN	0	H
+NOM_TC	Version Number	F	3	0		0	H
+NOM_TC	Type	F	1	3		1	H
+NOM_TC	DataFieldHeaderFlag	F	1	4		1	H
+NOM_TC	APID	A	11	5	PH_APID	0	H
+NOM_TC	Sequence Flag	F	2	16		3	H
+NOM_TC	Sequence Count	P	14	18	PH_SSC	0	H
+NOM_TC	Packet Length	P	16	32	PH_LEN	0	H
+NOM_TC	Secondary Header Flag	F	1	48		0	H
+NOM_TC	PUS Version	F	3	49		1	H
+NOM_TC	Ack	K	4	52	DFH_ACK	0	H
+NOM_TC	Service Type	T	8	56	DFH_TYPE	0	H
+NOM_TC	Service Subtype	S	8	64	DFH_STPE	0	H
+NOM_TC	Source ID	F	8	72		0	H

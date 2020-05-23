@@ -1,0 +1,6 @@
+DFH_ACK	Ack	U
+DFH_STPE	Service Subtype	U
+DFH_TYPE	Service Type	U
+PH_APID	APID	U
+PH_LEN	Packet Length	U
+PH_SSC	Sequence Count	U

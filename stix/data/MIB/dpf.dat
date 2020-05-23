@@ -1,0 +1,33 @@
+DICA0000	3	SEB/DPM Params
+DICA0100	1	SDM Params
+DICA0200	1	Detector Assembly Params
+DICA0300	1	Slit Change Mechanism Params
+DICA0400	1	Scan Stage Params
+DICA0500	1	Focus Stage Params
+DICA0600	1	FEE Params
+DICA0700	1	HVPS Params
+DICA0800	1	LVPS Params
+DICA0900	1	PDS Params
+DICA1000	1	TCS Params
+DICA1100	3	SPICE Temperatures
+DICA1200	3	RT HK Params
+DICA1300	1	Mechanisms Params
+DICA1500	1	Static HK Params
+DICA2000	3	SPICE Instrument Params
+DICA3000	1	SPICE SpW and Safety Params
+DICA5100	1	Nominal Progress Event Report
+DICA5200	1	Low Severity Event Report
+DICA5300	1	Medium Severity Event Report
+DICA5400	1	High Severity Event Report
+DICADHK0	1	Diagnostic HK Display
+DICAFHK0	1	IPF HK Display
+DICAMCK0	1	Memory Check Report
+DICARHK0	1	RTHK Heaters & Temperatures
+DICARHK1	1	RTHK HV Parameters
+DICARHK2	1	RTHK Mechanism Parameters
+DICARHK3	1	RTHK Miscellaneous Parameters
+DICATM12	1	TM Acceptance Failure Report
+DICATM18	1	TM Execution Failure Report
+DICAUHK0	1	CPU HK Display
+DIPA0001	1	Status Overview
+DQQA1234	3	This is a test
