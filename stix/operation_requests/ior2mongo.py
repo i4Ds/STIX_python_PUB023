@@ -13,7 +13,7 @@ import hashlib
 from datetime import datetime
 from dateutil import parser as dtparser
 import ior2dict
-MIB_PATH = './MIB'
+MIB_PATH=os.path.join(os.path.dirname(os.path.abspath(__file__)), '../data/MIB')
 
 
 def get_now(dtype='unix'):
