@@ -9,9 +9,11 @@ from stix.core import stix_datetime
 from datetime import datetime
 import pymongo
 import json
+import math
 
 
 data_levels={'L0':0, 'L1':1,'L2':2,'L3':3,'Spectrogram':4, 'Aspect':5}
+MAX_DURATION_PER_REQUEST=6550.
 
 def get_uid(start_unix, level):
     start_datetime = stix_datetime.unix2datetime(start_unix)
@@ -159,11 +161,27 @@ def main(_ids, json_filename, server='localhost', port=27017):
                 if detector_mask!=last_detector_mask and pixel_mask!=last_pixel_mask:
                     mask_TCs=form_mask_config_telecommands(detector_mask, pixel_mask)
                     requests['occurrences'].extend(mask_TCs)
-                
-                TC = form_bsd_request(start_unix, level, detector_mask, 0, dt * 10, tbin * 10, emin,
-                                  emax, eunit-1, pixel_mask)
-                requests['occurrences'].append(TC)
-                total_volume += TC['data_volume']
+
+                num_TCs=math.ceil(dt/MAX_DURATION_PER_REQUEST)
+
+                unique_ids=[]
+
+                for i in range(0,num_TCs):
+                    T0=start_unix+i*MAX_DURATION_PER_REQUEST
+                    deltaT=dt-i*MAX_DURATION_PER_REQUEST
+                    if deltaT>MAX_DURATION_PER_REQUEST:
+                        deltaT=MAX_DURATION_PER_REQUEST
+                    TC = form_bsd_request(T0, level, detector_mask, 0, deltaT * 10, tbin * 10, emin,
+                                      emax, eunit-1, pixel_mask)
+                    unique_ids.append(TC['uid'])
+
+                    requests['occurrences'].append(TC)
+                    total_volume += TC['data_volume']
+                    #form['unique_id']=' '.join(unique_ids)
+                    
+
+
+
 
 
                 last_pixel_mask=pixel_mask
