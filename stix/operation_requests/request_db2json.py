@@ -161,7 +161,7 @@ def main(_ids, json_filename, server='localhost', port=27017):
                     requests['occurrences'].extend(mask_TCs)
                 
                 TC = form_bsd_request(start_unix, level, detector_mask, 0, dt * 10, tbin * 10, emin,
-                                  emax, eunit+1, pixel_mask)
+                                  emax, eunit-1, pixel_mask)
                 requests['occurrences'].append(TC)
                 total_volume += TC['data_volume']
 

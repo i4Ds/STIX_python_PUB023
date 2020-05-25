@@ -252,7 +252,7 @@ class IORReader(object):
                         self.get_idb_parameter_name(name, p.attrib['name'])
                     ]
                     if parameter[0] == 'PIX00076':
-                        request['data_request_unique_ids'].append(parameter[1])
+                        request['data_request_unique_ids'].append(int(parameter[1]))
                     occ['parameters'].append(parameter)
 
             occurrences.append(occ)
