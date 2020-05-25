@@ -113,16 +113,22 @@ def form_mask_config_telecommands(detector_mask, pixel_mask):
             },
         ]
 
+def parse_int(text):
+    if '0x' in text:
+        return int(text,0)
+    return int(text)
 
-def main(_ids, json_filename, server='localhost', port=9000):
+
+def main(_ids, json_filename, server='localhost', port=27017):
     try:
         connect = pymongo.MongoClient(server, port)
-        db = self.connect["stix"]
+        db = connect["stix"]
         collection= db['user_data_request_forms']
     except Exception as e:
-        print('can not connect to mongodb')
-        return 
+        print('request')
+        print(str(e))
 
+    print('request2')
     requst_forms = list(collection.find(
             {'_id': {'$in':_ids}}))
     
@@ -134,19 +140,18 @@ def main(_ids, json_filename, server='localhost', port=9000):
         requests = { 'occurrences':  []  }
         for form in requst_forms:
             start_utc = form['start_utc']
-            unix_t0 = stix_datetime.utc2unix(start_utc)
-            unix = unix_t0 + i * dt
+            start_unix= stix_datetime.utc2unix(start_utc)
             level=data_levels[form['request_type']]
+            dt = int(form['duration'])
             TC={}
             if level==5:
-                TC=form_aspect_request(unix_t0, unix_t0+dt, int(form['averaging']))
+                TC=form_aspect_request(start_unix, start_unix+dt, int(form['averaging']))
                 requests['occurrences'].append(TC)
                 
             else:
                 mask_TCs=[]
-                detector_mask =form['detector_mask']
-                pixel_mask = form['pxiel_mask']
-                dt = int(form['duration'])
+                detector_mask=parse_int(form['detector_mask'])
+                pixel_mask= parse_int(form['pixel_mask'])
                 tbin=int(form['time_bin'])
                 emin=int(form['emin'])
                 emax=int(form['emax'])
@@ -155,7 +160,7 @@ def main(_ids, json_filename, server='localhost', port=9000):
                     mask_TCs=form_mask_config_telecommands(detector_mask, pixel_mask)
                     requests['occurrences'].extend(mask_TCs)
                 
-                TC = form_bsd_request(unix_t0, level, detector_mask, 0, dt * 10, tbin * 10, emin,
+                TC = form_bsd_request(start_unix, level, detector_mask, 0, dt * 10, tbin * 10, emin,
                                   emax, eunit+1, pixel_mask)
                 requests['occurrences'].append(TC)
                 total_volume += TC['data_volume']
@@ -174,9 +179,13 @@ def main(_ids, json_filename, server='localhost', port=9000):
 
 
 if __name__ == '__main__':
-    if len(sys.argv)==5:
-        ids=range(int(sys.argv[1]), int(sys.argv[2]))
+    port=9000
+    if len(sys.argv)>=4:
+        ids=[x for x in range(int(sys.argv[1]), int(sys.argv[2]))]
+        if len(sys.argv)==5:
+            port=int(sys.argv[4])
+
         print(ids)
-        main(ids, sys.argv[3], int(sys.argv[4]))
+        main(ids, sys.argv[3], port=port)
     else:
-        print(' run start_id, stop_id, filename, port')
+        print(' run start_id, stop_id, filename.json, port')
