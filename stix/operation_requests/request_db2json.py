@@ -33,9 +33,14 @@ def get_uid(start_unix, level):
 def form_aspect_request(start_unix, stop_unix,summing):
     start_obt = int(stix_datetime.unix2scet(start_unix))
     stop_obt = int(stix_datetime.unix2scet(stop_unix))
+    duration=stop_obt-start_obt
+    tm_packets=math.ceil(8*(64/summing)*duration/4096.)
+
+    volume=8*(64/summing)*duration+26*tm_packets
     return {"name":
                 "AIXF422A",
                 'actionTime':'00:02:00',
+                'data_volume':volume,
                 "parameters": [[
                     "XF422A01",
                     start_obt,
@@ -46,7 +51,7 @@ def form_aspect_request(start_unix, stop_unix,summing):
             }
 
 
-def form_bsd_request(start_unix,
+def form_bsd_request(uid, start_unix,
                  level,
                  detector_mask,
                  tmin,
@@ -57,7 +62,7 @@ def form_bsd_request(start_unix,
                  eunit,
                  pixel_mask=0xfff,
                  action_time='00:00:10'):
-    uid = get_uid(start_unix, level)
+    #uid = get_uid(start_unix, level)
     start_obt = int(stix_datetime.unix2scet(start_unix))
     num_detectors = sum([(detector_mask & (1 << i)) >> i
                          for i in range(0, 32)])
@@ -66,8 +71,14 @@ def form_bsd_request(start_unix,
     T = tmax / tunit
     M = num_detectors
     P = num_pixels
-    E = emax - emin + 1
-    data_volume = 1.1 * T * (M * P * (E + 4) + 16)
+    E = (emax - emin + 1)/(eunit+1)
+    data_volume=0
+    if level == 1:
+        data_volume = 1.1 * T * (M * P * (E + 4) + 16)
+    elif level == 4:
+        data_volume = 1.1 * T * (E + 4)
+        
+
     parameters = [
         ['PIX00076', uid],
         ['PIX00070', level],
@@ -138,6 +149,7 @@ def main(_ids, json_filename, server='localhost', port=27017):
     last_pixel_mask=0
     total_volume=0
 
+    msg=['Author, subject, request_id, data level/type, data volume (kB) ']
     with open(json_filename, 'w') as json_file:
         requests = { 'occurrences':  []  }
         for form in requst_forms:
@@ -145,10 +157,16 @@ def main(_ids, json_filename, server='localhost', port=27017):
             start_unix= stix_datetime.utc2unix(start_utc)
             level=data_levels[form['request_type']]
             dt = int(form['duration'])
+            subject=form['subject']
+            author=form['author']
             TC={}
             if level==5:
                 TC=form_aspect_request(start_unix, start_unix+dt, int(form['averaging']))
+                TC['author']=author
+                TC['subject']=subject
+
                 requests['occurrences'].append(TC)
+                total_volume += TC['data_volume']
                 
             else:
                 mask_TCs=[]
@@ -158,7 +176,7 @@ def main(_ids, json_filename, server='localhost', port=27017):
                 emin=int(form['emin'])
                 emax=int(form['emax'])
                 eunit=int(form['eunit'])
-                if detector_mask!=last_detector_mask and pixel_mask!=last_pixel_mask:
+                if detector_mask!=last_detector_mask or pixel_mask!=last_pixel_mask:
                     mask_TCs=form_mask_config_telecommands(detector_mask, pixel_mask)
                     requests['occurrences'].extend(mask_TCs)
 
@@ -171,21 +189,20 @@ def main(_ids, json_filename, server='localhost', port=27017):
                     deltaT=dt-i*MAX_DURATION_PER_REQUEST
                     if deltaT>MAX_DURATION_PER_REQUEST:
                         deltaT=MAX_DURATION_PER_REQUEST
-                    TC = form_bsd_request(T0, level, detector_mask, 0, deltaT * 10, tbin * 10, emin,
+                    uid=form['unique_id']
+                    TC = form_bsd_request(uid, T0, level, detector_mask, 0, deltaT * 10, tbin * 10, emin,
                                       emax, eunit-1, pixel_mask)
                     unique_ids.append(TC['uid'])
+                    TC['author']=author
+                    TC['subject']=subject
 
                     requests['occurrences'].append(TC)
                     total_volume += TC['data_volume']
                     #form['unique_id']=' '.join(unique_ids)
-                    
-
-
-
-
-
                 last_pixel_mask=pixel_mask
                 last_detector_mask=detector_mask
+
+            msg.append('{},{},{}, {},{}'.format(author, subject, level, TC['uid'],TC['data_volume']/1024.))
 
 
         json_file.write(json.dumps(requests, indent=4))
@@ -193,6 +210,7 @@ def main(_ids, json_filename, server='localhost', port=27017):
         print('Operation requests have been written to ', json_filename)
         print('data volume: {} KB ({} MB)'.format(total_volume / 1024.,
                                                       total_volume / (1024 * 1024)))
+        print('\n'.join(msg))
 
 
 

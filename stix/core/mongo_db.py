@@ -171,7 +171,6 @@ class MongoDB(object):
                     'sbspec_formats' in doc) and 'analysis_report' not in doc
             ]
         return []
-    def get_user_data_request_forms(self, ids):
 
 
 
