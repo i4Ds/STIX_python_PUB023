@@ -5,7 +5,7 @@ try:
     collection_packets = db['packets']
     collection_raw_files = db['raw_files']
     collection_calibration = db['calibration_runs']
-    collection_qllc= db['ql_lightcurves']
+    collection_ql= db['quick_look']
     print('creating indexes for runs')
     if collection_raw_files:
         indexes=[[('file',1)],[('date',1)]]
@@ -15,13 +15,13 @@ try:
     if collection_calibration:
         indexes=[[('duration',1)],[('start_unix_time',1)],[('run_id',1)]]
         for index in indexes:
-            collection_raw_files.create_index(index)
+            collection_calibration.create_index(index)
 
-    print('creating indexes for lightcurves')
-    if collection_qllc:
-        indexes=[[('duration',1)],[('start_unix_time',1)]]
+    print('creating indexes for quicklook')
+    if collection_ql:
+        indexes=[[('duration',1)],[('start_unix_time',1)],[('SPID',1)]]
         for index in indexes:
-            collection_raw_files.create_index(index)
+            collection_ql.create_index(index)
 
 
     print('creating indexes for packets')

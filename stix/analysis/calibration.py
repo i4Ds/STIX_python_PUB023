@@ -28,8 +28,8 @@ from ROOT import TGraph, TFile, TCanvas, TH1F, gROOT, TBrowser, gSystem, TH2F, g
 
 
 
-FIT_MIN_X=250
-FIT_MAX_X=529
+FIT_MIN_X=252
+FIT_MAX_X=448
 MAX_ALLOWED_SIGMA_ERROR = 20  #maximum allowed peak error
 ENERGY_CONVERSION_FACTOR=2.3 
 MIN_COUNTS=100
@@ -99,24 +99,6 @@ def rebin(spec, h, offset, slope):
 
 
 
-"""
-def sub_bkg(spec):
-    #subtract background using ROOT
-    #returns:
-    #   background spectrum, bkg subtracted spectrum
-    bkg=array('d',spec)
-    s=TSpectrum()
-    nbins=len(spec)
-    back_decreasing_window=1
-    back_order_2=0
-    back_smoothing=3
-    num_interations=6
-    s.Background(bkg, nbins, num_interations, back_decreasing_window, 
-            back_order_2, False, back_smoothing, False)
-    bkgsub=np.array(spec)-np.array(bkg)
-    return bkg,  bkgsub.tolist()
-
-"""
 
 
 def graph_errors(x,y,ex,ey, title, xlabel="x", ylabel="y"):
@@ -136,22 +118,6 @@ def graph2(x, y, title="", xlabel="x", ylabel="y"):
     g.SetTitle(title)
     
     return g
-#def graph(y):
-#    n=len(y)
-#    x = range(0,n)
-#    g = TGraph(n, array('d', x), array('d', y))
-#    return g
-#
-#
-#def hist(x, y, title, xlabel, ylabel):
-#    h2 = TH1F("h%d" % k, "%s; %s; %s" % (title, xlabel, ylabel), len(x), min(x), max(x))
-#    for i, val in enumerate(y):
-#        h2.SetBinContent(i + 1, val)
-#    h2.GetXaxis().SetTitle(xlabel)
-#    h2.GetYaxis().SetTitle(ylabel)
-#    h2.SetTitle(title)
-#    return h2
-
 def heatmap(arr, htitle, title, xlabel='detector', ylabel='pixel', zlabel='value'):
     h2=TH2F(title, '{};{};{};{}'.format(title,xlabel, ylabel, zlabel),  32, 0, 32, 12, 0, 12)
     for i in range(0,32):
