@@ -23,8 +23,7 @@ class MongoDB(object):
         self.collection_packets = None
         self.collection_raw_files = None
         self.collection_calibration = None
-        self.collection_qllc = None
-        self.collection_qlbkg = None
+        self.collection_ql= None
         try:
             if server == 'localhost' and user == '' and pwd == '':
                 self.connect = pymongo.MongoClient(server, port)
@@ -38,8 +37,7 @@ class MongoDB(object):
             self.collection_packets = self.db['packets']
             self.collection_raw_files = self.db['raw_files']
             self.collection_calibration = self.db['calibration_runs']
-            self.collection_qllc = self.db['ql_lightcurves']
-            self.collection_qlbkg = self.db['ql_background']
+            self.collection_ql= self.db['quick_look']
             self.collection_data_requests= self.db['data_requests']
 
         except Exception as e:
@@ -100,11 +98,8 @@ class MongoDB(object):
         if self.collection_calibration:
             cursor = self.collection_calibration.delete_many(
                 {'run_id': int(run_id)})
-        if self.collection_qllc:
-            cursor = self.collection_qllc.delete_many({'run_id': int(run_id)})
-
-        if self.collection_qlbkg:
-            cursor = self.collection_qlbkg.delete_many({'run_id': int(run_id)})
+        if self.collection_ql:
+            cursor = self.collection_ql.delete_many({'run_id': int(run_id)})
         if self.collection_data_requests:
             cursor = self.collection_data_requests.delete_many({'run_id': int(run_id)})
 

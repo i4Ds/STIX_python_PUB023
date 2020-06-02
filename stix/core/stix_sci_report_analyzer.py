@@ -50,6 +50,8 @@ class StixCalibrationReportAnalyzer(object):
         if not self.db_collection:
             return
         packet = sdt.Packet(pkt)
+        if not packet['parameters']:
+            return
         if packet.SPID != 54124:
             return
 
@@ -239,9 +241,16 @@ class  StixUserDataRequestReportAnalyzer(object):
         packet = sdt.Packet(pkt)
         if packet.SPID not in DATA_REQUEST_REPORT_SPIDS:
             return
+        if not packet['parameters']:
+            return
         if packet.SPID == 54125: 
             #aspect data
-            self.process_aspect(run_id,packet_id,packet)
+            try:
+                self.process_aspect(run_id,packet_id,packet)
+            except Exception as e:
+                logger.warning('Can not parse aspect packet #{} in file #{}'.format(packet_id, run_id))
+                #print(str(e))
+                #print(packet)
         else:
             self.process_bulk_science(run_id,packet_id,packet)
     def process_bulk_science(self, run_id,packet_id,packet):
@@ -276,12 +285,6 @@ class  StixUserDataRequestReportAnalyzer(object):
 
         self.last_unique_id=unique_id
         self.last_request_spid=packet['SPID']
-            
-
-
-        
-
-
     def process_aspect(self,run_id,packet_id,packet):
         start_obt=packet[1].raw+packet[2].raw/65536
         summing=packet[3].raw
@@ -294,8 +297,6 @@ class  StixUserDataRequestReportAnalyzer(object):
         self.packet_ids.append(packet_id)
 
         end_time=start_obt+duration
-
-
 
         if packet['seg_flag'] in [2, 3]:
             #the last or standalone

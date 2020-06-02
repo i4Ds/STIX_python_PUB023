@@ -19,7 +19,7 @@ try:
 
     print('creating indexes for quicklook')
     if collection_ql:
-        indexes=[[('duration',1)],[('start_unix_time',1)],[('SPID',1)]]
+        indexes=[[('stop_unix_time',1)],[('start_unix_time',1)],[('SPID',1)]]
         for index in indexes:
             collection_ql.create_index(index)
 
