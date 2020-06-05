@@ -100,6 +100,56 @@ def form_bsd_request(uid, start_unix,
         'data_volume': data_volume,
         'parameters': parameters
     }
+def form_bsd_request_sequence(uid, start_unix,
+                 level,
+                 detector_mask,
+                 tmin,
+                 tmax,
+                 tunit,
+                 emin,
+                 emax,
+                 eunit,
+                 pixel_mask=0xfff,
+                 action_time='00:00:10'):
+    #uid = get_uid(start_unix, level)
+    start_obt = int(stix_datetime.unix2scet(start_unix))
+    num_detectors = sum([(detector_mask & (1 << i)) >> i
+                         for i in range(0, 32)])
+    num_pixels = sum([((pixel_mask & (1 << i)) >> i) for i in range(0, 12)])
+    #print(num_detectors, num_pixels)
+    T = tmax / tunit
+    M = num_detectors
+    P = num_pixels
+    E = (emax - emin + 1)/(eunit+1)
+    data_volume=0
+    if level == 1:
+        data_volume = 1.1 * T * (M * P * (E + 4) + 16)
+    elif level == 4:
+        data_volume = 1.1 * T * (E + 4)
+        
+
+    parameters = [
+        ['XF417B01', uid],
+        ['XF417B02', level],
+        ['XF417B03', start_obt],
+        ['XF417B04', 0],  #subseconds
+        ['XF417B05', "0x%X" % detector_mask],
+        #['PIX00071', 1],  #number of structure
+        ['XF417B06', tmin],
+        ['XF417B07', tmax],
+        ['XF417B08', tunit],
+        ['XF417B09', emin],
+        ['XF417B10', emax],
+        ['XF417B11', eunit]
+    ]
+    return {
+        'name': 'AIXF417B',
+        'actionTime': action_time,
+        'uid': uid,
+        'data_volume': data_volume,
+        'parameters': parameters
+    }
+
 
 def form_mask_config_telecommands(detector_mask, pixel_mask):
     return [{
@@ -159,12 +209,12 @@ def main(_ids, json_filename, server='localhost', port=27017):
             dt = int(form['duration'])
             subject=form['subject']
             author=form['author']
-            TC={}
             if level==5:
                 TC=form_aspect_request(start_unix, start_unix+dt, int(form['averaging']))
                 TC['author']=author
                 TC['subject']=subject
 
+                TC['uid']=None
                 requests['occurrences'].append(TC)
                 total_volume += TC['data_volume']
                 
@@ -190,7 +240,7 @@ def main(_ids, json_filename, server='localhost', port=27017):
                     if deltaT>MAX_DURATION_PER_REQUEST:
                         deltaT=MAX_DURATION_PER_REQUEST
                     uid=form['unique_id']
-                    TC = form_bsd_request(uid, T0, level, detector_mask, 0, deltaT * 10, tbin * 10, emin,
+                    TC = form_bsd_request_sequence(uid, T0, level, detector_mask, 0, deltaT * 10, tbin * 10, emin,
                                       emax, eunit-1, pixel_mask)
                     unique_ids.append(TC['uid'])
                     TC['author']=author

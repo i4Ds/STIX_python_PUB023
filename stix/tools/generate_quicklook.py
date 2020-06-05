@@ -90,7 +90,7 @@ stix=connect['stix']
 
 ql=StixQuickLookReportAnalyzer(stix['quick_look'])
 db=stix['packets']
-cur=db.find({'header.SPID':{'$in':[54118,54119,54120,54120]}, 'run_id':{'$gt':113}}).sort('_id',1)
+cur=db.find({'header.SPID':{'$in':[54118,54119,54120,54121]}, 'run_id':{'$gt':113}}).sort('_id',1)
 
 for pkt in cur:
     ql.capture(pkt)
