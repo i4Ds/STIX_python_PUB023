@@ -114,7 +114,8 @@ def read_printouts(filename):
     return occurrences
 
 
-def equal(param1, param2):
+
+def are_parameters_equal(param1, param2):
     if param1[4] != param2[0]:
         return False
     value1 = param1[1]
@@ -135,8 +136,9 @@ def equal(param1, param2):
             return False
 
 
+
 def check_parameters(params1, params2, rows):
-    dismatches = []
+    mismatches = []
 
     for p1 in params1:
         if not p1:
@@ -149,17 +151,17 @@ def check_parameters(params1, params2, rows):
         for p2 in params2:
             row[4] = p2[0]
             row[5] = p2[3]
-            if equal(p1, p2):
+            if are_parameters_equal(p1, p2):
                 match = True
                 break
         if not match:
             row[7] += '<span class="error">invalid</span>'
-            dismatches.append(p1[4])
+            mismatches.append(p1[4])
         else:
             row[7] += '<span class="ok">valid</span>'
         rows.append(row)
 
-    return dismatches
+    return mismatches
 
 
 def to_seconds(action_time):
@@ -194,12 +196,18 @@ def check_timestamps(occ_time, pro_time):
 
 def check_occurrence(i, occ, printouts, row):
     pro = None
+    info('checking #{}: {}'.format(i, occ['name']))
     while True:
         pro = printouts.pop(0)
-        if 'ZIX' in pro['name']:
+        if 'ZIX' in pro['name'] or 'AIX' in pro['seq']:
+            #skip platform telecommands
             break
+        else:
+            info('Ignored TC in printouts:{}/{}'.format(pro['name'],pro['seq']))
+            
 
     row[4] = pro['name']
+    info('checking #{}: {}'.format(i, pro['name']))
 
     status = 'ok'
     if not check_timestamps(occ['actionTime'], pro['duration']):
@@ -208,7 +216,7 @@ def check_occurrence(i, occ, printouts, row):
     row[6] = '<span class="{};" >{}</span>'.format(status, pro['duration'])
     param_rows = []
 
-    if pro['name'] == occ['name']:
+    if pro['name'] == occ['name'] or pro['seq']==occ['name']:
         row[7] = '<span class="ok" >valid</span>'
         paramter_mismatches = check_parameters(occ['parameters'],
                                                pro['parameters'], param_rows)
@@ -218,7 +226,7 @@ def check_occurrence(i, occ, printouts, row):
         else:
             success('{} validated'.format(occ['name']))
     else:
-        error('{} are not the same '.format(pro['name']))
+        error('In PDOR cmd {} is not the same as in printout:  {} - {}  '.format(occ['name'],pro['name'], pro['seq']))
         row[7] = '<span class="error" >Two telecommands are not the same</span>'
     return param_rows
 
@@ -240,7 +248,7 @@ def validate_pdor_printout(pdor_filename, printout_filename):
     param_rows=[]
     for i, occ in enumerate(pdors['occurrences']):
         row = [i, occ['name'], occ['desc'], occ['actionTime'], '', '', '', '']
-        if 'ZIX' not in occ['name']:
+        if 'ZIX' not in occ['name'] and 'AIX' not in occ['name']:
             success('Platform command {} ignored'.format(occ['name']))
             row[7] = 'Platform command ignored'
         else:

@@ -25,6 +25,7 @@ from stix.core import stix_datatypes as sdt
 from stix.core import mongo_db  as db
 from ROOT import TGraph, TFile, TCanvas, TH1F, gROOT, TBrowser, gSystem, TH2F, gPad, TF1, TGraphErrors, gStyle, TSpectrum, gRandom, TPaveLabel
 
+from scipy.interpolate import interp1d
 
 
 
@@ -96,11 +97,19 @@ def find_peaks2(detector, pixel, subspec, start, num_summed, spec, fo, pdf):
 def rebin(spec, h, offset, slope):
     pass
 
+def interp(xvals,yvals,xnew):
+    f2=interp1d(xvals, yvals)
+    min_x=min(xvals)
+    max_x=max(xvals)
+    vals=[]
+    for x in xnew:
+        if x<min_x or x>max_x:
+            vals.append(0)
+        else:
+            vals.append(f2(x))
+    return vals
 
-
-
-
-
+    
 def graph_errors(x,y,ex,ey, title, xlabel="x", ylabel="y"):
     n = len(x)
     g = TGraphErrors(n, array('d', x), array('d', y), array('d',ex), array('d',ey))
@@ -116,7 +125,6 @@ def graph2(x, y, title="", xlabel="x", ylabel="y"):
     g.GetXaxis().SetTitle(xlabel)
     g.GetYaxis().SetTitle(ylabel)
     g.SetTitle(title)
-    
     return g
 def heatmap(arr, htitle, title, xlabel='detector', ylabel='pixel', zlabel='value'):
     h2=TH2F(title, '{};{};{};{}'.format(title,xlabel, ylabel, zlabel),  32, 0, 32, 12, 0, 12)
@@ -134,13 +142,6 @@ def get_subspec(x, y, xmin, xmax):
             a.append(ix)
             b.append(iy)
     return a,b
-
-def add_test_background(spectrum):
-    bkg=TF1("fbkg","0.5e3*exp(-x/400)",0,1024);
-    s=[]
-    for i in range(0,len(spectrum)):
-        spectrum[i]=(spectrum[i]+bkg.Eval(i)+gRandom.Uniform(10));
-
 
 
 def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
@@ -302,14 +303,11 @@ def analyze(calibration_id, output_dir='./'):
     canvas.Print(pdf+'[')
     canvas.Divide(3,2)
     last_plots=None
-
     for spec in spectra:
         if sum(spec[5]) <MIN_COUNTS_PEAK_FIND:
             continue
         detector=spec[0]
         pixel=spec[1]
-
-
         sbspec_id=spec[2]
         start=spec[3]
         num_summed=spec[4]
@@ -324,6 +322,8 @@ def analyze(calibration_id, output_dir='./'):
         par,plots=find_peaks(detector, pixel, sbspec_id,  start, num_summed,  spectrum, f)
         if not par and not plots:
             continue
+        
+
 
 
 
@@ -358,13 +358,11 @@ def analyze(calibration_id, output_dir='./'):
 
 
         report['fit_parameters'].append(par)
+
         if par:
             if 'fcal' in par:
                 slope[detector][pixel]=par['fcal']['p1']
                 offset[detector][pixel]=par['fcal']['p0']
-
-
-
 
 
 
@@ -379,8 +377,57 @@ def analyze(calibration_id, output_dir='./'):
             slope1d.append(slope[det][pix])
             offset1d.append(offset[det][pix])
 
+
+    #do calibration
+    sum_spectra={}
+    cc=TCanvas()
+    xvals=[]
+    for spec in spectra:
+        if sum(spec[5]) <MIN_COUNTS_PEAK_FIND:
+            continue
+        detector=spec[0]
+        pixel=spec[1]
+        sbspec_id=spec[2]
+        spectrum=spec[5]
+        start=spec[3]
+        num_summed=spec[4]
+        num_points=len(spectrum)
+        end=start+num_summed*num_points
+        if slope[detector][pixel]>0 and offset[detector][pixel]>0:
+            energies=(np.linspace(start, end-num_summed, num_points)-offset[detector][pixel])/slope[detector][pixel]
+            
+            if sbspec_id not in sum_spectra:
+                min_energy= (start- offset[detector][pixel] )/slope[detector][pixel] *0.8
+                max_energy= (end - offset[detector][pixel] )/slope[detector][pixel] *1.2
+                xvals=np.linspace(min_energy, max_energy, int((num_points+1)*1.4))
+                sum_spectra[sbspec_id]=[[],[]]
+                sum_spectra[sbspec_id][0]=xvals
+                sum_spectra[sbspec_id][1]=np.zeros(len(xvals))
+
+            yvals=interp(energies, np.array(spectrum), xvals)
+            sum_spectra[sbspec_id][1]+=yvals
+
+            #cc.cd(1)
+            #g_cali1=graph2(energies, spectrum, 'calibrated spectrum {} {} {}'.format(sbspec_id, detector, pixel),
+            #        ' Energy (keV) ', 'Counts')
+            #g_cali1.Draw("ALP")
+            cc.cd()
+            g_cali2=graph2(xvals,yvals, 'calibrated spectrum {} {} {}'.format(sbspec_id, detector, pixel),
+                    ' Energy (keV) ', 'Counts')
+            g_cali2.Draw("ALP")
+            cc.Print(pdf)
+            
+
+    
+    calibrated_sum_spectrum={}
+    for key, val in sum_spectra.items(): #mongodb doesn't support array
+        calibrated_sum_spectrum['sbspec-{}'.format(key)]=[v.tolist() for v in sum_spectra[key]] 
+
+
     report['slope']=slope1d
     report['offset']=offset1d
+    report['sum_spectra']=calibrated_sum_spectrum
+    #calibrated sum spectra
     
     mdb.update_calibration_analysis_report(calibration_id, report)
 

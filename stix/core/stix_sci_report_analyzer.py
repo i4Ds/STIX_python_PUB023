@@ -6,13 +6,13 @@ from . import stix_logger
 logger = stix_logger.get_logger()
 DATA_REQUEST_REPORT_SPIDS=[54114, 54115, 54116,54117, 54143, 54125]
 DATA_REQUEST_REPORT_NAME={54114:'L0', 54115:'L1',54116:'L2', 54117:'L3', 54143:'L4', 54125:'ASP'}
-
+QL_REPORT_SPIDS=[54118, 54119, 54121,54120, 54122]
 class StixScienceReportAnalyzer(object):
     def __init__(self, db):
         self.calibration_analyzer = StixCalibrationReportAnalyzer(
             db['calibration_runs'])
         self.ql_analyzer = StixQuickLookReportAnalyzer(db['quick_look'])
-        self.user_request_analyzer=StixUserDataRequestReportAnalyzer(db['data_requests'])
+        self.user_request_analyzer=StixUserDataRequestReportAnalyzer(db['bsd'])
 
     def start(self, run_id, packet_id, packet):
         self.calibration_analyzer.capture(run_id, packet_id, packet)
@@ -170,7 +170,7 @@ class StixQuickLookReportAnalyzer(object):
         if not self.db_collection:
             return
         packet = sdt.Packet(pkt)
-        if packet.SPID not in [54118, 54119, 54121,54120]:
+        if packet.SPID not in QL_REPORT_SPIDS:
             return
 
         start_coarse_time=0
@@ -196,6 +196,10 @@ class StixQuickLookReportAnalyzer(object):
             points=packet[13].raw
         elif packet.SPID==54120:
             points=packet[14].raw
+        elif packet.SPID==54122:
+            points=packet[4].raw
+            #flare flag report
+    
 
 
         duration = points * 0.1 * (integrations + 1)
@@ -301,7 +305,6 @@ class  StixUserDataRequestReportAnalyzer(object):
         if packet['seg_flag'] in [2, 3]:
             #the last or standalone
             if self.db:
-
                 report={
                         'start_unix_time':stix_datetime.scet2unix(self.start_obt_time),
                         'end_unix_time':stix_datetime.scet2unix(end_time),

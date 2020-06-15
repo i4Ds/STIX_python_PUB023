@@ -1,5 +1,5 @@
 from pprint import pprint
-f=open('MIB/css.dat')
+f=open('stix/data/MIB/css.dat')
 lines=f.readlines()
 output={}
 last_seq=''
