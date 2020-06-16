@@ -1314,9 +1314,17 @@ class StixTCTMParser(StixParameterParser):
     def is_processed(self, filename):
         return self.packet_writer.is_processed(filename)
 
+    
+
     def done(self):
+        '''
+            write a summary to MongoDB
+            return the summary if success otherwise return None 
+
+        '''
         if self.packet_writer:
-            self.packet_writer.close()
+            return self.packet_writer.close()
+        return None
 
     def set_verbose_level(self, verbose_level):
         logger.set_level(verbose_level)

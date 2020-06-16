@@ -16,3 +16,7 @@ daemon={
         'log_path': '/opt/stix/log/',
         'alert_log': '/opt/stix/log/stix_alerts.log'
         }
+
+calibration={
+        'report_path':'/data/'
+        }

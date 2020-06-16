@@ -267,11 +267,9 @@ class StixMongoDBWriter(StixPacketWriter):
         self.ipacket += 1
 
     def close(self):
-        #it has to be called at the end
-
         if not self.collection_raw_files:
             logger.warning('MongoDB is not initialized ')
-            return
+            return None
         logger.info('{} packets have been inserted into MongoDB'.format(
             self.ipacket))
         run = self.collection_raw_files.find_one({'_id': self.inserted_run_id})
@@ -288,8 +286,6 @@ class StixMongoDBWriter(StixPacketWriter):
             self.collection_raw_files.save(run)
             logger.info('File info updated successfully.')
             logger.info('File ID:{}'.format(run['_id']))
-
-
-
-        else:
-            logger.error('File info not updated.')
+            return run
+        logger.error('File info not updated.')
+        return None

@@ -274,7 +274,7 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
     
 
 
-def analyze(calibration_id, output_dir='./'):
+def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
     data=mdb.get_calibration_run_data(calibration_id)[0]
     if not data:
         print("Calibration run {} doesn't exist".format(calibration_id))
@@ -470,7 +470,7 @@ def daemon():
         calibration_run_ids=mdb.get_calibration_runs_for_processing()
         print(calibration_run_ids)
         for run_id in calibration_run_ids:
-            analyze(run_id, DEFAULT_OUTPUT_DIR)
+            analyze(run_id)
         print('waiting for new data...')
         time.sleep(600)
 
