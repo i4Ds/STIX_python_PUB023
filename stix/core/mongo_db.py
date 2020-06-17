@@ -38,7 +38,7 @@ class MongoDB(object):
             self.collection_raw_files = self.db['raw_files']
             self.collection_calibration = self.db['calibration_runs']
             self.collection_ql= self.db['quick_look']
-            self.collection_data_requests= self.db['data_requests']
+            self.collection_data_requests= self.db['bsd']
 
         except Exception as e:
             print('Error occurred while initializing mongodb: {}'.format(

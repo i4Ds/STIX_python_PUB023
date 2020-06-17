@@ -313,21 +313,12 @@ def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
         num_summed=spec[4]
         end=start+num_summed*len(spec[5])
         spectrum=spec[5]
-
-
         if start >FIT_MAX_X  or end<FIT_MIN_X:
             #break
             continue
-
         par,plots=find_peaks(detector, pixel, sbspec_id,  start, num_summed,  spectrum, f)
         if not par and not plots:
             continue
-        
-
-
-
-
-
         if last_plots:
             canvas.cd(1)
         
@@ -352,20 +343,12 @@ def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
             last_plots=[]
         else:
             last_plots=plots
-
-
-    
-
-
         report['fit_parameters'].append(par)
 
         if par:
             if 'fcal' in par:
                 slope[detector][pixel]=par['fcal']['p1']
                 offset[detector][pixel]=par['fcal']['p0']
-
-
-
     report['pdf']=pdf
     report['elut']=compute_elut(offset,slope)
 
@@ -404,13 +387,9 @@ def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
                 sum_spectra[sbspec_id][0]=xvals
                 sum_spectra[sbspec_id][1]=np.zeros(len(xvals))
 
-            yvals=interp(energies, np.array(spectrum), xvals)
+            yvals=interp(energies, np.array(spectrum)/num_summed, xvals)
             sum_spectra[sbspec_id][1]+=yvals
 
-            #cc.cd(1)
-            #g_cali1=graph2(energies, spectrum, 'calibrated spectrum {} {} {}'.format(sbspec_id, detector, pixel),
-            #        ' Energy (keV) ', 'Counts')
-            #g_cali1.Draw("ALP")
             cc.cd()
             g_cali2=graph2(xvals,yvals, 'calibrated spectrum {} {} {}'.format(sbspec_id, detector, pixel),
                     ' Energy (keV) ', 'Counts')
@@ -419,14 +398,21 @@ def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
             
 
     
-    calibrated_sum_spectrum={}
+    sub_sum_spec={}
+
+    points=1000
+    energy_range=np.linspace(0,450, points)
+    sbspec_sum=np.zeros(points)
     for key, val in sum_spectra.items(): #mongodb doesn't support array
-        calibrated_sum_spectrum['sbspec-{}'.format(key)]=[v.tolist() for v in sum_spectra[key]] 
+        sub_sum_spec['sbspec - {}'.format(key)]=[v.tolist() for v in sum_spectra[key]] 
+        sbspec_sum+=interp(sum_spectra[key][0],sum_spectra[key][1], energy_range)
+
+    sub_sum_spec['sbspec sum']=[energy_range.tolist(),sbspec_sum.tolist()]
 
 
     report['slope']=slope1d
     report['offset']=offset1d
-    report['sum_spectra']=calibrated_sum_spectrum
+    report['sum_spectra']=sub_sum_spec
     #calibrated sum spectra
     
     mdb.update_calibration_analysis_report(calibration_id, report)
@@ -487,4 +473,5 @@ if __name__=='__main__':
         if len(sys.argv)>=3:
             output_dir=sys.argv[2]
         analyze(int(sys.argv[1]), output_dir)
+
 
