@@ -31,6 +31,7 @@ try:
                 [('run_id',1)],[('TMTC',1)]]
         for index in indexes:
             collection_packets.create_index(index)
+    connect.close()
 
 except Exception as e:
     print(e)

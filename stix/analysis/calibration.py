@@ -400,8 +400,8 @@ def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
     
     sub_sum_spec={}
 
-    points=1000
-    energy_range=np.linspace(0,450, points)
+    points=1150
+    energy_range=np.linspace(-10,450, points)
     sbspec_sum=np.zeros(points)
     for key, val in sum_spectra.items(): #mongodb doesn't support array
         sub_sum_spec['sbspec - {}'.format(key)]=[v.tolist() for v in sum_spectra[key]] 
