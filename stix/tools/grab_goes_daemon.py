@@ -1,3 +1,15 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+""" goes x-ray flux grabber
+    workflow:
+    1) grab GOES x-ray flux data 
+    2) extract start time and stop time information
+    3) write the indexing information to mongo db and write the data to disk
+
+    Author: Hualin Xiao
+    Date: 2020-06-18
+"""
 import sys
 import os
 import json
@@ -54,7 +66,6 @@ def import_data(filename):
     with open(filename) as f:
         data=json.loads(f.read())
         save_geos(data)
-
 
 def loop():
     while True:
