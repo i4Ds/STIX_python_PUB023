@@ -174,7 +174,7 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
     peak3_xmax=peak1_x+ 1.1*x_shift
 
     # max conversion factor = 2.5 ADC/keV
-    fit_range_x_left=15
+    fit_range_x_left=5
     fit_range_x_right=15
     fit_range_peak3_x_left=3
 

@@ -16,9 +16,10 @@ import json
 import time
 import requests
 import pymongo
+from datetime import datetime
 from dateutil import parser as dtparser
 
-GEOS_DATA_DIRECTORY='/opt/stix/geos'
+GEOS_DATA_DIRECTORY='/opt/stix/goes'
 
 def utc2unix(utc):
     if isinstance(utc, str):
@@ -32,9 +33,14 @@ def utc2unix(utc):
         return utc
     else:
         return 0
-def save_geos(data):
+def save_geos(data, filename=None):
+    
     utc_now= datetime.utcnow()
-    filename=utc_now.strftime('%Y%m%d%H%M.json')
+    if not filename:
+        filename=os.path.join(GEOS_DATA_DIRECTORY, utc_now.strftime('%Y%m%d%H%M.json'))
+        with open(filename,'w') as f:
+            f.write(json.dumps(data))
+    
     start_unix=utc2unix(data[0]['time_tag'])
     end_unix=utc2unix(data[-1]['time_tag'])
     print(start_unix,end_unix,filename)
@@ -45,27 +51,27 @@ def save_geos(data):
     abspath = os.path.abspath(filename)
     path = os.path.dirname(abspath)
     doc={'creation_time':utc_now,
-        'filename':basename,
+        'filename':base_name,
         'path':path,
         'start_unix':start_unix,
         'stop_unix':end_unix
         }
-    collection_goes.save(doc)
+    print(doc)
+    _id=collection_goes.insert(doc)
+    #print('inserted {}.'.format(_id))
     connect.close()
 
 
 def download_7_day_data():
     url='http://services.swpc.noaa.gov/json/goes/primary/xrays-7-day.json'
-    print('downloading data...')
     r = requests.get(url)
-    print('to json...')
     data=r.json()
-    save_geos(data)
+    save_geos(data, None)
 
 def import_data(filename):
     with open(filename) as f:
         data=json.loads(f.read())
-        save_geos(data)
+        save_geos(data, filename)
 
 def loop():
     while True:

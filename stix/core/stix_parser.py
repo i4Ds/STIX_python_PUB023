@@ -6,12 +6,12 @@
 #               STIX telemetry raw data parser
 # @TODO
 #              add checks for CRC for TC packets
-import math
 import os
 import re
 import struct as st
 import binascii
 import pathlib
+import math
 from pprint import pprint
 import xmltodict
 from scipy import interpolate
@@ -36,7 +36,7 @@ SCET_PARAMETERS = [
     'PIX0022', 'PIX0025', 'PIX0026', 'PIX00086', 'PIX00087', 'PIX00009'
 ]
 
-PARMETERS_CALIBRATION_ENABLED = ['NIX00101', 'NIX00102']
+PARMETERS_CALIBRATION_ENABLED = ['NIX00101', 'NIX00102', 'NIX00125']
 PARMETERS_CALIBRATION_ENABLED.extend(SCET_PARAMETERS)
 
 STIX_IDB = stix_idb.stix_idb()
@@ -226,7 +226,9 @@ class StixParameterParser(object):
             if ref:
                 return STIX_IDB.tcparam_interpret(ref, raw_value)
             return ''
-        #elif param_name == 'NIX00101':
+        if param_name == 'NIX00125': #temperature calibration factors, parameter from Richard on June 22, 2020
+            x=math.log(12000.*raw_value/(4095-raw_value))
+            return round(1/(9.27e-4+2.34e-4*x+ 9.09e-7*x*x+1.04e-7*x*x*3)-273.15,2)
         #conversion based on the equation in SIRIUS source code
         #    return (raw_value * 1.1 * 3.0 / 4095 - 1.281) * 213.17
         #elif param_name == 'NIX00102':
@@ -518,7 +520,7 @@ class StixVariableTelemetryPacketParser(StixParameterParser):
         if name in PARMETERS_CALIBRATION_ENABLED:
             calibration_enabled = True
 
-        #Don't convert raw to eng for variable length packets
+        #Don't convert raw to eng for variable length packets except those in the list
         return self.decode_parameter(self.buffer, name, offset, offset_bits,
                                      width, ptc, pfc, cal_ref, 'TM',
                                      calibration_enabled)
