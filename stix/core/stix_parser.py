@@ -55,20 +55,26 @@ def detect_filetype(filename):
     extension = pathlib.Path(filename).suffix
     ext = extension[1:]
 
-    if ext in ('xml', 'ascii', 'bin', 'hex'):
+    if ext in ('ascii', 'bin', 'hex'):
         return ext
     elif ext in ('binary', 'raw', 'BDF', 'dat'):
         return 'bin'
     try:
         fin = open(filename, 'r')
         buf = fin.read(1024).strip()
-        data = re.sub(r"\s+", "", buf)
-        filetype = 'hex'
-        for c in data:
-            if c not in HEX_SPACE:
-                filetype = 'ascii'
-                #possibly ASCII
-                break
+        if ext == 'xml':
+            if 'PktTcReportResponse' in buf:
+                filetype='xml.tc.hist' 
+            elif 'PktRawResponse' in buf:
+                filetype='xml.tm.raw'
+        if not filetype:
+            data = re.sub(r"\s+", "", buf)
+            filetype = 'hex'
+            for c in data:
+                if c not in HEX_SPACE:
+                    filetype = 'ascii'
+                    #possibly ASCII
+                    break
     except UnicodeDecodeError:
         filetype = 'bin'
     finally:
@@ -997,11 +1003,12 @@ class StixTCTMParser(StixParameterParser):
         #set list as its children
         param_obj.set_children(hb_param_children)
 
-    def parse_binary(self, buf, i=0):
+    def parse_binary(self, buf, i=0, header_auxiliary=None):
         """
         Inputs:
             buffer, i.e., the input binary array
             i: starting offset
+            header_auxiliary: information attached to header, it must a dictionary
         Returns:
             decoded packets in python list if ret_packets=True
         """
@@ -1100,12 +1107,10 @@ class StixTCTMParser(StixParameterParser):
                     buf, i, data_field_length)
                 if status == stix_global.EOF:
                     break
-
                 if self.selected_services:
                     if header['service_type'] not in self.selected_services:
                         self.inc_counter('num_filtered')
                         continue
-
                 telecommand_name = header['name']
                 num_read, parameters, status = self.tc_parser.parse(
                     telecommand_name, data_field_raw)
@@ -1124,7 +1129,9 @@ class StixTCTMParser(StixParameterParser):
                         'service_type'] == 5 and header['service_subtype'] > 1:
                     self.instrument_message.append(header)
                     #used for instrument health tracking
-
+                if header_auxiliary:
+                    for key, val in header_auxiliary.items():
+                        header[key]=val
                 packet = {'header': header, 'parameters': parameters}
                 self.inc_counter('num_tc_parsed')
                 if self.store_binary:
@@ -1229,7 +1236,45 @@ class StixTCTMParser(StixParameterParser):
                 pkt_header['UTC'] = stix_datetime.unix2utc(
                     pkt_header['unix_time'])
 
-    def parse_moc_xml(self, raw_filename):
+    def parse_telecommand_report_xml(self, filename):
+        #parse TC history 
+        #raw data should be included in the xml file
+        packets = []
+        results = []
+        logger.set_progress_enabled(False)
+        state_names=['ReleaseState','GroundState','UplinkState', 'OnBoardState','OnBoardAccState', 'OnBoardAccPBState', 'ExecCompPBState' ]
+        with open(filename) as f:
+            doc = xmltodict.parse(f.read())
+            for item in doc['ns2:ResponsePart']['Response']['PktTcReportResponse']['PktTcReportList'][
+                    'PktTcReportListElement']:
+                if 'ZIX' not in item['CommandName'] or ('RawBodyData' not in item):
+                    #skip platform commands 
+                    continue
+                state=''.join([item[e][0] for e in state_names])
+                header_auxiliary={
+                    'UTC':item['ExecutionTime'],
+                    'unix_time': stix_datetime.utc2unix(item['ExecutionTime']),
+                    'release_time':item['ReleaseTime'],
+                    'uplink_time':item['UplinkTime'],
+                    'execution_time':item['ExecutionTime'],
+                    'sequence_name':item['SequenceName'],
+                    'state':state,
+                    }
+                raw=item['RawBodyData']
+                packets.append({'header_auxiliary':header_auxiliary, 'raw':raw})
+        num = len(packets)
+        for i, packet in enumerate(packets):
+            data_hex = packet['raw']
+            data= binascii.unhexlify(data_hex)
+            result = self.parse_binary(data,0, packet['header_auxiliary'])
+            logger.set_progress_enabled(True)
+            logger.progress(i, num)
+            logger.set_progress_enabled(False)
+            if not result:
+                continue
+        return results
+        
+    def parse_telemetry_xml(self, raw_filename):
         packets = []
         results = []
         logger.set_progress_enabled(False)
@@ -1249,7 +1294,6 @@ class StixTCTMParser(StixParameterParser):
             logger.set_progress_enabled(True)
             logger.progress(i, num)
             logger.set_progress_enabled(False)
-
             if not result:
                 continue
             results.extend(result)
@@ -1276,8 +1320,10 @@ class StixTCTMParser(StixParameterParser):
                 packets = self.parse_binary(data)
         elif file_type == 'ascii':
             packets = self.parse_moc_ascii(raw_filename)
-        elif file_type == 'xml':
-            packets = self.parse_moc_xml(raw_filename)
+        elif file_type == 'xml.tm.raw':
+            packets = self.parse_telemetry_xml(raw_filename)
+        elif file_type == 'xml.tc.hist':
+            packets = self.parse_telecommand_report_xml(raw_filename)
         elif file_type == 'hex':
             packets = self.parse_hex_file(raw_filename)
         else:

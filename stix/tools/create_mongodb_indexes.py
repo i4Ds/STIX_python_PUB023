@@ -6,6 +6,7 @@ try:
     collection_raw_files = db['raw_files']
     collection_calibration = db['calibration_runs']
     collection_ql= db['quick_look']
+    collection_data_request_forms= db['user_data_request_forms']
     print('creating indexes for runs')
     if collection_raw_files:
         indexes=[[('file',1)],[('date',1)]]
@@ -31,6 +32,14 @@ try:
                 [('run_id',1)],[('TMTC',1)]]
         for index in indexes:
             collection_packets.create_index(index)
+    if collection_data_request_forms:
+        print('creating indexes for user data requests')
+        indexes=[[('request_type',1), ('detector_mask',1),('pixel_mask',1)],[('request_type',1)], [('detector_mask',1)],[('pixel_mask',1)]]
+        for index in indexes:
+            print(index)
+            collection_data_request_forms.create_index(index)
+
+
     connect.close()
 
 except Exception as e:
