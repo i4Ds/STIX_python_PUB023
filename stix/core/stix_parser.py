@@ -1129,9 +1129,6 @@ class StixTCTMParser(StixParameterParser):
                         'service_type'] == 5 and header['service_subtype'] > 1:
                     self.instrument_message.append(header)
                     #used for instrument health tracking
-                if header_auxiliary:
-                    for key, val in header_auxiliary.items():
-                        header[key]=val
                 packet = {'header': header, 'parameters': parameters}
                 self.inc_counter('num_tc_parsed')
                 if self.store_binary:
@@ -1150,7 +1147,12 @@ class StixTCTMParser(StixParameterParser):
                         i, i - old_i))
 
             if packet:
-                self.attach_timestamps(packet)
+                if header_auxiliary:
+                    for key, val in header_auxiliary.items():
+                        packet['header'][key]=val
+                else:
+                    self.attach_timestamps(packet)
+
                 if self.store_packet_enabled:
                     packets.append(packet)
                 if self.packet_writer:
