@@ -240,17 +240,17 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
     peak_y=[]
     peak_ey=[]
     if param_errors[2]<MAX_ALLOWED_SIGMA_ERROR:
-        peak_x.append(30.8)
+        peak_x.append(30.85)
         peak_ex.append(0.)
         peak_y.append(param[1])
         peak_ey.append(param_errors[1])
     if param_errors[5]<MAX_ALLOWED_SIGMA_ERROR:
-        peak_x.append(34.9)
+        peak_x.append(35.2)
         peak_ex.append(0.)
         peak_y.append(param[4])
         peak_ey.append(param_errors[4])
     if par3_errors[2]<MAX_ALLOWED_SIGMA_ERROR:
-        peak_x.append(81)
+        peak_x.append(80.4)
         peak_ex.append(0.)
         peak_y.append(par3[1])
         peak_ey.append(par3_errors[1])

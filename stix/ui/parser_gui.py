@@ -855,6 +855,7 @@ class Ui(mainwindow.Ui_MainWindow):
             if TMTC == 'TC' and self.selected_tmtc in [1, 0]:
                 hidden = True
 
+
             if self.filterPattern:
                 to_exclude = False
                 pattern = self.filterPattern.strip()

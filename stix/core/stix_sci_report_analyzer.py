@@ -1,3 +1,11 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+"""
+    Science report analysis classes. They extract information from science packets and
+    write indexing information into mongodb, which is used by web applications
+    @Author: Hualin Xiao
+    @Date: Nov. 2019
+"""
 import sys
 import numpy as np
 from . import stix_datatypes as sdt

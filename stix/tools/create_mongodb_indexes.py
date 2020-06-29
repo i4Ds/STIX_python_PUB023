@@ -28,7 +28,7 @@ try:
     print('creating indexes for packets')
     if collection_packets:
         indexes=[[('header.unix_time',1)],[('header.SPID',1)],[('header.service_type',1)],
-                [('header.service_subtype',1)],
+                [('header.service_subtype',1)],[('header.name',1)],
                 [('run_id',1)],[('TMTC',1)]]
         for index in indexes:
             collection_packets.create_index(index)

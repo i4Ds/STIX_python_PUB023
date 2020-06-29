@@ -1244,7 +1244,8 @@ class StixTCTMParser(StixParameterParser):
         packets = []
         results = []
         logger.set_progress_enabled(False)
-        state_names=['ReleaseState','GroundState','UplinkState', 'OnBoardState','OnBoardAccState', 'OnBoardAccPBState', 'ExecCompPBState' ]
+        state_names=['ReleaseState','GroundState','UplinkState', 'OnBoardState','OnBoardAccState',
+                'OnBoardAccPBState', 'ExecCompPBState' ]
         with open(filename) as f:
             doc = xmltodict.parse(f.read())
             for item in doc['ns2:ResponsePart']['Response']['PktTcReportResponse']['PktTcReportList'][
@@ -1274,6 +1275,7 @@ class StixTCTMParser(StixParameterParser):
             logger.set_progress_enabled(False)
             if not result:
                 continue
+            results.extend(result)
         return results
         
     def parse_telemetry_xml(self, raw_filename):
