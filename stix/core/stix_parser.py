@@ -196,7 +196,7 @@ class StixParameterParser(object):
         elif len(raw) == 2:
             if param_type == 'T':
                 return round(float(raw[0]) + float(raw[1]) / 65536., 3)
-            logger.warn(
+            logger.warning(
                 'Invalid unpacking parameter type: {}'.format(param_type))
             return raw_bin
         elif len(raw) == 3:  # 24-bit integer, a timestamp probably
@@ -233,8 +233,11 @@ class StixParameterParser(object):
                 return STIX_IDB.tcparam_interpret(ref, raw_value)
             return ''
         if param_name == 'NIX00125': #temperature calibration factors, parameter from Richard on June 22, 2020
-            x=math.log(12000.*raw_value/(4095-raw_value))
-            return round(1/(9.27e-4+2.34e-4*x+ 9.09e-7*x*x+1.04e-7*x*x*3)-273.15,2)
+            try:
+                x=math.log(12000.*raw_value/(4095-raw_value))
+                return round(1/(9.27e-4+2.34e-4*x+ 9.09e-7*x*x+1.04e-7*x*x*3)-273.15,2)
+            except ValueError:
+                logger.warning('Could not calibrate NIX00125 temperature raw value :{}'.format(raw_value))
         #conversion based on the equation in SIRIUS source code
         #    return (raw_value * 1.1 * 3.0 / 4095 - 1.281) * 213.17
         #elif param_name == 'NIX00102':
@@ -993,7 +996,7 @@ class StixTCTMParser(StixParameterParser):
             param_hb = parameters[9]
             #platform data parser to be added
         except IndexError:
-            logger.warn(
+            logger.warning(
                 'Failed to extract STIX instrument data from a S20 packet')
             return
         param_obj = Parameter(param_hb)
