@@ -2,19 +2,15 @@
 
 import spiceypy
 from stix.core import config
-from stix.core import stix_logger
 import re
-
 from datetime import datetime
 from dateutil import parser as dtparser
-logger = stix_logger.get_logger()
 
-
+SO_NAF_ID= -144
+# SOLAR ORBITER naif identifier
 class SpiceManager:
     """taken from https://issues.cosmos.esa.int/solarorbiterwiki/display/SOSP/Translate+from+OBT+to+UTC+and+back
     """
-    # SOLAR ORBITER naif identifier
-    solar_orbiter_naif_id = -144
 
     __instance = None
 
@@ -36,7 +32,7 @@ class SpiceManager:
 
     def obt2utc(self, obt_string):
         # Obt to Ephemeris time (seconds past J2000)
-        ephemeris_time = spiceypy.scs2e(self.solar_orbiter_naif_id, obt_string)
+        ephemeris_time = spiceypy.scs2e(SO_NAF_ID, obt_string)
         # Ephemeris time to Utc
         # Format of output epoch: ISOC (ISO Calendar format, UTC)
         # Digits of precision in fractional seconds: 3
@@ -47,7 +43,7 @@ class SpiceManager:
         ephemeris_time = spiceypy.utc2et(utc_string)
         # Ephemeris time to Obt
         #return ephemeris_time
-        obt_string=spiceypy.sce2s(self.solar_orbiter_naif_id,ephemeris_time)
+        obt_string=spiceypy.sce2s(SO_NAF_ID,ephemeris_time)
         time_fields =re.search('\/(.*?):(\d*)',obt_string)
         group=time_fields.groups()
         try:
@@ -55,10 +51,15 @@ class SpiceManager:
         except Exception as e:
             logger.warning(str(e))
             return 0
-
     def scet2utc(self, coarse, fine=0):
         obt_string = '{}:{}'.format(coarse, fine)
         return self.obt2utc(obt_string)
+    def utc2scet(self, utc):
+        # Utc to Ephemeris time (seconds past J2000)
+        ephemeris_time = spiceypy.utc2et(utc)
+        # Ephemeris time to Obt
+        return spiceypy.sce2s(SO_NAF_ID, ephemeris_time)
+
 
 
 spice_manager = SpiceManager.get_instance()
@@ -74,8 +75,6 @@ def format_datetime(dt):
             return format_datetime(float(dt))
         except ValueError:
             return dt
-            #it is a datetime str
-        #    return '1970-01-01T00:00:00.000Z'
     else:
         return '1970-01-01T00:00:00.000Z'
 
@@ -177,15 +176,29 @@ def unix2datetime(unix_timestamp):
     return datetime.utcfromtimestamp(unix_timestamp)
 
 
+'''
+code taken from Shane's datetime script
+'''
 def utc2datetime(utc):
     if not utc.endswith('Z'):
         utc += 'Z'
     return dtparser.parse(utc)
 
+def scet_to_utc(scet):
+    return spice_manager.obt2utc(scet)
+def scet_to_datetime(scet):
+    utc_iso = scet_to_utc(scet)
+    return dtparser.isoparse(utc_iso)
+def utc_to_scet(utc):
+    return spice_manager.utc2scet(utc)
+
+def datetime_to_scet(dt):
+    utc_iso = dt.isoformat(timespec='microseconds')
+    scet = utc_to_scet(utc_iso)[2:]
+    return scet
+
 
 if __name__ == '__main__':
     print("UTC at T0:")
     print(scet2utc(0))
-    #print("Unix at T0:")
-    #print(scet2unix(0))
-    #print(scet2datetime(0))
+
