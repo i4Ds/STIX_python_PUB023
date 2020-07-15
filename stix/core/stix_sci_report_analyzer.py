@@ -8,9 +8,9 @@
 """
 import sys
 import numpy as np
-from . import stix_datatypes as sdt
-from . import stix_datetime
-from . import stix_logger
+from stix.core import stix_datatypes as sdt
+from stix.core import stix_datetime
+from stix.core import stix_logger
 logger = stix_logger.get_logger()
 DATA_REQUEST_REPORT_SPIDS=[54114, 54115, 54116,54117, 54143, 54125]
 DATA_REQUEST_REPORT_NAME={54114:'L0', 54115:'L1',54116:'L2', 54117:'L3', 54143:'L4', 54125:'ASP'}

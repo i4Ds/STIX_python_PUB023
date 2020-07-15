@@ -101,8 +101,5 @@ TELECOMMAND_RAW_STRUCTURE = [  # each dictionary
 
 TELECOMMAND_HEADER_CONSTRAINTS = {
     'version': [0],
-    #'length': range(0, 224+1),
     'seg_flag': [3],
-    #'ccsdc':[0],
-    #'pus':[1]
 }

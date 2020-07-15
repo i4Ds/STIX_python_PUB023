@@ -12,10 +12,10 @@ import time
 
 import pymongo
 
-from . import stix_global
-from . import config
-from . import stix_logger
-from . import stix_sci_report_analyzer as scia
+from stix.core import stix_global
+from stix.core import config
+from stix.core import stix_logger
+from stix.core import stix_sci_report_analyzer as scia
 
 logger = stix_logger.get_logger()
 

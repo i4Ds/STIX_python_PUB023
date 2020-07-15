@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
 import spiceypy
-from . import config
-from . import stix_logger
+from stix.core import config
+from stix.core import stix_logger
 import re
 
 from datetime import datetime

@@ -7,25 +7,24 @@
 # @TODO
 #              add checks for CRC for TC packets
 import os
+import math
 import re
 import struct as st
 import binascii
 import pathlib
-import math
 from pprint import pprint
 import xmltodict
 from scipy import interpolate
 from dateutil import parser as dtparser
-from . import stix_header
-from . import stix_idb
-from . import stix_global
-from . import stix_logger
-from . import stix_writer
-from . import stix_context
-from .stix_datatypes import Parameter
-from . import stix_decompressor
-from . import stix_datetime
-from . import config
+from stix.core import stix_header
+from stix.core import stix_idb
+from stix.core import stix_global
+from stix.core import stix_logger
+from stix.core import stix_writer
+from stix.core import stix_context
+from stix.core.stix_datatypes import Parameter
+from stix.core import stix_decompressor
+from stix.core import stix_datetime
 
 CONTEXT_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I']
 UNSIGNED_UNPACK_FORMAT = ['B', '>H', 'BBB', '>I', 'BBBBB', '>IH']
