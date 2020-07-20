@@ -6,11 +6,11 @@ import numpy as np
 
 from datetime import timedelta
 
-from stix_parser.datetime import scet_to_datetime
-from stix_parser.io.fits.quicklook import light_curve_fits, flare_flag_location_fits, \
+from stix.core.stix_datetime import scet_to_datetime
+from stix.fits.io.quicklook import light_curve_fits, flare_flag_location_fits, \
     get_energies_from_mask, background_fits, spectra_fits, variance_fits, \
     calibration_spectra_fits, tm_management_and_flare_list_fits
-from stix_parser.utils.logger import get_logger
+from stix.utils.logger import get_logger
 
 logger = get_logger(__name__)
 

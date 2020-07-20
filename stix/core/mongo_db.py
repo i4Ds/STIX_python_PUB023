@@ -39,6 +39,7 @@ class MongoDB(object):
             self.collection_calibration = self.db['calibration_runs']
             self.collection_ql= self.db['quick_look']
             self.collection_data_requests= self.db['bsd']
+            self.collection_fits= self.db['fits']
 
         except Exception as e:
             print('Error occurred while initializing mongodb: {}'.format(
@@ -107,6 +108,7 @@ class MongoDB(object):
         for run in runs:
             self.delete_one_run(run)
 
+    '''
     def select_packets_by_run(self, run_id):
         if self.collection_packets:
             cursor = self.collection_packets.find({
@@ -114,6 +116,24 @@ class MongoDB(object):
             }).sort('_id', 1)
             return list(cursor)
         return []
+        '''
+    def select_packets_by_run(self, run_id, SPIDs=[], sort_field='_id'):
+        pkts=[]
+        if self.collection_packets:
+            query_string = {'run_id': int(run_id)}
+            if SPIDs:
+                query_string = {
+                    '$and': [{
+                        'run_id': int(run_id)
+                    }, {
+                        'header.SPID': {
+                            '$in': SPIDs
+                        }
+                    }]
+                }
+            pkts= self.collection_packets.find(query_string,
+                                                  fields).sort(sort_field,1)
+        return pkts
 
     def close(self):
         if self.connect:
@@ -152,9 +172,10 @@ class MongoDB(object):
             doc = self.collection_calibration.find_one({'_id': _id})
             doc['analysis_report'] = data
             self.collection_calibration.save(doc)
+    
 
     def get_calibration_runs_for_processing(self):
-        #return unprocessed calibration run
+        #search for calibration runs which have  not been yet processed
         docs = []
         try:
             docs = list(self.collection_calibration.find())
@@ -166,6 +187,16 @@ class MongoDB(object):
                     'sbspec_formats' in doc) and 'analysis_report' not in doc
             ]
         return []
+    def write_fits_index_info(self, doc):
+        if self.collection_fits:
+            self.collection_fits.save(doc)
+
+    def get_next_fits_id(self):
+        try:
+            return self.collection_fits.find().sort(
+                '_id', -1).limit(1)[0]['_id'] + 1
+        except IndexError:
+            return 0
 
 
 

@@ -5,8 +5,8 @@ import numpy as np
 from datetime import timedelta
 from math import modf
 
-from stix_parser.datetime import scet_to_datetime
-from stix_parser.io.fits.science import xray_l0_fits
+from stix.core.stix_datetime import scet_to_datetime
+from stix.fits.io.science import xray_l0_fits
 
 
 class XrayL0:

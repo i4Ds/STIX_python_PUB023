@@ -972,7 +972,7 @@ class Ui(mainwindow.Ui_MainWindow):
         if selected_runs:
             diag.done(0)
             self.showMessage('Loading data ...!')
-            data = self.mdb.select_packets_by_run(selected_runs[0])
+            data = list(self.mdb.select_packets_by_run(selected_runs[0]))
             if data:
                 self.onDataReady(data, clear=True)
             else:

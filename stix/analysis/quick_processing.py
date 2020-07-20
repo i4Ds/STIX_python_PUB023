@@ -124,7 +124,8 @@ def process_packets_in_database():
     for run, out  in zip(runs,outputs):
         print('Processing run # {}'.format(run))
         print('PDF filename:  {}'.format(out))
-        packets = STIX_MDB.select_packets_by_run(run)
+        packets = list(STIX_MDB.select_packets_by_run(run))
+
         print("Requesting packets from mongodb...")
         print('Number of packets:{}'.format(len(packets)))
         generate_pdf(packets,out, process_type, write_db, run)

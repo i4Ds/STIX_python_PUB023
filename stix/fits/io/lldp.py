@@ -13,12 +13,12 @@ from pathlib import Path
 import numpy as np
 from astropy.wcs import wcs
 
-from stix_parser.core import stix_datatypes as sdt
-from stix_parser.core.stix_parser import StixTCTMParser
-from stix_parser.datetime import datetime_to_scet
-from stix_parser.io.fits.quicklook import get_products, SPID_MAP
-from stix_parser.products.quicklook import LightCurve, FlareFlagAndLocation
-from stix_parser.utils import logger
+from stix.core import stix_datatypes as sdt
+from stix.core.stix_parser import StixTCTMParser
+from stix.core.stix_datetime import datetime_to_scet
+from stix.fits.io.quicklook import get_products, SPID_MAP
+from stix.fits.products.quicklook import LightCurve, FlareFlagAndLocation
+from stix.utils import logger
 
 Y_M_D_H_M = "%Y%m%d%H%M"
 DIR_ENVNAMES = [('requests', 'instr_input_requests'), ('output', 'instr_output')]

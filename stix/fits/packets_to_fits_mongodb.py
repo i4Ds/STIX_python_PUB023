@@ -1,3 +1,6 @@
+
+import sys
+import os
 import logging
 from collections import defaultdict
 from datetime import datetime
@@ -16,8 +19,11 @@ from stix.utils.logger import get_logger
 
 
 
+from core import mongodb_api 
+db= mongodb_api.MongoDB()
 logger = get_logger(__name__)
 
+FITS_FILE_DIRECTORY='/data/fits/'
 
 SPID_MAP = {
     # Bulk Science
@@ -76,7 +82,7 @@ def generate_primary_header(filename, scet_coarse, scet_fine, obs_beg, obs_avg, 
         ('INSTRUME', 'STIX', 'Instrument name'),
         ('OBSRVTRY', 'Solar Orbiter', 'Satellite name'),
         ('FILENAME', filename, 'FITS filename'),
-        ('DATE', datetime.now().isoformat(timespec='milliseconds'),
+        ('DATE', datetime.utcnow().isoformat(timespec='milliseconds'),
          'FITS file creation date in UTC'),
         ('OBT_BEG', f'{scet_coarse}:{scet_fine}'),
         ('OBT_END', datetime_to_scet(obs_end)),
@@ -101,7 +107,7 @@ def generate_primary_header(filename, scet_coarse, scet_fine, obs_beg, obs_avg, 
     return headers
 
 
-def generate_filename(level, product_name, observation_date, version):
+def generate_filename(level, product_name, observation_date, unique_id):
     """
     Generate fits file name with SOLO conventions.
 
@@ -122,7 +128,7 @@ def generate_filename(level, product_name, observation_date, version):
         The filename
     """
     dateobs = observation_date.strftime("%Y%m%dT%H%M%S")
-    return f'solo_{level}_stix-{product_name.replace("_", "-")}_{dateobs}_V{version:02d}.fits'
+    return f'solo_{level}_stix-{product_name.replace("_", "-")}_{dateobs}_{unique_id:05d}.fits'
 
 
 def get_products(packet_list, spids=None):
@@ -145,12 +151,15 @@ def get_products(packet_list, spids=None):
         Two dictionaries containing the complete and incomplete products
     """
     filtered_packets = {}
-    if not spids:
-        spids = set([x['header']['SPID'] for x in packet_list if x['header']['SPID'] != ''])
+    for pkt in packet_list:
+        if pkt['header']['TMTC'] != 'TM':
+            continue
+        if 'SPID' in pkt['header']:
+            if pkt['header']['SPID'] not in filtered_packets:
+                filtered_packets[ pkt['header']['SPID']]=[]
+            filtered_packets[pkt['header']['SPID']].append(pkt)
 
-    for value in spids:
-        filtered_packets[value] = list(filter(
-            lambda x: x['header']['SPID'] == value and x['header']['TMTC'] == 'TM', packet_list))
+
 
     complete = defaultdict(list)
     incomplete = defaultdict(list)
@@ -159,15 +168,15 @@ def get_products(packet_list, spids=None):
 
         # Data fits in a stand-alone packet
         stand_alone_indices = [i for i in range(len(packets))
-                               if packets[i]['header']['segmentation'] == 'stand-alone packet']
+                               if packets[i]['header']['seg_flag'] == 3 ] #standalone
         for stand_alone_index in stand_alone_indices:
             complete[key].append([packets[stand_alone_index]])
 
         # Data is spread across a number of packets
         start_indices = [i for i in range(len(packets))
-                         if packets[i]['header']['segmentation'] == 'first packet']
+                         if packets[i]['header']['seg_flag'] == 1] # first
         end_indices = [i for i in range(len(packets))
-                       if packets[i]['header']['segmentation'] == 'last packet']
+                       if packets[i]['header']['seg_flag'] == 2] #last_packet
 
         if len(start_indices) == len(end_indices):
             for start_index, end_index in zip(start_indices, end_indices):
@@ -181,7 +190,7 @@ def get_products(packet_list, spids=None):
     return complete, incomplete
 
 
-def process_packets(packet_lists, spid, product, basepath=None, overwrite=False):
+def process_packets(file_id, packet_lists, spid, product, report_status,  basepath=FITS_FILE_DIRECTORY, overwrite=False):
     """
     Process a sequence containing one or more packets for a given product.
 
@@ -195,6 +204,8 @@ def process_packets(packet_lists, spid, product, basepath=None, overwrite=False)
         Product name
     basepath : pathlib.Path
         Path
+    pacekt_type:
+        complete packets or incomplete packets
     overwrite : bool (optional)
         False (default) will raise error if fits file exits, True overwrite existing file
     """
@@ -206,94 +217,106 @@ def process_packets(packet_lists, spid, product, basepath=None, overwrite=False)
         try:
             if product == 'hk_mini':
                 prod = MiniReport(parsed_packets)
-                type = 'housekeeping'
+                prod_type = 'housekeeping'
+
             elif product == 'hk_maxi':
                 prod = MaxiReport(parsed_packets)
-                type = 'housekeeping'
+                prod_type = 'housekeeping'
             elif product == 'ql_light_curves':
                 prod = LightCurve(parsed_packets)
-                type = 'quicklook'
+                prod_type = 'quicklook'
             elif product == 'ql_background':
                 prod = Background(parsed_packets)
-                type = 'quicklook'
+                prod_type = 'quicklook'
             elif product == 'ql_spectrogram':
                 prod = Spectra(parsed_packets)
-                type = 'quicklook'
+                prod_type = 'quicklook'
             elif product == 'ql_variance':
                 prod = Variance(parsed_packets)
-                type = 'quicklook'
+                prod_type = 'quicklook'
             elif product == 'flareflag_location':
                 prod = FlareFlagAndLocation(parsed_packets)
-                type = 'quicklook'
+                prod_type = 'quicklook'
             elif product == 'calibration_spectrum':
                 prod = CalibrationSpectra(parsed_packets)
-                type = 'quicklook'
+                prod_type = 'quicklook'
             elif product == 'tm_status_and_flare_list':
                 prod = TMManagementAndFlareList(parsed_packets)
-                type = 'quicklook'
+                prod_type = 'quicklook'
             elif product == 'xray_l0_user':
                 prod = XrayL0(parsed_packets)
-                type = 'science'
+                prod_type = 'science'
             else:
                 logger.info('Not implemented %s, SPID %d.', product, spid)
-                continue
+                #continue
+                return
 
-            filename = generate_filename('L1', product, prod.obs_beg, 1)
+
+            unique_id=db.get_next_fits_id()
+
+            filename = generate_filename('L1', product, prod.obs_beg, unique_id)
             primary_header = generate_primary_header(filename, prod.scet_coarse, prod.scet_fine,
                                                      prod.obs_beg, prod.obs_avg, prod.obs_end)
+            complete=report_status=='complete'
+            
             hdul = prod.to_hdul()
 
             hdul[0].header.update(primary_header)
             hdul[0].header.update({'HISTORY': 'Processed by STIX LLDP VM'})
 
-            path = basepath.joinpath(type)
-            path.mkdir(exist_ok=True)
-            hdul.writeto(path / filename, checksum=True, overwrite=overwrite)
+            full_path=os.path.join(basepath, filename)
+            hdul.writeto(full_path, checksum=True, overwrite=overwrite)
+
+            record={
+                    '_id':unique_id,
+                    'file_id':file_id, 
+                    'type':product, 
+                    'data_start_unix':prod.obs_beg.timestamp(),
+                    'data_end_unix':prod.obs_end.timestamp(),
+                    'scet_coarse':prod.scet_coarse,
+                    'scet_fine':prod.scet_fine,
+                    'complete':complete,
+                    'filename':filename,
+                    'creation_time':datetime.utcnow(),
+                    'path':basepath,
+                    }
+            db.write_fits_index_info(record)
+            logger.info('created  fits file: %s ', full_path)
+
         except Exception as e:
             logger.error('error', exc_info=True)
 
 
-def process_products(products, type, basepath, overwrite=False):
-    for spid, data in products.items():
-        logger.debug('Processing %s products SPID %d',  type, spid)
-        product = SPID_MAP.get(spid, 'unknown')
+def process_products(file_id, products, report_status, basepath, overwrite=False):
+    for spid, packets in products.items():
+        logger.debug('Processing %s products SPID %d',  report_status, spid)
+        if spid not in SPID_MAP:
+            logger.debug('Not supported spid : %d',   spid)
+            continue
+        product = SPID_MAP[spid]
         if spid:
-            path = basepath / type
-            path.mkdir(exist_ok=True, parents=True)
             try:
-                process_packets(data, spid, product, path, overwrite=overwrite)
+                process_packets(file_id, data, spid, product, report_status, basepath, overwrite=overwrite)
             except Exception as e:
                 logger.error('error', exc_info=True)
 
 
-def create_fits(raw_tmtc_path, output_basepath):
+def create_fits(file_id, output_path):
+    packets = db.select_packets_by_run(file_id)
+    complete_products, incomplete_products = get_products(packets)  # SPID_MAP.keys())
+    process_products(file_id, complete_products, 'complete', output_path, overwrite=True)
+    process_products(file_id, incomplete_products, 'incomplete', output_path, overwrite=True)
 
-    tstart = perf_counter()
-    raw_tmtc = Path(raw_tmtc_path)
-    tmtc_files = sorted(list(raw_tmtc.glob('*.ascii')))
-    for tmtc_file in tmtc_files:
-        basepath = Path(output_basepath) / 'L1' / tmtc_file.stem
-        if not basepath.exists():
-            basepath.mkdir(exist_ok=True, parents=True)
-            fh = logging.FileHandler(filename=basepath / 'tm_to_fis.log', mode='w')
-            formatter = logging.Formatter('%(asctime)s %(levelname)s: %(message)s - %(name)s',
-                                          datefmt='%Y-%m-%dT%H:%M:%SZ')
-            fh.setFormatter(formatter)
-            fh.setLevel(logging.DEBUG)
-            logging.root.addHandler(fh)
 
-            parser = StixTCTMParser()
-            packets = parser.parse_moc_ascii(tmtc_file)
+if  __name__ == '__main__':
+    if len(sys.argv) == 1:
+        print('''STIX L1 FITS writer
+                   It reads packets from mongodb and write them into fits
+                Usage:
+                packets_to_fits   <file_id>
+                ''')
+    elif len(sys.argv)==2:
+        create_fits(sys.argv[1], FITS_FILE_DIRECTORY)
+    else:
+        create_fits(sys.argv[1], sys.argv[2])
 
-            complete_products, incomplete_products = get_products(packets)  # SPID_MAP.keys())
-
-            logger.info(f'Complete {[(k, len(v)) for k, v in complete_products.items()]}')
-            logger.info(f'Incomplete {[(k, len(v)) for k, v in incomplete_products.items()]}')
-
-            process_products(complete_products, 'complete', basepath, overwrite=True)
-            process_products(incomplete_products, 'incomplete', basepath, overwrite=True)
-        else:
-            logger.info('Skipping %s as it already exists', tmtc_file.name)
-
-    tend = perf_counter()
-    logger.info('Time taken %f', tend-tstart)

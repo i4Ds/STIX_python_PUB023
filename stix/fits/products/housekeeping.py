@@ -3,8 +3,8 @@ House Keeping data products
 """
 from datetime import timedelta
 
-from stix_parser.datetime import scet_to_datetime
-from stix_parser.io.fits.housekeeping import mini, maxi
+from stix.core.stix_datetime import scet_to_datetime
+from stix.fits.io.housekeeping import mini, maxi
 
 
 SKIP_ATTRS = set(['scet_coarse', 'scet_fine', 'obs_utc', 'obs_beg', 'period', 'obs_avg', 'obs_end',
