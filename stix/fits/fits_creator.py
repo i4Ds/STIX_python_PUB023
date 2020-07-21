@@ -138,7 +138,7 @@ def generate_filename(level, product_name, product, status, unique_id):
 
     dateobs = product.obs_beg.strftime("%Y%m%dT%H%M%S")
     return f'solo_{level}_stix-{product_name.replace("_", "-")}' \
-           f'_{dateobs}_{status}{user_req}_{unique_id}.fits'
+            f'_{dateobs}_{status}{user_req}_{unique_id:05d}.fits'
 
 
 def get_products(packet_list, spids=None):
@@ -369,26 +369,25 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  basepa
                 doc['request_id']=user_req
             except AttributeError:
                 pass
-            print(doc)
 
             db.write_fits_index_info(doc)
             logger.info(f'created  fits file:  {full_path}')
 
         except Exception as e:
-            logger.error('error', exc_info=True)
+            logger.error(str(e))
 
 
 def process_products(file_id, products, report_status, basepath, overwrite=False):
     for spid, packets in products.items():
         logger.info('Processing {report_status} products SPID {spid}')
         if spid not in SPID_MAP:
-            logger.warning('Not supported spid : {spid}')
+            logger.warning(f'Not supported spid : {spid}')
             continue
         product = SPID_MAP[spid]
         try:
             process_packets(file_id, packets, spid, product, report_status, basepath, overwrite=overwrite)
         except Exception as e:
-            logger.error('error', exc_info=True)
+            logger.error(str(e))
 
 
 def create_fits(file_id, output_path):
