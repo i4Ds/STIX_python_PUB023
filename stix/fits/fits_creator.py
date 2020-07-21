@@ -287,6 +287,7 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  basepa
         parsed_packets = sdt.Packet.merge(packets, spid, value_type='raw')
         e_parsed_packets = sdt.Packet.merge(packets, spid, value_type='eng')
 
+
         try:
             if product == 'hk_mini':
                 prod = MiniReport(parsed_packets)
@@ -353,6 +354,8 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  basepa
             hdul.writeto(full_path, checksum=True, overwrite=overwrite)
             doc={
                     '_id':unique_id,
+                    'packets_ids': [packets[0]['_id'], packets[-1]['_id']],
+                    'num_packets': len(packets),
                     'file_id':file_id, 
                     'type':product, 
                     'data_start_unix':prod.obs_beg.timestamp(),
@@ -364,11 +367,9 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  basepa
                     'creation_time':datetime.utcnow(),
                     'path':basepath,
                     }
-            try:
-                user_req = getattr(product, 'request_id', '')
+            user_req = getattr(prod, 'request_id', '')
+            if user_req:
                 doc['request_id']=user_req
-            except AttributeError:
-                pass
 
             db.write_fits_index_info(doc)
             logger.info(f'created  fits file:  {full_path}')
