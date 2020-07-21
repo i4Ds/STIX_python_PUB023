@@ -43,6 +43,8 @@ class StixPacketWriter(object):
 
     def is_processed(self, filename):
         return False
+    #def get_current_run_id(self):
+    #    return None
 
 
 class StixPickleWriter(StixPacketWriter):
@@ -163,6 +165,9 @@ class StixMongoDBWriter(StixPacketWriter):
             logger.error(str(e))
 
         self.science_report_analyzer = scia.StixScienceReportAnalyzer(self.db)
+    def get_current_run_id(self): #file_id
+        return self.current_run_id
+
 
     def is_processed(self, in_filename):
         filename = os.path.basename(in_filename)

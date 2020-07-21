@@ -16,10 +16,12 @@ from datetime import datetime
 from stix.core import config
 from stix.core import mongo_db 
 from stix.core import stix_logger, stix_idb, stix_parser
+from stix.fits import fits_creator
 logger = stix_logger.get_logger()
 
 S20_EXCLUDED=True
 DO_CALIBRATIONS=True
+ENABLE_FITS_CREATION=True
 
 def get_now():
     return datetime.now().isoformat()
@@ -64,16 +66,20 @@ def process(instrument, filename):
         logger.error(str(e))
         return
     summary=parser.done()
-    if summary and DO_CALIBRATIONS:
-        logger.info('Starting calibration spectrum analysis...')
-        try:
-            from  stix.analysis import calibration
-            calibration_run_ids=summary['calibration_run_ids']
-            report_path=config.calibration['report_path']
-            for run_id in calibration_run_ids:
-                calibration.analyze(run_id, report_path)
-        except Exception as e:
-            logger.error(str(e))
+    if summary:
+        if DO_CALIBRATIONS:
+            logger.info('Starting calibration spectrum analysis...')
+            try:
+                from  stix.analysis import calibration
+                calibration_run_ids=summary['calibration_run_ids']
+                report_path=config.calibration['report_path']
+                for run_id in calibration_run_ids:
+                    calibration.analyze(run_id, report_path)
+            except Exception as e:
+                logger.error(str(e))
+        if ENABLE_FITS_CREATION:
+            file_id=summary['_id']
+
 
 
 

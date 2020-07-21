@@ -1,5 +1,5 @@
-
 import sys
+sys.path.append('.')
 import os
 import logging
 from collections import defaultdict
