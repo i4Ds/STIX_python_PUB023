@@ -7,10 +7,10 @@ from pathlib import Path
 import numpy as np
 from astropy.io import fits
 
-from stix_parser.core import stix_datatypes as sdt
-from stix_parser.datetime import datetime_to_scet
-from stix_parser.products.science import XrayL0
-from stix_parser.utils.logger import get_logger
+from stix.core import stix_datatypes as sdt
+from stix.core.stix_datetime import datetime_to_scet
+from stix.fits.products.science import XrayL0
+from stix.utils.logger import get_logger
 
 logger = get_logger(__name__)
 

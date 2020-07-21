@@ -17,10 +17,9 @@ from stix.fits.products.quicklook import LightCurve, Background, Spectra, Varian
 from stix.fits.products.science import XrayL0
 from stix.utils.logger import get_logger
 
+from stix.core import mongo_db
 
-
-from core import mongodb_api 
-db= mongodb_api.MongoDB()
+db= mongo_db.MongoDB()
 logger = get_logger(__name__)
 
 FITS_FILE_DIRECTORY='/data/fits/'
@@ -151,6 +150,7 @@ def get_products(packet_list, spids=None):
         Two dictionaries containing the complete and incomplete products
     """
     filtered_packets = {}
+    num = 0 
     for pkt in packet_list:
         if pkt['header']['TMTC'] != 'TM':
             continue
@@ -158,6 +158,8 @@ def get_products(packet_list, spids=None):
             if pkt['header']['SPID'] not in filtered_packets:
                 filtered_packets[ pkt['header']['SPID']]=[]
             filtered_packets[pkt['header']['SPID']].append(pkt)
+            num += 1
+    logger.info(f'Number of packets: {num}')
 
 
 
@@ -209,11 +211,13 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  basepa
     overwrite : bool (optional)
         False (default) will raise error if fits file exits, True overwrite existing file
     """
+
     if spid in [54101, 54102]:
         packet_lists = [list(chain.from_iterable(packet_lists))]
 
     for packets in packet_lists:
         parsed_packets = sdt.Packet.merge(packets, spid)
+        doc={}
         try:
             if product == 'hk_mini':
                 prod = MiniReport(parsed_packets)
@@ -246,10 +250,13 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  basepa
             elif product == 'xray_l0_user':
                 prod = XrayL0(parsed_packets)
                 prod_type = 'science'
+                doc.update({'request_id':prod.request_id})
             else:
                 logger.info('Not implemented %s, SPID %d.', product, spid)
                 #continue
                 return
+            Path(basepath).mkdir(parents=True, exist_ok=True)
+
 
 
             unique_id=db.get_next_fits_id()
@@ -261,13 +268,14 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  basepa
             
             hdul = prod.to_hdul()
 
+
             hdul[0].header.update(primary_header)
             hdul[0].header.update({'HISTORY': 'Processed by STIX LLDP VM'})
 
             full_path=os.path.join(basepath, filename)
             hdul.writeto(full_path, checksum=True, overwrite=overwrite)
 
-            record={
+            doc.update({
                     '_id':unique_id,
                     'file_id':file_id, 
                     'type':product, 
@@ -279,10 +287,9 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  basepa
                     'filename':filename,
                     'creation_time':datetime.utcnow(),
                     'path':basepath,
-                    }
-            db.write_fits_index_info(record)
+                    })
+            db.write_fits_index_info(doc)
             logger.info('created  fits file: %s ', full_path)
-
         except Exception as e:
             logger.error('error', exc_info=True)
 
@@ -294,14 +301,14 @@ def process_products(file_id, products, report_status, basepath, overwrite=False
             logger.debug('Not supported spid : %d',   spid)
             continue
         product = SPID_MAP[spid]
-        if spid:
-            try:
-                process_packets(file_id, data, spid, product, report_status, basepath, overwrite=overwrite)
-            except Exception as e:
-                logger.error('error', exc_info=True)
+        try:
+            process_packets(file_id, packets, spid, product, report_status, basepath, overwrite=overwrite)
+        except Exception as e:
+            logger.error('error', exc_info=True)
 
 
 def create_fits(file_id, output_path):
+    logger.info(f'Requesting packets of file {file_id} from MongoDB')
     packets = db.select_packets_by_run(file_id)
     complete_products, incomplete_products = get_products(packets)  # SPID_MAP.keys())
     process_products(file_id, complete_products, 'complete', output_path, overwrite=True)

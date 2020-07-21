@@ -15,7 +15,6 @@ from fits.products.science import XrayL0
 #from stix_parser.utils.logger import get_logger
 
 from core import mongodb_api 
-
 db= mongodb_api.MongoDB()
 
 

@@ -117,7 +117,7 @@ class MongoDB(object):
             return list(cursor)
         return []
         '''
-    def select_packets_by_run(self, run_id, SPIDs=[], sort_field='_id'):
+    def select_packets_by_run(self, run_id, SPIDs=[], sort_field='_id', order=1):
         pkts=[]
         if self.collection_packets:
             query_string = {'run_id': int(run_id)}
@@ -131,8 +131,7 @@ class MongoDB(object):
                         }
                     }]
                 }
-            pkts= self.collection_packets.find(query_string,
-                                                  fields).sort(sort_field,1)
+            pkts= self.collection_packets.find(query_string).sort(sort_field,order)
         return pkts
 
     def close(self):
