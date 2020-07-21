@@ -15,9 +15,9 @@ from astropy.wcs import wcs
 
 from stix.core import stix_datatypes as sdt
 from stix.core.stix_parser import StixTCTMParser
-from stix.core.stix_datetime import datetime_to_scet
+from stix.stix_datetime import datetime_to_scet
 from stix.fits.io.quicklook import get_products, SPID_MAP
-from stix.fits.products.quicklook import LightCurve, FlareFlagAndLocation
+from stix.products.quicklook import LightCurve, FlareFlagAndLocation
 from stix.utils import logger
 
 Y_M_D_H_M = "%Y%m%d%H%M"

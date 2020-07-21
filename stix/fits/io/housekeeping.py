@@ -16,6 +16,7 @@ def mini(num_samples):
         HDU list, primary and binary extensions data, energy, control.
     """
     data_columns = (
+        fits.Column(name='TIME', format='E', array=np.zeros(num_samples)),
         fits.Column(name='SW_RUNNING', format='L', array=np.zeros(num_samples)),
         fits.Column(name='INSTRUMENT_NUMBER', format='B', array=np.zeros(num_samples)),
         fits.Column(name='INSTRUMENT_MODE', format='B', array=np.zeros(num_samples)),
@@ -75,9 +76,10 @@ def maxi(num_samples):
     """
 
     data_columns = (
+        fits.Column(name='TIME', format='E', array=np.zeros(num_samples)),
         fits.Column(name='SW_RUNNING', format='L', array=np.zeros(num_samples)),
         fits.Column(name='INSTRUMENT_NUMBER', format='B', array=np.zeros(num_samples)),
-        fits.Column(name='INSTRUMENT_MODEM', format='B', array=np.zeros(num_samples)),
+        fits.Column(name='INSTRUMENT_MODE', format='B', array=np.zeros(num_samples)),
         fits.Column(name='HK_DPU_PCB_T', format='I', array=np.zeros(num_samples)),
         fits.Column(name='HK_DPU_FPGA_T', format='I', array=np.zeros(num_samples)),
         fits.Column(name='HK_DPU_3V3_C', format='I', array=np.zeros(num_samples)),

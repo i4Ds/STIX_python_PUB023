@@ -1,14 +1,15 @@
 """
 House Keeping data products
 """
-from datetime import timedelta
+import numpy as np
 
 from stix.core.stix_datetime import scet_to_datetime
 from stix.fits.io.housekeeping import mini, maxi
 
 
-SKIP_ATTRS = set(['scet_coarse', 'scet_fine', 'obs_utc', 'obs_beg', 'period', 'obs_avg', 'obs_end',
-                  'num_samples'])
+SKIP_ATTRS = {'scet_coarse', 'scet_fine', 'obs_utc', 'obs_beg', 'period', 'obs_avg', 'obs_end',
+              'num_samples'}
+
 
 class MiniReport:
     """
@@ -17,14 +18,21 @@ class MiniReport:
     def __init__(self, stix_packets):
         self.num_samples = len(stix_packets['coarse_time'])
         # Header
-        self.scet_coarse = stix_packets['coarse_time'][0]
-        self.scet_fine = stix_packets['fine_time'][0]
-        self.obs_utc = scet_to_datetime(f'{self.scet_coarse}:{self.scet_fine}')
+        self.scet_coarse = stix_packets['coarse_time']
+        self.scet_fine = stix_packets['fine_time']
+        self.obs_utc = scet_to_datetime(f'{self.scet_coarse[0]}:{self.scet_fine[0]}')
         self.obs_beg = self.obs_utc
-        self.obs_end = self.obs_end = scet_to_datetime(f"{stix_packets['coarse_time'][-1]}:{stix_packets['fine_time'][-1]}")
+        self.obs_end = scet_to_datetime(f'{self.scet_coarse[-1]}:{self.scet_fine[-1]}')
         self.obs_avg = self.obs_beg + (self.obs_end - self.obs_beg) / 2.0
 
+        # Create array of times as dt from date_obs
+        times = [scet_to_datetime(f"{stix_packets['coarse_time'][i]}:"
+                                  f"{stix_packets['fine_time'][i]}")
+                 for i in range(self.num_samples)]
+        time = np.array(times) - times[0]
+
         # Data
+        self.time = [t.total_seconds() for t in time]
         self.sw_running = stix_packets.get('NIXD0021')
         self.instrument_number = stix_packets.get('NIXD0022')
         self.instrument_mode = stix_packets.get('NIXD0023')
@@ -62,12 +70,21 @@ class MiniReport:
         self.number_failed_tm_gen = stix_packets.get('NIX00168')
 
     def to_hdul(self):
+        """
+        Create a housekeeping mini report HDUL based on the number of samples
+
+        Returns
+        -------
+        `astropy.io.fits.HUDList`
+
+        """
         hdul = mini(self.num_samples)
         for key, value in self.__dict__.items():
             if key not in SKIP_ATTRS:
                 hdul[1].data[key.upper()] = getattr(self, key)
 
         return hdul
+
 
 class MaxiReport:
     """
@@ -76,17 +93,24 @@ class MaxiReport:
     def __init__(self, stix_packets):
         self.num_samples = len(stix_packets['coarse_time'])
         # Header
-        self.scet_coarse = stix_packets['coarse_time'][0]
-        self.scet_fine = stix_packets['fine_time'][0]
-        self.obs_utc = scet_to_datetime(f'{self.scet_coarse}:{self.scet_fine}')
+        self.scet_coarse = stix_packets['coarse_time']
+        self.scet_fine = stix_packets['fine_time']
+        self.obs_utc = scet_to_datetime(f'{self.scet_coarse[0]}:{self.scet_fine[0]}')
         self.obs_beg = self.obs_utc
-        self.obs_end = scet_to_datetime(f"{stix_packets['coarse_time'][-1]}:{stix_packets['fine_time'][-1]}")
+        self.obs_end = scet_to_datetime(f'{self.scet_coarse[-1]}:{self.scet_fine[-1]}')
         self.obs_avg = self.obs_beg + (self.obs_end - self.obs_beg) / 2.0
 
+        # Create array of times as dt from date_obs
+        times = [scet_to_datetime(f"{stix_packets['coarse_time'][i]}:"
+                                  f"{stix_packets['fine_time'][i]}")
+                 for i in range(self.num_samples)]
+        time = np.array(times) - times[0]
+
         # Data
+        self.time = [t.total_seconds() for t in time]
         self.sw_running = stix_packets.get('NIXD0021')
         self.instrument_number = stix_packets.get('NIXD0022')
-        self.instrument_modem = stix_packets.get('NIXD0023')
+        self.instrument_mode = stix_packets.get('NIXD0023')
         self.hk_dpu_pcb_t = stix_packets.get('NIXD0025')
         self.hk_dpu_fpga_t = stix_packets.get('NIXD0026')
         self.hk_dpu_3v3_c = stix_packets.get('NIXD0027')
@@ -163,6 +187,13 @@ class MaxiReport:
         self.fdir_function_status = stix_packets.get('NIX00085')
 
     def to_hdul(self):
+        """
+        Create a housekeeping maxi report HDUL based on the number of samples
+
+        Returns
+        -------
+        `astropy.io.fits.HUDList`
+        """
         hdul = maxi(self.num_samples)
         for key, value in self.__dict__.items():
             if key not in SKIP_ATTRS:
