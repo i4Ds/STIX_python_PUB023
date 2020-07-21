@@ -79,6 +79,7 @@ def process(instrument, filename):
                 logger.error(str(e))
         if ENABLE_FITS_CREATION:
             file_id=summary['_id']
+            fits_creator.create_fits(file_id, config.daemon['fits_path'])
 
 
 

@@ -15,13 +15,15 @@ from stix.fits.products.housekeeping import MiniReport, MaxiReport
 from stix.fits.products.quicklook import LightCurve, Background, Spectra, Variance, \
     FlareFlagAndLocation, CalibrationSpectra, TMManagementAndFlareList
 from stix.fits.products.science import XrayL0, Aspect, XrayL1, XrayL2, XrayL3, Spectrogram
-from stix.utils.logger import get_logger
+#from stix.utils.logger import get_logger
 
 
-from stix.core import mongo_db
+from stix.core import mongo_db, stix_logger
+logger = stix_logger.get_logger()
+
 
 db= mongo_db.MongoDB()
-logger = get_logger(__name__)
+#logger = get_logger(__name__)
 
 FITS_FILE_DIRECTORY='/data/fits/'
 
@@ -160,15 +162,18 @@ def get_products(packet_list, spids=None):
     """
     filtered_packets = {}
     num = 0 
+    num_tc=0
     for pkt in packet_list:
         if pkt['header']['TMTC'] != 'TM':
+            num_tc += 1
             continue
         if 'SPID' in pkt['header']:
             if pkt['header']['SPID'] not in filtered_packets:
                 filtered_packets[ pkt['header']['SPID']]=[]
             filtered_packets[pkt['header']['SPID']].append(pkt)
             num += 1
-    logger.info(f'Number of packets: {num}')
+    logger.info(f'Number of telemetry packets: {num}')
+    logger.info(f'Number of telecommands: {num_tc}')
 
 
 
@@ -185,7 +190,7 @@ def get_products(packet_list, spids=None):
                 complete[key].append(seq)
             else:
                 incomplete[key].append(seq)
-                logger.warning('Incomplete sequence for %d', key)
+                logger.warning(f'Incomplete sequence for {key}')
 
     return complete, incomplete
 
@@ -329,7 +334,7 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  basepa
                 prod = Aspect(parsed_packets, e_parsed_packets)
                 product_type = 'science'
             else:
-                logger.debug('Not implemented %s, SPID %d.', product, spid)
+                logger.warning(f'Not implemented {product}, SPID {spid}.')
                 continue
 
 
@@ -367,7 +372,7 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  basepa
             print(doc)
 
             db.write_fits_index_info(doc)
-            logger.info('created  fits file: %s ', full_path)
+            logger.info(f'created  fits file:  {full_path}')
 
         except Exception as e:
             logger.error('error', exc_info=True)
@@ -375,9 +380,9 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  basepa
 
 def process_products(file_id, products, report_status, basepath, overwrite=False):
     for spid, packets in products.items():
-        logger.debug('Processing %s products SPID %d',  report_status, spid)
+        logger.info('Processing {report_status} products SPID {spid}')
         if spid not in SPID_MAP:
-            logger.debug('Not supported spid : %d',   spid)
+            logger.warning('Not supported spid : {spid}')
             continue
         product = SPID_MAP[spid]
         try:
