@@ -1,12 +1,10 @@
 import sys
 sys.path.append('.')
 import os
-import logging
 from collections import defaultdict
 from datetime import datetime
 from itertools import chain
 from pathlib import Path
-from time import perf_counter
 
 from stix.core import stix_datatypes as sdt
 from stix.core.stix_parser import StixTCTMParser
@@ -35,7 +33,7 @@ SPID_MAP = {
     #54113: 'xray_l3_auto',
     #54142: 'spectrogram_auto',
     54114: 'xray_l0_user',
-    54115: 'xray_l1_use',
+    54115: 'xray_l1_user',
     54116: 'xray_l2_user',
     54117: 'xray_l3_user',
     54143: 'spectrogram_user',
@@ -354,22 +352,23 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  basepa
             hdul.writeto(full_path, checksum=True, overwrite=overwrite)
             doc={
                     '_id':unique_id,
-                    'packets_ids': [packets[0]['_id'], packets[-1]['_id']],
+                    'packet_id_start': packets[0]['_id'],
+                    'packet_id_end': packets[-1]['_id'],
                     'num_packets': len(packets),
                     'file_id':file_id, 
-                    'type':product, 
+                    'product_type':product, 
+                    'product_group':product_type,
                     'data_start_unix':prod.obs_beg.timestamp(),
                     'data_end_unix':prod.obs_end.timestamp(),
-                    #'scet_coarse':prod.scet_coarse,
-                    #'scet_fine':prod.scet_fine,
                     'complete':complete,
                     'filename':filename,
                     'creation_time':datetime.utcnow(),
                     'path':basepath,
                     }
-            user_req = getattr(prod, 'request_id', '')
-            if user_req:
-                doc['request_id']=user_req
+            if hasattr(prod, 'get_request_id'):
+                doc['request_id']=prod.get_request_id()
+
+
 
             db.write_fits_index_info(doc)
             logger.info(f'created  fits file:  {full_path}')
@@ -380,7 +379,7 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  basepa
 
 def process_products(file_id, products, report_status, basepath, overwrite=False):
     for spid, packets in products.items():
-        logger.info('Processing {report_status} products SPID {spid}')
+        logger.info(f'Processing {report_status} products SPID {spid}')
         if spid not in SPID_MAP:
             logger.warning(f'Not supported spid : {spid}')
             continue
@@ -388,6 +387,7 @@ def process_products(file_id, products, report_status, basepath, overwrite=False
         try:
             process_packets(file_id, packets, spid, product, report_status, basepath, overwrite=overwrite)
         except Exception as e:
+            raise
             logger.error(str(e))
 
 

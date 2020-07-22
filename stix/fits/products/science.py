@@ -45,6 +45,8 @@ class BaseProduct:
 
         self.structures = np.array(packets.get('NIX00403'), np.uint16)
         self.num_structures = sum(self.structures)
+    def get_request_id(self):
+        return int(self.request_id)
 
 
 class XrayL0(BaseProduct):
