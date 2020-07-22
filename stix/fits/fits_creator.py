@@ -355,7 +355,7 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  basepa
                     'packet_id_start': packets[0]['_id'],
                     'packet_id_end': packets[-1]['_id'],
                     'num_packets': len(packets),
-                    'file_id':file_id, 
+                    'file_id':int(file_id), 
                     'product_type':product, 
                     'product_group':product_type,
                     'data_start_unix':prod.obs_beg.timestamp(),
