@@ -118,6 +118,8 @@ class MongoDB(object):
         return []
         '''
     def select_packets_by_run(self, run_id, SPIDs=[], sort_field='_id', order=1):
+        if not isinstance(SPIDs, list):
+            SPIDs=[SPIDs]
         pkts=[]
         if self.collection_packets:
             query_string = {'run_id': int(run_id)}
