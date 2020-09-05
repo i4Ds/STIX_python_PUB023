@@ -70,6 +70,9 @@ def search(file_id, peak_min_width=15, peak_min_distance=75): # 1min, seperated 
             for x in range(num_lc_points[0])
         ])
 
+    if not lightcurves:
+        return None
+
     unix_time=np.array(unix_time)
     lightcurve=np.array(lightcurves[0]) #only search for peaks in the first energy bin 
     xpeak, properties = signal.find_peaks(lightcurve,
