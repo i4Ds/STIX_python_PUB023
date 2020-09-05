@@ -96,4 +96,7 @@ def search(file_id, peak_min_width=15, peak_min_distance=75): # 1min, seperated 
 
 
 if __name__ == '__main__':
-    search(268)
+    if len(sys.argv)!=2:
+        print('flare_detection file_number')
+    else:
+        search(int(sys.argv[1]))
