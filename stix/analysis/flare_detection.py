@@ -9,42 +9,38 @@ A program to search for flares
 
 import os
 import sys
-sys.path.append('../../')
-sys.path.append('./')
 import time
 import requests
-import scipy
+from scipy import signal
 import numpy as np
-from datetime import datetime
 from matplotlib import pyplot as plt
 from stix.core import stix_datatypes as sdt
 from stix.core import mongo_db as db
 from stix.core import stix_datetime
 
 mdb=db.MongoDB()
-default_folder = '/data/flare_search/'
+#default_folder = '/data/flare_search/'
 SPID = 54118
 
-
-def main(file_id, output_dir=default_folder):
+def search(file_id, peak_min_width=15, peak_min_distance=75): # 1min, seperated by 75*4=300 seconds):
     packets = mdb.select_packets_by_run(file_id, SPID)
     if not packets:
         print(f'No QL LC packets found for run {file_id}')
         return
-    else:
-        print('Number of  LC packets found for run {}: {}'.format(file_id,packets.count()))
+    #else:
+    #    print('Number of  LC packets found for run {}: {}'.format(file_id,packets.count()))
 
-    fname_out = os.path.abspath(
-        os.path.join(output_dir, 'solar_flares_{}'.format(file_id)))
-    figsize = (12, 8)
-    fig = plt.figure(figsize=figsize)
+    #fname_out = os.path.abspath(
+    #    os.path.join(output_dir, 'solar_flares_{}.pdf'.format(file_id)))
+    #figsize = (12, 8)
+    #fig = plt.figure(figsize=figsize)
     lightcurves = {}
     unix_time = []
     for pkt in packets:
         packet = sdt.Packet(pkt)
         if not packet.isa(SPID):
             continue
-        fig = None
+        #fig = None
 
         scet_coarse = packet[1].raw
         scet_fine = packet[2].raw
@@ -62,8 +58,6 @@ def main(file_id, output_dir=default_folder):
         compression_m = packet[10].raw
 
         num_lc_points = packet.get('NIX00270/NIX00271')[0]
-        print('Number of points')
-        print(num_lc)
         lc = packet.get('NIX00270/NIX00271/*.eng')[0]
         rcr = packet.get('NIX00275/*.raw')
         UTC = packet['header']['UTC']
@@ -75,23 +69,28 @@ def main(file_id, output_dir=default_folder):
             stix_datetime.scet2unix(start_scet + x * int_duration)
             for x in range(num_lc_points[0])
         ])
-        find_peaks(unix_time,lightcurves[0])
 
-
-def find_peaks(unix_time, lightcurve, width=20, distance=200):
-    ydata = np.array(lightcurve)
-    xpeak, properties = scipy.signal.find_peaks(ydata,
-                                                width=width,
-                                                distance=distance)
-    print('Peaks:')
-    print(xpeak)
-    if xpeak:
+    unix_time=np.array(unix_time)
+    lightcurve=np.array(lightcurves[0]) #only search for peaks in the first energy bin 
+    xpeak, properties = signal.find_peaks(lightcurve,
+                                                width=peak_min_width,
+                                                distance=peak_min_distance)
+    result={}
+    peak_values=lightcurve[xpeak]
+    if xpeak.size>0:
         peak_unix_times = unix_time[xpeak]
-        print('Peak unix time:')
-        print(peak_unix_times)
-        print('Properties:')
-        print(properties)
+        peaks_utc=[stix_datetime.unix2utc(x) for x in peak_unix_times]
+        result={'num_peaks':xpeak.size,
+                'peak_unix_time':peak_unix_times.tolist(),
+                'peak_counts':peak_values.tolist(),
+                'peak_utc':peaks_utc,
+                'peak_idx':xpeak.tolist(),
+                #'properties':properties,
+                'run_id':file_id
+                }
+        mdb.write_flares(result)
+    return result
 
 
 if __name__ == '__main__':
-    main(268)
+    search(268)

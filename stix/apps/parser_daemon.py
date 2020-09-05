@@ -17,11 +17,14 @@ from stix.core import config
 from stix.core import mongo_db 
 from stix.core import stix_logger, stix_idb, stix_parser
 from stix.fits import fits_creator
+from  stix.analysis import calibration
+from  stix.analysis import flare_detection
 logger = stix_logger.get_logger()
 
 S20_EXCLUDED=True
 DO_CALIBRATIONS=True
 ENABLE_FITS_CREATION=True
+DO_FLARE_SEARCH=True
 
 def get_now():
     return datetime.now().isoformat()
@@ -38,7 +41,25 @@ def write_alerts(raw_filename, alert_headers):
             msg='\tAt {}, TM({},{}) {}\n'.format(header['UTC'], header['service_type'],
                 header['service_subtype'],header['descr'] )
             log.write(msg)
+        if other_message:
+            log.write(other_message)
         log.close()
+
+def write_flare_notification(raw_filename, flare_info):
+    if not flare_info:
+        return
+
+    with open(config.daemon['alert_log'],'a+') as log:
+        log.write('File: {}\n'.format(raw_filename))
+        msg='''\nSTIX detected {} solar flares\n UTC:\n'''.format(flare_info['num_peaks'])
+        msg+='\t'.join(flare_info['peak_utc'])
+        msg+='\nPeak counts:\n'
+        msg+=str(flare_info['peak_counts'])
+        msg+='\n'
+        msg+='http://pub023.cs.technik.fhnw.ch/plot/lightcurves?run={}'.format(flare_info['run_id'])
+        log.write(msg)
+        log.close()
+
 
 
 
@@ -70,7 +91,6 @@ def process(instrument, filename):
         if DO_CALIBRATIONS:
             logger.info('Starting calibration spectrum analysis...')
             try:
-                from  stix.analysis import calibration
                 calibration_run_ids=summary['calibration_run_ids']
                 report_path=config.calibration['report_path']
                 for run_id in calibration_run_ids:
@@ -80,6 +100,12 @@ def process(instrument, filename):
         if ENABLE_FITS_CREATION:
             file_id=summary['_id']
             fits_creator.create_fits(file_id, config.daemon['fits_path'])
+        if DO_FLARE_SEARCH:
+            print('Searching for flares')
+            results=flare_detection.search(file_id)
+            write_flare_notification(file_id,results)
+
+
 
 
 

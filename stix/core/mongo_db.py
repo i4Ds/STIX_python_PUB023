@@ -40,6 +40,7 @@ class MongoDB(object):
             self.collection_ql= self.db['quick_look']
             self.collection_data_requests= self.db['bsd']
             self.collection_fits= self.db['fits']
+            self.collection_events= self.db['events']
 
         except Exception as e:
             print('Error occurred while initializing mongodb: {}'.format(
@@ -198,6 +199,20 @@ class MongoDB(object):
                 '_id', -1).limit(1)[0]['_id'] + 1
         except IndexError:
             return 0
+    def write_flares(self, doc):
+        """
+            write flare info to two collections: raw_files and events
+        """
+        if 'run_id' not in doc:
+            return
+        
+        if self.collection_raw_files:
+            run = self.collection_raw_files.find_one({'_id': doc['run_id']})
+            run['flares'] = doc
+            self.collection_raw_files.save(run)
+               
+
+
 
 
 
