@@ -26,6 +26,5 @@ for i, l in enumerate(data):
     l['_id']=i
     l['start_unix_time']=utc2unix(l['date']+'T'+l['start'])
     l['duration']=-(l['start_unix_time']-utc2unix(l['date']+'T'+l['end']))
-    l['hidden']=False
     print(l)
     col.insert_one(l)

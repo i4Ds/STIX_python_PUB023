@@ -9,6 +9,7 @@ A program to search for flares
 
 import os
 import sys
+sys.path.append('.')
 import time
 import requests
 from scipy import signal
@@ -22,7 +23,8 @@ mdb=db.MongoDB()
 #default_folder = '/data/flare_search/'
 SPID = 54118
 
-def search(file_id, peak_min_width=15, peak_min_distance=75): # 1min, seperated by 75*4=300 seconds):
+
+def search(file_id, peak_min_width=15, peak_min_distance=75,  sigma=20 ): # 1min, seperated by 75*4=300 seconds):
     packets = mdb.select_packets_by_run(file_id, SPID)
     if not packets:
         print(f'No QL LC packets found for run {file_id}')
@@ -75,7 +77,14 @@ def search(file_id, peak_min_width=15, peak_min_distance=75): # 1min, seperated 
 
     unix_time=np.array(unix_time)
     lightcurve=np.array(lightcurves[0]) #only search for peaks in the first energy bin 
+    lc_mean=np.mean(lightcurve)
+    
+    height=lc_mean+sigma
+    
+    
     xpeak, properties = signal.find_peaks(lightcurve,
+                                                height=height,
+                                                #threshold=threshold,
                                                 width=peak_min_width,
                                                 distance=peak_min_distance)
     result={}
