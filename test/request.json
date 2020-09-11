@@ -1,0 +1,861 @@
+{
+    "_id" : 30,
+    "filename" : "PDOR_SSTX_S004_DATAREQUESTDAY1_00001.SOL",
+    "path" : "/home/xiaohl/FHNW/STIX/NECP/NECP_IX4_2020_05_17/PDORs/PDORs_2020_05_17",
+    "md5" : "faa4a9b877549c60a1e029aabc9424d3",
+    "description" : "",
+    "phase" : "",
+    "processing_time" : 1589811096.71539,
+    "log" : "",
+    "type" : "PDOR",
+    "genTime" : "2020-137T12:18:07Z",
+    "stopTime" : "2020-174T00:00:00Z",
+    "startTime" : "2020-169T00:00:00Z",
+    "startUnix" : 1592352000,
+    "stopUnix" : 1592784000,
+    "genUnix" : 1589631487,
+    "count" : "16",
+    "author" : "Hualin",
+    "occurrences" : [ 
+        {
+            "name" : "AIXF030A",
+            "type" : "sequence",
+            "desc" : [ 
+                "STIX Safe to Config v04", 
+                "STIX Mode Change: SAFE to CONFIGURATION"
+            ],
+            "uniqueID" : "SSTXcfbd346594bf44f5",
+            "actionTime" : "00:00:00",
+            "parameters" : []
+        }, 
+        {
+            "name" : "AIXF414A",
+            "type" : "sequence",
+            "desc" : [ 
+                "Load ASW Parameter v01", 
+                ""
+            ],
+            "uniqueID" : "SSTX3ac98e9d6b6d4848",
+            "actionTime" : "00:00:10",
+            "parameters" : [ 
+                [ 
+                    "XF414A01", 
+                    "425", 
+                    "Parameter ID - ASW", 
+                    "Raw", 
+                    "PIX00016"
+                ], 
+                [ 
+                    "XF414A02", 
+                    "0", 
+                    "Parameter subID - ASW", 
+                    "Raw", 
+                    "PIX00017"
+                ], 
+                [ 
+                    "XF414A03", 
+                    "0xFF", 
+                    "Parameter data - ASW", 
+                    "Raw", 
+                    "PIX00018"
+                ]
+            ]
+        }, 
+        {
+            "name" : "AIXF414A",
+            "type" : "sequence",
+            "desc" : [ 
+                "Load ASW Parameter v01", 
+                ""
+            ],
+            "uniqueID" : "SSTXc44a7a69b8ae4476",
+            "actionTime" : "00:00:01",
+            "parameters" : [ 
+                [ 
+                    "XF414A01", 
+                    "426", 
+                    "Parameter ID - ASW", 
+                    "Raw", 
+                    "PIX00016"
+                ], 
+                [ 
+                    "XF414A02", 
+                    "0", 
+                    "Parameter subID - ASW", 
+                    "Raw", 
+                    "PIX00017"
+                ], 
+                [ 
+                    "XF414A03", 
+                    "0", 
+                    "Parameter data - ASW", 
+                    "Raw", 
+                    "PIX00018"
+                ]
+            ]
+        }, 
+        {
+            "name" : "AIXF414A",
+            "type" : "sequence",
+            "desc" : [ 
+                "Load ASW Parameter v01", 
+                ""
+            ],
+            "uniqueID" : "SSTXdf787674a40c4624",
+            "actionTime" : "00:00:01",
+            "parameters" : [ 
+                [ 
+                    "XF414A01", 
+                    "424", 
+                    "Parameter ID - ASW", 
+                    "Raw", 
+                    "PIX00016"
+                ], 
+                [ 
+                    "XF414A02", 
+                    "0", 
+                    "Parameter subID - ASW", 
+                    "Raw", 
+                    "PIX00017"
+                ], 
+                [ 
+                    "XF414A03", 
+                    "0x100", 
+                    "Parameter data - ASW", 
+                    "Raw", 
+                    "PIX00018"
+                ]
+            ]
+        }, 
+        {
+            "name" : "ZIXX3801",
+            "type" : "command",
+            "desc" : [ 
+                "", 
+                ""
+            ],
+            "uniqueID" : "SSTXac5d1f38f2c94eaf",
+            "actionTime" : "00:00:01",
+            "parameters" : [ 
+                [ 
+                    "PIX00076", 
+                    "85606401", 
+                    "Unique data req num", 
+                    "Raw", 
+                    "PIX00076"
+                ], 
+                [ 
+                    "PIX00070", 
+                    "1", 
+                    "Data processing level", 
+                    "Raw", 
+                    "PIX00070"
+                ], 
+                [ 
+                    "PIX00072", 
+                    "641811588", 
+                    "Start Time - seconds", 
+                    "Raw", 
+                    "PIX00072"
+                ], 
+                [ 
+                    "PIX00073", 
+                    "0", 
+                    "Start Time - sub-seconds", 
+                    "Raw", 
+                    "PIX00073"
+                ], 
+                [ 
+                    "PIX00248", 
+                    "0x100", 
+                    "Detector mask", 
+                    "Raw", 
+                    "PIX00248"
+                ], 
+                [ 
+                    "PIX00071", 
+                    "1", 
+                    "N box structures", 
+                    "Raw", 
+                    "PIX00071"
+                ], 
+                [ 
+                    "PIX00077", 
+                    "0", 
+                    "Tmin", 
+                    "Raw", 
+                    "PIX00077"
+                ], 
+                [ 
+                    "PIX00078", 
+                    "36000", 
+                    "Tmax", 
+                    "Raw", 
+                    "PIX00078"
+                ], 
+                [ 
+                    "PIXX0079", 
+                    "80", 
+                    "Tunit_v22633", 
+                    "Raw", 
+                    "PIXX0079"
+                ], 
+                [ 
+                    "PIX00200", 
+                    "1", 
+                    "Emin", 
+                    "Raw", 
+                    "PIX00200"
+                ], 
+                [ 
+                    "PIX00201", 
+                    "17", 
+                    "Emax", 
+                    "Raw", 
+                    "PIX00201"
+                ], 
+                [ 
+                    "PIX00202", 
+                    "0", 
+                    "Energy unit - 1", 
+                    "Raw", 
+                    "PIX00202"
+                ]
+            ]
+        }, 
+        {
+            "name" : "AIXF414A",
+            "type" : "sequence",
+            "desc" : [ 
+                "Load ASW Parameter v01", 
+                ""
+            ],
+            "uniqueID" : "SSTXef1078f8d5234761",
+            "actionTime" : "00:05:00",
+            "parameters" : [ 
+                [ 
+                    "XF414A01", 
+                    "425", 
+                    "Parameter ID - ASW", 
+                    "Raw", 
+                    "PIX00016"
+                ], 
+                [ 
+                    "XF414A02", 
+                    "0", 
+                    "Parameter subID - ASW", 
+                    "Raw", 
+                    "PIX00017"
+                ], 
+                [ 
+                    "XF414A03", 
+                    "0xFFF", 
+                    "Parameter data - ASW", 
+                    "Raw", 
+                    "PIX00018"
+                ]
+            ]
+        }, 
+        {
+            "name" : "AIXF414A",
+            "type" : "sequence",
+            "desc" : [ 
+                "Load ASW Parameter v01", 
+                ""
+            ],
+            "uniqueID" : "SSTXbc8bc3ce136f4a28",
+            "actionTime" : "00:00:01",
+            "parameters" : [ 
+                [ 
+                    "XF414A01", 
+                    "424", 
+                    "Parameter ID - ASW", 
+                    "Raw", 
+                    "PIX00016"
+                ], 
+                [ 
+                    "XF414A02", 
+                    "0", 
+                    "Parameter subID - ASW", 
+                    "Raw", 
+                    "PIX00017"
+                ], 
+                [ 
+                    "XF414A03", 
+                    "0xFFFFFCFF", 
+                    "Parameter data - ASW", 
+                    "Raw", 
+                    "PIX00018"
+                ]
+            ]
+        }, 
+        {
+            "name" : "ZIXX3801",
+            "type" : "command",
+            "desc" : [ 
+                "", 
+                ""
+            ],
+            "uniqueID" : "SSTXeac98e0a5c5b4a64",
+            "actionTime" : "00:00:01",
+            "parameters" : [ 
+                [ 
+                    "PIX00076", 
+                    "84645956", 
+                    "Unique data req num", 
+                    "Raw", 
+                    "PIX00076"
+                ], 
+                [ 
+                    "PIX00070", 
+                    "4", 
+                    "Data processing level", 
+                    "Raw", 
+                    "PIX00070"
+                ], 
+                [ 
+                    "PIX00072", 
+                    "641658228", 
+                    "Start Time - seconds", 
+                    "Raw", 
+                    "PIX00072"
+                ], 
+                [ 
+                    "PIX00073", 
+                    "0", 
+                    "Start Time - sub-seconds", 
+                    "Raw", 
+                    "PIX00073"
+                ], 
+                [ 
+                    "PIX00248", 
+                    "0xFFFFFCFF", 
+                    "Detector mask", 
+                    "Raw", 
+                    "PIX00248"
+                ], 
+                [ 
+                    "PIX00071", 
+                    "1", 
+                    "N box structures", 
+                    "Raw", 
+                    "PIX00071"
+                ], 
+                [ 
+                    "PIX00077", 
+                    "0", 
+                    "Tmin", 
+                    "Raw", 
+                    "PIX00077"
+                ], 
+                [ 
+                    "PIX00078", 
+                    "12300", 
+                    "Tmax", 
+                    "Raw", 
+                    "PIX00078"
+                ], 
+                [ 
+                    "PIXX0079", 
+                    "4100", 
+                    "Tunit_v22633", 
+                    "Raw", 
+                    "PIXX0079"
+                ], 
+                [ 
+                    "PIX00200", 
+                    "0", 
+                    "Emin", 
+                    "Raw", 
+                    "PIX00200"
+                ], 
+                [ 
+                    "PIX00201", 
+                    "31", 
+                    "Emax", 
+                    "Raw", 
+                    "PIX00201"
+                ], 
+                [ 
+                    "PIX00202", 
+                    "0", 
+                    "Energy unit - 1", 
+                    "Raw", 
+                    "PIX00202"
+                ]
+            ]
+        }, 
+        {
+            "name" : "AIXF414A",
+            "type" : "sequence",
+            "desc" : [ 
+                "Load ASW Parameter v01", 
+                ""
+            ],
+            "uniqueID" : "SSTXcccaa380d92e487c",
+            "actionTime" : "00:03:00",
+            "parameters" : [ 
+                [ 
+                    "XF414A01", 
+                    "424", 
+                    "Parameter ID - ASW", 
+                    "Raw", 
+                    "PIX00016"
+                ], 
+                [ 
+                    "XF414A02", 
+                    "0", 
+                    "Parameter subID - ASW", 
+                    "Raw", 
+                    "PIX00017"
+                ], 
+                [ 
+                    "XF414A03", 
+                    "0x200", 
+                    "Parameter data - ASW", 
+                    "Raw", 
+                    "PIX00018"
+                ]
+            ]
+        }, 
+        {
+            "name" : "ZIXX3801",
+            "type" : "command",
+            "desc" : [ 
+                "", 
+                ""
+            ],
+            "uniqueID" : "SSTX10c0a12db2b741c6",
+            "actionTime" : "00:00:01",
+            "parameters" : [ 
+                [ 
+                    "PIX00076", 
+                    "84639761", 
+                    "Unique data req num", 
+                    "Raw", 
+                    "PIX00076"
+                ], 
+                [ 
+                    "PIX00070", 
+                    "1", 
+                    "Data processing level", 
+                    "Raw", 
+                    "PIX00070"
+                ], 
+                [ 
+                    "PIX00072", 
+                    "641656788", 
+                    "Start Time - seconds", 
+                    "Raw", 
+                    "PIX00072"
+                ], 
+                [ 
+                    "PIX00073", 
+                    "0", 
+                    "Start Time - sub-seconds", 
+                    "Raw", 
+                    "PIX00073"
+                ], 
+                [ 
+                    "PIX00248", 
+                    "0x200", 
+                    "Detector mask", 
+                    "Raw", 
+                    "PIX00248"
+                ], 
+                [ 
+                    "PIX00071", 
+                    "1", 
+                    "N box structures", 
+                    "Raw", 
+                    "PIX00071"
+                ], 
+                [ 
+                    "PIX00077", 
+                    "0", 
+                    "Tmin", 
+                    "Raw", 
+                    "PIX00077"
+                ], 
+                [ 
+                    "PIX00078", 
+                    "36000", 
+                    "Tmax", 
+                    "Raw", 
+                    "PIX00078"
+                ], 
+                [ 
+                    "PIXX0079", 
+                    "200", 
+                    "Tunit_v22633", 
+                    "Raw", 
+                    "PIXX0079"
+                ], 
+                [ 
+                    "PIX00200", 
+                    "1", 
+                    "Emin", 
+                    "Raw", 
+                    "PIX00200"
+                ], 
+                [ 
+                    "PIX00201", 
+                    "6", 
+                    "Emax", 
+                    "Raw", 
+                    "PIX00201"
+                ], 
+                [ 
+                    "PIX00202", 
+                    "0", 
+                    "Energy unit - 1", 
+                    "Raw", 
+                    "PIX00202"
+                ]
+            ]
+        }, 
+        {
+            "name" : "ZIXX3801",
+            "type" : "command",
+            "desc" : [ 
+                "", 
+                ""
+            ],
+            "uniqueID" : "SSTX10e276e88d6344ce",
+            "actionTime" : "00:05:00",
+            "parameters" : [ 
+                [ 
+                    "PIX00076", 
+                    "83035409", 
+                    "Unique data req num", 
+                    "Raw", 
+                    "PIX00076"
+                ], 
+                [ 
+                    "PIX00070", 
+                    "1", 
+                    "Data processing level", 
+                    "Raw", 
+                    "PIX00070"
+                ], 
+                [ 
+                    "PIX00072", 
+                    "641563488", 
+                    "Start Time - seconds", 
+                    "Raw", 
+                    "PIX00072"
+                ], 
+                [ 
+                    "PIX00073", 
+                    "0", 
+                    "Start Time - sub-seconds", 
+                    "Raw", 
+                    "PIX00073"
+                ], 
+                [ 
+                    "PIX00248", 
+                    "0x200", 
+                    "Detector mask", 
+                    "Raw", 
+                    "PIX00248"
+                ], 
+                [ 
+                    "PIX00071", 
+                    "1", 
+                    "N box structures", 
+                    "Raw", 
+                    "PIX00071"
+                ], 
+                [ 
+                    "PIX00077", 
+                    "0", 
+                    "Tmin", 
+                    "Raw", 
+                    "PIX00077"
+                ], 
+                [ 
+                    "PIX00078", 
+                    "18000", 
+                    "Tmax", 
+                    "Raw", 
+                    "PIX00078"
+                ], 
+                [ 
+                    "PIXX0079", 
+                    "200", 
+                    "Tunit_v22633", 
+                    "Raw", 
+                    "PIXX0079"
+                ], 
+                [ 
+                    "PIX00200", 
+                    "1", 
+                    "Emin", 
+                    "Raw", 
+                    "PIX00200"
+                ], 
+                [ 
+                    "PIX00201", 
+                    "6", 
+                    "Emax", 
+                    "Raw", 
+                    "PIX00201"
+                ], 
+                [ 
+                    "PIX00202", 
+                    "0", 
+                    "Energy unit - 1", 
+                    "Raw", 
+                    "PIX00202"
+                ]
+            ]
+        }, 
+        {
+            "name" : "ZIXX3801",
+            "type" : "command",
+            "desc" : [ 
+                "", 
+                ""
+            ],
+            "uniqueID" : "SSTX30a310fc9b1b47e9",
+            "actionTime" : "00:03:00",
+            "parameters" : [ 
+                [ 
+                    "PIX00076", 
+                    "84712976", 
+                    "Unique data req num", 
+                    "Raw", 
+                    "PIX00076"
+                ], 
+                [ 
+                    "PIX00070", 
+                    "1", 
+                    "Data processing level", 
+                    "Raw", 
+                    "PIX00070"
+                ], 
+                [ 
+                    "PIX00072", 
+                    "641672988", 
+                    "Start Time - seconds", 
+                    "Raw", 
+                    "PIX00072"
+                ], 
+                [ 
+                    "PIX00073", 
+                    "0", 
+                    "Start Time - sub-seconds", 
+                    "Raw", 
+                    "PIX00073"
+                ], 
+                [ 
+                    "PIX00248", 
+                    "512", 
+                    "Detector mask", 
+                    "Raw", 
+                    "PIX00248"
+                ], 
+                [ 
+                    "PIX00071", 
+                    "1", 
+                    "N box structures", 
+                    "Raw", 
+                    "PIX00071"
+                ], 
+                [ 
+                    "PIX00077", 
+                    "0", 
+                    "Tmin", 
+                    "Raw", 
+                    "PIX00077"
+                ], 
+                [ 
+                    "PIX00078", 
+                    "36000", 
+                    "Tmax", 
+                    "Raw", 
+                    "PIX00078"
+                ], 
+                [ 
+                    "PIXX0079", 
+                    "3000", 
+                    "Tunit", 
+                    "Raw", 
+                    "PIXX0079"
+                ], 
+                [ 
+                    "PIX00200", 
+                    "1", 
+                    "Emin", 
+                    "Raw", 
+                    "PIX00200"
+                ], 
+                [ 
+                    "PIX00201", 
+                    "6", 
+                    "Emax", 
+                    "Raw", 
+                    "PIX00201"
+                ], 
+                [ 
+                    "PIX00202", 
+                    "0", 
+                    "Energy unit - 1", 
+                    "Raw", 
+                    "PIX00202"
+                ]
+            ]
+        }, 
+        {
+            "name" : "ZIXX3801",
+            "type" : "command",
+            "desc" : [ 
+                "", 
+                ""
+            ],
+            "uniqueID" : "SSTX7a0b13727623426e",
+            "actionTime" : "00:05:00",
+            "parameters" : [ 
+                [ 
+                    "PIX00076", 
+                    "84729360", 
+                    "Unique data req num", 
+                    "Raw", 
+                    "PIX00076"
+                ], 
+                [ 
+                    "PIX00070", 
+                    "1", 
+                    "Data processing level", 
+                    "Raw", 
+                    "PIX00070"
+                ], 
+                [ 
+                    "PIX00072", 
+                    "641676588", 
+                    "Start Time - seconds", 
+                    "Raw", 
+                    "PIX00072"
+                ], 
+                [ 
+                    "PIX00073", 
+                    "0", 
+                    "Start Time - sub-seconds", 
+                    "Raw", 
+                    "PIX00073"
+                ], 
+                [ 
+                    "PIX00248", 
+                    "512", 
+                    "Detector mask", 
+                    "Raw", 
+                    "PIX00248"
+                ], 
+                [ 
+                    "PIX00071", 
+                    "1", 
+                    "N box structures", 
+                    "Raw", 
+                    "PIX00071"
+                ], 
+                [ 
+                    "PIX00077", 
+                    "0", 
+                    "Tmin", 
+                    "Raw", 
+                    "PIX00077"
+                ], 
+                [ 
+                    "PIX00078", 
+                    "54000", 
+                    "Tmax", 
+                    "Raw", 
+                    "PIX00078"
+                ], 
+                [ 
+                    "PIXX0079", 
+                    "3000", 
+                    "Tunit", 
+                    "Raw", 
+                    "PIXX0079"
+                ], 
+                [ 
+                    "PIX00200", 
+                    "1", 
+                    "Emin", 
+                    "Raw", 
+                    "PIX00200"
+                ], 
+                [ 
+                    "PIX00201", 
+                    "6", 
+                    "Emax", 
+                    "Raw", 
+                    "PIX00201"
+                ], 
+                [ 
+                    "PIX00202", 
+                    "0", 
+                    "Energy unit - 1", 
+                    "Raw", 
+                    "PIX00202"
+                ]
+            ]
+        }, 
+        {
+            "name" : "AIXF414A",
+            "type" : "sequence",
+            "desc" : [ 
+                "Load ASW Parameter v01", 
+                ""
+            ],
+            "uniqueID" : "SSTXbdd13a71109742b9",
+            "actionTime" : "00:05:00",
+            "parameters" : [ 
+                [ 
+                    "XF414A01", 
+                    "424", 
+                    "Parameter ID - ASW", 
+                    "Raw", 
+                    "PIX00016"
+                ], 
+                [ 
+                    "XF414A02", 
+                    "0", 
+                    "Parameter subID - ASW", 
+                    "Raw", 
+                    "PIX00017"
+                ], 
+                [ 
+                    "XF414A03", 
+                    "0xFFFFFFFF", 
+                    "Parameter data - ASW", 
+                    "Raw", 
+                    "PIX00018"
+                ]
+            ]
+        }, 
+        {
+            "name" : "AIXF036A",
+            "type" : "sequence",
+            "desc" : [ 
+                "STIX Conf to Nominal v02", 
+                "STIX Mode Change: CONFIGURATION to NOMINAL"
+            ],
+            "uniqueID" : "SSTXf06b47cc308845b1",
+            "actionTime" : "00:00:02",
+            "parameters" : []
+        }, 
+        {
+            "name" : "AIXF033A",
+            "type" : "sequence",
+            "desc" : [ 
+                "STIX Nom. to Safe  v04", 
+                "STIX Mode Change: NOMINAL to SAFE"
+            ],
+            "uniqueID" : "SSTX6f879ab8ba264603",
+            "actionTime" : "00:01:00",
+            "parameters" : []
+        }
+    ]
+}

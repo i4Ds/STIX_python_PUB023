@@ -45,7 +45,7 @@ def write_alerts(raw_filename, alert_headers):
             log.write(other_message)
         log.close()
 
-def write_flare_notification(raw_filename, flare_info):
+def create_flare_notification(raw_filename, flare_info):
     if not flare_info:
         return
 
@@ -103,7 +103,9 @@ def process(instrument, filename):
         if DO_FLARE_SEARCH:
             print('Searching for flares')
             results=flare_detection.search(file_id)
-            write_flare_notification(file_id,results)
+            if results:
+                create_flare_notification(file_id,results)
+
 
 
 

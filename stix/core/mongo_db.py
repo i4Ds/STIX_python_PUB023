@@ -13,6 +13,8 @@ import bson
 import pymongo
 
 NUM_MAX_PACKETS = 20000
+MAX_REQUEST_LC_TIME_SPAN_DAYS = 3
+QL_SPIDS={'lc':54118,'bkg':54119, 'qlspec':54120, 'var':54121, 'flare':54122}
 
 
 class MongoDB(object):
@@ -41,11 +43,14 @@ class MongoDB(object):
             self.collection_data_requests= self.db['bsd']
             self.collection_fits= self.db['fits']
             self.collection_events= self.db['events']
+            self.collection_auto_flares= self.db['auto_flares']
 
         except Exception as e:
             print('Error occurred while initializing mongodb: {}'.format(
                 str(e)))
 
+    def get_db(self):
+        return self.db
     def get_collection_calibration(self):
         return self.collection_calibration
 
@@ -199,18 +204,80 @@ class MongoDB(object):
                 '_id', -1).limit(1)[0]['_id'] + 1
         except IndexError:
             return 0
-    def write_flares(self, doc):
+    def get_next_auto_flare_id(self):
+        try:
+            return self.collection_auto_flares.find().sort(
+                '_id', -1).limit(1)[0]['_id'] + 1
+        except IndexError:
+            return 0
+
+
+    def write_flares(self, result):
         """
-            write flare info to two collections: raw_files and events
+            write flare info into database
         """
-        if 'run_id' not in doc:
+        if 'run_id' not in result:
+            return
+        if result['num_peaks']==0:
             return
         
-        if self.collection_raw_files:
-            run = self.collection_raw_files.find_one({'_id': doc['run_id']})
-            run['flares'] = doc
-            self.collection_raw_files.save(run)
-               
+        try:
+            cursor = self.collection_auto_flares.delete_many(
+                {'run_id': int(result['run_id'])})
+            #delete 
+        except Exception as e:
+            pass
+
+        if self.collection_auto_flares:
+            first_id=self.get_next_auto_flare_id()
+        
+        for i in range(result['num_peaks']):
+            doc={'_id':first_id+i,
+                    'run_id':result['run_id'],
+                    'peak_counts': result['peak_counts'][i],
+                    'peak_utc': result['peak_utc'][i],
+                    'peak_unix_time': result['peak_unix_time'][i],
+                }
+            self.collection_auto_flares.save(doc)
+            
+
+    def get_quicklook_packets(self, packet_type, start_unix_time, span, sort_field='_id'):
+        span = float(span)
+        start_unix_time = float(start_unix_time)
+        if span > 3600 * 24 * MAX_REQUEST_LC_TIME_SPAN_DAYS:  #max 3 days
+            return []
+        stop_unix_time = start_unix_time + span
+        SPID=QL_SPIDS[packet_type]
+        collection = self.collection_ql
+        if not collection:
+            return []
+        query_string = {
+            "$and": [{
+                'stop_unix_time': {
+                    '$gt': start_unix_time
+                }
+            }, 
+            { 'start_unix_time': {
+                    '$lt': stop_unix_time
+                }},
+                {'SPID':SPID}
+            ]
+        }
+        ret = collection.find(query_string, {'packet_id': 1}).sort('_id', 1)
+        packet_ids = [x['packet_id'] for x in ret]
+    
+        if packet_ids:
+            query_string = {'_id': {'$in': packet_ids}}
+            cursor = self.collection_packets.find(query_string).sort(sort_field, 1)
+            return cursor
+        return []
+    def get_quicklook_packets_of_run(self, packet_type, run):
+        collection = None
+        SPID=QL_SPIDS[packet_type]
+        query_string = {'run_id':run, 'header.SPID':SPID}
+        cursor = self.collection_packets.find(query_string).sort('_id', 1)
+        return cursor
+        return []
 
 
 
