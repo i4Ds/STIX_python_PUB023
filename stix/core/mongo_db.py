@@ -109,6 +109,10 @@ class MongoDB(object):
             cursor = self.collection_ql.delete_many({'run_id': int(run_id)})
         if self.collection_data_requests:
             cursor = self.collection_data_requests.delete_many({'run_id': int(run_id)})
+        if self.collection_auto_flares:
+            cursor = self.collection_auto_flares.delete_many({'run_id': int(run_id)})
+        if self.collection_fits:
+            cursor = self.collection_fits.delete_many({'file_id': int(run_id)})
 
     def delete_runs(self, runs):
         for run in runs:

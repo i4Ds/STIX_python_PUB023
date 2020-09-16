@@ -41,9 +41,9 @@ def write_alerts(raw_filename, alert_headers):
             msg='\tAt {}, TM({},{}) {}\n'.format(header['UTC'], header['service_type'],
                 header['service_subtype'],header['descr'] )
             log.write(msg)
-        if other_message:
-            log.write(other_message)
-        log.close()
+        #if other_message:
+        #    log.write(other_message)
+        #log.close()
 
 def create_flare_notification(raw_filename, flare_info):
     if not flare_info:
