@@ -4,11 +4,10 @@ idb = {
     'filename': 'stix/data/idb/idb.sqlite',
 }
 spice_data_pattern= [
-    'stix/data/SPICE/kernels/lsk/naif0012.tls',
-    'stix/data/SPICE/kernels/sclk/solo_ANC_soc-sclk_*.tsc'
+    '/opt/stix/pub/data/spice/latest/kernels/lsk/naif0012.tls',
+    '/opt/stix/pub/data/spice/latest/kernels/sclk/solo_ANC_soc-sclk_*.tsc'
 ]
 daemon = {
-    #'raw_patterns':['/opt/stix/testdata/*ascii', '/home/xiaohl/data/*ascii'],
     'data_source': {
         'GU': ['/home/xiaohl/data/*.ascii'],
         'PFM': [
