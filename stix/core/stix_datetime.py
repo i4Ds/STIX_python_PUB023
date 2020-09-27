@@ -1,12 +1,18 @@
 #!/usr/bin/python3
 
-import spiceypy
-from stix.core import config
 import re
+import glob
 from datetime import datetime
 from dateutil import parser as dtparser
 
-SO_NAF_ID= -144
+import spiceypy
+from stix.core import stix_logger
+from stix.core import config
+
+logger = stix_logger.get_logger()
+
+
+
 # SOLAR ORBITER naif identifier
 class SpiceManager:
     """taken from https://issues.cosmos.esa.int/solarorbiterwiki/display/SOSP/Translate+from+OBT+to+UTC+and+back
@@ -25,14 +31,14 @@ class SpiceManager:
             raise Exception('SpiceManager already initialized')
         else:
             SpiceManager.__instance = self
-        tls_filename = config.spice['tls_filename']
-        sclk_filename = config.spice['sclk_filename']
-        spiceypy.furnsh(tls_filename)
-        spiceypy.furnsh(sclk_filename)
+        for pattern in config.spice_data_pattern:
+            for fname in glob.glob(pattern):
+                logger.info(f'loading spice data file: {fname}')
+                spiceypy.furnsh(fname)
 
     def obt2utc(self, obt_string):
         # Obt to Ephemeris time (seconds past J2000)
-        ephemeris_time = spiceypy.scs2e(SO_NAF_ID, obt_string)
+        ephemeris_time = spiceypy.scs2e(-144, obt_string)
         # Ephemeris time to Utc
         # Format of output epoch: ISOC (ISO Calendar format, UTC)
         # Digits of precision in fractional seconds: 3
@@ -43,23 +49,24 @@ class SpiceManager:
         ephemeris_time = spiceypy.utc2et(utc_string)
         # Ephemeris time to Obt
         #return ephemeris_time
-        obt_string=spiceypy.sce2s(SO_NAF_ID,ephemeris_time)
-        time_fields =re.search('\/(.*?):(\d*)',obt_string)
-        group=time_fields.groups()
+        obt_string = spiceypy.sce2s(-144, ephemeris_time)
+        time_fields = re.search('\/(.*?):(\d*)', obt_string)
+        group = time_fields.groups()
         try:
-            return int(group[0]) + int(group[1])/65536.
+            return int(group[0]) + int(group[1]) / 65536.
         except Exception as e:
             logger.warning(str(e))
             return 0
+
     def scet2utc(self, coarse, fine=0):
         obt_string = '{}:{}'.format(coarse, fine)
         return self.obt2utc(obt_string)
+
     def utc2scet(self, utc):
         # Utc to Ephemeris time (seconds past J2000)
         ephemeris_time = spiceypy.utc2et(utc)
         # Ephemeris time to Obt
-        return spiceypy.sce2s(SO_NAF_ID, ephemeris_time)
-
+        return spiceypy.sce2s(-144, ephemeris_time)
 
 
 spice_manager = SpiceManager.get_instance()
@@ -145,13 +152,13 @@ def datetime2unix(timestamp):
 
 def scet2unix(coarse, fine=0):
     try:
-        coarse_int=coarse
-        fine_int=fine
+        coarse_int = coarse
+        fine_int = fine
         if isinstance(coarse, float):
-            coarse_int=int(coarse)
+            coarse_int = int(coarse)
 
-        fine_int=int((coarse-coarse_int)*65535)
-        
+        fine_int = int((coarse - coarse_int) * 65535)
+
         utc = scet2utc(coarse_int, fine_int)
         return utc2unix(utc)
     except spiceypy.utils.support_types.SpiceyError:
@@ -177,20 +184,28 @@ def unix2datetime(unix_timestamp):
 
 
 '''
-code taken from Shane's datetime script
+    code taken from Shane's datetime script
 '''
+
+
 def utc2datetime(utc):
     if not utc.endswith('Z'):
         utc += 'Z'
     return dtparser.parse(utc)
 
+
 def scet_to_utc(scet):
     return spice_manager.obt2utc(scet)
+
+
 def scet_to_datetime(scet):
     utc_iso = scet_to_utc(scet)
     return dtparser.isoparse(utc_iso)
+
+
 def utc_to_scet(utc):
     return spice_manager.utc2scet(utc)
+
 
 def datetime_to_scet(dt):
     utc_iso = dt.isoformat(timespec='microseconds')
@@ -201,4 +216,3 @@ def datetime_to_scet(dt):
 if __name__ == '__main__':
     print("UTC at T0:")
     print(scet2utc(0))
-

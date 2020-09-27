@@ -19,7 +19,7 @@ from stix.core import stix_sci_report_analyzer as scia
 
 logger = stix_logger.get_logger()
 
-MAX_POSSIBLE_UNIX_TIME=2051222400 #2035-01-01
+MAX_POSSIBLE_UNIX_TIME = 2051222400  #2035-01-01
 
 
 class StixPacketWriter(object):
@@ -239,11 +239,11 @@ class StixMongoDBWriter(StixPacketWriter):
             self.write_one(packets)
 
     def write_one(self, packet):
-        header_unix =  packet['header']['unix_time']
+        header_unix = packet['header']['unix_time']
         if self.start_time == 0:
             if header_unix < MAX_POSSIBLE_UNIX_TIME:
-                self.start_time= header_unix
-        #exclude invalid timestamps 
+                self.start_time = header_unix
+        #exclude invalid timestamps
         if header_unix < MAX_POSSIBLE_UNIX_TIME:
             self.end_time = header_unix
         #insert header
@@ -282,7 +282,8 @@ class StixMongoDBWriter(StixPacketWriter):
             run['status'] = stix_global.OK
             #status ==1 if success  0
             run['summary'] = self.summary
-            run['calibration_run_ids']=self.science_report_analyzer.get_calibration_run_ids()
+            run['calibration_run_ids'] = self.science_report_analyzer.get_calibration_run_ids(
+            )
             self.collection_raw_files.save(run)
             logger.info('File info updated successfully.')
             logger.info('File ID:{}'.format(run['_id']))

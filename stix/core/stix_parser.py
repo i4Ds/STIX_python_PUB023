@@ -63,9 +63,9 @@ def detect_filetype(filename):
         buf = fin.read(1024).strip()
         if ext == 'xml':
             if 'PktTcReportResponse' in buf:
-                filetype='xml.tc.hist' 
+                filetype = 'xml.tc.hist'
             elif 'PktRawResponse' in buf:
-                filetype='xml.tm.raw'
+                filetype = 'xml.tm.raw'
         if not filetype:
             data = re.sub(r"\s+", "", buf)
             filetype = 'hex'
@@ -231,12 +231,16 @@ class StixParameterParser(object):
             if ref:
                 return STIX_IDB.tcparam_interpret(ref, raw_value)
             return ''
-        if param_name == 'NIX00125': #temperature calibration factors, parameter from Richard on June 22, 2020
+        if param_name == 'NIX00125':  #temperature calibration factors, parameter from Richard on June 22, 2020
             try:
-                x=math.log(12000.*raw_value/(4095-raw_value))
-                return round(1/(9.27e-4+2.34e-4*x+ 9.09e-7*x*x+1.04e-7*x*x*3)-273.15,2)
+                x = math.log(12000. * raw_value / (4095 - raw_value))
+                return round(
+                    1 / (9.27e-4 + 2.34e-4 * x + 9.09e-7 * x * x +
+                         1.04e-7 * x * x * 3) - 273.15, 2)
             except ValueError:
-                logger.warning('Could not calibrate NIX00125 temperature raw value :{}'.format(raw_value))
+                logger.warning(
+                    'Could not calibrate NIX00125 temperature raw value :{}'.
+                    format(raw_value))
         #conversion based on the equation in SIRIUS source code
         #    return (raw_value * 1.1 * 3.0 / 4095 - 1.281) * 213.17
         #elif param_name == 'NIX00102':
@@ -798,7 +802,7 @@ class StixTCTMParser(StixParameterParser):
             'num_bad_headers': 0,
             'total_length': 0,
             'num_filtered': 0,
-            'spid':{}
+            'spid': {}
         }
 
     def inc_counter(self, t, value=1):
@@ -806,11 +810,10 @@ class StixTCTMParser(StixParameterParser):
         if t == 'spid':
             if str(value) not in self.parser_counter['spid']:
                 self.parser_counter['spid'][str(value)] = 0
-            self.parser_counter['spid'][str(value)]+=1
+            self.parser_counter['spid'][str(value)] += 1
             #mongodb only supports string as keys
             return
         self.parser_counter[t] += value
-
 
     def get_summary(self):
         return self.parser_counter
@@ -1052,7 +1055,7 @@ class StixTCTMParser(StixParameterParser):
                     continue
                 tpsd = header['TPSD']
                 spid = header['SPID']
-                self.inc_counter('spid',spid)
+                self.inc_counter('spid', spid)
                 if self.selected_services:
                     if header['service_type'] not in self.selected_services:
                         self.inc_counter('num_filtered')
@@ -1151,7 +1154,7 @@ class StixTCTMParser(StixParameterParser):
             if packet:
                 if header_auxiliary:
                     for key, val in header_auxiliary.items():
-                        packet['header'][key]=val
+                        packet['header'][key] = val
                 else:
                     self.attach_timestamps(packet)
 
@@ -1241,37 +1244,44 @@ class StixTCTMParser(StixParameterParser):
                     pkt_header['unix_time'])
 
     def parse_telecommand_report_xml(self, filename):
-        #parse TC history 
+        #parse TC history
         #raw data should be included in the xml file
         packets = []
         results = []
         logger.set_progress_enabled(False)
-        state_names=['ReleaseState','GroundState','UplinkState', 'OnBoardState','OnBoardAccState',
-                'OnBoardAccPBState', 'ExecCompPBState' ]
+        state_names = [
+            'ReleaseState', 'GroundState', 'UplinkState', 'OnBoardState',
+            'OnBoardAccState', 'OnBoardAccPBState', 'ExecCompPBState'
+        ]
         with open(filename) as f:
             doc = xmltodict.parse(f.read())
-            for item in doc['ns2:ResponsePart']['Response']['PktTcReportResponse']['PktTcReportList'][
-                    'PktTcReportListElement']:
-                if 'ZIX' not in item['CommandName'] or ('RawBodyData' not in item):
-                    #skip platform commands 
+            for item in doc['ns2:ResponsePart']['Response'][
+                    'PktTcReportResponse']['PktTcReportList'][
+                        'PktTcReportListElement']:
+                if 'ZIX' not in item['CommandName'] or (
+                        'RawBodyData' not in item):
+                    #skip platform commands
                     continue
-                state=''.join([item[e][0] for e in state_names])
-                header_auxiliary={
-                    'UTC':item['ExecutionTime'],
+                state = ''.join([item[e][0] for e in state_names])
+                header_auxiliary = {
+                    'UTC': item['ExecutionTime'],
                     'unix_time': stix_datetime.utc2unix(item['ExecutionTime']),
-                    'release_time':item['ReleaseTime'],
-                    'uplink_time':item['UplinkTime'],
-                    'execution_time':item['ExecutionTime'],
-                    'sequence_name':item['SequenceName'],
-                    'state':state,
-                    }
-                raw=item['RawBodyData']
-                packets.append({'header_auxiliary':header_auxiliary, 'raw':raw})
+                    'release_time': item['ReleaseTime'],
+                    'uplink_time': item['UplinkTime'],
+                    'execution_time': item['ExecutionTime'],
+                    'sequence_name': item['SequenceName'],
+                    'state': state,
+                }
+                raw = item['RawBodyData']
+                packets.append({
+                    'header_auxiliary': header_auxiliary,
+                    'raw': raw
+                })
         num = len(packets)
         for i, packet in enumerate(packets):
             data_hex = packet['raw']
-            data= binascii.unhexlify(data_hex)
-            result = self.parse_binary(data,0, packet['header_auxiliary'])
+            data = binascii.unhexlify(data_hex)
+            result = self.parse_binary(data, 0, packet['header_auxiliary'])
             logger.set_progress_enabled(True)
             logger.progress(i, num)
             logger.set_progress_enabled(False)
@@ -1279,7 +1289,7 @@ class StixTCTMParser(StixParameterParser):
                 continue
             results.extend(result)
         return results
-        
+
     def parse_telemetry_xml(self, raw_filename):
         packets = []
         results = []
@@ -1367,8 +1377,6 @@ class StixTCTMParser(StixParameterParser):
 
     def is_processed(self, filename):
         return self.packet_writer.is_processed(filename)
-
-    
 
     def done(self):
         '''

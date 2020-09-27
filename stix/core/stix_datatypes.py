@@ -18,20 +18,22 @@ def copy_object(x, deep_copy):
         return copy.deepcopy(x)
     return x
 
+
 def any_list_contains(parents, child):
     for parent in parents:
         if list_contains(parent, child):
             return True
     return False
 
-def list_contains(parent,child):
+
+def list_contains(parent, child):
     if not child or not parent:
         return False
 
     if len(child) > len(parent):
         return False
-    for i,e in enumerate(child):
-        if parent[i]!=child[i]:
+    for i, e in enumerate(child):
+        if parent[i] != child[i]:
             return False
     return True
 
@@ -301,7 +303,6 @@ class Packet(object):
         num_fields = len(node_name.split('/'))
         pprint.pprint(self.get_nodes(node_name))
 
-
     @staticmethod
     def merge(packets, SPIDs, value_type='raw'):
 
@@ -352,8 +353,6 @@ class Packet(object):
                 Packet.merge_parameters(result, param.children, value_type)
             #dosen't work
 
-
-
     def children_as_dict(self, parameter_names=None, children=None):
         if not children:
             children = self._parameters
@@ -374,31 +373,27 @@ class Packet(object):
 
     def index(self, parameter_name):
         #get parameter index
-        #only looks for parameters whose depth == 0 
+        #only looks for parameters whose depth == 0
         for i, e in enumerate(self._parameters):
-            if e[0]==parameter_name:
+            if e[0] == parameter_name:
                 return i
         return -1
-    def get_one(self,parameter_name, parameters=None):
+
+    def get_one(self, parameter_name, parameters=None):
         #get the first parameter
         if parameters == None:
-            parameters=self._parameters
+            parameters = self._parameters
         for e in parameters:
-            if e[0]==parameter_name:
+            if e[0] == parameter_name:
                 return e
             if e[3]:
-                ret=self.get_one(parameter_name, e[3])
+                ret = self.get_one(parameter_name, e[3])
                 if ret:
                     return ret
 
         return None
 
-
-
-
-
-
-    def get_many(self, selectors, parent=[],  parameters=None):
+    def get_many(self, selectors, parent=[], parameters=None):
         """
         Extract parameter values from packet
           supports multiple selectors 
@@ -423,9 +418,6 @@ class Packet(object):
 
             if param['children'] and any_list_contains(selectors, parent):
                 self.get_many(selectors, parent, param['children'])
-                
-
-
         '''
             
             if param['name'] in field or '*' in field:
@@ -446,4 +438,3 @@ class Packet(object):
                         results.append(param['raw_int'])
         return results
         '''
-
