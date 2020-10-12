@@ -186,7 +186,10 @@ class StixParameterParser(object):
 
         if len(raw) == 1:
             result = raw[0]
-            if length < 16 and length % 8 != 0:
+            if length == 8 and offset_bits == 0:
+                #only used to extract archive memory information
+                return result
+            elif length < 16: #and length % 8 != 0:
                 # bit-offset only for 8 bits or 16 bits integer
                 # only valid for STIX
                 start_bit = nbytes * 8 - (offset_bits + length)

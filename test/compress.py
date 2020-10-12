@@ -1,6 +1,8 @@
 schemes=[[0,3,5],[0,5,3],[0,4,4],[1,4,3]]
-from ROOT import TGraphErrors, TCanvas,TGraph
+#from ROOT import TGraphErrors, TCanvas,TGraph
 import matplotlib.pyplot as plt
+from pprint import pprint
+result={}
 def to_array(x):
     return array('f',x)
 def decompress(x, S, K, M):
@@ -12,7 +14,7 @@ def decompress(x, S, K, M):
         print('Invalid SKM values: {}{}{}'.format(S, K, M))
         return None
     if K == 0 or M == 0:
-        return None
+        return None,None,None
 
     sign = 1
     if S == 1:  #signed
@@ -24,8 +26,7 @@ def decompress(x, S, K, M):
     x0 = 1 << (M + 1)
     if x < x0:
         #return [0, 0, 0]
-        print('here')
-        return [x, 0]
+        return [x, 0,0]
     mask1 = (1 << M) - 1
     mask2 = (1 << M)
     mantissa1 = x & mask1
@@ -37,13 +38,8 @@ def decompress(x, S, K, M):
     mean = (low + high) >> 1  #mean value
 
     diff=abs(high-low)/(2*mean)
-
-    return [sign* mean, diff]
-    #return [(high-mean)/ mean,0,0]
-
-#for i in range(0,255):
-#    mean,diff=decompress(i, 0, 4, 4)
-#    print(i, mean, diff)
+    delta=(high-low)*0.5
+    return sign*mean, diff,  delta
 
 
 x=[[],[],[],[]]
@@ -54,9 +50,14 @@ ye=[[],[],[],[]]
 plt.subplots(4, 1)
 for i in range(0,255):
     for k in range(0,4):
-        mean, diff=decompress(i, schemes[k][0], schemes[k][1], schemes[k][2])
+        mean, diff, absdiff=decompress(i, schemes[k][0], schemes[k][1], schemes[k][2])
         x[k].append(mean)
         y[k].append(diff)
+
+        key=str(schemes[k][0])+str(schemes[k][1])+str(schemes[k][2])
+        if key not in result:
+            result[key]={}
+        result[key][i]=[mean, absdiff]
         #ye[k].append(mean-low)
         #xe[k].append(0)
 
@@ -78,5 +79,7 @@ for i in range(0,4):
     plt.xlabel('Decompressed value')
     plt.ylabel('Max.relative diff.')
 
-plt.tight_layout()
-plt.show()
+import json
+print(json.dumps(result))
+#plt.tight_layout()
+#plt.show()

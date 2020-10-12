@@ -61,6 +61,13 @@ def create_flare_notification(raw_filename, flare_info):
         log.close()
 
 
+def remove_ngnix_cache_files():
+    '''
+        remove ngnix cache
+    '''
+    files=glob.glob(config.daemon['ngnix_cache'])
+    for fname in files:
+        os.remove(fname)
 
 
 
@@ -87,6 +94,7 @@ def process(instrument, filename):
         logger.error(str(e))
         return
     summary=parser.done()
+    remove_ngnix_cache_files()
     if summary:
         if DO_CALIBRATIONS:
             logger.info('Starting calibration spectrum analysis...')

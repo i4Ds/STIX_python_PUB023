@@ -19,6 +19,7 @@ daemon = {
     'log_path': '/opt/stix/log/',
     'alert_log': '/opt/stix/log/stix_alerts.log',
     'fits_path': '/opt/stix/fits',
+    'ngnix_cache': '/opt/stix/nginx/stix_cache/*'
 }
 
 calibration = {'report_path': '/data/'}
