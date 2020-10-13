@@ -30,5 +30,5 @@ setup(
     cmdclass = {'build_ext': build_ext},
     ext_modules = ext_modules
 )
-#python3 setup.py build_ext --inplace
+python3 setup.py build_ext --inplace
 
