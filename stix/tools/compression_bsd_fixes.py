@@ -27,7 +27,9 @@ trig_parameters=[
             'NIX00253',
             'NIX00254',
             'NIX00255',
-            'NIX00256']
+            'NIX00256',
+            'NIX00257'
+            ]
 
 
 

@@ -35,7 +35,7 @@ SCET_PARAMETERS = [
     'PIX0022', 'PIX0025', 'PIX0026', 'PIX00086', 'PIX00087', 'PIX00009'
 ]
 
-PARMETERS_CALIBRATION_ENABLED = ['NIX00101', 'NIX00102', 'NIX00125']
+PARMETERS_CALIBRATION_ENABLED = ['NIX00101', 'NIX00102', 'NIX00125', 'NIXD0003']
 PARMETERS_CALIBRATION_ENABLED.extend(SCET_PARAMETERS)
 
 STIX_IDB = stix_idb.stix_idb()
@@ -244,6 +244,9 @@ class StixParameterParser(object):
                 logger.warning(
                     'Could not calibrate NIX00125 temperature raw value :{}'.
                     format(raw_value))
+        if param_name == 'NIXD0003':
+            return round(raw_value/2.5,1) # archive memory to raw value
+
         #conversion based on the equation in SIRIUS source code
         #    return (raw_value * 1.1 * 3.0 / 4095 - 1.281) * 213.17
         #elif param_name == 'NIX00102':
@@ -748,7 +751,6 @@ class StixTelecommandParser(StixParameterParser):
                 ret = self.parse_one(pnode['parameter'],
                                      False,
                                      calibration_enabled=True)
-                #param = Parameter(ret)
                 param = ret
                 if pnode['children']:
                     #num_children = param['raw_int']
