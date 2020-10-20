@@ -41,6 +41,9 @@ for pkt in cursor:
     s=packet.get_one('NIXD0007')[1]
     k=packet.get_one('NIXD0008')[1]
     m=packet.get_one('NIXD0009')[1]
+
+    packet.get_one('NIXD0011')[1]=k
+    packet.get_one('NIXD0012')[1]=m
     #print(s,k,m)
     #branch=pkt[13][3]
     for param in  pkt['parameters'][13][3]:

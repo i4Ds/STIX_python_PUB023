@@ -10,9 +10,10 @@ import argparse
 import os
 import sys
 sys.path.append('.')
-from stix.core import config
+from stix.core.config import config
 from stix.core import stix_logger, stix_idb, stix_parser
 logger = stix_logger.get_logger()
+MONGODB_CONFIG=config['pipeline']['mongodb']
 
 
 def main():
@@ -74,15 +75,15 @@ def main():
     optional.add_argument(
         "--db-port",
         dest='db_port',
-        default=config.mongodb['port'],
+        default=MONGODB_CONFIG['port'],
         type=str,
         help='MongoDB host port.')
 
     optional.add_argument(
         "--db-user", dest='db_user', 
-        default=config.mongodb['user'], help='MongoDB username.')
+        default=MONGODB_CONFIG['user'], help='MongoDB username.')
     optional.add_argument(
-        "--db-pwd", dest='db_pwd', default=config.mongodb['password'], help='MongoDB password.')
+        "--db-pwd", dest='db_pwd', default=MONGODB_CONFIG['password'], help='MongoDB password.')
     optional.add_argument(
         "-m", default='', dest='comment', required=False, help="comment")
 

@@ -18,6 +18,7 @@ from stix.core import stix_logger
 from stix.core import stix_sci_report_analyzer as scia
 
 logger = stix_logger.get_logger()
+MONGODB_CONFIG=config.get_config()['pipeline']['mongodb']
 
 MAX_POSSIBLE_UNIX_TIME = 2051222400  #2035-01-01
 
@@ -130,10 +131,10 @@ class StixBinaryWriter(StixPacketWriter):
 class StixMongoDBWriter(StixPacketWriter):
     """write data to   MongoDB"""
     def __init__(self,
-                 server=config.mongodb['host'],
-                 port=config.mongodb['port'],
-                 username=config.mongodb['user'],
-                 password=config.mongodb['password']):
+                 server=MONGODB_CONFIG['host'],
+                 port=MONGODB_CONFIG['port'],
+                 username=MONGODB_CONFIG['user'],
+                 password=MONGODB_CONFIG['password']):
         super(StixMongoDBWriter, self).__init__()
 
         self.ipacket = 0

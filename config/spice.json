@@ -1,0 +1,7 @@
+[
+	{"data":[
+		"/opt/stix/pub/data/spice/latest/kernels/lsk/naif0012.tls",
+		"/opt/stix/pub/data/spice/latest/kernels/sclk/solo_ANC_soc-sclk_*.tsc"],
+		"validity_period":["2020-05-28T00:00:00", "2020-12-28T00:00:00"]
+	}
+]

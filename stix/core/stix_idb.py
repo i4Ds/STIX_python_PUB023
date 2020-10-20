@@ -59,7 +59,7 @@ class _IDB(object):
         self.s2k_table_contents = dict()
         self.filename = filename
         if self.filename == "":
-            self.filename = config.idb['filename']
+            self.filename = config.get_idb()
 
             #self.filename = find_idb(filename)
         self.num_trials = 0
@@ -97,11 +97,11 @@ class _IDB(object):
             logger.info('IDB loaded from {}'.format(filename))
         except sqlite3.Error:
             logger.error('Failed load IDB from {}'.format(filename))
-            if self.num_trials == 0:
-                default_IDB_filepath = find_idb('')
-                logger.info('Trying to load IDB from {}'.format(filename))
-                self.connect_database(default_IDB_filepath)
-                self.num_trials += 1
+            #if self.num_trials == 0:
+            #    default_IDB_filepath = find_idb('')
+            #    logger.info('Trying to load IDB from {}'.format(filename))
+            #    self.connect_database(default_IDB_filepath)
+            #    self.num_trials += 1
         self.cur = self.conn.cursor()
 
     def close(self):

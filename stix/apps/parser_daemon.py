@@ -13,7 +13,7 @@ import glob
 import time
 sys.path.append('.')
 from datetime import datetime
-from stix.core import config
+from stix.core.config import config
 from stix.core import mongo_db 
 from stix.core import stix_logger, stix_idb, stix_parser
 from stix.fits import fits_creator
@@ -26,6 +26,9 @@ DO_CALIBRATIONS=True
 ENABLE_FITS_CREATION=True
 DO_FLARE_SEARCH=True
 
+DAEMON_CONFIG=config.get_config()['daemon']
+MONGODB_CONFIG=config.get_config()['mongodb']
+
 def get_now():
     return datetime.now().isoformat()
 
@@ -35,7 +38,7 @@ def write_alerts(raw_filename, alert_headers):
     if not alert_headers:
         logger.info('No instrument warning or error message.')
         return
-    with open(config.daemon['alert_log'],'a+') as log:
+    with open(DAEMON_CONFIG['alert_log'],'a+') as log:
         log.write('File: {}\n'.format(raw_filename))
         for header in alert_headers:
             msg='\tAt {}, TM({},{}) {}\n'.format(header['UTC'], header['service_type'],
@@ -49,7 +52,7 @@ def create_flare_notification(raw_filename, flare_info):
     if not flare_info:
         return
 
-    with open(config.daemon['alert_log'],'a+') as log:
+    with open(DAEMON_CONFIG['alert_log'],'a+') as log:
         log.write('File: {}\n'.format(raw_filename))
         msg='''\nSTIX detected {} solar flares\n UTC:\n'''.format(flare_info['num_peaks'])
         msg+='\t'.join(flare_info['peak_utc'])
@@ -65,7 +68,7 @@ def remove_ngnix_cache_files():
     '''
         remove ngnix cache
     '''
-    files=glob.glob(config.daemon['ngnix_cache'])
+    files=glob.glob(DAEMON_CONFIG['ngnix_cache'])
     for fname in files:
         os.remove(fname)
 
@@ -74,12 +77,12 @@ def remove_ngnix_cache_files():
 def process(instrument, filename):
     base= os.path.basename(filename)
     name=os.path.splitext(base)[0]
-    log_path=config.daemon['log_path']
+    log_path=DAEMON_CONFIG['log_path']
     log_filename=os.path.join(log_path,name+'.log')
     logger.set_logger(log_filename, level=3)
     parser = stix_parser.StixTCTMParser()
-    parser.set_MongoDB_writer(config.mongodb['host'],config.mongodb['port'],
-            config.mongodb['user'], config.mongodb['password'],'',filename, instrument)
+    parser.set_MongoDB_writer(MONGODB_CONFIG['host'],MONGODB_CONFIG['port'],
+            MONGODB_CONFIG['user'], MONGODB_CONFIG['password'],'',filename, instrument)
     logger.info('{}, processing {} ...'.format(get_now(), filename))
     print('{}, processing {} ...'.format(get_now(), filename))
     if S20_EXCLUDED:
@@ -107,7 +110,7 @@ def process(instrument, filename):
                 logger.error(str(e))
         if ENABLE_FITS_CREATION:
             file_id=summary['_id']
-            fits_creator.create_fits(file_id, config.daemon['fits_path'])
+            fits_creator.create_fits(file_id, DAEMON_CONFIG['fits_path'])
         if DO_FLARE_SEARCH:
             print('Searching for flares')
             results=flare_detection.search(file_id)
@@ -125,12 +128,12 @@ def main_loop():
 
         print('Start checking ...')
         print(get_now())
-        mdb=mongo_db.MongoDB(config.mongodb['host'], config.mongodb['port'], 
-                config.mongodb['user'], config.mongodb['password'])
+        mdb=mongo_db.MongoDB(MONGODB_CONFIG['host'], MONGODB_CONFIG['port'], 
+                MONGODB_CONFIG['user'], MONGODB_CONFIG['password'])
 
         filelist={}
         
-        for instrument, selectors in config.daemon['data_source'].items():
+        for instrument, selectors in DAEMON_CONFIG['data_source'].items():
             for pattern in selectors:
                 filenames=glob.glob(pattern)
                 for filename in filenames:
