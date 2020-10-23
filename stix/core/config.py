@@ -28,7 +28,7 @@ def load_config(path='./config'):
 def get_idb(utc=None):
     if not utc:
         try:
-            parser_config['idb'][0]['filename']
+            return parser_config['idb'][0]['filename']
         except Exception as e:
             logger.error(str(e))
         return ''
@@ -42,7 +42,7 @@ def get_idb(utc=None):
 def get_spice(utc=None):
     if not utc:
         try:
-            parser_config['spice'][0]['data']
+            return parser_config['spice'][0]['data']
         except Exception as e:
             logger.error(str(e))
         return []

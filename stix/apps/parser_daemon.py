@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8 -*-
 # @title        : parser_daemon.py
-# @description  : STIX packet parser daemon. It detects new files in the given folder, 
-#                 parses them  and stores the decoded packets in the MongoDB
+# @description  : STIX packet parser daemon. It detects new files in the specified folder, 
+#                 parses the packets and stores the decoded packets in the MongoDB
 # @author       : Hualin Xiao
 # @date         : Feb. 11, 2020
 #
@@ -13,7 +13,7 @@ import glob
 import time
 sys.path.append('.')
 from datetime import datetime
-from stix.core.config import config
+from stix.core import config
 from stix.core import mongo_db 
 from stix.core import stix_logger, stix_idb, stix_parser
 from stix.fits import fits_creator
@@ -26,8 +26,8 @@ DO_CALIBRATIONS=True
 ENABLE_FITS_CREATION=True
 DO_FLARE_SEARCH=True
 
-DAEMON_CONFIG=config.get_config()['daemon']
-MONGODB_CONFIG=config.get_config()['mongodb']
+DAEMON_CONFIG=config.get_config()['pipeline']['daemon']
+MONGODB_CONFIG=config.get_config()['pipeline']['mongodb']
 
 def get_now():
     return datetime.now().isoformat()
@@ -66,9 +66,12 @@ def create_flare_notification(raw_filename, flare_info):
 
 def remove_ngnix_cache_files():
     '''
-        remove ngnix cache
+        remove ngnix cache if ngnix cache folder is defined in the configuration file
     '''
-    files=glob.glob(DAEMON_CONFIG['ngnix_cache'])
+    try:
+        files=glob.glob(DAEMON_CONFIG['ngnix_cache'])
+    except Exception:
+        return
     for fname in files:
         os.remove(fname)
 
@@ -116,12 +119,6 @@ def process(instrument, filename):
             results=flare_detection.search(file_id)
             if results:
                 create_flare_notification(file_id,results)
-
-
-
-
-
-
 
 def main_loop():
     while True:

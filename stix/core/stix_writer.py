@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 # @title        : stix_writer.py
-# @description  : Write decoded data to a python pickle file, sqlite database or mongo database
+# @description  : write decoded packets to mongodb, binary data files or python pickle files
 # @author       : Hualin Xiao
 # @date         : Feb. 27, 2019
 import datetime

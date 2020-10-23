@@ -41,7 +41,7 @@ class _IDB(object):
 
     #singleton
     #make sure only one instance is created
-    def __init__(self, filename=''):
+    def __init__(self, filename='', utc=None):
         if _IDB.__instance:
             logger.warning('IDB already initialized')
             pass
@@ -49,6 +49,7 @@ class _IDB(object):
             _IDB.__instance = self
         self.conn = None
         self.cur = None
+    #below are look-up tables in order to reduce db query time
         self.parameter_structures = dict()
         self.parameter_units = dict()
         self.calibration_polynomial = dict()
@@ -57,10 +58,13 @@ class _IDB(object):
         self.soc_descriptions = dict()
         self.parameter_descriptions = dict()
         self.s2k_table_contents = dict()
+        
         self.filename = filename
         if self.filename == "":
-            self.filename = config.get_idb()
+            self.filename = config.get_idb(utc)
+            print('loading idb from')
 
+            print(self.filename)
             #self.filename = find_idb(filename)
         self.num_trials = 0
         if self.filename:
@@ -95,14 +99,9 @@ class _IDB(object):
         try:
             self.conn = sqlite3.connect(filename, check_same_thread=False)
             logger.info('IDB loaded from {}'.format(filename))
+            self.cur = self.conn.cursor()
         except sqlite3.Error:
             logger.error('Failed load IDB from {}'.format(filename))
-            #if self.num_trials == 0:
-            #    default_IDB_filepath = find_idb('')
-            #    logger.info('Trying to load IDB from {}'.format(filename))
-            #    self.connect_database(default_IDB_filepath)
-            #    self.num_trials += 1
-        self.cur = self.conn.cursor()
 
     def close(self):
         if self.conn:
@@ -401,7 +400,6 @@ if __name__ == '__main__':
     #import sys
     idb = stix_idb()
     print(idb.get_idb_version())
-
-    print(find_idb('test'))
+    #print(find_idb('test'))
 
     #print(idb.is_variable_length_telecommand('ZIX37701'))

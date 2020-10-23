@@ -1,5 +1,15 @@
 [{
 	"filename":"stix/data/idb/idb.sqlite",
+	"path":".",
 	"version":"2.26.33",
-	"validity_period":["2020-02-07T00:00:00", "2020-12-28T00:00:00"]
-}]
+	"aswVersion":179,
+	"validityPeriod":["2020-02-07T00:00:00", "2020-12-28T00:00:00"]
+},
+{
+	"filename":"stix/data/idb/idb_v2.26.34.sqlite",
+	"version":"2.26.34",
+	"path":".",
+	"aswVersion":180,
+	"validityPeriod":["2020-12-28T00:00:00", "2025-12-28T00:00:00"]
+}
+]
