@@ -28,7 +28,7 @@ class SpiceManager:
 
     def __init__(self):
         if SpiceManager.__instance:
-            raise Exception('SpiceManager already initialized')
+            raise Exception('Spice Manager already initialized')
         else:
             SpiceManager.__instance = self
         for pattern in config.get_spice():
@@ -60,6 +60,7 @@ class SpiceManager:
 
     def scet2utc(self, coarse, fine=0):
         obt_string = '{}:{}'.format(coarse, fine)
+        print(obt_string)
         return self.obt2utc(obt_string)
 
     def utc2scet(self, utc):

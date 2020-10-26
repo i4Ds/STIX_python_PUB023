@@ -238,8 +238,8 @@ class StixParameterParser(object):
             try:
                 x = math.log(12000. * raw_value / (4095 - raw_value))
                 return round(
-                    1 / (9.27e-4 + 2.34e-4 * x + 9.09e-7 * x * x +
-                         1.04e-7 * x * x * 3) - 273.15, 2)
+                    1 / (9.27e-4 + 2.34e-4 * x + 9.09e-7 * x **2 +
+                         1.04e-7 * x ** 3) - 273.15, 2)
             except ValueError:
                 logger.warning(
                     'Could not calibrate NIX00125 temperature raw value :{}'.

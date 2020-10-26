@@ -24,8 +24,6 @@ MAX_POSSIBLE_UNIX_TIME = 2051222400  #2035-01-01
 
 
 class StixPacketWriter(object):
-    def __init__(self):
-        pass
 
     def write_all(self, packets):
         pass
