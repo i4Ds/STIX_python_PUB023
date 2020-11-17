@@ -1,36 +1,36 @@
 AYMODELE	Presence / absence of Equipement	U	15
-CAAT0001TM	On_Off	U	2
-CAAT0003TM	Nominal_Redundant	U	2
+CAAT0001TM	Off_On	U	2
+CAAT0003TM	Redundant_Nominal	U	2
 CAAT0005TM	Disconnected_Connected	U	2
-CAAT0007TM	Switch_Closed_Open	U	2
+CAAT0007TM	Switch_Open_Closed	U	2
 CAAT0009TM	Failed_Healthy	U	2
 CAAT0011TM	Not_Selected_Selected	U	2
-CAAT0013TM	Present_Absent	U	2
+CAAT0013TM	Absence_Presence	U	2
 CAAT0015TM	Backward_Forward	U	2
 CAAT0017TM	Left_Right	U	2
 CAAT0019TM	Unused_Used	U	2
-CAAT0021TM	Moving_Still	U	2
+CAAT0021TM	Still_Moving	U	2
 CAAT0023TM	Plus_Minus	U	2
 CAAT0025TM	Disarmed_Armed	U	2
-CAAT0027TM	Active_Inactive	U	2
+CAAT0027TM	Inactive_Active	U	2
 CAAT0029TM	Inhibited_Enabled	U	2
-CAAT0031TM	Enabled_Disabled	U	2
-CAAT0033TM	True_False	U	2
+CAAT0031TM	Disabled_Enabled	U	2
+CAAT0033TM	False_True	U	2
 CAAT0035TM	Busy_Ready	U	2
 CAAT0037TM	Open_Closed	U	2
 CAAT0039TM	Unlocked_Locked	U	2
 CAAT0041TM	End_Start	U	2
 CAAT0043TM	Empty_Full	U	2
-CAAT0045TM	Valid_Invalid	U	2
+CAAT0045TM	Invalid_Valid	U	2
 CAAT0101TM	Receive_Transmit	U	2
-CAAT0103TM	Error_or_not	U	2
+CAAT0103TM	Error	U	2
 CAAT0105TM	Service Requested	U	2
 CAAT0107TM	Broadcast Cmd received	U	2
-CAAT0108TM	Busy_or_not	U	2
+CAAT0108TM	Busy	U	2
 CAAT0111TM	Fault	U	2
 CAAT1002TM	Verify Read	U	2
 CAAT1003TM	Acknowledge Read	U	2
-CAAT1004TM	Increment_or_not	U	2
+CAAT1004TM	Increment	U	2
 CAAT1006TM	Command Response	U	2
 CAAT1007TM	Read Write	U	2
 CAAT1008TM	OBCP_boolean	U	2
@@ -67,8 +67,8 @@ CCD2Z007TM	RM prog set, AT Ptr reg	U	4
 CCDT0001TX	AOCS profiles	U	6
 CCDT0002TM	Close/Open	U	2
 CCDT0003TX	Disabled/Enabled status	U	2
-CCDT0004TX	Event ID list	U	1349
-CCDT0005TM	Failure ID	U	287
+CCDT0004TX	Event ID list	U	1380
+CCDT0005TM	Failure ID	U	289
 CCDT0006TM	Boolean	U	2
 CCDT0007TM	Door state	U	3
 CCDT0008TM	Deployment PCDU Chain ID	U	4
@@ -103,9 +103,9 @@ CCDT0042TX	Identifies SSMM SPW link	U	1
 CCDT0043TX	Time Report Generation Rate	U	9
 CCDT0046TM	AU Mode	U	2
 CCDT0047TM	State values of a TC link	U	2
-CCDT0048TC	Function ID	U	61
+CCDT0048TC	Function ID	U	63
 CCDT0049TM	Disabled/Enabled status	U	2
-CCDT0050TX	Equipment function ID	U	274
+CCDT0050TX	Equipment function ID	U	275
 CCDT0051TM	Selected PM image	U	2
 CCDT0052TM	Selected PM image	U	2
 CCDT0054TM	Off_On	U	2
@@ -179,7 +179,7 @@ CCDT0137TM	Thruster branches	U	2
 CCDT0138TC	Thruster branches. Referred to a	U	2
 CCDT0139TM	Result of unit check	U	2
 CCDT0140TM	Current status of the commanding	U	4
-CCDT0141TC	Equipment / Device / Internal fu	U	396
+CCDT0141TC	Equipment / Device / Internal fu	U	399
 CCDT0142TM	Enumeration used to assign value	U	3
 CCDT0143TM	Identification of failure causes	U	2
 CCDT0144TC	RWL IDs. Referred to as 'Wheel I	U	4
@@ -209,7 +209,7 @@ CCDT0253TM	Identification of illuminated se	U	2
 CCDT0259TM	The possible attitude control op	U	3
 CCDT0260TM	The possible attitude estimator	U	4
 CCDT0261TM	The possible attitude guidance o	U	4
-CCDT0262TX	DEU unit identifier enums	U	2
+CCDT0262TX	DEU unit identifier enums	U	3
 CCDT0271TM	1553 Bus channel	U	2
 CCDT0272TM	CEL Management error	U	3
 CCDT0273TM	Deployment status definition	U	3
@@ -270,11 +270,13 @@ CCDT0374TM	Reason selecting last chance con	U	6
 CCDT0375TM	WGS position ID for commanded po	U	3
 CCDT0376TM	WGS position ID for read positio	U	2
 CCDT0377TM	WGS position ID for read positio	U	2
+CCDT0382TM	Tm Extraction status	U	6
 CCDX0004TM	Event ID list	U	1
 CCDX0005TM	Boolean	U	8
 CCDX2000TM	DUP RM prog set, AT Ptr reg	U	4
 CCDX2001TM	DUP RM prog set PAP tbl	U	4
 CCDX5021TM	TCF Selection	U	4
+CCDX5022TM	ECL Selection	U	4
 CCDX9317TM	TME_TmEnCfg1-Pat	U	4
 CCDX9318TM	TME_TmEnCfg1-TST	U	2
 CCDX9319TM	TME_TmEnCfg1-TuR	U	4
@@ -285,8 +287,10 @@ CCDX9323TM	TME_TmEnCfg1-CV	U	2
 CCDX9324TM	TME_TmEnCfg1-PR	U	2
 CCDX9325TM	TME_TmEnCfg1-PS	U	2
 CCDX9326TM	TME_TmEnCfg1-SCW	U	4
+CCFXD001TM	SADE Msg error condition	U	7
 CCS2Z00DTM	unit where function is executed	U	9
 CCSX0001TM	SCV Status	U	27
+CCXX000CTM	BUMTL file selection	U	2
 CDMT0000TM	Current status	U	5
 CDMT0001TM	Pinpuller Release status	U	2
 CDMT0002TM	Odd parity in TMs	U	2
@@ -555,7 +559,7 @@ CIPT0302TM	PHI_ISSStatus	U	4
 CIPT0303TM	PHI_SpaceWireStatus	U	7
 CIPT0304TM	PHI_Overcurrent	U	2
 CIPT0500TM	PHI_EventID	U	27
-CIPT0511TM	PHI_TransferID	U	8
+CIPT0511TM	PHI_TransferID	U	9
 CIPT0520TM	PHI_PerformedTest	U	13
 CIPT0535TM	PHI_CRCSource	U	6
 CIPT0553TM	PHI_RFPGA_SEU_Type	U	4
@@ -574,20 +578,22 @@ CIPTE83CTM	PHI_MechanismID	U	4
 CIPTE83DTM	PHI_Direction	U	2
 CIPTE866TM	PHI_ISSMode	U	2
 CIPTE896TM	PHI_MonitoringType	U	22
-CIPTE897TM	PHI_MonitoringAction	U	3
+CIPTE897TM	PHI_MonitoringAction	U	4
 CIPTE898TM	PHI_MonitoringStatus	U	3
 CIPTE900TM	PHI_FileSystem	U	4
 CIPTE904TM	PHI_LastListing	U	2
 CIPTE914TM	PHI_GPIOPort	U	29
 CIPTE91ETM	PHI_SPINode	U	2
 CIPTE928TM	PHI_SoCWNode	U	8
-CIPTE932TM	PHI_RFPGA	U	5
+CIPTE932TM	PHI_RFPGA	U	6
 CIPTH011TM	PHI_VersionModified	U	2
 CIPTH091TM	PHI_AnnealingStatus	U	3
 CITT1000TM	ON/OFF STATUS TABLE	U	2
 CITT1002TM	Disabled/Enabled TABLE	U	2
 CITT1004TM	TRUE/FALSE Table	U	2
 CITT1032TM	CHECKING_STATUS	U	5
+CITT1055TM	PMP TCS Set Point	U	4
+CITT1072TM	HV_SAFE STATUS	U	2
 CITT1112TM	TM_1_2 ERROR_CODE	U	15
 CITT1118TM	TM_1_8_ERROR_CODE	U	123
 CITT1120TM	HK SID	U	17
@@ -627,7 +633,7 @@ CIUT0005TM	Rotation_Direction	U	2
 CIUT0006TM	Boot_Type	U	3
 CIUT0007TM	Inverted_Off_On	U	2
 CIUT0008TM	DoorPosition	U	3
-CIUT0009TM	CameraState	U	22
+CIUT0009TM	CameraState	U	24
 CIUT0010TM	PrimeRedundant	U	2
 CIUT0011TM	BootArea	U	5
 CIUT0012TM	MechDirection	U	2
@@ -826,7 +832,7 @@ CIXT0380TM	Register 9 (SPY)	U	4
 CIXT0381TM	Register 10 (VREF)	U	8
 CIXT0382TM	Register 11 (TUNE)	U	6
 CIXT0389TM	Configuration	U	2
-CIXT0401TM	Rate control regime	U	12
+CIXT0401TM	Rate control regime	U	13
 CIXT1168TM	Frame overrun information	U	25
 CIXTS001TM	DPU_SPW_C crit	U	5
 CIXTS002TM	DPU_DET_C criteria	U	5
@@ -922,6 +928,14 @@ CSMT0166TM	Link	U	3
 CSMT0167TM	Even column id	U	11
 CSMT0168TM	ODD column id	U	11
 CSMT0169TM	Abort Internal Reason	U	5
+CSMX0000TM	TXF_SSMM_A	U	10
+CSMX0001TM	TXF_SSMM_B	U	10
+CSMX0002TM	TXF_PORT_TYPE	U	3
+CSMX0003TM	TXF_INTERFACE_TYPE	U	6
+CSMX0004TM	TXF_DEVICE_TYPE	U	2
+CSMX0005TM	TXF_SPW_TIMEOUT	U	8
+CSMX0269TM	SSMM Memory ID	U	16
+CSMX1010TM	SSMM Test Pattern	U	8
 CSTT6000TM	EEPROM_FAILURE	U	1
 CSTT6001TM	MEMORY_ID	U	3
 CSTT6002TM	MODE PREVIOUS_MODE	U	10
@@ -937,8 +951,12 @@ CSTT6012TM	CONFIGURATION	U	2
 CSTT6013TM	RESET_TYPE	U	10
 CSTT6014TM	EDAC_CHECK	U	3
 CSTT6015TM	NotValid_Valid	U	2
+CTC2Z006TX	TCS Thermistor ID	U	420
+CTC2Z007TX	TCS Heater ID	U	203
 CTCXZ000TM	TCS Heater IDs	U	209
 CTCXZ001TM	TCS Thermistor IDs	U	421
+CTTSX001TM	DST_RX in use	U	3
+CTTSX002TM	DST_RX Rate Sts	U	3
 CTTT0001TM	Synthetic WGS POS calibration	U	3
 CYGT0659TM	VC ID	U	2
 CYGT0661TM	No RF available	U	2
@@ -952,4 +970,4 @@ CYPP9103TM	TMTC Bit Rate PSS	U	56
 CYPP9105TM	TC Bit Rate PSS	U	6
 CYPT0001TM	Failure ID	U	7
 CYPT9104TM	TM Encoding Register	U	2
-PARAMIDTM	Parameter ID	U	19039
+PARAMIDTM	Parameter ID	U	19658

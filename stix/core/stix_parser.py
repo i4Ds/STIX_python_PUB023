@@ -2,6 +2,7 @@
 # -*- encoding: utf-8 -*-
 # @title        : parser.py
 # @date         : Feb. 11, 2019
+# @author       : Hualin Xiao (hualin.xiao@fhnw.ch)
 # @description:
 #               STIX telemetry raw data parser
 # @TODO
@@ -237,9 +238,7 @@ class StixParameterParser(object):
         if param_name == 'NIX00125':  #temperature calibration factors, parameter from Richard on June 22, 2020
             try:
                 x = math.log(12000. * raw_value / (4095 - raw_value))
-                return round(
-                    1 / (9.27e-4 + 2.34e-4 * x + 9.09e-7 * x **2 +
-                         1.04e-7 * x ** 3) - 273.15, 2)
+                return round(1 / (9.27e-4 + 2.34e-4 * x + 9.09e-7 * x **2 + 1.04e-7 * x ** 3) - 273.15, 2)
             except ValueError:
                 logger.warning(
                     'Could not calibrate NIX00125 temperature raw value :{}'.
@@ -502,7 +501,6 @@ class StixVariableTelemetryPacketParser(StixParameterParser):
                                 'Repeater {}  has an invalid value: {}'.format(
                                     pnode['name'], param[1]))
 
-                #parameter_list.append(param.as_tuple())
                 parameters.append(param)
 
     def parse_node(self, node):
@@ -552,7 +550,7 @@ class StixContextParser(StixParameterParser):
         super(StixContextParser, self).__init__()
 
     def parse(self, buf):
-        #based on the FSW source code  ContextMgmt
+        #parsing based on the FSW source code  ContextMgmt
 
         offset = 0
         #offset in units of bits
@@ -570,9 +568,6 @@ class StixContextParser(StixParameterParser):
             else:
                 raw_values = self.decode_buffer(buf, 'CONTEXT', offset_bytes,
                                                 offset_bits, width)
-            #if raw_values:
-            #param = Parameter((name, raw_values, '', children))
-            #parameters.append(param.as_tuple())
             parameters.append((name, raw_values, '', children))
 
             offset += width
@@ -589,9 +584,6 @@ class StixContextParser(StixParameterParser):
                                            offset_bits, width)
             offset += width
             if raw_value is not None and raw_value != '':
-                #param = Parameter((stix_context.CONTEXT_REGISTER_DESC[name],
-                #                   raw_value, '', []))
-                #parameters.append(param.as_tuple())
                 param = (stix_context.CONTEXT_REGISTER_DESC[name], raw_value,
                          '', [])
                 parameters.append(param)

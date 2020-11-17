@@ -107,6 +107,7 @@ class IORMongoDB(object):
                 'path': path,
                 'md5': md5,
                 'description': '',
+                'hidden':False,
                 'phase': '',
                 'processing_time': get_now(),
                 'log': ''

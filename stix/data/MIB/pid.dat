@@ -3,6 +3,8 @@
 0	0	1	0	0	1000006	Good complete transfer frame		-1	0	N		Y	1	N	
 0	0	34	0	0	36997	OBC_HPTM_packet		-1	16	Y			0	N	
 0	0	2047	0	0	66986	Idle Packet		-1	16	Y			0	N	
+0	0	3001	0	0	101	MATIS BASIC HKTM OK		-1	0	Y		Y	1	N	
+0	0	3002	0	0	102	MATIS RX LOCK EXPECTED		-1	0	Y		Y	1	N	
 1	1	161	0	0	14181	Telecommand Acceptance Report - Success		-1	16	Y			0		
 1	1	177	0	0	20132	Telecommand Acceptance Report - Success		-1	16	Y			0		
 1	1	193	0	0	32175	Telecommand Acceptance Report - Success		-1	16	Y			0		
@@ -349,8 +351,8 @@
 1	8	161	516	0	14035	Wrong Spw Link ID or Spw coupler ID		-1	16	Y			0	A	
 1	8	161	517	0	14034	The pulse length value <PTC_DURATION> is out of range		-1	16	Y			0	A	
 1	8	161	518	0	14031	The nb of 1553 commands <PTC_N_1553_CMD> is out of range		-1	16	Y			0	A	
-1	8	161	519	0	14032	The nb of 1553 data words in the 1553 command word <PTC_M1553_CM		-1	16	Y			0	A	
-1	8	161	520	0	14036	The nb of SPW command data octets <PTC_M_SPW_DATA_BYTE> is out o		-1	16	Y			0	A	
+1	8	161	519	0	14032	Length of data is inconsistent with TC param M_1553_DATA_WORD		-1	16	Y			0	A	
+1	8	161	520	0	14036	Parameter value out of range - Number of SPW command data octets		-1	16	Y			0	A	
 1	8	161	768	0	14085	SID is out of the allowed range		-1	16	Y			0	A	
 1	8	161	769	0	14069	Collection interval is out of the allowed range		-1	16	Y			0	A	
 1	8	161	771	0	14123	Number of parameters inconsistent with length of pkt data field		-1	16	Y			0	A	
@@ -389,6 +391,7 @@
 1	8	161	2309	0	14401	No match request		-1	16	Y			0	A	
 1	8	161	2310	0	14400	Invalid PID		-1	16	Y			0	A	
 1	8	161	2819	0	14110	Invalid number of TC (=0)		-1	16	Y			0	A	
+1	8	161	2820	0	14545	Invalid N2 (number of PIDs)		-1	16	Y			0	A	
 1	8	161	2821	0	14114	Tags are inconsistent (BETWEEN and Tag1 > Tag2)		-1	16	Y			0	A	
 1	8	161	2822	0	14135	TC length is not consistent with the headers of the included TCs		-1	16	Y			0	A	
 1	8	161	2823	0	14117	Tag is too early		-1	16	Y			0	A	
@@ -466,7 +469,7 @@
 1	8	161	4609	0	14387	TC length is wrong.		-1	16	Y			0	A	
 1	8	161	4610	0	14382	A value is wrong inside OBCP header.		-1	16	Y			0	A	
 1	8	161	4611	0	14379	Computed checksum of OBCP is not coherent with OBCP file checksu		-1	16	Y			0	A	
-1	8	161	4612	0	14378	OBCP identifier is not valid (either out of allowed range  or no		-1	16	Y			0	A	
+1	8	161	4612	0	14378	OBCP ID is invalid (OBCP is not loaded or ID is out of range)		-1	16	Y			0	A	
 1	8	161	4614	0	14393	No more free space in OBCP list.		-1	16	Y			0	A	
 1	8	161	4615	0	14383	Too big OBCP.		-1	16	Y			0	A	
 1	8	161	4616	0	14395	No more free space in OBCP storage area.		-1	16	Y			0	A	
@@ -818,7 +821,7 @@
 1	8	225	4868	0	10020	Detection list or action TC pool overflow		-1	16	Y			0	A	
 1	8	225	4869	0	10083	PID/EID combination not present in detection list selected		-1	16	Y			0	A	
 1	8	225	4870	0	10017	Attempt to modify or delete an enabled detection list entry		-1	16	Y			0	A	
-1	8	225	4872	0	10073	N is either not consistent with real length of the packet data f		-1	16	Y			0	A	
+1	8	225	4872	0	10073	N is invalid (out of range OR inconsistent with packet length)		-1	16	Y			0	A	
 1	8	225	4873	0	10034	Provided EID is forbidden		-1	16	Y			0	A	
 1	8	225	32769	0	10112	Length of parameter data not in line with N_PARAM parameter		-1	16	Y			0	A	
 1	8	225	32770	0	10113	Parameter identifier not defined		-1	16	Y			0	A	
@@ -833,7 +836,9 @@
 1	8	225	33541	0	10139	A TC is already ongoing		-1	16	Y			0	A	
 1	8	225	33542	0	10133	SCV TM state invalid		-1	16	Y			0	A	
 1	8	225	33543	0	10175	SCV OPER state invalid		-1	16	Y			0	A	
+1	8	225	33544	0	10331	SCV PWR state invalid		-1	16	Y			0	A	
 1	8	225	33796	0	10291	SGM HW access error		-1	16	Y			0	A	
+1	8	225	34048	0	10332	Partition Identifier is not defined		-1	16	Y			0	A	
 1	8	225	36353	0	10031	FMON ID does not exist		-1	16	Y			0	A	
 1	8	225	36354	0	10027	PMON (service 12) is disabled at service level		-1	16	Y			0	A	
 1	8	225	36355	0	10033	Validity parameter is not defined		-1	16	Y			0	A	
@@ -1204,33 +1209,46 @@
 1	8	913	46758	0	51388	EUI_TcExecFail_58_FLASH_ECC_ERROR		-1	16	Y		Y	0	A	
 1	8	913	46759	0	51389	EUI_TcExecFail_59_INCONSISTENT_PACKET_LENGTH		-1	16	Y		Y	0	A	
 1	8	913	46760	0	51390	EUI_TcExecFail_60_WICOM_ERROR		-1	16	Y		Y	0	A	
-1	8	913	46761	0	51391	EUI_TcExecFail_61 SEMAPHORE_ERROR		-1	16	Y		Y	0	A	
-1	8	913	46762	0	51392	EUI_TcExecFail_62 MECH_REVERSE_1STEP		-1	16	Y		Y	0	A	
-1	8	913	46763	0	51393	EUI_TcExecFail_63 FLASH_ERROR		-1	16	Y		Y	0	A	
-1	8	913	46764	0	51394	EUI_TcExecFail_64 HSL_SPEED_WRONG		-1	16	Y		Y	0	A	
-1	8	913	46765	0	51395	EUI_TcExecFail_65 LOW_LEVEL_NOT_ENABLED		-1	16	Y		Y	0	A	
-1	8	913	46766	0	51396	EUI_TcExecFail_66 MEM_FLASH_BAD_BLOCK_TAB_NOT_READ		-1	16	Y		Y	0	A	
-1	8	913	46767	0	51397	EUI_TcExecFail_67 IIM_ERROR		-1	16	Y		Y	0	A	
-1	8	913	46768	0	51398	EUI_TcExecFail_68 HV_HV_QUEUE_ERROR		-1	16	Y		Y	0	A	
-1	8	913	46769	0	51399	EUI_TcExecFail_69 POWR_BUSY		-1	16	Y		Y	0	A	
-1	8	913	46770	0	51040	EUI_TcExecFail_70 ABORT_WHEN_NOT_RAMPING		-1	16	Y		Y	0	A	
-1	8	913	46771	0	51041	EUI_TcExecFail_71 RAMP_INTERRUPTED		-1	16	Y		Y	0	A	
-1	8	913	46772	0	51042	EUI_TcExecFail_72 ILLEGAL_THERM_PARAM		-1	16	Y		Y	0	A	
-1	8	913	46773	0	51043	EUI_TcExecFail_73 THERM_BUSY		-1	16	Y		Y	0	A	
-1	8	913	46774	0	51044	EUI_TcExecFail_74 THERM_ERROR		-1	16	Y		Y	0	A	
-1	8	913	46775	0	51045	EUI_TcExecFail_75 PARALLEL_PROG_RUNNING		-1	16	Y		Y	0	A	
-1	8	913	46776	0	51046	EUI_TcExecFail_76 PARALLEL_PROG_NOT_FOUND		-1	16	Y		Y	0	A	
-1	8	913	46777	0	51047	EUI_TcExecFail_77 PARALLEL_PROG_SAME		-1	16	Y		Y	0	A	
-1	8	913	46778	0	51048	EUI_TcExecFail_78 POWER_ON_ERROR		-1	16	Y		Y	0	A	
-1	8	913	46779	0	51049	EUI_TcExecFail_79 MECH_FIRE_WITHOUT_SETUP		-1	16	Y		Y	0	A	
-1	8	913	46780	0	51050	EUI_TcExecFail_80 FS_OPENDIR_ERROR		-1	16	Y		Y	0	A	
-1	8	913	46781	0	51051	EUI_TcExecFail_81		-1	16	Y		Y	0	A	
-1	8	913	46782	0	51052	EUI_TcExecFail_82 FS_LSTAT_ERROR		-1	16	Y		Y	0	A	
-1	8	913	46783	0	51053	EUI_TcExecFail_83 FS_MAX_FILES_ERROR		-1	16	Y		Y	0	A	
-1	8	913	46784	0	51054	EUI_TcExecFail_84 FS_UNMOUNT_ERROR		-1	16	Y		Y	0	A	
-1	8	913	46785	0	51055	EUI_TcExecFail_85 PRIORITY_CHANGE_ERROR		-1	16	Y		Y	0	A	
-1	8	913	46786	0	51056	EUI_TcExecFail_86 LIMIT_PARAM_ERROR		-1	16	Y		Y	0	A	
-1	8	913	46787	0	51057	EUI_TcExecFail_87 ERRORS_PARAM_ERROR		-1	16	Y		Y	0	A	
+1	8	913	46761	0	51391	EUI_TcExecFail_61_SEMAPHORE_ERROR		-1	16	Y		Y	0	A	
+1	8	913	46762	0	51392	EUI_TcExecFail_62_MECH_REVERSE_1STEP		-1	16	Y		Y	0	A	
+1	8	913	46763	0	51393	EUI_TcExecFail_63_FLASH_ERROR		-1	16	Y		Y	0	A	
+1	8	913	46764	0	51394	EUI_TcExecFail_64_HSL_SPEED_WRONG		-1	16	Y		Y	0	A	
+1	8	913	46765	0	51395	EUI_TcExecFail_65_LOW_LEVEL_NOT_ENABLED		-1	16	Y		Y	0	A	
+1	8	913	46766	0	51396	EUI_TcExecFail_66_MEM_FLASH_BAD_BLOCK_TAB_NOT_READ		-1	16	Y		Y	0	A	
+1	8	913	46767	0	51397	EUI_TcExecFail_67_IIM_ERROR		-1	16	Y		Y	0	A	
+1	8	913	46768	0	51398	EUI_TcExecFail_68_HV_HV_QUEUE_ERROR		-1	16	Y		Y	0	A	
+1	8	913	46769	0	51399	EUI_TcExecFail_69_POWR_BUSY		-1	16	Y		Y	0	A	
+1	8	913	46770	0	51040	EUI_TcExecFail_70_MEMORY_FLASH_COPY_FAILED		-1	16	Y		Y	0	A	
+1	8	913	46771	0	51041	EUI_TcExecFail_71_RAMP_INTERRUPTED		-1	16	Y		Y	0	A	
+1	8	913	46772	0	51042	EUI_TcExecFail_72_ILLEGAL_THERM_PARAM		-1	16	Y		Y	0	A	
+1	8	913	46773	0	51043	EUI_TcExecFail_73_THERM_BUSY		-1	16	Y		Y	0	A	
+1	8	913	46774	0	51044	EUI_TcExecFail_74_THERM_ERROR		-1	16	Y		Y	0	A	
+1	8	913	46775	0	51045	EUI_TcExecFail_75_PARALLEL_PROG_RUNNING		-1	16	Y		Y	0	A	
+1	8	913	46776	0	51046	EUI_TcExecFail_76_PARALLEL_PROG_NOT_FOUND		-1	16	Y		Y	0	A	
+1	8	913	46777	0	51047	EUI_TcExecFail_77_PARALLEL_PROG_SAME		-1	16	Y		Y	0	A	
+1	8	913	46778	0	51048	EUI_TcExecFail_78_POWER_ON_ERROR		-1	16	Y		Y	0	A	
+1	8	913	46779	0	51049	EUI_TcExecFail_79_MECH_FIRE_WITHOUT_SETUP		-1	16	Y		Y	0	A	
+1	8	913	46780	0	51050	EUI_TcExecFail_80_FS_OPENDIR_ERROR		-1	16	Y		Y	0	A	
+1	8	913	46781	0	51051	EUI_TcExecFail_81_FS_CLOSEDIR_ERROR		-1	16	Y		Y	0	A	
+1	8	913	46782	0	51052	EUI_TcExecFail_82_FS_LSTAT_ERROR		-1	16	Y		Y	0	A	
+1	8	913	46783	0	51053	EUI_TcExecFail_83_FS_MAX_FILES_ERROR		-1	16	Y		Y	0	A	
+1	8	913	46784	0	51054	EUI_TcExecFail_84_FS_UNMOUNT_ERROR		-1	16	Y		Y	0	A	
+1	8	913	46785	0	51055	EUI_TcExecFail_85_PRIORITY_CHANGE_ERROR		-1	16	Y		Y	0	A	
+1	8	913	46786	0	51056	EUI_TcExecFail_86_LIMIT_PARAM_ERROR		-1	16	Y		Y	0	A	
+1	8	913	46787	0	51057	EUI_TcExecFail_87_ERRORS_PARAM_ERROR		-1	16	Y		Y	0	A	
+1	8	913	46788	0	51058	EUI_TcExecFail_88_ILLEGAL_LS_ARG		-1	16	Y		Y	0	A	
+1	8	913	46789	0	51059	EUI_TcExecFail_89_ILLEGAL_MEM_FLASH_COPY_BLOCK_LENGTH		-1	16	Y		Y	0	A	
+1	8	913	46790	0	51088	EUI_TcExecFail_90_ILLEGAL_LOCATION		-1	16	Y		Y	0	A	
+1	8	913	46791	0	51089	EUI_TcExecFail_91_ILLEGAL_PRI_PARAM		-1	16	Y		Y	0	A	
+1	8	913	46792	0	51090	EUI_TcExecFail_92_PRI_FLUSH_ERROR		-1	16	Y		Y	0	A	
+1	8	913	46793	0	51091	EUI_TcExecFail_93_CALIB_SEQ_MSG_SEND_ERR		-1	16	Y		Y	0	A	
+1	8	913	46794	0	51092	EUI_TcExecFail_94_CALIB_MEM_ERR		-1	16	Y		Y	0	A	
+1	8	913	46795	0	51093	EUI_TcExecFail_95_SEQ_TABLE_LINES_ERR		-1	16	Y		Y	0	A	
+1	8	913	46796	0	51094	EUI_TcExecFail_96		-1	16	Y		Y	0	A	
+1	8	913	46797	0	51095	EUI_TcExecFail_97		-1	16	Y		Y	0	A	
+1	8	913	46798	0	51096	EUI_TcExecFail_98		-1	16	Y		Y	0	A	
+1	8	913	46799	0	51097	EUI_TcExecFail_99		-1	16	Y		Y	0	A	
+1	8	913	46800	0	51098	EUI_TcExecFail_100		-1	16	Y		Y	0	A	
 1	8	1025	41100	0	50167	MAG TC Completion Report Failure - MODE CHANGE FAILED		-1	16	Y		Y	0	A	
 1	8	1025	41101	0	50029	IMAG TC Completion Report Failure INVALID MODE CHANGE		-1	16	Y		Y	0	A	
 1	8	1025	41102	0	50011	MAG TC Completion Report Failure: Invalid Mode		-1	16	Y		Y	0	A	
@@ -1837,6 +1855,8 @@
 3	25	164	92	0	19560	DMS SSMM Summary		-1	16	Y			0		
 3	25	165	153	0	19555	DMS Inter-Instrument Communication		-1	16	Y			0		
 3	25	165	154	0	19578	DMS Safe Mode Slow		-1	16	Y			0		
+3	25	165	155	0	19571	DMS SW Errors Log 1		-1	16	Y			0		
+3	25	165	156	0	19572	DMS SW Errors Log 2		-1	16	Y			0		
 3	25	178	1	0	29500	AOCS Dynamics FAST		-1	16	Y			0		
 3	25	178	2	0	29516	AOCS Dynamics SLOW		-1	16	Y			0		
 3	25	178	3	0	29611	AOCS Configuration		-1	16	Y			0		
@@ -1850,8 +1870,10 @@
 3	25	178	14	0	29509	AOCS Wheels		-1	16	Y			0		
 3	25	178	16	0	29510	AOCS STR		-1	16	Y			0		
 3	25	178	17	0	29535	AOCS FDIR Monitoring		-1	16	Y			0		
+3	25	178	18	0	29607	AOCS STR Unit		-1	16	Y			0		
 3	25	178	19	0	29539	AOCS SYS Summary		-1	16	Y			0		
 3	25	178	20	0	29694	AOCS SYS FDIR Summary		-1	16	Y			0		
+3	25	178	21	0	29608	AOCS STR Core		-1	16	Y			0		
 3	25	180	77	0	29530	AOCS Dynamics FAST		-1	16	Y			0		
 3	25	180	78	0	29511	AOCS Dynamics SLOW		-1	16	Y			0		
 3	25	180	79	0	29512	AOCS Configuration		-1	16	Y			0		
@@ -1866,8 +1888,10 @@
 3	25	180	91	0	29538	AOCS LEOP		-1	16	Y			0		
 3	25	180	92	0	29532	AOCS STR		-1	16	Y			0		
 3	25	180	93	0	29518	AOCS FDIR Monitoring		-1	16	Y			0		
+3	25	180	94	0	29609	AOCS STR Unit		-1	16	Y			0		
 3	25	180	95	0	29652	AOCS SYS Summary		-1	16	Y			0		
 3	25	180	96	0	29653	AOCS SYS FDIR Summary		-1	16	Y			0		
+3	25	180	97	0	29610	AOCS STR Core		-1	16	Y			0		
 3	25	181	153	0	29519	AOCS Safe Fast		-1	16	Y			0		
 3	25	181	154	0	29520	AOCS Safe Slow		-1	16	Y			0		
 3	25	181	155	0	29521	AOCS AGP/SEE/SLVP Guidance Profiles (One-Shot)		-1	16	Y			0		
@@ -1878,7 +1902,9 @@
 3	25	181	191	0	29525	AOCS S/C STR FDIR Snapshot		-1	16	Y			0		
 3	25	181	192	0	29526	AOCS Units FDIR Snapshot		-1	16	Y			0		
 3	25	194	1	0	30000	PL Overview		-1	16	Y			0		
+3	25	194	2	0	30011	PL FDIR		-1	16	Y			0		
 3	25	196	77	0	30002	PL Overview		-1	16	Y			0		
+3	25	196	78	0	30010	PL FDIR		-1	16	Y			0		
 3	25	197	192	0	30001	PL FDIR Snapshot		-1	16	Y			0		
 3	25	210	1	0	33500	PLF Summary		-1	16	Y			0		
 3	25	210	2	0	33501	PLF Summary Thermal		-1	16	Y			0		
@@ -1964,7 +1990,12 @@
 3	25	260	79	0	33614	TCS Thermal Overview		-1	16	Y			0		
 3	25	260	80	0	33563	TCS Thermal Validity		-1	16	Y			0		
 3	25	261	153	0	33611	TCS Thermal Loop Tuning Params		-1	16	Y			0		
-3	25	261	154	0	33771	TCS Safe Mode		-1	16	Y			0		
+3	25	261	154	0	33771	TCS Essential		-1	16	Y			0		
+3	25	261	155	0	33799	TCS Config Lines 1 - 21		-1	16	Y			0		
+3	25	261	156	0	33800	TCS Config Lines 22 - 42		-1	16	Y			0		
+3	25	261	157	0	33801	TCS Config Lines 43 - 63		-1	16	Y			0		
+3	25	261	158	0	33802	TCS Config Lines 64 - 84		-1	16	Y			0		
+3	25	261	159	0	33803	TCS Config Lines 85 - 104		-1	16	Y			0		
 3	25	261	192	0	33612	TCS FDIR Snapshot		-1	16	Y			0		
 3	25	484	1	0	80006	SSMM HK TM packet		-1	16	Y		Y	0	N	
 3	25	484	4	0	80246	SSMM PS Status TM		-1	16	Y		Y	0	N	
@@ -2109,6 +2140,7 @@
 3	26	184	223	0	29606	AOCS Spare Parameters & S130		-1	16	Y			0		
 3	26	184	228	0	29536	AOCS Other		-1	16	Y			0		
 3	26	184	229	0	29540	AOCS OCM 8Hz Diag		-1	16	Y			0		
+3	26	184	252	0	65832	AOCS Diag RS Platform Stability		-1	16	Y			0		
 3	26	184	253	0	65793	Gyro A Calibration 8Hz Diagnostics		-1	16	Y			0		
 3	26	184	254	0	65792	AOCS Diag Deployment Rates		-1	16	Y			0		
 3	26	184	255	0	65255	Gyro B Calibration 8Hz Diagnostics		-1	16	Y			0		
@@ -2126,7 +2158,8 @@
 3	26	216	199	0	33781	PLF PCDU Snapshot A		-1	16	Y			0		
 3	26	216	200	0	33782	PLF PCDU Snapshot B		-1	16	Y			0		
 3	26	216	201	0	33783	PLF RIU Last Cmd Function		-1	16	Y			0		
-3	26	216	202	0	33795	PLF Spare Parameters & S130		-1	16	Y			0		
+3	26	216	202	0	33795	PLF Spare Parameters		-1	16	Y			0		
+3	26	216	203	0	33798	PLF S130		-1	16	Y			0		
 3	26	216	229	0	33542	AOCS Profile Temp Buffer - Part 1		-1	16	Y			0		
 3	26	216	230	0	33543	AOCS Profile Temp Buffer - Part 2		-1	16	Y			0		
 3	26	216	231	0	33550	SADE Steer Temp Buffer - Part 1		-1	16	Y			0		
@@ -2167,8 +2200,16 @@
 3	134	227	0	0	10101	HK/Diag Parameter Report Definitions Report		10101	16	Y			0		
 3	134	259	0	0	27203	HK/Diag Parameter Report Definitions Report		27203	16	Y			0		
 3	134	1155	0	0	53032	PHI_housekeepingSummary		53032	16	Y		Y	0	N	
+5	1	167	575	0	14538	EID normal severity spare 0		-1	16	Y			0	I	
+5	1	167	576	0	14539	EID normal severity spare 1		-1	16	Y			0	I	
+5	1	167	577	0	14540	EID normal severity spare 2		-1	16	Y			0	I	
+5	1	167	578	0	14541	EID normal severity spare 3		-1	16	Y			0	I	
+5	1	167	579	0	14542	EID normal severity spare 4		-1	16	Y			0	I	
+5	1	167	580	0	14543	EID normal severity spare 5		-1	16	Y			0	I	
+5	1	167	581	0	14544	EID normal severity spare 6		-1	16	Y			0	I	
 5	1	167	711	0	14007	TCs_Have_Been_Deleted		-1	16	Y			0	I	
 5	1	167	712	0	14008	TCs_Have_Been_Shifted		-1	16	Y			0	I	
+5	1	167	768	0	65834	MON_LIB_Param_Transitioned_Ok_Value_(DMS)		65834	16	Y			0	I	
 5	1	167	960	0	14332	Packet_Store_Down-link_Started		-1	16	Y			0	I	
 5	1	167	961	0	14331	Packet_store_Down-link_Ended		-1	16	Y			0	I	
 5	1	167	1152	0	14366	OBCP_Stopped_(OBCP_STOP)		-1	16	Y			0	I	
@@ -2191,6 +2232,14 @@
 5	1	167	2887	0	14327	OMM_Power_Off_End		-1	16	Y			0	I	
 5	1	167	2893	0	14520	OMM Warm Switch on start		-1	16	Y			0	I	
 5	1	167	2894	0	14519	OMM Warm Switch on end		-1	16	Y			0	I	
+5	1	183	575	0	20468	EID normal severity spare 0		-1	16	Y			0	I	
+5	1	183	576	0	20469	EID normal severity spare 1		-1	16	Y			0	I	
+5	1	183	577	0	20470	EID normal severity spare 2		-1	16	Y			0	I	
+5	1	183	578	0	20471	EID normal severity spare 3		-1	16	Y			0	I	
+5	1	183	579	0	20472	EID normal severity spare 4		-1	16	Y			0	I	
+5	1	183	580	0	20473	EID normal severity spare 5		-1	16	Y			0	I	
+5	1	183	581	0	20474	EID normal severity spare 6		-1	16	Y			0	I	
+5	1	183	768	0	65835	MON_LIB_Param_Transitioned_Ok_Value_(AOCS)		65835	16	Y			0	I	
 5	1	183	1057	0	20138	Mode_Entry_Transition_(TM_5-1)		-1	16	Y			0	I	
 5	1	183	1060	0	20137	RWU_Direct Command Successful_(TM_5-1)		-1	16	Y			0	I	
 5	1	183	1064	0	20135	THR_Direct_Command_Successful (TM_5-1)		-1	16	Y			0	I	
@@ -2262,6 +2311,14 @@
 5	1	183	3620	0	20308	REC_AOCS19_OCM_to_NCM_Transition_Recovery_Started		-1	16	Y			0	I	
 5	1	183	3621	0	20307	REC_AOCS19_OCM_to_NCM_Transition_Recovery_Ended		-1	16	Y			0	I	
 5	1	183	3653	0	20450	SUN_PROT_REC_START		-1	16	Y			0	I	
+5	1	199	575	0	32315	METIS is in an acceptable mode		-1	16	Y			0	I	
+5	1	199	576	0	32316	EID normal severity spare 1		-1	16	Y			0	I	
+5	1	199	577	0	32317	EID normal severity spare 2		-1	16	Y			0	I	
+5	1	199	578	0	32318	EID normal severity spare 3		-1	16	Y			0	I	
+5	1	199	579	0	32319	EID normal severity spare 4		-1	16	Y			0	I	
+5	1	199	580	0	32320	EID normal severity spare 5		-1	16	Y			0	I	
+5	1	199	581	0	32321	EID normal severity spare 6		-1	16	Y			0	I	
+5	1	199	768	0	65838	MON_LIB_Param_Transitioned_Ok_Value_(Payload)		65838	16	Y			0	I	
 5	1	199	2215	0	32006	EPD_A_PwrUp_Started_(LCL-RSA_status)		-1	16	Y			0	I	
 5	1	199	2216	0	32005	EPD_A_PowerUp_Ended-(LCL-RSA_status)		-1	16	Y			0	I	
 5	1	199	2217	0	32004	EPD_A_PowerDown_Started-(LCL-RSA_status)		-1	16	Y			0	I	
@@ -2351,6 +2408,14 @@
 5	1	199	4784	0	32290	METIS switched OFF during REC_SPW2 or REC_EPS2		-1	16	Y			0	I	
 5	1	199	4905	0	32289	HIS_Power_Down_Start		-1	16	Y			0	I	
 5	1	199	4906	0	32288	HIS_Power_Down_End		-1	16	Y			0	I	
+5	1	215	575	0	27971	EID normal severity spare 0		-1	16	Y			0	I	
+5	1	215	576	0	27972	EID normal severity spare 1		-1	16	Y			0	I	
+5	1	215	577	0	27973	EID normal severity spare 2		-1	16	Y			0	I	
+5	1	215	578	0	27974	EID normal severity spare 3		-1	16	Y			0	I	
+5	1	215	579	0	27975	EID normal severity spare 4		-1	16	Y			0	I	
+5	1	215	580	0	27976	EID normal severity spare 5		-1	16	Y			0	I	
+5	1	215	581	0	27977	EID normal severity spare 6		-1	16	Y			0	I	
+5	1	215	768	0	65836	MON_LIB_Param_Transitioned_Ok_Value_(Platform)		65836	16	Y			0	I	
 5	1	215	3713	0	27003	PCDU_Activate_Started_(Pre-PwrOn_DHS_Units_Selected_In_The_SCV)		-1	16	Y			0	I	
 5	1	215	3714	0	27002	PCDU_Activate_Ended_(Post-PwrOn_DHS_Units_Selected_In_The_SCV)		-1	16	Y			0	I	
 5	1	215	3742	0	27272	PCDU_Switch_Over_Recovery_Action_Started		-1	16	Y			0	I	
@@ -2402,8 +2467,10 @@
 5	1	215	3974	0	27437	SA_Steering_Started		-1	16	Y			0	I	
 5	1	215	3975	0	27438	SA_Steering_Stopped		-1	16	Y			0	I	
 5	1	215	3976	0	27412	SA_Steering_Ended-Successful		-1	16	Y			0	I	
-5	1	215	3998	0	27299	SADE_FDIR_Recovery_Action_Started		-1	16	Y			0	I	
-5	1	215	3999	0	27298	SADE_FDIR_Recovery_Action_Ended		-1	16	Y			0	I	
+5	1	215	3998	0	28002	SADE FDIR Recovery action 1 has started		-1	16	Y			0	I	
+5	1	215	3999	0	28001	SADE FDIR Recovery action 1 has ended		-1	16	Y			0	I	
+5	1	215	4000	0	28004	SADE FDIR Recovery action 2 has started		-1	16	Y			0	I	
+5	1	215	4001	0	28003	SADE FDIR Recovery action 2 has ended		-1	16	Y			0	I	
 5	1	215	4033	0	27237	PT_Activate_Started		-1	16	Y			0	I	
 5	1	215	4034	0	27236	PT_Activate_Ended		-1	16	Y			0	I	
 5	1	215	4097	0	27211	APME_HGA_Activate_Started		-1	16	Y			0	I	
@@ -2449,6 +2516,8 @@
 5	1	215	4513	0	27399	REC_EPS2_Ended		-1	16	Y			0	I	
 5	1	215	4514	0	27396	REC_EPS3_Started		-1	16	Y			0	I	
 5	1	215	4515	0	27395	REC_EPS3_Ended		-1	16	Y			0	I	
+5	1	215	4516	0	28000	REC_EPS4 start.		-1	16	Y			0	I	
+5	1	215	4517	0	27999	REC_EPS4 end.		-1	16	Y			0	I	
 5	1	215	4554	0	27100	LGA_Leop_Selection_Start_Started		-1	16	Y			0	I	
 5	1	215	4555	0	27101	LGA_Leop_Selection_Stop_Ended		-1	16	Y			0	I	
 5	1	215	4556	0	27260	LGA_Swap_Function_Started		-1	16	Y			0	I	
@@ -2460,6 +2529,14 @@
 5	1	215	4574	0	27376	TC_Link_Recovery_1_(REC_COMS1)_Started		-1	16	Y			0	I	
 5	1	215	4575	0	27375	TC_Link_Recovery_1_(REC_COMS1)_Ended		-1	16	Y			0	I	
 5	1	215	4576	0	27261	TC_Link_Recovery_2_(REC_COMS2)_Started		-1	16	Y			0	I	
+5	1	231	575	0	10324	EID normal severity spare 0		-1	16	Y			0	I	
+5	1	231	576	0	10325	EID normal severity spare 1		-1	16	Y			0	I	
+5	1	231	577	0	10326	EID normal severity spare 2		-1	16	Y			0	I	
+5	1	231	578	0	10327	EID normal severity spare 3		-1	16	Y			0	I	
+5	1	231	579	0	10328	EID normal severity spare 4		-1	16	Y			0	I	
+5	1	231	580	0	10329	EID normal severity spare 5		-1	16	Y			0	I	
+5	1	231	581	0	10330	EID normal severity spare 6		-1	16	Y			0	I	
+5	1	231	768	0	65833	MON_LIB_Param_Transitioned_Ok_Value_(SystemControl)		65833	16	Y			0	I	
 5	1	231	2752	0	10146	Transition_to_SASM_Commanded.		-1	16	Y			0	I	
 5	1	231	2753	0	10153	LEOP_AS_Step_Executed.		-1	16	Y			0	I	
 5	1	231	2782	0	10164	TTR-TME_Switch_Over_Started		-1	16	Y			0	I	
@@ -2509,6 +2586,14 @@
 5	1	231	3328	0	10255	HGA_Steer_End		-1	16	Y			0	I	
 5	1	231	4041	0	10147	SSMM_Command_Aborted_Due_To_Reception_Of_A_New_SSMM_Command		-1	16	Y			0	I	
 5	1	231	12900	0	10172	Unexpected_S12_Trigger		10172	16	Y			0	I	
+5	1	263	575	0	27992	EID normal severity spare 0		-1	16	Y			0	I	
+5	1	263	576	0	27993	EID normal severity spare 1		-1	16	Y			0	I	
+5	1	263	577	0	27994	EID normal severity spare 2		-1	16	Y			0	I	
+5	1	263	578	0	27995	EID normal severity spare 3		-1	16	Y			0	I	
+5	1	263	579	0	27996	EID normal severity spare 4		-1	16	Y			0	I	
+5	1	263	580	0	27997	EID normal severity spare 5		-1	16	Y			0	I	
+5	1	263	581	0	27998	EID normal severity spare 6		-1	16	Y			0	I	
+5	1	263	768	0	65837	MON_LIB_Param_Transitioned_Ok_Value_(ThermalControl)		65837	16	Y			0	I	
 5	1	487	1518	0	80157	SSMM_PS_Is_At_70_Full		-1	16	Y		Y	0	I	
 5	1	487	1519	0	80158	SSMM_PS_Is_Full		-1	16	Y		Y	0	I	
 5	1	487	1540	0	80160	SSMM_Not_SC_Management_Restarted_Nom		-1	16	Y		Y	0	I	
@@ -2552,8 +2637,8 @@
 5	1	935	46002	0	51402	EUI_Ev_N_002_INIT_DONE		-1	16	Y		Y	0	I	
 5	1	935	46003	0	51403	EUI_Ev_N_003_SDRAM_ON		-1	16	Y		Y	0	I	
 5	1	935	46004	0	51404	EUI_Ev_N_004_WATCHDOG_KICK		-1	16	Y		Y	0	I	
-5	1	935	46005	0	51405	EUI_Ev_N_005 MECH_ABORTED		-1	16	Y		Y	0	I	
-5	1	935	46006	0	51406	EUI_Ev_N_006 HV_STATUS		-1	16	Y		Y	0	I	
+5	1	935	46005	0	51405	EUI_Ev_N_005_MECH_ABORTED		-1	16	Y		Y	0	I	
+5	1	935	46006	0	51406	EUI_Ev_N_006_HV_STATUS		-1	16	Y		Y	0	I	
 5	1	935	46007	0	51407	EUI_Ev_N_007_MEMSET_SRAM_START		-1	16	Y		Y	0	I	
 5	1	935	46008	0	51408	EUI_Ev_N_008_MEMSET_SRAM_FINISH		-1	16	Y		Y	0	I	
 5	1	935	46009	0	51409	EUI_Ev_N_009_CHECK_SRAM_START		-1	16	Y		Y	0	I	
@@ -2590,39 +2675,39 @@
 5	1	935	46040	0	51440	EUI_Ev_N_040_EVED_S20_AOCS_MODE		-1	16	Y		Y	0	I	
 5	1	935	46041	0	51441	EUI_Ev_N_041_EVED_S20_AOCS_CONVERGENCE		-1	16	Y		Y	0	I	
 5	1	935	46042	0	51442	EUI_Ev_N_042_EVED_S20_AOCS_ROLL_RATE		-1	16	Y		Y	0	I	
-5	1	935	46043	0	51443	EUI_Ev_N_043 SELFTEST_NORMAL		-1	16	Y		Y	0	I	
+5	1	935	46043	0	51443	EUI_Ev_N_043_SELFTEST_NORMAL		-1	16	Y		Y	0	I	
 5	1	935	46044	0	51444	EUI_Ev_N_044_EXPOSURE_INFO		-1	16	Y		Y	0	I	
-5	1	935	46045	0	51445	EUI_Ev_N_045 S20_STOPPED_SAFE		-1	16	Y		Y	0	I	
-5	1	935	46046	0	51446	EUI_Ev_N_046 EVED_THUMBNAIL_NOT_PROCESSED		-1	16	Y		Y	0	I	
-5	1	935	46047	0	51447	EUI_Ev_N_047 HEATER_ALREADY_EN		-1	16	Y		Y	0	I	
-5	1	935	46048	0	51448	EUI_Ev_N_048 HEATER_ALREADY_DIS		-1	16	Y		Y	0	I	
-5	1	935	46049	0	51449	EUI_Ev_N_049 HEATER_CONTROL_DIS		-1	16	Y		Y	0	I	
-5	1	935	46050	0	51450	EUI_Ev_N_050 SEQ_INFO		-1	16	Y		Y	0	I	
-5	1	935	46051	0	51451	EUI_Ev_N_051 SEQ_END		-1	16	Y		Y	0	I	
-5	1	935	46052	0	51452	EUI_Ev_N_052 ALREADY_IN_MODE		-1	16	Y		Y	0	I	
-5	1	935	46053	0	51453	EUI_Ev_N_053 RFS_OUT_OF_BLOCKS		-1	16	Y		Y	0	I	
-5	1	935	46054	0	51454	EUI_Ev_N_054 RFS_OUT_OF_INODES		-1	16	Y		Y	0	I	
-5	1	935	46055	0	51455	EUI_Ev_N_055 RFS_FILE_DELETED		-1	16	Y		Y	0	I	
-5	1	935	46056	0	51456	EUI_Ev_N_056 RFS_COPY_OHQ_SOB_START		-1	16	Y		Y	0	I	
-5	1	935	46057	0	51457	EUI_Ev_N_057 RFS_COPY_OHQ_SOB_END		-1	16	Y		Y	0	I	
-5	1	935	46058	0	51458	EUI_Ev_N_058 COPY_OHQ_SPW_START		-1	16	Y		Y	0	I	
-5	1	935	46059	0	51459	EUI_Ev_N_059 COPY_OHQ_SPW_END		-1	16	Y		Y	0	I	
-5	1	935	46060	0	51460	EUI_Ev_N_060 RFS_FORMAT_START		-1	16	Y		Y	0	I	
-5	1	935	46061	0	51461	EUI_Ev_N_061 RFS_FORMAT_END		-1	16	Y		Y	0	I	
-5	1	935	46062	0	51462	EUI_Ev_N_062 RFS_MOUNT_START		-1	16	Y		Y	0	I	
-5	1	935	46063	0	51463	EUI_Ev_N_063 RFS_MOUNT_END		-1	16	Y		Y	0	I	
-5	1	935	46064	0	51464	EUI_Ev_N_064 RFS_CANT_MAKE_ROOM		-1	16	Y		Y	0	I	
+5	1	935	46045	0	51445	EUI_Ev_N_045_S20_STOPPED_SAFE		-1	16	Y		Y	0	I	
+5	1	935	46046	0	51446	EUI_Ev_N_046_EVED_THUMBNAIL_NOT_PROCESSED		-1	16	Y		Y	0	I	
+5	1	935	46047	0	51447	EUI_Ev_N_047_HEATER_ALREADY_EN		-1	16	Y		Y	0	I	
+5	1	935	46048	0	51448	EUI_Ev_N_048_HEATER_ALREADY_DIS		-1	16	Y		Y	0	I	
+5	1	935	46049	0	51449	EUI_Ev_N_049_HEATER_CONTROL_DIS		-1	16	Y		Y	0	I	
+5	1	935	46050	0	51450	EUI_Ev_N_050_SEQ_INFO		-1	16	Y		Y	0	I	
+5	1	935	46051	0	51451	EUI_Ev_N_051_SEQ_END		-1	16	Y		Y	0	I	
+5	1	935	46052	0	51452	EUI_Ev_N_052_ALREADY_IN_MODE		-1	16	Y		Y	0	I	
+5	1	935	46053	0	51453	EUI_Ev_N_053_RFS_OUT_OF_BLOCKS		-1	16	Y		Y	0	I	
+5	1	935	46054	0	51454	EUI_Ev_N_054_RFS_OUT_OF_INODES		-1	16	Y		Y	0	I	
+5	1	935	46055	0	51455	EUI_Ev_N_055_RFS_FILE_DELETED		-1	16	Y		Y	0	I	
+5	1	935	46056	0	51456	EUI_Ev_N_056_RFS_COPY_OHQ_SOB_START		-1	16	Y		Y	0	I	
+5	1	935	46057	0	51457	EUI_Ev_N_057_RFS_COPY_OHQ_SOB_END		-1	16	Y		Y	0	I	
+5	1	935	46058	0	51458	EUI_Ev_N_058_COPY_OHQ_SPW_START		-1	16	Y		Y	0	I	
+5	1	935	46059	0	51459	EUI_Ev_N_059_COPY_OHQ_SPW_END		-1	16	Y		Y	0	I	
+5	1	935	46060	0	51460	EUI_Ev_N_060_RFS_FORMAT_START		-1	16	Y		Y	0	I	
+5	1	935	46061	0	51461	EUI_Ev_N_061_RFS_FORMAT_END		-1	16	Y		Y	0	I	
+5	1	935	46062	0	51462	EUI_Ev_N_062_RFS_MOUNT_START		-1	16	Y		Y	0	I	
+5	1	935	46063	0	51463	EUI_Ev_N_063_RFS_MOUNT_END		-1	16	Y		Y	0	I	
+5	1	935	46064	0	51464	EUI_Ev_N_064_RFS_CANT_MAKE_ROOM		-1	16	Y		Y	0	I	
 5	1	935	46065	0	51465	EUI_Ev_N_065_FLASH_REPORT		-1	16	Y		Y	0	I	
-5	1	935	46066	0	51466	EUI_Ev_N_066 RFS_MAKE_PRI_DIRS_START		-1	16	Y		Y	0	I	
-5	1	935	46067	0	51467	EUI_Ev_N_067 RFS_MAKE_PRI_DIRS_END		-1	16	Y		Y	0	I	
-5	1	935	46068	0	51468	EUI_Ev_N_068 RFS_COPY_SOB_SPW_START		-1	16	Y		Y	0	I	
-5	1	935	46069	0	51469	EUI_Ev_N_069 RFS_COPY_SOB_SPW_END		-1	16	Y		Y	0	I	
-5	1	935	46070	0	51470	EUI_Ev_N_070 CALIB_PROGRESS		-1	16	Y		Y	0	I	
-5	1	935	46071	0	51471	EUI_Ev_N_071 PRI_FLUSH		-1	16	Y		Y	0	I	
-5	1	935	46072	0	51472	EUI_Ev_N_072 PRI_REPRI		-1	16	Y		Y	0	I	
-5	1	935	46073	0	51473	EUI_Ev_N_073		-1	16	Y		Y	0	I	
-5	1	935	46074	0	51474	EUI_Ev_N_074		-1	16	Y		Y	0	I	
-5	1	935	46075	0	51475	EUI_Ev_N_075		-1	16	Y		Y	0	I	
+5	1	935	46066	0	51466	EUI_Ev_N_066_RFS_MAKE_PRI_DIRS_START		-1	16	Y		Y	0	I	
+5	1	935	46067	0	51467	EUI_Ev_N_067_RFS_MAKE_PRI_DIRS_END		-1	16	Y		Y	0	I	
+5	1	935	46068	0	51468	EUI_Ev_N_068_RFS_COPY_SOB_SPW_START		-1	16	Y		Y	0	I	
+5	1	935	46069	0	51469	EUI_Ev_N_069_RFS_COPY_SOB_SPW_END		-1	16	Y		Y	0	I	
+5	1	935	46070	0	51470	EUI_Ev_N_070_CALIB_PROGRESS		-1	16	Y		Y	0	I	
+5	1	935	46071	0	51471	EUI_Ev_N_071_PRI_FLUSH		-1	16	Y		Y	0	I	
+5	1	935	46072	0	51472	EUI_Ev_N_072_PRI_REPRI		-1	16	Y		Y	0	I	
+5	1	935	46073	0	51473	EUI_Ev_N_073_EVED_FREEZE		-1	16	Y		Y	0	I	
+5	1	935	46074	0	51474	EUI_Ev_N_074_ABORT_WHEN_NOT_RAMPING		-1	16	Y		Y	0	I	
+5	1	935	46075	0	51475	EUI_Ev_N_075_FDIR		-1	16	Y		Y	0	I	
 5	1	935	46076	0	51476	EUI_Ev_N_076		-1	16	Y		Y	0	I	
 5	1	935	46077	0	51477	EUI_Ev_N_077		-1	16	Y		Y	0	I	
 5	1	935	46078	0	51478	EUI_Ev_N_078		-1	16	Y		Y	0	I	
@@ -3060,13 +3145,31 @@
 5	1	1991	2100	96	64230	STR2_MT_CTM		-1	16	Y		Y	0	I	
 5	1	1991	2100	112	64231	STR2_MT_FOTO		-1	16	Y		Y	0	I	
 5	1	1991	2100	255	64232	STR2_MT_UNKNOWN		-1	16	Y		Y	0	I	
+5	2	167	16640	0	14546	Erroneous TM generated with SSC = 0.		-1	16	Y			0	W	
+5	2	167	16952	0	14524	EID low severity spare 0		-1	16	Y			0	W	
+5	2	167	16953	0	14525	EID low severity spare 1		-1	16	Y			0	W	
+5	2	167	16954	0	14526	EID low severity spare 2		-1	16	Y			0	W	
+5	2	167	16955	0	14527	EID low severity spare 3		-1	16	Y			0	W	
+5	2	167	16956	0	14528	EID low severity spare 4		-1	16	Y			0	W	
+5	2	167	16957	0	14529	EID low severity spare 5		-1	16	Y			0	W	
+5	2	167	16958	0	14530	EID low severity spare 6		-1	16	Y			0	W	
 5	2	167	17098	0	14053	TC should be executed but release status is disabled		-1	16	Y			0	W	
 5	2	167	17152	0	14005	MON_LIB_Param_Transitioned_Ok_Value_(DMS)		14005	16	Y			0	W	
+5	2	167	17344	0	14523	Invalid checksum while reading from PS Downlink OMM partition.		-1	16	Y			0	W	
 5	2	167	17472	0	14370	TM_Timed_Out_Connection_Request_Received_(TM_17-2)		-1	16	Y			0	W	
 5	2	167	17473	0	14368	TM_Unexpected_Packet_Length_Received_(TM_17-2)		-1	16	Y			0	W	
 5	2	167	17474	0	14369	TM_Received_with_Invalid_PID_(TM_17-2)		-1	16	Y			0	W	
 5	2	167	17792	0	14415	TC_Sequence_Stopped_(Unrequested_CTX_Received)		-1	16	Y			0	W	
+5	2	167	18497	0	14547	TC File execution timeout during system init		-1	16	Y			0	W	
 5	2	167	18690	0	14012	TC_Segment_Error_occurred		-1	16	Y			0	W	
+5	2	167	24704	0	14549	Adding entry in TM extract list failed		-1	16	Y			0	W	
+5	2	183	16952	0	20454	EID low severity spare 0		-1	16	Y			0	W	
+5	2	183	16953	0	20455	EID low severity spare 1		-1	16	Y			0	W	
+5	2	183	16954	0	20456	EID low severity spare 2		-1	16	Y			0	W	
+5	2	183	16955	0	20457	EID low severity spare 3		-1	16	Y			0	W	
+5	2	183	16956	0	20458	EID low severity spare 4		-1	16	Y			0	W	
+5	2	183	16957	0	20459	EID low severity spare 5		-1	16	Y			0	W	
+5	2	183	16958	0	20460	EID low severity spare 6		-1	16	Y			0	W	
 5	2	183	17152	0	20020	MON_LIB_Param_Transitioned_Ok_Value_(AOCS)		20020	16	Y			0	W	
 5	2	183	17442	0	20158	OBDB_SGM_Initialization_Failed_(TM_5-2)		-1	16	Y			0	W	
 5	2	183	17443	0	20152	DataPool_SGM_Initialization_Failed_(TM_5-2)		-1	16	Y			0	W	
@@ -3090,8 +3193,23 @@
 5	2	183	19718	0	20033	WDE_Configuration_Request_Aborted (Activate_PwrUp-PwrDwn)		-1	16	Y			0	W	
 5	2	183	19846	0	20016	IMU_Configuration_Request_Aborted_(Activate_PowerUp_PowerDown)		-1	16	Y			0	W	
 5	2	183	20007	0	20352	AOCS_CORE_FCNT_ERROR		-1	16	Y			0	W	
+5	2	183	20040	0	20475	Invalid navigation state during AAD threshold selection.		-1	16	Y			0	W	
+5	2	199	16952	0	32301	EID low severity spare 0		-1	16	Y			0	W	
+5	2	199	16953	0	32302	EID low severity spare 1		-1	16	Y			0	W	
+5	2	199	16954	0	32303	EID low severity spare 2		-1	16	Y			0	W	
+5	2	199	16955	0	32304	EID low severity spare 3		-1	16	Y			0	W	
+5	2	199	16956	0	32305	EID low severity spare 4		-1	16	Y			0	W	
+5	2	199	16957	0	32306	EID low severity spare 5		-1	16	Y			0	W	
+5	2	199	16958	0	32307	EID low severity spare 6		-1	16	Y			0	W	
 5	2	199	17152	0	32002	MON_LIB_Param_Transitioned_Ok_Value_(Payload)		32002	16	Y			0	W	
 5	2	199	19078	0	32177	PL_TC_Aborted.		-1	16	Y			0	W	
+5	2	215	16952	0	27957	EID low severity spare 0		-1	16	Y			0	W	
+5	2	215	16953	0	27958	EID low severity spare 1		-1	16	Y			0	W	
+5	2	215	16954	0	27959	EID low severity spare 2		-1	16	Y			0	W	
+5	2	215	16955	0	27960	EID low severity spare 3		-1	16	Y			0	W	
+5	2	215	16956	0	27961	EID low severity spare 4		-1	16	Y			0	W	
+5	2	215	16957	0	27962	EID low severity spare 5		-1	16	Y			0	W	
+5	2	215	16958	0	27963	EID low severity spare 6		-1	16	Y			0	W	
 5	2	215	17152	0	27001	MON_LIB_Param_Transitioned_Ok_Value_(Platform)		27001	16	Y			0	W	
 5	2	215	20102	0	27004	PCDU_Configuration_Request_(Activate-PowerUp-PowerDown)_Aborted		-1	16	Y			0	W	
 5	2	215	20166	0	27008	RIU_Configuration_Request_(Activate-PowerUp-PowerDown)_Aborted		-1	16	Y			0	W	
@@ -3103,8 +3221,8 @@
 5	2	215	20317	0	27384	Failure_Occured-(Door_Open_Sequence)		-1	16	Y			0	W	
 5	2	215	20321	0	27383	Door_Closing_Timeout_Expired		-1	16	Y			0	W	
 5	2	215	20324	0	27390	Redundant_DEU_Unit_Not_Healthy_(Door_Open-Close_Sequence)		-1	16	Y			0	W	
-5	2	215	20329	0	27956	Emitted when a movement request is not performed because no DEU		-1	16	Y			0	W	
-5	2	215	20330	0	27955	Emitted when a movement request is not performed because it is n		-1	16	Y			0	W	
+5	2	215	20329	0	27956	DEU no unit is healthy - request not performed		-1	16	Y			0	W	
+5	2	215	20330	0	27955	DEU movement is not allowed - request not performed		-1	16	Y			0	W	
 5	2	215	20358	0	27249	SADE_Configuration_Request_(Activate-PowerUpPowerDown)_Aborted		-1	16	Y			0	W	
 5	2	215	20422	0	27238	PT_Configuration_Request_(Activate-PowerUp-PowerDown)_Aborted		-1	16	Y			0	W	
 5	2	215	20486	0	27212	APME_HGA_Configuration_Request_is_Aborted		-1	16	Y			0	W	
@@ -3117,6 +3235,13 @@
 5	2	215	20688	0	27291	DST_1553_Cmd_Could_Not_Be_Sent		-1	16	Y			0	W	
 5	2	215	20806	0	27275	RFDA_Connect_Request_is_Aborted		-1	16	Y			0	W	
 5	2	215	20948	0	27414	Function_Abort_Comms_TC		-1	16	Y			0	W	
+5	2	231	16952	0	10310	EID low severity spare 0		-1	16	Y			0	W	
+5	2	231	16953	0	10311	EID low severity spare 1		-1	16	Y			0	W	
+5	2	231	16954	0	10312	EID low severity spare 2		-1	16	Y			0	W	
+5	2	231	16955	0	10313	EID low severity spare 3		-1	16	Y			0	W	
+5	2	231	16956	0	10314	EID low severity spare 4		-1	16	Y			0	W	
+5	2	231	16957	0	10315	EID low severity spare 5		-1	16	Y			0	W	
+5	2	231	16958	0	10316	EID low severity spare 6		-1	16	Y			0	W	
 5	2	231	17152	0	10004	MON_LIB_Param_Transitioned_Ok_Value_(SystemControl)		10004	16	Y			0	W	
 5	2	231	19140	0	10189	LEOP_AS_Step_4_DPL_Chain_Disarming_Failed		-1	16	Y			0	W	
 5	2	231	19141	0	10185	LEOP_AS_Step_10_DPL_Chain_Disarming_Failed		-1	16	Y			0	W	
@@ -3153,6 +3278,13 @@
 5	2	231	19420	0	10305	TC rejected because of a IO error (SWA)		-1	16	Y			0	W	
 5	2	231	19421	0	10293	TC_rejected_As_No_SSMM_SV_Is_On		-1	16	Y			0	W	
 5	2	231	20426	0	10148	Max_No_Of_TMs_Received_Per_Cycle_Reached-Reception_Inhibited		-1	16	Y			0	W	
+5	2	263	16952	0	27978	EID low severity spare 0		-1	16	Y			0	W	
+5	2	263	16953	0	27979	EID low severity spare 1		-1	16	Y			0	W	
+5	2	263	16954	0	27980	EID low severity spare 2		-1	16	Y			0	W	
+5	2	263	16955	0	27981	EID low severity spare 3		-1	16	Y			0	W	
+5	2	263	16956	0	27982	EID low severity spare 4		-1	16	Y			0	W	
+5	2	263	16957	0	27983	EID low severity spare 5		-1	16	Y			0	W	
+5	2	263	16958	0	27984	EID low severity spare 6		-1	16	Y			0	W	
 5	2	263	17152	0	27114	MON_LIB_Param_Transitioned_Ok_Value_(ThermalControl)		27114	16	Y			0	W	
 5	2	487	1508	0	80163	SSMM_SpW_Time_Code_Not_Received		-1	16	Y		Y	0	W	
 5	2	487	1509	0	80164	SSMM_SpW_Router_Error_		-1	16	Y		Y	0	W	
@@ -3291,7 +3423,7 @@
 5	2	935	46202	0	51602	EUI_Ev_L_002_HICI_FLUSH		-1	16	Y		Y	0	W	
 5	2	935	46203	0	51603	EUI_Ev_L_003_MEM_EDAC_CORRECTABLE_CORRECTED		-1	16	Y		Y	0	W	
 5	2	935	46204	0	51604	EUI_Ev_L_004_SELFTEST_WARN		-1	16	Y		Y	0	W	
-5	2	935	46205	0	51605	EUI_Ev_L_005		-1	16	Y		Y	0	W	
+5	2	935	46205	0	51605	EUI_Ev_L_005_EXP_TOO_LATE		-1	16	Y		Y	0	W	
 5	2	935	46206	0	51606	EUI_Ev_L_006		-1	16	Y		Y	0	W	
 5	2	935	46207	0	51607	EUI_Ev_L_007		-1	16	Y		Y	0	W	
 5	2	935	46208	0	51608	EUI_Ev_L_008		-1	16	Y		Y	0	W	
@@ -3938,6 +4070,13 @@
 5	2	1591	43975	0	58183	SWA_E_HIS_COMMAND_BLOCKED		-1	16	Y		Y	0	W	
 5	3	167	33099	0	14253	CEL_Manager_Status_Failed		-1	16	Y			0	A	
 5	3	167	33100	0	14294	SW_Error		-1	16	Y			0	A	
+5	3	167	33329	0	14531	EID medium severity spare 0		-1	16	Y			0	A	
+5	3	167	33330	0	14532	EID medium severity spare 1		-1	16	Y			0	A	
+5	3	167	33331	0	14533	EID medium severity spare 2		-1	16	Y			0	A	
+5	3	167	33332	0	14534	EID medium severity spare 3		-1	16	Y			0	A	
+5	3	167	33333	0	14535	EID medium severity spare 4		-1	16	Y			0	A	
+5	3	167	33334	0	14536	EID medium severity spare 5		-1	16	Y			0	A	
+5	3	167	33335	0	14537	EID medium severity spare 6		-1	16	Y			0	A	
 5	3	167	33483	0	14027	OBT_Post_TC_time_Tag_Plus_MAXIMUM_TC_RELEASE_DELAY		-1	16	Y			0	A	
 5	3	167	33484	0	14321	Backup_MTL_TC_File_Execution_failed		-1	16	Y			0	A	
 5	3	167	33537	0	14425	S12_Higher_Limit_Exceeded_(DMS)		14425	16	Y			0	A	
@@ -4042,6 +4181,13 @@
 5	3	167	35659	0	14407	OMM_Activate_Aborted		-1	16	Y			0	A	
 5	3	167	35660	0	14410	OMM_Restore_Mirror_Aborted		-1	16	Y			0	A	
 5	3	167	36352	0	14484	OBT_Reset_On_Initialisation		-1	16	Y			0	A	
+5	3	183	33329	0	20461	EID medium severity spare 0		-1	16	Y			0	A	
+5	3	183	33330	0	20462	EID medium severity spare 1		-1	16	Y			0	A	
+5	3	183	33331	0	20463	EID medium severity spare 2		-1	16	Y			0	A	
+5	3	183	33332	0	20464	EID medium severity spare 3		-1	16	Y			0	A	
+5	3	183	33333	0	20465	EID medium severity spare 4		-1	16	Y			0	A	
+5	3	183	33334	0	20466	EID medium severity spare 5		-1	16	Y			0	A	
+5	3	183	33335	0	20467	EID medium severity spare 6		-1	16	Y			0	A	
 5	3	183	33537	0	20235	S12_Higher_Limit_Exceeded_(AOCS)		20235	16	Y			0	A	
 5	3	183	33538	0	20236	S12_Lower_Limit_Exceeded_(AOCS)		20236	16	Y			0	A	
 5	3	183	33539	0	20234	S12_Unexpected_Value_(AOCS)		20234	16	Y			0	A	
@@ -4066,9 +4212,23 @@
 5	3	183	36480	0	20354	Memory_Copy_From Temp_To_Destination_Fail		-1	16	Y			0	A	
 5	3	183	36481	0	20355	Previously_Loaded_Profile_Has_Not_Been_Applied_Or_Clear.		-1	16	Y			0	A	
 5	3	183	40993	0	20452	AOCS Manager detects invalid Eclipse TC files		-1	16	Y			0	A	
+5	3	199	33329	0	32308	EID medium severity spare 0		-1	16	Y			0	A	
+5	3	199	33330	0	32309	EID medium severity spare 1		-1	16	Y			0	A	
+5	3	199	33331	0	32310	EID medium severity spare 2		-1	16	Y			0	A	
+5	3	199	33332	0	32311	EID medium severity spare 3		-1	16	Y			0	A	
+5	3	199	33333	0	32312	EID medium severity spare 4		-1	16	Y			0	A	
+5	3	199	33334	0	32313	EID medium severity spare 5		-1	16	Y			0	A	
+5	3	199	33335	0	32314	EID medium severity spare 6		-1	16	Y			0	A	
 5	3	199	33537	0	32186	S12_Higher_Limit_Exceeded_(Payload)		32186	16	Y			0	A	
 5	3	199	33538	0	32187	S12_Lower_Limit_Exceeded_(Payload)		32187	16	Y			0	A	
 5	3	199	33539	0	32185	S12_Unexpected_Value_(Payload)		32185	16	Y			0	A	
+5	3	215	33329	0	27964	EID medium severity spare 0		-1	16	Y			0	A	
+5	3	215	33330	0	27965	EID medium severity spare 1		-1	16	Y			0	A	
+5	3	215	33331	0	27966	EID medium severity spare 2		-1	16	Y			0	A	
+5	3	215	33332	0	27967	EID medium severity spare 3		-1	16	Y			0	A	
+5	3	215	33333	0	27968	EID medium severity spare 4		-1	16	Y			0	A	
+5	3	215	33334	0	27969	EID medium severity spare 5		-1	16	Y			0	A	
+5	3	215	33335	0	27970	EID medium severity spare 6		-1	16	Y			0	A	
 5	3	215	33537	0	27305	S12_Higher_Limit_Exceeded_(Platform)		27305	16	Y			0	A	
 5	3	215	33538	0	27306	S12_Lower_Limit_Exceeded_(Platform)		27306	16	Y			0	A	
 5	3	215	33539	0	27304	S12_Unexpected_Value_(Platform)		27304	16	Y			0	A	
@@ -4082,6 +4242,8 @@
 5	3	215	36707	0	27394	Door_state_Unknown-(Door_Open_Sequence)		-1	16	Y			0	A	
 5	3	215	36741	0	27250	Both_SADE_Modules_Not_Healthy.		-1	16	Y			0	A	
 5	3	215	36745	0	27436	SADE_Profile_Copy_Fail		-1	16	Y			0	A	
+5	3	215	36746	0	28006	SA Steering failed to reach final angle		-1	16	Y			0	A	
+5	3	215	36747	0	28005	SA Steering has not started as no movement is required		-1	16	Y			0	A	
 5	3	215	36869	0	27215	No Healthy HGA-APME: Ops Alarms raised		-1	16	Y			0	A	
 5	3	215	36880	0	27216	APME_HGA_SCV_TM_Flag_Is_OFF_For_Target_APME_HGA_Unit		-1	16	Y			0	A	
 5	3	215	36885	0	27363	HGA_Steering_Event_Start_Position_Provided_Invalid.		-1	16	Y			0	A	
@@ -4096,6 +4258,13 @@
 5	3	215	37330	0	27259	LGA_Swap_function_Cannot_Run		-1	16	Y			0	A	
 5	3	231	33281	0	10145	Function_To_Start_Non-Existant		-1	16	Y			0	A	
 5	3	231	33282	0	10144	Function_To_Start_Disabled		-1	16	Y			0	A	
+5	3	231	33329	0	10317	EID medium severity spare 0		-1	16	Y			0	A	
+5	3	231	33330	0	10318	EID medium severity spare 1		-1	16	Y			0	A	
+5	3	231	33331	0	10319	EID medium severity spare 2		-1	16	Y			0	A	
+5	3	231	33332	0	10320	EID medium severity spare 3		-1	16	Y			0	A	
+5	3	231	33333	0	10321	EID medium severity spare 4		-1	16	Y			0	A	
+5	3	231	33334	0	10322	EID medium severity spare 5		-1	16	Y			0	A	
+5	3	231	33335	0	10323	EID medium severity spare 6		-1	16	Y			0	A	
 5	3	231	33537	0	10168	S12_Higher_Limit_Exceeded_(SysControl)		10168	16	Y			0	A	
 5	3	231	33538	0	10169	S12_Lower_Limit_Exceeded_(SysControl)		10169	16	Y			0	A	
 5	3	231	33539	0	10173	S12_Unexpected_Value_(SysControl)		10173	16	Y			0	A	
@@ -4139,7 +4308,7 @@
 5	3	231	36092	0	10260	Initialise_Comms_End		-1	16	Y			0	A	
 5	3	231	36094	0	10258	HGA_Steer_Timeout		-1	16	Y			0	A	
 5	3	231	36095	0	10257	SysInit_MGA_Steering_timeout_expired		-1	16	Y			0	A	
-5	3	231	36120	0	10309	This event is generated if the selected SCV configuration is Las		-1	16	Y			0	A	
+5	3	231	36120	0	10309	Selected_SCV_configuration_Is_Last_Chance		-1	16	Y			0	A	
 5	3	231	45718	0	10165	EID FMON trigger		-1	16	Y			0	A	
 5	3	231	48896	0	64256	EPD Unexp SCV_TM OFF		64256	16	Y			0	A	
 5	3	231	48897	0	64257	EUI Unexp SCV_TM OFF		64257	16	Y			0	A	
@@ -4151,6 +4320,13 @@
 5	3	231	48903	0	64263	SPICE Unexp SCV_TM OFF		64263	16	Y			0	A	
 5	3	231	48904	0	64264	STIX Unexp SCV_TM OFF		64264	16	Y			0	A	
 5	3	231	48905	0	64265	SWA Unexp SCV_TM OFF		64265	16	Y			0	A	
+5	3	263	33329	0	27985	EID medium severity spare 0		-1	16	Y			0	A	
+5	3	263	33330	0	27986	EID medium severity spare 1		-1	16	Y			0	A	
+5	3	263	33331	0	27987	EID medium severity spare 2		-1	16	Y			0	A	
+5	3	263	33332	0	27988	EID medium severity spare 3		-1	16	Y			0	A	
+5	3	263	33333	0	27989	EID medium severity spare 4		-1	16	Y			0	A	
+5	3	263	33334	0	27990	EID medium severity spare 5		-1	16	Y			0	A	
+5	3	263	33335	0	27991	EID medium severity spare 6		-1	16	Y			0	A	
 5	3	263	33537	0	27308	S12_Higher_Limit_Exceeded_(ThermalControl)		27308	16	Y			0	A	
 5	3	263	33538	0	27309	S12_Lower_Limit_Exceeded_(ThermalControl)		27309	16	Y			0	A	
 5	3	263	33539	0	27307	S12_Unexpected_Value_(ThermalControl)		27307	16	Y			0	A	
@@ -4254,7 +4430,7 @@
 5	3	935	46344	0	51744	EUI_Ev_M_044_COMPRESS_WICOM_ERROR		-1	16	Y		Y	0	A	
 5	3	935	46345	0	51745	EUI_Ev_M_045_COMPRESS_ERROR		-1	16	Y		Y	0	A	
 5	3	935	46346	0	51746	EUI_Ev_M_046_COMPRESS_IMAGE_LENGTH_ZERO		-1	16	Y		Y	0	A	
-5	3	935	46347	0	51747	EUI_Ev_M_047 ILLEGAL_SID		-1	16	Y		Y	0	A	
+5	3	935	46347	0	51747	EUI_Ev_M_047_ILLEGAL_SID		-1	16	Y		Y	0	A	
 5	3	935	46348	0	51748	EUI_Ev_M_048_SELFTEST_CRC_MISMATCH		-1	16	Y		Y	0	A	
 5	3	935	46349	0	51749	EUI_Ev_M_049_WICOM_ERROR		-1	16	Y		Y	0	A	
 5	3	935	46350	0	51750	EUI_Ev_M_050_WICOM_STATUS_ERROR		-1	16	Y		Y	0	A	
@@ -4296,7 +4472,7 @@
 5	3	935	46386	0	51786	EUI_Ev_M_086_MEM_FLASH_PROGRAM_ERROR		-1	16	Y		Y	0	A	
 5	3	935	46387	0	51787	EUI_Ev_M_087_LIMIT		-1	16	Y		Y	0	A	
 5	3	935	46388	0	51788	EUI_Ev_M_088_MEMS_MEMS_MSG_REC_ERR		-1	16	Y		Y	0	A	
-5	3	935	46389	0	51789	EUI_Ev_M_089		-1	16	Y		Y	0	A	
+5	3	935	46389	0	51789	EUI_Ev_M_089_ILLEGAL_ADDRESS_OR_LENGTH		-1	16	Y		Y	0	A	
 5	3	935	46390	0	51790	EUI_Ev_M_090_SELFTEST_FAIL		-1	16	Y		Y	0	A	
 5	3	935	46391	0	51791	EUI_Ev_M_091_EXPOSURE_FAIL		-1	16	Y		Y	0	A	
 5	3	935	46392	0	51792	EUI_Ev_M_092_POWER_SET_CHECK_ERROR		-1	16	Y		Y	0	A	
@@ -4340,23 +4516,23 @@
 5	3	935	46430	0	51830	EUI_Ev_M_130_EVED_EVED_MSG_REC_ERR		-1	16	Y		Y	0	A	
 5	3	935	46431	0	51831	EUI_Ev_M_131_ILLEGAL_THUMBNAIL_SIZE		-1	16	Y		Y	0	A	
 5	3	935	46432	0	51832	EUI_Ev_M_132_FPGA_FLASH_SAME_BLOCK_OR_PAGE		-1	16	Y		Y	0	A	
-5	3	935	46433	0	51833	EUI_Ev_M_133 EVED_EVED_MSG_SEND_ERR		-1	16	Y		Y	0	A	
-5	3	935	46434	0	51834	EUI_Ev_M_134 MAX_HICI_READ_TRIES		-1	16	Y		Y	0	A	
-5	3	935	46435	0	51835	EUI_Ev_M_135 FS_LSTAT_ERROR		-1	16	Y		Y	0	A	
-5	3	935	46436	0	51836	EUI_Ev_M_136 RFS_OPENDIR_ERR		-1	16	Y		Y	0	A	
-5	3	935	46437	0	51837	EUI_Ev_M_137 RFS_DIR_OPEN_ERR		-1	16	Y		Y	0	A	
-5	3	935	46438	0	51838	EUI_Ev_M_138 RFS_FILE_UNLNK_ERR		-1	16	Y		Y	0	A	
-5	3	935	46439	0	51839	EUI_Ev_M_139 RFS_FILE_OPEN_ERR		-1	16	Y		Y	0	A	
-5	3	935	46440	0	51840	EUI_Ev_M_140 RFS_FILE_WRITE_ERR		-1	16	Y		Y	0	A	
-5	3	935	46441	0	51841	EUI_Ev_M_141 RFS_FILE_CLOSE_ERR		-1	16	Y		Y	0	A	
-5	3	935	46442	0	51842	EUI_Ev_M_142 SEQ_TABLE_JUMP_ERROR		-1	16	Y		Y	0	A	
-5	3	935	46443	0	51843	EUI_Ev_M_143 HSL_SPEED_WRONG		-1	16	Y		Y	0	A	
-5	3	935	46444	0	51844	EUI_Ev_M_144 MECH_ERR		-1	16	Y		Y	0	A	
-5	3	935	46445	0	51845	EUI_Ev_M_145 HV_ERR		-1	16	Y		Y	0	A	
-5	3	935	46446	0	51846	EUI_Ev_M_146 RFS_FORMAT_ERR		-1	16	Y		Y	0	A	
-5	3	935	46447	0	51847	EUI_Ev_M_147 RFS_MOUNT_ERR		-1	16	Y		Y	0	A	
-5	3	935	46448	0	51848	EUI_Ev_M_148 OHQ_READ_ERR		-1	16	Y		Y	0	A	
-5	3	935	46449	0	51849	EUI_Ev_M_149 SOB_READ_ERR		-1	16	Y		Y	0	A	
+5	3	935	46433	0	51833	EUI_Ev_M_133_EVED_EVED_MSG_SEND_ERR		-1	16	Y		Y	0	A	
+5	3	935	46434	0	51834	EUI_Ev_M_134_MAX_HICI_READ_TRIES		-1	16	Y		Y	0	A	
+5	3	935	46435	0	51835	EUI_Ev_M_135_FS_LSTAT_ERROR		-1	16	Y		Y	0	A	
+5	3	935	46436	0	51836	EUI_Ev_M_136_RFS_OPENDIR_ERR		-1	16	Y		Y	0	A	
+5	3	935	46437	0	51837	EUI_Ev_M_137_RFS_DIR_OPEN_ERR		-1	16	Y		Y	0	A	
+5	3	935	46438	0	51838	EUI_Ev_M_138_RFS_FILE_UNLNK_ERR		-1	16	Y		Y	0	A	
+5	3	935	46439	0	51839	EUI_Ev_M_139_RFS_FILE_OPEN_ERR		-1	16	Y		Y	0	A	
+5	3	935	46440	0	51840	EUI_Ev_M_140_RFS_FILE_WRITE_ERR		-1	16	Y		Y	0	A	
+5	3	935	46441	0	51841	EUI_Ev_M_141_RFS_FILE_CLOSE_ERR		-1	16	Y		Y	0	A	
+5	3	935	46442	0	51842	EUI_Ev_M_142_SEQ_TABLE_JUMP_ERROR		-1	16	Y		Y	0	A	
+5	3	935	46443	0	51843	EUI_Ev_M_143_HSL_SPEED_WRONG		-1	16	Y		Y	0	A	
+5	3	935	46444	0	51844	EUI_Ev_M_144_MECH_ERR		-1	16	Y		Y	0	A	
+5	3	935	46445	0	51845	EUI_Ev_M_145_HV_ERR		-1	16	Y		Y	0	A	
+5	3	935	46446	0	51846	EUI_Ev_M_146_RFS_FORMAT_ERR		-1	16	Y		Y	0	A	
+5	3	935	46447	0	51847	EUI_Ev_M_147_RFS_MOUNT_ERR		-1	16	Y		Y	0	A	
+5	3	935	46448	0	51848	EUI_Ev_M_148_OHQ_READ_ERR		-1	16	Y		Y	0	A	
+5	3	935	46449	0	51849	EUI_Ev_M_149_SOB_READ_ERR		-1	16	Y		Y	0	A	
 5	3	935	46450	0	51850	EUI_Ev_M_150_FSI_FEE_NAK_LINK_TIMEOUT		-1	16	Y		Y	0	A	
 5	3	935	46451	0	51851	EUI_Ev_M_151_FSI_FEE_NAK_COMMAND_WORD_ERROR		-1	16	Y		Y	0	A	
 5	3	935	46452	0	51852	EUI_Ev_M_152_FSI_FEE_NAK_WRONG_LENGTH_OR_CRC		-1	16	Y		Y	0	A	
@@ -4524,6 +4700,9 @@
 5	3	935	46614	0	51034	EUI_Ev_M_314_RFS_CLOSEDIR_ERROR		-1	16	Y		Y	0	A	
 5	3	935	46615	0	51035	EUI_Ev_M_315_RFS_MAX_FILES_ERROR		-1	16	Y		Y	0	A	
 5	3	935	46616	0	51036	EUI_Ev_M_316_SEQ_WRONG_MECH		-1	16	Y		Y	0	A	
+5	3	935	46617	0	51037	EUI_Ev_M_317_THERM_THERM_MSG_SEND_ERR		-1	16	Y		Y	0	A	
+5	3	935	46618	0	51038	EUI_Ev_M_318_SEQ_SEQ_MSG_SEND_ERR		-1	16	Y		Y	0	A	
+5	3	935	46619	0	51039	EUI_Ev_M_319		-1	16	Y		Y	0	A	
 5	3	1031	32768	0	50182	Errot Report Medium Severity - GENERAL EVENT 3		-1	16	Y		Y	0	A	
 5	3	1031	37952	0	50090	Error Report medium Severity - EEPROM MULT CHK FAILED		-1	16	Y		Y	0	A	
 5	3	1031	37953	0	50091	Error Report Medium Severity - EEPROM WRITE ERR		-1	16	Y		Y	0	A	
@@ -4790,6 +4969,7 @@
 5	3	1954	33539	10	64059	S_OBT4 Master TTR NCO OOL_UX		64059	16	Y			0	A	
 5	3	1954	33539	11	64060	S_OBT5 PPS Synch Loss_UX		64060	16	Y			0	A	
 5	3	1954	33539	23	64061	S_SpW11_SpW_OL_UX		64061	16	Y			0	A	
+5	3	1954	33539	106	65888	S_EPS13 SA Temperature Gradient Flag		65888	16	Y			0	A	
 5	3	1956	33539	5	64062	S_DST4A DST-A Watchdog_UX		64062	16	Y			0	A	
 5	3	1956	33539	12	64063	S_DST4B DST-B Watchdog_UX		64063	16	Y			0	A	
 5	3	1956	33539	103	64064	S_DST9_A_TC_ERROR_UX		64064	16	Y			0	A	
@@ -5016,6 +5196,12 @@
 5	3	1960	33538	44	64609	S_MIL2_B Milbus 2 Chan B fail._LO		64609	16	Y			0	A	
 5	3	1960	33538	45	64613	S_BUS1 MilBus 1 contr. failure _LO		64613	16	Y			0	A	
 5	3	1960	33538	46	64614	S_BUS2 MilBus 2 contr. failure _LO		64614	16	Y			0	A	
+5	3	1960	33538	229	65882	S_STR15_A STR A 1553 RT Channel A_LO		65882	16	Y			0	A	
+5	3	1960	33538	230	65883	S_STR15_B STR B 1553 RT Channel A_LO		65883	16	Y			0	A	
+5	3	1960	33538	231	65884	S_STR15_A STR A 1553 RT Channel B_LO		65884	16	Y			0	A	
+5	3	1960	33538	232	65885	S_STR15_B STR B 1553 RT Channel B_LO		65885	16	Y			0	A	
+5	3	1960	33538	233	65886	S_TCS1 Low TCL 60 Temp Level 1_LO		65886	16	Y			0	A	
+5	3	1960	33538	234	65887	S_TCS1 Low EUI ME2 Temp Level 1_LO		65887	16	Y			0	A	
 5	3	1962	33538	1	64615	S_DST1A_A DST TX-A Temp_LO		64615	16	Y			0	A	
 5	3	1962	33538	71	64616	S_DST1A_B DST TX-A Temp_LO		64616	16	Y			0	A	
 5	3	1962	33538	2	64617	S_DST2A DST TX-A Voltage_LO		64617	16	Y			0	A	
@@ -5126,20 +5312,20 @@
 5	3	1962	33538	197	64722	S_RIU4_B SHP Output Voltage_LO		64722	16	Y			0	A	
 5	3	1962	33538	163	64723	S_RIU13_A Temp CTR-A 1a_LO		64723	16	Y			0	A	
 5	3	1962	33538	164	64724	S_RIU13_A Temp CTR-B 1a_LO		64724	16	Y			0	A	
-5	3	1962	33538	165	64725	S_RIU13_A Temp CTR-A 1b_LO		64725	16	Y			0	A	
-5	3	1962	33538	166	64726	S_RIU13_A Temp CTR-B 1b_LO		64726	16	Y			0	A	
+5	3	1962	33538	165	64725	S_RIU14_A Temp CTR-A 1b_LO		64725	16	Y			0	A	
+5	3	1962	33538	166	64726	S_RIU14_A Temp CTR-B 1b_LO		64726	16	Y			0	A	
 5	3	1962	33538	167	64727	S_RIU13_B Temp CTR-A 2a_LO		64727	16	Y			0	A	
 5	3	1962	33538	168	64728	S_RIU13_B Temp CTR-B 2a_LO		64728	16	Y			0	A	
-5	3	1962	33538	169	64729	S_RIU13_B Temp CTR-A 2b_LO		64729	16	Y			0	A	
-5	3	1962	33538	170	64730	S_RIU13_B Temp CTR-B 2b_LO		64730	16	Y			0	A	
-5	3	1962	33538	242	64731	S_RIU13_A Temp CTR-A 1a (Offline)_LO		64731	16	Y			0	A	
-5	3	1962	33538	243	64732	S_RIU13_A Temp CTR-B 1a (Offline)_LO		64732	16	Y			0	A	
-5	3	1962	33538	244	64733	S_RIU13_A Temp CTR-A 1b (Offline)_LO		64733	16	Y			0	A	
-5	3	1962	33538	245	64734	S_RIU13_A Temp CTR-B 1b (Offline)_LO		64734	16	Y			0	A	
-5	3	1962	33538	246	64735	S_RIU13_B Temp CTR-A 2a (Offline)_LO		64735	16	Y			0	A	
-5	3	1962	33538	247	64736	S_RIU13_B Temp CTR-B 2a (Offline)_LO		64736	16	Y			0	A	
-5	3	1962	33538	248	64737	S_RIU13_B Temp CTR-A 2b (Offline)_LO		64737	16	Y			0	A	
-5	3	1962	33538	249	64738	S_RIU13_B Temp CTR-B 2b (Offline)_LO		64738	16	Y			0	A	
+5	3	1962	33538	169	64729	S_RIU14_B Temp CTR-A 2b_LO		64729	16	Y			0	A	
+5	3	1962	33538	170	64730	S_RIU14_B Temp CTR-B 2b_LO		64730	16	Y			0	A	
+5	3	1962	33538	242	64731	S_RIU15_A Temp CTR-A 1a (Offline)_LO		64731	16	Y			0	A	
+5	3	1962	33538	243	64732	S_RIU15_A Temp CTR-B 1a (Offline)_LO		64732	16	Y			0	A	
+5	3	1962	33538	244	64733	S_RIU16_A Temp CTR-A 1b (Offline)_LO		64733	16	Y			0	A	
+5	3	1962	33538	245	64734	S_RIU16_A Temp CTR-B 1b (Offline)_LO		64734	16	Y			0	A	
+5	3	1962	33538	246	64735	S_RIU15_B Temp CTR-A 2a (Offline)_LO		64735	16	Y			0	A	
+5	3	1962	33538	247	64736	S_RIU15_B Temp CTR-B 2a (Offline)_LO		64736	16	Y			0	A	
+5	3	1962	33538	248	64737	S_RIU16_B Temp CTR-A 2b (Offline)_LO		64737	16	Y			0	A	
+5	3	1962	33538	249	64738	S_RIU16_B Temp CTR-B 2b (Offline)_LO		64738	16	Y			0	A	
 5	3	1962	33538	189	64739	S_RIU12_A 1553 RT Channel A_LO		64739	16	Y			0	A	
 5	3	1962	33538	209	64740	S_RIU12_A 1553 RT Channel B_LO		64740	16	Y			0	A	
 5	3	1962	33538	190	64741	S_RIU12_B 1553 RT Channel A_LO		64741	16	Y			0	A	
@@ -5456,20 +5642,20 @@
 5	3	1967	33537	197	65110	S_RIU4_B SHP Output Voltage_HI		65110	16	Y			0	A	
 5	3	1967	33537	163	65111	S_RIU13_A Temp CTR-A 1a_HI		65111	16	Y			0	A	
 5	3	1967	33537	164	65112	S_RIU13_A Temp CTR-B 1a_HI		65112	16	Y			0	A	
-5	3	1967	33537	165	65113	S_RIU13_A Temp CTR-A 1b_HI		65113	16	Y			0	A	
-5	3	1967	33537	166	65114	S_RIU13_A Temp CTR-B 1b_HI		65114	16	Y			0	A	
+5	3	1967	33537	165	65113	S_RIU14_A Temp CTR-A 1b_HI		65113	16	Y			0	A	
+5	3	1967	33537	166	65114	S_RIU14_A Temp CTR-B 1b_HI		65114	16	Y			0	A	
 5	3	1967	33537	167	65115	S_RIU13_B Temp CTR-A 2a_HI		65115	16	Y			0	A	
 5	3	1967	33537	168	65116	S_RIU13_B Temp CTR-B 2a_HI		65116	16	Y			0	A	
-5	3	1967	33537	169	65117	S_RIU13_B Temp CTR-A 2b_HI		65117	16	Y			0	A	
-5	3	1967	33537	170	65118	S_RIU13_B Temp CTR-B 2b_HI		65118	16	Y			0	A	
-5	3	1967	33537	242	65119	S_RIU13_A Temp CTR-A 1a (Offline)_HI		65119	16	Y			0	A	
-5	3	1967	33537	243	65120	S_RIU13_A Temp CTR-B 1a (Offline)_HI		65120	16	Y			0	A	
-5	3	1967	33537	244	65121	S_RIU13_A Temp CTR-A 1b (Offline)_HI		65121	16	Y			0	A	
-5	3	1967	33537	245	65122	S_RIU13_A Temp CTR-B 1b (Offline)_HI		65122	16	Y			0	A	
-5	3	1967	33537	246	65123	S_RIU13_B Temp CTR-A 2a (Offline)_HI		65123	16	Y			0	A	
-5	3	1967	33537	247	65124	S_RIU13_B Temp CTR-B 2a (Offline)_HI		65124	16	Y			0	A	
-5	3	1967	33537	248	65125	S_RIU13_B Temp CTR-A 2b (Offline)_HI		65125	16	Y			0	A	
-5	3	1967	33537	249	65126	S_RIU13_B Temp CTR-B 2b (Offline)_HI		65126	16	Y			0	A	
+5	3	1967	33537	169	65117	S_RIU14_B Temp CTR-A 2b_HI		65117	16	Y			0	A	
+5	3	1967	33537	170	65118	S_RIU14_B Temp CTR-B 2b_HI		65118	16	Y			0	A	
+5	3	1967	33537	242	65119	S_RIU15_A Temp CTR-A 1a (Offline)_HI		65119	16	Y			0	A	
+5	3	1967	33537	243	65120	S_RIU15_A Temp CTR-B 1a (Offline)_HI		65120	16	Y			0	A	
+5	3	1967	33537	244	65121	S_RIU16_A Temp CTR-A 1b (Offline)_HI		65121	16	Y			0	A	
+5	3	1967	33537	245	65122	S_RIU16_A Temp CTR-B 1b (Offline)_HI		65122	16	Y			0	A	
+5	3	1967	33537	246	65123	S_RIU15_B Temp CTR-A 2a (Offline)_HI		65123	16	Y			0	A	
+5	3	1967	33537	247	65124	S_RIU15_B Temp CTR-B 2a (Offline)_HI		65124	16	Y			0	A	
+5	3	1967	33537	248	65125	S_RIU16_B Temp CTR-A 2b (Offline)_HI		65125	16	Y			0	A	
+5	3	1967	33537	249	65126	S_RIU16_B Temp CTR-B 2b (Offline)_HI		65126	16	Y			0	A	
 5	3	1967	33537	189	65127	S_RIU12_A 1553 RT Channel A_HI		65127	16	Y			0	A	
 5	3	1967	33537	209	65128	S_RIU12_A 1553 RT Channel B_HI		65128	16	Y			0	A	
 5	3	1967	33537	190	65129	S_RIU12_B 1553 RT Channel A_HI		65129	16	Y			0	A	
@@ -5478,6 +5664,12 @@
 5	3	1967	33537	237	65132	S_DEU2_A 1553 RT Channel B_HI		65132	16	Y			0	A	
 5	3	1967	33537	238	65133	S_DEU1_B 1553 RT Channel A_HI		65133	16	Y			0	A	
 5	3	1967	33537	239	65134	S_DEU2_B 1553 RT Channel B_HI		65134	16	Y			0	A	
+5	3	1967	33537	229	65876	S_STR15_A STR A 1553 RT Channel A_HI		65876	16	Y			0	A	
+5	3	1967	33537	230	65877	S_STR15_B STR B 1553 RT Channel A_HI		65877	16	Y			0	A	
+5	3	1967	33537	231	65878	S_STR15_A STR A 1553 RT Channel B_HI		65878	16	Y			0	A	
+5	3	1967	33537	232	65879	S_STR15_B STR B 1553 RT Channel B_HI		65879	16	Y			0	A	
+5	3	1967	33537	233	65880	S_TCS1 Low TCL 60 Temp Level 1_HI		65880	16	Y			0	A	
+5	3	1967	33537	234	65881	S_TCS1 Low EUI ME2 Temp Level 1_HI		65881	16	Y			0	A	
 5	3	1969	33537	3	65135	S_OBC2 FPU Overflow_HI		65135	16	Y			0	A	
 5	3	1969	33537	4	65136	S_OBC3 FPU Div by zero_HI		65136	16	Y			0	A	
 5	3	1969	33537	12	65137	S_DHS1 free TC buffer left_HI		65137	16	Y			0	A	
@@ -5751,7 +5943,7 @@
 5	3	1978	33537	57	65408	S_TCS1_NONOP TCL 57 Temp Level 1_HI		65408	16	Y			0	A	
 5	3	1978	33537	58	65409	S_TCS1_NONOP TCL 58 Temp Level 1_HI		65409	16	Y			0	A	
 5	3	1978	33537	59	65410	S_TCS1_NONOP TCL 59 Temp Level 1_HI		65410	16	Y			0	A	
-5	3	1978	33537	60	65411	S_TCS1_NONOP TCL 60 Temp Level 1_HI		65411	16	Y			0	A	
+5	3	1978	33537	60	65411	S_TCS1_NONOP High TCL 60 Temp Level 1_HI		65411	16	Y			0	A	
 5	3	1978	33537	61	65412	S_TCS1_NONOP TCL 61 Temp Level 1_HI		65412	16	Y			0	A	
 5	3	1978	33537	62	65413	S_TCS1_NONOP TCL 62 Temp Level 1_HI		65413	16	Y			0	A	
 5	3	1978	33537	63	65414	S_TCS1_NONOP TCL 63 Temp Level 1_HI		65414	16	Y			0	A	
@@ -5889,7 +6081,7 @@
 5	3	1978	33537	210	65549	S_TCS1_OP TCL 57 Temperature Level 1_HI		65549	16	Y			0	A	
 5	3	1978	33537	211	65550	S_TCS1_OP TCL 58 Temperature Level 1_HI		65550	16	Y			0	A	
 5	3	1978	33537	212	65551	S_TCS1_OP TCL 59 Temperature Level 1_HI		65551	16	Y			0	A	
-5	3	1978	33537	213	65552	S_TCS1_OP TCL 60 Temperature Level 1_HI		65552	16	Y			0	A	
+5	3	1978	33537	213	65552	S_TCS1_OP High TCL 60 Temp Level 1_HI		65552	16	Y			0	A	
 5	3	1978	33537	214	65553	S_TCS1_OP TCL 61 Temperature Level 1_HI		65553	16	Y			0	A	
 5	3	1978	33537	215	65554	S_TCS1_OP TCL 62 Temperature Level 1_HI		65554	16	Y			0	A	
 5	3	1978	33537	216	65555	S_TCS1_OP TCL 63 Temperature Level 1_HI		65555	16	Y			0	A	
@@ -5967,7 +6159,7 @@
 5	3	1979	33538	57	65627	S_TCS1_NONOP TCL 57 Temp Level 1_LO		65627	16	Y			0	A	
 5	3	1979	33538	58	65628	S_TCS1_NONOP TCL 58 Temp Level 1_LO		65628	16	Y			0	A	
 5	3	1979	33538	59	65629	S_TCS1_NONOP TCL 59 Temp Level 1_LO		65629	16	Y			0	A	
-5	3	1979	33538	60	65630	S_TCS1_NONOP TCL 60 Temp Level 1_LO		65630	16	Y			0	A	
+5	3	1979	33538	60	65630	S_TCS1_NONOP High TCL 60 Temp Level 1_LO		65630	16	Y			0	A	
 5	3	1979	33538	61	65631	S_TCS1_NONOP TCL 61 Temp Level 1_LO		65631	16	Y			0	A	
 5	3	1979	33538	62	65632	S_TCS1_NONOP TCL 62 Temp Level 1_LO		65632	16	Y			0	A	
 5	3	1979	33538	63	65633	S_TCS1_NONOP TCL 63 Temp Level 1_LO		65633	16	Y			0	A	
@@ -6105,7 +6297,7 @@
 5	3	1979	33538	210	65765	S_TCS1_OP TCL 57 Temperature Level 1_LO		65765	16	Y			0	A	
 5	3	1979	33538	211	65766	S_TCS1_OP TCL 58 Temperature Level 1_LO		65766	16	Y			0	A	
 5	3	1979	33538	212	65767	S_TCS1_OP TCL 59 Temperature Level 1_LO		65767	16	Y			0	A	
-5	3	1979	33538	213	65768	S_TCS1_OP TCL 60 Temperature Level 1_LO		65768	16	Y			0	A	
+5	3	1979	33538	213	65768	S_TCS1_OP High TCL 60 Temp Level 1_LO		65768	16	Y			0	A	
 5	3	1979	33538	214	65769	S_TCS1_OP TCL 61 Temperature Level 1_LO		65769	16	Y			0	A	
 5	3	1979	33538	215	65770	S_TCS1_OP TCL 62 Temperature Level 1_LO		65770	16	Y			0	A	
 5	3	1979	33538	216	65771	S_TCS1_OP TCL 63 Temperature Level 1_LO		65771	16	Y			0	A	
@@ -6125,73 +6317,73 @@
 5	3	1979	33538	230	65785	SMON_TCS1_OP TCL 96 Temp Level 1_LO		65785	16	Y			0	A	
 5	3	1979	33538	231	65786	SMON_TCS2_OP TCL 95 Temp Level 2_LO		65786	16	Y			0	A	
 5	3	1979	33538	232	65787	SMON_TCS2_OP TCL 96 Temp Level 2_LO		65787	16	Y			0	A	
-5	4	167	49472	0	14014	EID spare 0		-1	16	Y			0	A	
-5	4	167	49473	0	14015	EID spare 1		-1	16	Y			0	A	
-5	4	167	49474	0	14016	EID spare 2		-1	16	Y			0	A	
-5	4	167	49475	0	14017	EID spare 3		-1	16	Y			0	A	
-5	4	167	49476	0	14018	EID spare 4		-1	16	Y			0	A	
-5	4	167	49477	0	14019	EID spare 5		-1	16	Y			0	A	
-5	4	167	49478	0	14020	EID spare 6		-1	16	Y			0	A	
-5	4	167	49479	0	14021	EID spare 7		-1	16	Y			0	A	
-5	4	167	49480	0	14022	EID spare 8		-1	16	Y			0	A	
-5	4	167	49481	0	14023	EID spare 9		-1	16	Y			0	A	
-5	4	167	49482	0	14086	EID spare 10		-1	16	Y			0	A	
-5	4	167	49483	0	14121	EID spare 11		-1	16	Y			0	A	
-5	4	167	49484	0	14141	EID spare 12		-1	16	Y			0	A	
-5	4	167	49485	0	14161	EID spare 13		-1	16	Y			0	A	
-5	4	167	49486	0	14162	EID spare 14		-1	16	Y			0	A	
-5	4	167	49487	0	14183	EID spare 15		-1	16	Y			0	A	
-5	4	167	49488	0	14254	EID spare 16		-1	16	Y			0	A	
-5	4	167	49489	0	14255	EID spare 17		-1	16	Y			0	A	
-5	4	167	49490	0	14259	EID spare 18		-1	16	Y			0	A	
-5	4	167	49491	0	14263	EID spare 19		-1	16	Y			0	A	
-5	4	167	49492	0	14267	EID spare 20		-1	16	Y			0	A	
-5	4	167	49493	0	14275	EID spare 21		-1	16	Y			0	A	
-5	4	167	49494	0	14276	EID spare 22		-1	16	Y			0	A	
-5	4	167	49495	0	14349	EID spare 23		-1	16	Y			0	A	
-5	4	167	49496	0	14357	EID spare 24		-1	16	Y			0	A	
-5	4	167	49497	0	14374	EID spare 25		-1	16	Y			0	A	
-5	4	167	49498	0	14386	EID spare 26		-1	16	Y			0	A	
-5	4	167	49499	0	14404	EID spare 27		-1	16	Y			0	A	
-5	4	167	49500	0	14485	EID spare 28		-1	16	Y			0	A	
-5	4	167	49501	0	14486	EID spare 29		-1	16	Y			0	A	
-5	4	167	49502	0	14487	EID spare 30		-1	16	Y			0	A	
-5	4	167	49503	0	14488	EID spare 31		-1	16	Y			0	A	
-5	4	167	49504	0	14489	EID spare 32		-1	16	Y			0	A	
-5	4	167	49505	0	14490	EID spare 33		-1	16	Y			0	A	
-5	4	167	49506	0	14491	EID spare 34		-1	16	Y			0	A	
-5	4	167	49507	0	14492	EID spare 35		-1	16	Y			0	A	
-5	4	167	49508	0	14493	EID spare 36		-1	16	Y			0	A	
-5	4	167	49509	0	14494	EID spare 37		-1	16	Y			0	A	
-5	4	167	49510	0	14495	EID spare 38		-1	16	Y			0	A	
-5	4	167	49511	0	14496	EID spare 39		-1	16	Y			0	A	
-5	4	167	49512	0	14497	EID spare 40		-1	16	Y			0	A	
-5	4	167	49513	0	14498	EID spare 41		-1	16	Y			0	A	
-5	4	167	49514	0	14499	EID spare 42		-1	16	Y			0	A	
-5	4	167	49515	0	14500	EID spare 43		-1	16	Y			0	A	
-5	4	167	49516	0	14501	EID spare 44		-1	16	Y			0	A	
-5	4	167	49517	0	14502	EID spare 45		-1	16	Y			0	A	
-5	4	167	49518	0	14503	EID spare 46		-1	16	Y			0	A	
-5	4	167	49519	0	14504	EID spare 47		-1	16	Y			0	A	
-5	4	167	49520	0	14505	EID spare 48		-1	16	Y			0	A	
-5	4	167	49521	0	14506	EID spare 49		-1	16	Y			0	A	
-5	4	167	49522	0	14507	EID spare 50		-1	16	Y			0	A	
-5	4	167	49523	0	14508	EID spare 51		-1	16	Y			0	A	
-5	4	167	49524	0	14509	EID spare 52		-1	16	Y			0	A	
-5	4	167	49525	0	14510	EID spare 53		-1	16	Y			0	A	
-5	4	167	49526	0	14511	EID spare 54		-1	16	Y			0	A	
-5	4	167	49527	0	14512	EID spare 55		-1	16	Y			0	A	
-5	4	167	49528	0	14513	EID spare 56		-1	16	Y			0	A	
-5	4	167	49529	0	14514	EID spare 57		-1	16	Y			0	A	
-5	4	167	49530	0	14515	EID spare 58		-1	16	Y			0	A	
-5	4	167	49531	0	14516	EID spare 59		-1	16	Y			0	A	
+5	4	167	49472	0	14014	EID high severity spare 0		-1	16	Y			0	A	
+5	4	167	49473	0	14015	EID high severity spare 1		-1	16	Y			0	A	
+5	4	167	49474	0	14016	EID high severity spare 2		-1	16	Y			0	A	
+5	4	167	49475	0	14017	EID high severity spare 3		-1	16	Y			0	A	
+5	4	167	49476	0	14018	EID high severity spare 4		-1	16	Y			0	A	
+5	4	167	49477	0	14019	EID high severity spare 5		-1	16	Y			0	A	
+5	4	167	49478	0	14020	EID high severity spare 6		-1	16	Y			0	A	
+5	4	167	49479	0	14021	EID high severity spare 7		-1	16	Y			0	A	
+5	4	167	49480	0	14022	EID high severity spare 8		-1	16	Y			0	A	
+5	4	167	49481	0	14023	EID high severity spare 9		-1	16	Y			0	A	
+5	4	167	49482	0	14086	EID high severity spare 10		-1	16	Y			0	A	
+5	4	167	49483	0	14121	EID high severity spare 11		-1	16	Y			0	A	
+5	4	167	49484	0	14141	EID high severity spare 12		-1	16	Y			0	A	
+5	4	167	49485	0	14161	EID high severity spare 13		-1	16	Y			0	A	
+5	4	167	49486	0	14162	EID high severity spare 14		-1	16	Y			0	A	
+5	4	167	49487	0	14183	EID high severity spare 15		-1	16	Y			0	A	
+5	4	167	49488	0	14254	EID high severity spare 16		-1	16	Y			0	A	
+5	4	167	49489	0	14255	EID high severity spare 17		-1	16	Y			0	A	
+5	4	167	49490	0	14259	EID high severity spare 18		-1	16	Y			0	A	
+5	4	167	49491	0	14263	EID high severity spare 19		-1	16	Y			0	A	
+5	4	167	49492	0	14267	EID high severity spare 20		-1	16	Y			0	A	
+5	4	167	49493	0	14275	EID high severity spare 21		-1	16	Y			0	A	
+5	4	167	49494	0	14276	EID high severity spare 22		-1	16	Y			0	A	
+5	4	167	49495	0	14349	EID high severity spare 23		-1	16	Y			0	A	
+5	4	167	49496	0	14357	EID high severity spare 24		-1	16	Y			0	A	
+5	4	167	49497	0	14374	EID high severity spare 25		-1	16	Y			0	A	
+5	4	167	49498	0	14386	EID high severity spare 26		-1	16	Y			0	A	
+5	4	167	49499	0	14404	EID high severity spare 27		-1	16	Y			0	A	
+5	4	167	49500	0	14485	EID high severity spare 28		-1	16	Y			0	A	
+5	4	167	49501	0	14486	EID high severity spare 29		-1	16	Y			0	A	
+5	4	167	49502	0	14487	EID high severity spare 30		-1	16	Y			0	A	
+5	4	167	49503	0	14488	EID high severity spare 31		-1	16	Y			0	A	
+5	4	167	49504	0	14489	EID high severity spare 32		-1	16	Y			0	A	
+5	4	167	49505	0	14490	EID high severity spare 33		-1	16	Y			0	A	
+5	4	167	49506	0	14491	EID high severity spare 34		-1	16	Y			0	A	
+5	4	167	49507	0	14492	EID high severity spare 35		-1	16	Y			0	A	
+5	4	167	49508	0	14493	EID high severity spare 36		-1	16	Y			0	A	
+5	4	167	49509	0	14494	EID high severity spare 37		-1	16	Y			0	A	
+5	4	167	49510	0	14495	EID high severity spare 38		-1	16	Y			0	A	
+5	4	167	49511	0	14496	EID high severity spare 39		-1	16	Y			0	A	
+5	4	167	49512	0	14497	EID high severity spare 40		-1	16	Y			0	A	
+5	4	167	49513	0	14498	EID high severity spare 41		-1	16	Y			0	A	
+5	4	167	49514	0	14499	EID high severity spare 42		-1	16	Y			0	A	
+5	4	167	49515	0	14500	EID high severity spare 43		-1	16	Y			0	A	
+5	4	167	49516	0	14501	EID high severity spare 44		-1	16	Y			0	A	
+5	4	167	49517	0	14502	EID high severity spare 45		-1	16	Y			0	A	
+5	4	167	49518	0	14503	EID high severity spare 46		-1	16	Y			0	A	
+5	4	167	49519	0	14504	EID high severity spare 47		-1	16	Y			0	A	
+5	4	167	49520	0	14505	EID high severity spare 48		-1	16	Y			0	A	
+5	4	167	49521	0	14506	EID high severity spare 49		-1	16	Y			0	A	
+5	4	167	49522	0	14507	EID high severity spare 50		-1	16	Y			0	A	
+5	4	167	49523	0	14508	EID high severity spare 51		-1	16	Y			0	A	
+5	4	167	49524	0	14509	EID high severity spare 52		-1	16	Y			0	A	
+5	4	167	49525	0	14510	EID high severity spare 53		-1	16	Y			0	A	
+5	4	167	49526	0	14511	EID high severity spare 54		-1	16	Y			0	A	
+5	4	167	49527	0	14512	EID high severity spare 55		-1	16	Y			0	A	
+5	4	167	49528	0	14513	EID high severity spare 56		-1	16	Y			0	A	
+5	4	167	49529	0	14514	EID high severity spare 57		-1	16	Y			0	A	
+5	4	167	49530	0	14515	EID high severity spare 58		-1	16	Y			0	A	
+5	4	167	49531	0	14516	EID high severity spare 59		-1	16	Y			0	A	
 5	4	167	49572	0	14004	Cyclic_Task_Overrun_(DMS)		-1	16	Y			0	A	
 5	4	167	50306	0	14359	OBCP_Stopped_(OBCP_ERROR)		-1	16	Y			0	A	
 5	4	167	50311	0	14364	START_OBCP_TC_failure		-1	16	Y			0	A	
 5	4	167	50436	0	14270	Serial_Coupler_Link_Error		-1	16	Y			0	A	
 5	4	167	50440	0	14298	OBDH_Coupler_Link_Error		-1	16	Y			0	A	
 5	4	167	51200	0	14274	Failed_SGM_Unit		-1	16	Y			0	A	
-5	4	167	51204	0	14355	SGM_Uncorrectable_EDAC_Error		-1	16	Y			0	A	
+5	4	167	51204	0	14548	SGM uncorrectable EDAC error		-1	16	Y			0	A	
 5	4	167	51457	0	14013	TC_Coupler_Link_Error		-1	16	Y			0	A	
 5	4	167	58241	0	14427	FMON Event 01		-1	16	Y			0	A	
 5	4	167	58242	0	14428	FMON Event 02		-1	16	Y			0	A	
@@ -6258,101 +6450,101 @@
 5	4	183	49474	0	20039	REC_SYS1 - OPS Alarm - FMON_STR5		-1	16	Y			0	A	
 5	4	183	49475	0	20040	REC_SYS1 - OPS Alarm - FMON_AOCS24		-1	16	Y			0	A	
 5	4	183	49476	0	20041	FMON_AOCS6 SLVP Time Val Chk trigger ? No Action		-1	16	Y			0	A	
-5	4	183	49477	0	20042	EID spare 5		-1	16	Y			0	A	
-5	4	183	49478	0	20043	EID spare 6		-1	16	Y			0	A	
-5	4	183	49479	0	20044	EID spare 7		-1	16	Y			0	A	
-5	4	183	49480	0	20045	EID spare 8		-1	16	Y			0	A	
-5	4	183	49481	0	20046	EID spare 9		-1	16	Y			0	A	
-5	4	183	49482	0	20360	EID spare 10		-1	16	Y			0	A	
-5	4	183	49483	0	20361	EID spare 11		-1	16	Y			0	A	
-5	4	183	49484	0	20362	EID spare 12		-1	16	Y			0	A	
-5	4	183	49485	0	20363	EID spare 13		-1	16	Y			0	A	
-5	4	183	49486	0	20364	EID spare 14		-1	16	Y			0	A	
-5	4	183	49487	0	20365	EID spare 15		-1	16	Y			0	A	
-5	4	183	49488	0	20366	EID spare 16		-1	16	Y			0	A	
-5	4	183	49489	0	20367	EID spare 17		-1	16	Y			0	A	
-5	4	183	49490	0	20368	EID spare 18		-1	16	Y			0	A	
-5	4	183	49491	0	20369	EID spare 19		-1	16	Y			0	A	
-5	4	183	49492	0	20370	EID spare 20		-1	16	Y			0	A	
-5	4	183	49493	0	20371	EID spare 21		-1	16	Y			0	A	
-5	4	183	49494	0	20372	EID spare 22		-1	16	Y			0	A	
-5	4	183	49495	0	20373	EID spare 23		-1	16	Y			0	A	
-5	4	183	49496	0	20374	EID spare 24		-1	16	Y			0	A	
-5	4	183	49497	0	20375	EID spare 25		-1	16	Y			0	A	
-5	4	183	49498	0	20376	EID spare 26		-1	16	Y			0	A	
-5	4	183	49499	0	20377	EID spare 27		-1	16	Y			0	A	
-5	4	183	49500	0	20378	EID spare 28		-1	16	Y			0	A	
-5	4	183	49501	0	20379	EID spare 29		-1	16	Y			0	A	
-5	4	183	49502	0	20380	EID spare 30		-1	16	Y			0	A	
-5	4	183	49503	0	20381	EID spare 31		-1	16	Y			0	A	
-5	4	183	49504	0	20382	EID spare 32		-1	16	Y			0	A	
-5	4	183	49505	0	20383	EID spare 33		-1	16	Y			0	A	
-5	4	183	49506	0	20384	EID spare 34		-1	16	Y			0	A	
-5	4	183	49507	0	20385	EID spare 35		-1	16	Y			0	A	
-5	4	183	49508	0	20386	EID spare 36		-1	16	Y			0	A	
-5	4	183	49509	0	20387	EID spare 37		-1	16	Y			0	A	
-5	4	183	49510	0	20388	EID spare 38		-1	16	Y			0	A	
-5	4	183	49511	0	20389	EID spare 39		-1	16	Y			0	A	
-5	4	183	49512	0	20390	EID spare 40		-1	16	Y			0	A	
-5	4	183	49513	0	20391	EID spare 41		-1	16	Y			0	A	
-5	4	183	49514	0	20392	EID spare 42		-1	16	Y			0	A	
-5	4	183	49515	0	20393	EID spare 43		-1	16	Y			0	A	
-5	4	183	49516	0	20394	EID spare 44		-1	16	Y			0	A	
-5	4	183	49517	0	20395	EID spare 45		-1	16	Y			0	A	
-5	4	183	49518	0	20396	EID spare 46		-1	16	Y			0	A	
-5	4	183	49519	0	20397	EID spare 47		-1	16	Y			0	A	
-5	4	183	49520	0	20398	EID spare 48		-1	16	Y			0	A	
-5	4	183	49521	0	20399	EID spare 49		-1	16	Y			0	A	
-5	4	183	49522	0	20400	EID spare 50		-1	16	Y			0	A	
-5	4	183	49523	0	20401	EID spare 51		-1	16	Y			0	A	
-5	4	183	49524	0	20402	EID spare 52		-1	16	Y			0	A	
-5	4	183	49525	0	20403	EID spare 53		-1	16	Y			0	A	
-5	4	183	49526	0	20404	EID spare 54		-1	16	Y			0	A	
-5	4	183	49527	0	20405	EID spare 55		-1	16	Y			0	A	
-5	4	183	49528	0	20406	EID spare 56		-1	16	Y			0	A	
-5	4	183	49529	0	20407	EID spare 57		-1	16	Y			0	A	
-5	4	183	49530	0	20408	EID spare 58		-1	16	Y			0	A	
-5	4	183	49531	0	20409	EID spare 59		-1	16	Y			0	A	
-5	4	183	49532	0	20410	EID spare 60		-1	16	Y			0	A	
-5	4	183	49533	0	20411	EID spare 61		-1	16	Y			0	A	
-5	4	183	49534	0	20412	EID spare 62		-1	16	Y			0	A	
-5	4	183	49535	0	20413	EID spare 63		-1	16	Y			0	A	
-5	4	183	49536	0	20414	EID spare 64		-1	16	Y			0	A	
-5	4	183	49537	0	20415	EID spare 65		-1	16	Y			0	A	
-5	4	183	49538	0	20416	EID spare 66		-1	16	Y			0	A	
-5	4	183	49539	0	20417	EID spare 67		-1	16	Y			0	A	
-5	4	183	49540	0	20418	EID spare 68		-1	16	Y			0	A	
-5	4	183	49541	0	20419	EID spare 69		-1	16	Y			0	A	
-5	4	183	49542	0	20420	EID spare 70		-1	16	Y			0	A	
-5	4	183	49543	0	20421	EID spare 71		-1	16	Y			0	A	
-5	4	183	49544	0	20422	EID spare 72		-1	16	Y			0	A	
-5	4	183	49545	0	20423	EID spare 73		-1	16	Y			0	A	
-5	4	183	49546	0	20424	EID spare 74		-1	16	Y			0	A	
-5	4	183	49547	0	20425	EID spare 75		-1	16	Y			0	A	
-5	4	183	49548	0	20426	EID spare 76		-1	16	Y			0	A	
-5	4	183	49549	0	20427	EID spare 77		-1	16	Y			0	A	
-5	4	183	49550	0	20428	EID spare 78		-1	16	Y			0	A	
-5	4	183	49551	0	20429	EID spare 79		-1	16	Y			0	A	
-5	4	183	49552	0	20430	EID spare 80		-1	16	Y			0	A	
-5	4	183	49553	0	20431	EID spare 81		-1	16	Y			0	A	
-5	4	183	49554	0	20432	EID spare 82		-1	16	Y			0	A	
-5	4	183	49555	0	20433	EID spare 83		-1	16	Y			0	A	
-5	4	183	49556	0	20434	EID spare 84		-1	16	Y			0	A	
-5	4	183	49557	0	20435	EID spare 85		-1	16	Y			0	A	
-5	4	183	49558	0	20436	EID spare 86		-1	16	Y			0	A	
-5	4	183	49559	0	20437	EID spare 87		-1	16	Y			0	A	
-5	4	183	49560	0	20438	EID spare 88		-1	16	Y			0	A	
-5	4	183	49561	0	20439	EID spare 89		-1	16	Y			0	A	
-5	4	183	49562	0	20440	EID spare 90		-1	16	Y			0	A	
-5	4	183	49563	0	20441	EID spare 91		-1	16	Y			0	A	
-5	4	183	49564	0	20442	EID spare 92		-1	16	Y			0	A	
-5	4	183	49565	0	20443	EID spare 93		-1	16	Y			0	A	
-5	4	183	49566	0	20444	EID spare 94		-1	16	Y			0	A	
-5	4	183	49567	0	20445	EID spare 95		-1	16	Y			0	A	
-5	4	183	49568	0	20446	EID spare 96		-1	16	Y			0	A	
-5	4	183	49569	0	20447	EID spare 97		-1	16	Y			0	A	
-5	4	183	49570	0	20448	EID spare 98		-1	16	Y			0	A	
-5	4	183	49571	0	20449	EID spare 99		-1	16	Y			0	A	
+5	4	183	49477	0	20042	EID high severity spare 5		-1	16	Y			0	A	
+5	4	183	49478	0	20043	EID high severity spare 6		-1	16	Y			0	A	
+5	4	183	49479	0	20044	EID high severity spare 7		-1	16	Y			0	A	
+5	4	183	49480	0	20045	EID high severity spare 8		-1	16	Y			0	A	
+5	4	183	49481	0	20046	EID high severity spare 9		-1	16	Y			0	A	
+5	4	183	49482	0	20360	EID high severity spare 10		-1	16	Y			0	A	
+5	4	183	49483	0	20361	EID high severity spare 11		-1	16	Y			0	A	
+5	4	183	49484	0	20362	EID high severity spare 12		-1	16	Y			0	A	
+5	4	183	49485	0	20363	EID high severity spare 13		-1	16	Y			0	A	
+5	4	183	49486	0	20364	EID high severity spare 14		-1	16	Y			0	A	
+5	4	183	49487	0	20365	EID high severity spare 15		-1	16	Y			0	A	
+5	4	183	49488	0	20366	EID high severity spare 16		-1	16	Y			0	A	
+5	4	183	49489	0	20367	EID high severity spare 17		-1	16	Y			0	A	
+5	4	183	49490	0	20368	EID high severity spare 18		-1	16	Y			0	A	
+5	4	183	49491	0	20369	EID high severity spare 19		-1	16	Y			0	A	
+5	4	183	49492	0	20370	EID high severity spare 20		-1	16	Y			0	A	
+5	4	183	49493	0	20371	EID high severity spare 21		-1	16	Y			0	A	
+5	4	183	49494	0	20372	EID high severity spare 22		-1	16	Y			0	A	
+5	4	183	49495	0	20373	EID high severity spare 23		-1	16	Y			0	A	
+5	4	183	49496	0	20374	EID high severity spare 24		-1	16	Y			0	A	
+5	4	183	49497	0	20375	EID high severity spare 25		-1	16	Y			0	A	
+5	4	183	49498	0	20376	EID high severity spare 26		-1	16	Y			0	A	
+5	4	183	49499	0	20377	EID high severity spare 27		-1	16	Y			0	A	
+5	4	183	49500	0	20378	EID high severity spare 28		-1	16	Y			0	A	
+5	4	183	49501	0	20379	EID high severity spare 29		-1	16	Y			0	A	
+5	4	183	49502	0	20380	EID high severity spare 30		-1	16	Y			0	A	
+5	4	183	49503	0	20381	EID high severity spare 31		-1	16	Y			0	A	
+5	4	183	49504	0	20382	EID high severity spare 32		-1	16	Y			0	A	
+5	4	183	49505	0	20383	EID high severity spare 33		-1	16	Y			0	A	
+5	4	183	49506	0	20384	EID high severity spare 34		-1	16	Y			0	A	
+5	4	183	49507	0	20385	EID high severity spare 35		-1	16	Y			0	A	
+5	4	183	49508	0	20386	EID high severity spare 36		-1	16	Y			0	A	
+5	4	183	49509	0	20387	EID high severity spare 37		-1	16	Y			0	A	
+5	4	183	49510	0	20388	EID high severity spare 38		-1	16	Y			0	A	
+5	4	183	49511	0	20389	EID high severity spare 39		-1	16	Y			0	A	
+5	4	183	49512	0	20390	EID high severity spare 40		-1	16	Y			0	A	
+5	4	183	49513	0	20391	EID high severity spare 41		-1	16	Y			0	A	
+5	4	183	49514	0	20392	EID high severity spare 42		-1	16	Y			0	A	
+5	4	183	49515	0	20393	EID high severity spare 43		-1	16	Y			0	A	
+5	4	183	49516	0	20394	EID high severity spare 44		-1	16	Y			0	A	
+5	4	183	49517	0	20395	EID high severity spare 45		-1	16	Y			0	A	
+5	4	183	49518	0	20396	EID high severity spare 46		-1	16	Y			0	A	
+5	4	183	49519	0	20397	EID high severity spare 47		-1	16	Y			0	A	
+5	4	183	49520	0	20398	EID high severity spare 48		-1	16	Y			0	A	
+5	4	183	49521	0	20399	EID high severity spare 49		-1	16	Y			0	A	
+5	4	183	49522	0	20400	EID high severity spare 50		-1	16	Y			0	A	
+5	4	183	49523	0	20401	EID high severity spare 51		-1	16	Y			0	A	
+5	4	183	49524	0	20402	EID high severity spare 52		-1	16	Y			0	A	
+5	4	183	49525	0	20403	EID high severity spare 53		-1	16	Y			0	A	
+5	4	183	49526	0	20404	EID high severity spare 54		-1	16	Y			0	A	
+5	4	183	49527	0	20405	EID high severity spare 55		-1	16	Y			0	A	
+5	4	183	49528	0	20406	EID high severity spare 56		-1	16	Y			0	A	
+5	4	183	49529	0	20407	EID high severity spare 57		-1	16	Y			0	A	
+5	4	183	49530	0	20408	EID high severity spare 58		-1	16	Y			0	A	
+5	4	183	49531	0	20409	EID high severity spare 59		-1	16	Y			0	A	
+5	4	183	49532	0	20410	EID high severity spare 60		-1	16	Y			0	A	
+5	4	183	49533	0	20411	EID high severity spare 61		-1	16	Y			0	A	
+5	4	183	49534	0	20412	EID high severity spare 62		-1	16	Y			0	A	
+5	4	183	49535	0	20413	EID high severity spare 63		-1	16	Y			0	A	
+5	4	183	49536	0	20414	EID high severity spare 64		-1	16	Y			0	A	
+5	4	183	49537	0	20415	EID high severity spare 65		-1	16	Y			0	A	
+5	4	183	49538	0	20416	EID high severity spare 66		-1	16	Y			0	A	
+5	4	183	49539	0	20417	EID high severity spare 67		-1	16	Y			0	A	
+5	4	183	49540	0	20418	EID high severity spare 68		-1	16	Y			0	A	
+5	4	183	49541	0	20419	EID high severity spare 69		-1	16	Y			0	A	
+5	4	183	49542	0	20420	EID high severity spare 70		-1	16	Y			0	A	
+5	4	183	49543	0	20421	EID high severity spare 71		-1	16	Y			0	A	
+5	4	183	49544	0	20422	EID high severity spare 72		-1	16	Y			0	A	
+5	4	183	49545	0	20423	EID high severity spare 73		-1	16	Y			0	A	
+5	4	183	49546	0	20424	EID high severity spare 74		-1	16	Y			0	A	
+5	4	183	49547	0	20425	EID high severity spare 75		-1	16	Y			0	A	
+5	4	183	49548	0	20426	EID high severity spare 76		-1	16	Y			0	A	
+5	4	183	49549	0	20427	EID high severity spare 77		-1	16	Y			0	A	
+5	4	183	49550	0	20428	EID high severity spare 78		-1	16	Y			0	A	
+5	4	183	49551	0	20429	EID high severity spare 79		-1	16	Y			0	A	
+5	4	183	49552	0	20430	EID high severity spare 80		-1	16	Y			0	A	
+5	4	183	49553	0	20431	EID high severity spare 81		-1	16	Y			0	A	
+5	4	183	49554	0	20432	EID high severity spare 82		-1	16	Y			0	A	
+5	4	183	49555	0	20433	EID high severity spare 83		-1	16	Y			0	A	
+5	4	183	49556	0	20434	EID high severity spare 84		-1	16	Y			0	A	
+5	4	183	49557	0	20435	EID high severity spare 85		-1	16	Y			0	A	
+5	4	183	49558	0	20436	EID high severity spare 86		-1	16	Y			0	A	
+5	4	183	49559	0	20437	EID high severity spare 87		-1	16	Y			0	A	
+5	4	183	49560	0	20438	EID high severity spare 88		-1	16	Y			0	A	
+5	4	183	49561	0	20439	EID high severity spare 89		-1	16	Y			0	A	
+5	4	183	49562	0	20440	EID high severity spare 90		-1	16	Y			0	A	
+5	4	183	49563	0	20441	EID high severity spare 91		-1	16	Y			0	A	
+5	4	183	49564	0	20442	EID high severity spare 92		-1	16	Y			0	A	
+5	4	183	49565	0	20443	EID high severity spare 93		-1	16	Y			0	A	
+5	4	183	49566	0	20444	EID high severity spare 94		-1	16	Y			0	A	
+5	4	183	49567	0	20445	EID high severity spare 95		-1	16	Y			0	A	
+5	4	183	49568	0	20446	EID high severity spare 96		-1	16	Y			0	A	
+5	4	183	49569	0	20447	EID high severity spare 97		-1	16	Y			0	A	
+5	4	183	49570	0	20448	EID high severity spare 98		-1	16	Y			0	A	
+5	4	183	49571	0	20449	EID high severity spare 99		-1	16	Y			0	A	
 5	4	183	49572	0	20007	Cyclic_Task_Overrun_(AOCS)		-1	16	Y			0	A	
 5	4	183	52363	0	20028	STR_Invalid_TC_Length_Received		-1	16	Y			0	A	
 5	4	183	52366	0	20024	Block_With_Status_Bits_Set_Received_From_STR.		-1	16	Y			0	A	
@@ -6538,54 +6730,54 @@
 5	4	183	62520	0	29643	Snapshot HK: REC_STR4 for STR_B - Loc Tim - FMON_STR4		-1	16	Y			0	A	
 5	4	199	49472	0	32083	EID spare 0		-1	16	Y			0	A	
 5	4	199	49473	0	32084	EID spare 1		-1	16	Y			0	A	
-5	4	199	49474	0	32085	EID spare 2		-1	16	Y			0	A	
-5	4	199	49475	0	32086	EID spare 3		-1	16	Y			0	A	
-5	4	199	49476	0	32087	EID spare 4		-1	16	Y			0	A	
-5	4	199	49477	0	32088	EID spare 5		-1	16	Y			0	A	
-5	4	199	49478	0	32089	EID spare 6		-1	16	Y			0	A	
-5	4	199	49479	0	32090	EID spare 7		-1	16	Y			0	A	
-5	4	199	49480	0	32091	EID spare 8		-1	16	Y			0	A	
-5	4	199	49481	0	32092	EID spare 9		-1	16	Y			0	A	
-5	4	199	49482	0	32248	EID spare 10		-1	16	Y			0	A	
-5	4	199	49483	0	32249	EID spare 11		-1	16	Y			0	A	
-5	4	199	49484	0	32250	EID spare 12		-1	16	Y			0	A	
-5	4	199	49485	0	32251	EID spare 13		-1	16	Y			0	A	
-5	4	199	49486	0	32252	EID spare 14		-1	16	Y			0	A	
-5	4	199	49487	0	32253	EID spare 15		-1	16	Y			0	A	
-5	4	199	49488	0	32254	EID spare 16		-1	16	Y			0	A	
-5	4	199	49489	0	32255	EID spare 17		-1	16	Y			0	A	
-5	4	199	49490	0	32256	EID spare 18		-1	16	Y			0	A	
-5	4	199	49491	0	32257	EID spare 19		-1	16	Y			0	A	
-5	4	199	49492	0	32258	EID spare 20		-1	16	Y			0	A	
-5	4	199	49493	0	32259	EID spare 21		-1	16	Y			0	A	
-5	4	199	49494	0	32260	EID spare 22		-1	16	Y			0	A	
-5	4	199	49495	0	32261	EID spare 23		-1	16	Y			0	A	
-5	4	199	49496	0	32262	EID spare 24		-1	16	Y			0	A	
-5	4	199	49497	0	32263	EID spare 25		-1	16	Y			0	A	
-5	4	199	49498	0	32264	EID spare 26		-1	16	Y			0	A	
-5	4	199	49499	0	32265	EID spare 27		-1	16	Y			0	A	
-5	4	199	49500	0	32266	EID spare 28		-1	16	Y			0	A	
-5	4	199	49501	0	32267	EID spare 29		-1	16	Y			0	A	
-5	4	199	49502	0	32268	EID spare 30		-1	16	Y			0	A	
-5	4	199	49503	0	32269	EID spare 31		-1	16	Y			0	A	
-5	4	199	49504	0	32270	EID spare 32		-1	16	Y			0	A	
-5	4	199	49505	0	32271	EID spare 33		-1	16	Y			0	A	
-5	4	199	49506	0	32272	EID spare 34		-1	16	Y			0	A	
-5	4	199	49507	0	32273	EID spare 35		-1	16	Y			0	A	
-5	4	199	49508	0	32274	EID spare 36		-1	16	Y			0	A	
-5	4	199	49509	0	32275	EID spare 37		-1	16	Y			0	A	
-5	4	199	49510	0	32276	EID spare 38		-1	16	Y			0	A	
-5	4	199	49511	0	32277	EID spare 39		-1	16	Y			0	A	
-5	4	199	49512	0	32278	EID spare 40		-1	16	Y			0	A	
-5	4	199	49513	0	32279	EID spare 41		-1	16	Y			0	A	
-5	4	199	49514	0	32280	EID spare 42		-1	16	Y			0	A	
-5	4	199	49515	0	32281	EID spare 43		-1	16	Y			0	A	
-5	4	199	49516	0	32282	EID spare 44		-1	16	Y			0	A	
-5	4	199	49517	0	32283	EID spare 45		-1	16	Y			0	A	
-5	4	199	49518	0	32284	EID spare 46		-1	16	Y			0	A	
-5	4	199	49519	0	32285	EID spare 47		-1	16	Y			0	A	
-5	4	199	49520	0	32286	EID spare 48		-1	16	Y			0	A	
-5	4	199	49521	0	32287	EID spare 49		-1	16	Y			0	A	
+5	4	199	49474	0	32085	EID high severity spare 2		-1	16	Y			0	A	
+5	4	199	49475	0	32086	EID high severity spare 3		-1	16	Y			0	A	
+5	4	199	49476	0	32087	EID high severity spare 4		-1	16	Y			0	A	
+5	4	199	49477	0	32088	EID high severity spare 5		-1	16	Y			0	A	
+5	4	199	49478	0	32089	EID high severity spare 6		-1	16	Y			0	A	
+5	4	199	49479	0	32090	EID high severity spare 7		-1	16	Y			0	A	
+5	4	199	49480	0	32091	EID high severity spare 8		-1	16	Y			0	A	
+5	4	199	49481	0	32092	EID high severity spare 9		-1	16	Y			0	A	
+5	4	199	49482	0	32248	EID high severity spare 10		-1	16	Y			0	A	
+5	4	199	49483	0	32249	EID high severity spare 11		-1	16	Y			0	A	
+5	4	199	49484	0	32250	EID high severity spare 12		-1	16	Y			0	A	
+5	4	199	49485	0	32251	EID high severity spare 13		-1	16	Y			0	A	
+5	4	199	49486	0	32252	EID high severity spare 14		-1	16	Y			0	A	
+5	4	199	49487	0	32253	EID high severity spare 15		-1	16	Y			0	A	
+5	4	199	49488	0	32254	EID high severity spare 16		-1	16	Y			0	A	
+5	4	199	49489	0	32255	EID high severity spare 17		-1	16	Y			0	A	
+5	4	199	49490	0	32256	EID high severity spare 18		-1	16	Y			0	A	
+5	4	199	49491	0	32257	EID high severity spare 19		-1	16	Y			0	A	
+5	4	199	49492	0	32258	EID high severity spare 20		-1	16	Y			0	A	
+5	4	199	49493	0	32259	EID high severity spare 21		-1	16	Y			0	A	
+5	4	199	49494	0	32260	EID high severity spare 22		-1	16	Y			0	A	
+5	4	199	49495	0	32261	EID high severity spare 23		-1	16	Y			0	A	
+5	4	199	49496	0	32262	EID high severity spare 24		-1	16	Y			0	A	
+5	4	199	49497	0	32263	EID high severity spare 25		-1	16	Y			0	A	
+5	4	199	49498	0	32264	EID high severity spare 26		-1	16	Y			0	A	
+5	4	199	49499	0	32265	EID high severity spare 27		-1	16	Y			0	A	
+5	4	199	49500	0	32266	EID high severity spare 28		-1	16	Y			0	A	
+5	4	199	49501	0	32267	EID high severity spare 29		-1	16	Y			0	A	
+5	4	199	49502	0	32268	EID high severity spare 30		-1	16	Y			0	A	
+5	4	199	49503	0	32269	EID high severity spare 31		-1	16	Y			0	A	
+5	4	199	49504	0	32270	EID high severity spare 32		-1	16	Y			0	A	
+5	4	199	49505	0	32271	EID high severity spare 33		-1	16	Y			0	A	
+5	4	199	49506	0	32272	EID high severity spare 34		-1	16	Y			0	A	
+5	4	199	49507	0	32273	EID high severity spare 35		-1	16	Y			0	A	
+5	4	199	49508	0	32274	EID high severity spare 36		-1	16	Y			0	A	
+5	4	199	49509	0	32275	EID high severity spare 37		-1	16	Y			0	A	
+5	4	199	49510	0	32276	EID high severity spare 38		-1	16	Y			0	A	
+5	4	199	49511	0	32277	EID high severity spare 39		-1	16	Y			0	A	
+5	4	199	49512	0	32278	EID high severity spare 40		-1	16	Y			0	A	
+5	4	199	49513	0	32279	EID high severity spare 41		-1	16	Y			0	A	
+5	4	199	49514	0	32280	EID high severity spare 42		-1	16	Y			0	A	
+5	4	199	49515	0	32281	EID high severity spare 43		-1	16	Y			0	A	
+5	4	199	49516	0	32282	EID high severity spare 44		-1	16	Y			0	A	
+5	4	199	49517	0	32283	EID high severity spare 45		-1	16	Y			0	A	
+5	4	199	49518	0	32284	EID high severity spare 46		-1	16	Y			0	A	
+5	4	199	49519	0	32285	EID high severity spare 47		-1	16	Y			0	A	
+5	4	199	49520	0	32286	EID high severity spare 48		-1	16	Y			0	A	
+5	4	199	49521	0	32287	EID high severity spare 49		-1	16	Y			0	A	
 5	4	199	49572	0	32001	Cyclic_Task_Overrun_(Payload)		-1	16	Y			0	A	
 5	4	199	53926	0	32218	EPD Payload Switch Off		-1	16	Y			0	A	
 5	4	199	53927	0	32219	EUI Payload Switch Off		-1	16	Y			0	A	
@@ -6662,61 +6854,61 @@
 5	4	215	49474	0	27016	REC_MGA_APME1 - FMON_M-APME1_B		-1	16	Y			0	A	
 5	4	215	49475	0	27017	REC_SADE1 - FMON_SADE1_A SADE A Failure		-1	16	Y			0	A	
 5	4	215	49476	0	27018	REC_SADE1 - FMON_SADE1_B SADE B Failure		-1	16	Y			0	A	
-5	4	215	49477	0	27019	EID spare 5		-1	16	Y			0	A	
-5	4	215	49478	0	27020	EID spare 6		-1	16	Y			0	A	
-5	4	215	49479	0	27021	EID spare 7		-1	16	Y			0	A	
-5	4	215	49480	0	27022	EID spare 8		-1	16	Y			0	A	
-5	4	215	49481	0	27023	EID spare 9		-1	16	Y			0	A	
-5	4	215	49482	0	27440	EID spare 10		-1	16	Y			0	A	
-5	4	215	49483	0	27441	EID spare 11		-1	16	Y			0	A	
-5	4	215	49484	0	27442	EID spare 12		-1	16	Y			0	A	
-5	4	215	49485	0	27443	EID spare 13		-1	16	Y			0	A	
-5	4	215	49486	0	27444	EID spare 14		-1	16	Y			0	A	
-5	4	215	49487	0	27445	EID spare 15		-1	16	Y			0	A	
-5	4	215	49488	0	27446	EID spare 16		-1	16	Y			0	A	
-5	4	215	49489	0	27447	EID spare 17		-1	16	Y			0	A	
-5	4	215	49490	0	27448	EID spare 18		-1	16	Y			0	A	
-5	4	215	49491	0	27449	EID spare 19		-1	16	Y			0	A	
-5	4	215	49492	0	27450	EID spare 20		-1	16	Y			0	A	
-5	4	215	49493	0	27451	EID spare 21		-1	16	Y			0	A	
-5	4	215	49494	0	27452	EID spare 22		-1	16	Y			0	A	
-5	4	215	49495	0	27453	EID spare 23		-1	16	Y			0	A	
-5	4	215	49496	0	27454	EID spare 24		-1	16	Y			0	A	
-5	4	215	49497	0	27455	EID spare 25		-1	16	Y			0	A	
-5	4	215	49498	0	27456	EID spare 26		-1	16	Y			0	A	
-5	4	215	49499	0	27457	EID spare 27		-1	16	Y			0	A	
-5	4	215	49500	0	27458	EID spare 28		-1	16	Y			0	A	
-5	4	215	49501	0	27459	EID spare 29		-1	16	Y			0	A	
-5	4	215	49502	0	27460	EID spare 30		-1	16	Y			0	A	
-5	4	215	49503	0	27461	EID spare 31		-1	16	Y			0	A	
-5	4	215	49504	0	27462	EID spare 32		-1	16	Y			0	A	
-5	4	215	49505	0	27463	EID spare 33		-1	16	Y			0	A	
-5	4	215	49506	0	27464	EID spare 34		-1	16	Y			0	A	
-5	4	215	49507	0	27465	EID spare 35		-1	16	Y			0	A	
-5	4	215	49508	0	27466	EID spare 36		-1	16	Y			0	A	
-5	4	215	49509	0	27467	EID spare 37		-1	16	Y			0	A	
-5	4	215	49510	0	27468	EID spare 38		-1	16	Y			0	A	
-5	4	215	49511	0	27469	EID spare 39		-1	16	Y			0	A	
-5	4	215	49512	0	27470	EID spare 40		-1	16	Y			0	A	
-5	4	215	49513	0	27471	EID spare 41		-1	16	Y			0	A	
-5	4	215	49514	0	27472	EID spare 42		-1	16	Y			0	A	
-5	4	215	49515	0	27473	EID spare 43		-1	16	Y			0	A	
-5	4	215	49516	0	27474	EID spare 44		-1	16	Y			0	A	
-5	4	215	49517	0	27475	EID spare 45		-1	16	Y			0	A	
-5	4	215	49518	0	27476	EID spare 46		-1	16	Y			0	A	
-5	4	215	49519	0	27477	EID spare 47		-1	16	Y			0	A	
-5	4	215	49520	0	27478	EID spare 48		-1	16	Y			0	A	
-5	4	215	49521	0	27479	EID spare 49		-1	16	Y			0	A	
-5	4	215	49522	0	27480	EID spare 50		-1	16	Y			0	A	
-5	4	215	49523	0	27481	EID spare 51		-1	16	Y			0	A	
-5	4	215	49524	0	27482	EID spare 52		-1	16	Y			0	A	
-5	4	215	49525	0	27483	EID spare 53		-1	16	Y			0	A	
-5	4	215	49526	0	27484	EID spare 54		-1	16	Y			0	A	
-5	4	215	49527	0	27485	EID spare 55		-1	16	Y			0	A	
-5	4	215	49528	0	27486	EID spare 56		-1	16	Y			0	A	
-5	4	215	49529	0	27487	EID spare 57		-1	16	Y			0	A	
-5	4	215	49530	0	27488	EID spare 58		-1	16	Y			0	A	
-5	4	215	49531	0	27489	EID spare 59		-1	16	Y			0	A	
+5	4	215	49477	0	27019	EID high severity spare 5		-1	16	Y			0	A	
+5	4	215	49478	0	27020	EID high severity spare 6		-1	16	Y			0	A	
+5	4	215	49479	0	27021	REC_SADE2 - FMON_SADE1 SADE A failure Off-pointing		-1	16	Y			0	A	
+5	4	215	49480	0	27022	REC_EPS4 - FMON_EPS1 Bat Volt_1 Off-pointing		-1	16	Y			0	A	
+5	4	215	49481	0	27023	REC_SYS1 - FMON_EPS4 SA Over_temp_1 Off-pointing		-1	16	Y			0	A	
+5	4	215	49482	0	27440	EID high severity spare 10		-1	16	Y			0	A	
+5	4	215	49483	0	27441	REC_SADE2 - FMON_SADE1 SADE B failure Off-pointing		-1	16	Y			0	A	
+5	4	215	49484	0	27442	EID high severity spare 12		-1	16	Y			0	A	
+5	4	215	49485	0	27443	EID high severity spare 13		-1	16	Y			0	A	
+5	4	215	49486	0	27444	EID high severity spare 14		-1	16	Y			0	A	
+5	4	215	49487	0	27445	EID high severity spare 15		-1	16	Y			0	A	
+5	4	215	49488	0	27446	EID high severity spare 16		-1	16	Y			0	A	
+5	4	215	49489	0	27447	EID high severity spare 17		-1	16	Y			0	A	
+5	4	215	49490	0	27448	EID high severity spare 18		-1	16	Y			0	A	
+5	4	215	49491	0	27449	EID high severity spare 19		-1	16	Y			0	A	
+5	4	215	49492	0	27450	EID high severity spare 20		-1	16	Y			0	A	
+5	4	215	49493	0	27451	EID high severity spare 21		-1	16	Y			0	A	
+5	4	215	49494	0	27452	EID high severity spare 22		-1	16	Y			0	A	
+5	4	215	49495	0	27453	EID high severity spare 23		-1	16	Y			0	A	
+5	4	215	49496	0	27454	EID high severity spare 24		-1	16	Y			0	A	
+5	4	215	49497	0	27455	EID high severity spare 25		-1	16	Y			0	A	
+5	4	215	49498	0	27456	EID high severity spare 26		-1	16	Y			0	A	
+5	4	215	49499	0	27457	EID high severity spare 27		-1	16	Y			0	A	
+5	4	215	49500	0	27458	EID high severity spare 28		-1	16	Y			0	A	
+5	4	215	49501	0	27459	EID high severity spare 29		-1	16	Y			0	A	
+5	4	215	49502	0	27460	EID high severity spare 30		-1	16	Y			0	A	
+5	4	215	49503	0	27461	EID high severity spare 31		-1	16	Y			0	A	
+5	4	215	49504	0	27462	EID high severity spare 32		-1	16	Y			0	A	
+5	4	215	49505	0	27463	EID high severity spare 33		-1	16	Y			0	A	
+5	4	215	49506	0	27464	EID high severity spare 34		-1	16	Y			0	A	
+5	4	215	49507	0	27465	EID high severity spare 35		-1	16	Y			0	A	
+5	4	215	49508	0	27466	EID high severity spare 36		-1	16	Y			0	A	
+5	4	215	49509	0	27467	EID high severity spare 37		-1	16	Y			0	A	
+5	4	215	49510	0	27468	EID high severity spare 38		-1	16	Y			0	A	
+5	4	215	49511	0	27469	EID high severity spare 39		-1	16	Y			0	A	
+5	4	215	49512	0	27470	EID high severity spare 40		-1	16	Y			0	A	
+5	4	215	49513	0	27471	EID high severity spare 41		-1	16	Y			0	A	
+5	4	215	49514	0	27472	EID high severity spare 42		-1	16	Y			0	A	
+5	4	215	49515	0	27473	EID high severity spare 43		-1	16	Y			0	A	
+5	4	215	49516	0	27474	EID high severity spare 44		-1	16	Y			0	A	
+5	4	215	49517	0	27475	EID high severity spare 45		-1	16	Y			0	A	
+5	4	215	49518	0	27476	EID high severity spare 46		-1	16	Y			0	A	
+5	4	215	49519	0	27477	EID high severity spare 47		-1	16	Y			0	A	
+5	4	215	49520	0	27478	EID high severity spare 48		-1	16	Y			0	A	
+5	4	215	49521	0	27479	EID high severity spare 49		-1	16	Y			0	A	
+5	4	215	49522	0	27480	EID high severity spare 50		-1	16	Y			0	A	
+5	4	215	49523	0	27481	EID high severity spare 51		-1	16	Y			0	A	
+5	4	215	49524	0	27482	EID high severity spare 52		-1	16	Y			0	A	
+5	4	215	49525	0	27483	EID high severity spare 53		-1	16	Y			0	A	
+5	4	215	49526	0	27484	EID high severity spare 54		-1	16	Y			0	A	
+5	4	215	49527	0	27485	EID high severity spare 55		-1	16	Y			0	A	
+5	4	215	49528	0	27486	EID high severity spare 56		-1	16	Y			0	A	
+5	4	215	49529	0	27487	EID high severity spare 57		-1	16	Y			0	A	
+5	4	215	49530	0	27488	EID high severity spare 58		-1	16	Y			0	A	
+5	4	215	49531	0	27489	EID high severity spare 59		-1	16	Y			0	A	
 5	4	215	49572	0	27000	Cyclic_Task_Overrun_(Platform)		-1	16	Y			0	A	
 5	4	215	53381	0	27254	No healthy TWTA: Ops Alarm raised		-1	16	Y			0	A	
 5	4	215	53519	0	27292	TTR_TME_Reconfiguration_Failure		-1	16	Y			0	A	
@@ -6821,24 +7013,24 @@
 5	4	215	62579	0	33571	Snapshot HK: Start REC_DEU1 for DEU B Functional		-1	16	Y			0	A	
 5	4	231	49472	0	10005	REC_OBC3 - FMON_RIU5_A LEOPAS		-1	16	Y			0	A	
 5	4	231	49473	0	10006	REC_OBC3 - FMON_RIU5_B LEOPAS		-1	16	Y			0	A	
-5	4	231	49474	0	10007	EID spare 2		-1	16	Y			0	A	
-5	4	231	49475	0	10008	EID spare 3		-1	16	Y			0	A	
-5	4	231	49476	0	10009	EID spare 4		-1	16	Y			0	A	
-5	4	231	49477	0	10010	EID spare 5		-1	16	Y			0	A	
-5	4	231	49478	0	10011	EID spare 6		-1	16	Y			0	A	
-5	4	231	49479	0	10012	EID spare 7		-1	16	Y			0	A	
-5	4	231	49480	0	10013	EID spare 8		-1	16	Y			0	A	
-5	4	231	49481	0	10014	EID spare 9		-1	16	Y			0	A	
-5	4	231	49482	0	10280	EID spare 10		-1	16	Y			0	A	
-5	4	231	49483	0	10281	EID spare 11		-1	16	Y			0	A	
-5	4	231	49484	0	10282	EID spare 12		-1	16	Y			0	A	
-5	4	231	49485	0	10283	EID spare 13		-1	16	Y			0	A	
-5	4	231	49486	0	10284	EID spare 14		-1	16	Y			0	A	
-5	4	231	49487	0	10285	EID spare 15		-1	16	Y			0	A	
-5	4	231	49488	0	10286	EID spare 16		-1	16	Y			0	A	
-5	4	231	49489	0	10287	EID spare 17		-1	16	Y			0	A	
-5	4	231	49490	0	10288	EID spare 18		-1	16	Y			0	A	
-5	4	231	49491	0	10289	EID spare 19		-1	16	Y			0	A	
+5	4	231	49474	0	10007	EID high severity spare 2		-1	16	Y			0	A	
+5	4	231	49475	0	10008	EID high severity spare 3		-1	16	Y			0	A	
+5	4	231	49476	0	10009	EID high severity spare 4		-1	16	Y			0	A	
+5	4	231	49477	0	10010	EID high severity spare 5		-1	16	Y			0	A	
+5	4	231	49478	0	10011	EID high severity spare 6		-1	16	Y			0	A	
+5	4	231	49479	0	10012	EID high severity spare 7		-1	16	Y			0	A	
+5	4	231	49480	0	10013	EID high severity spare 8		-1	16	Y			0	A	
+5	4	231	49481	0	10014	EID high severity spare 9		-1	16	Y			0	A	
+5	4	231	49482	0	10280	EID high severity spare 10		-1	16	Y			0	A	
+5	4	231	49483	0	10281	EID high severity spare 11		-1	16	Y			0	A	
+5	4	231	49484	0	10282	EID high severity spare 12		-1	16	Y			0	A	
+5	4	231	49485	0	10283	EID high severity spare 13		-1	16	Y			0	A	
+5	4	231	49486	0	10284	EID high severity spare 14		-1	16	Y			0	A	
+5	4	231	49487	0	10285	EID high severity spare 15		-1	16	Y			0	A	
+5	4	231	49488	0	10286	EID high severity spare 16		-1	16	Y			0	A	
+5	4	231	49489	0	10287	EID high severity spare 17		-1	16	Y			0	A	
+5	4	231	49490	0	10288	EID high severity spare 18		-1	16	Y			0	A	
+5	4	231	49491	0	10289	EID high severity spare 19		-1	16	Y			0	A	
 5	4	231	49572	0	10003	Cyclic_Task_Overrun_(SystemControl)		-1	16	Y			0	A	
 5	4	231	51907	0	10183	LEOP_AS_Separation_Fail		-1	16	Y			0	A	
 5	4	231	58241	0	10176	REC_SpW3 - FMON_SpW1_SpW_PL - SpW Overload		-1	16	Y			0	A	
@@ -6898,6 +7090,9 @@
 5	4	231	62504	0	30537	Snapshot HK: Start SYS1 - OPS Alarm - FMON_EPS6_B		-1	16	Y			0	A	
 5	4	231	62505	0	30530	Snapshot HK: Start SYS1 - OPS Alarm - FMON_EPS5		-1	16	Y			0	A	
 5	4	231	62506	0	30543	Snapshot HK: Start SYS1 - OPS Alarm - No Healthy PCDU		-1	16	Y			0	A	
+5	4	231	62507	0	30556	Snapshot HK: Start REC_EPS4 - FMON_EPS1 Off-pointing		-1	16	Y			0	A	
+5	4	231	62508	0	30557	Snapshot HK: Start SYS1 - OPS Alarm - FMON_EPS4 Off-p		-1	16	Y			0	A	
+5	4	231	62509	0	30559	Snapshot HK: Start REC_SADE2 - FMON_SADE1_A Off-point		-1	16	Y			0	A	
 5	4	231	62510	0	30540	Snapshot HK: REC_SYS1 - OPS Alarm - FMON_STR5		-1	16	Y			0	A	
 5	4	231	62511	0	30541	Snapshot HK: REC_SYS1 - OPS Alarm - FMON_AOCS24		-1	16	Y			0	A	
 5	4	231	62514	0	30595	Snapshot HK: REC_SYS1 - OPS Alarm - FMON_AOCS2		-1	16	Y			0	A	
@@ -6915,6 +7110,7 @@
 5	4	231	62548	0	30610	Snapshot HK: Start REC_SYS1 - CSW execution error		-1	16	Y			0	A	
 5	4	231	62570	0	30538	Snapshot HK: Start REC_RIU3 for RIU A		-1	16	Y			0	A	
 5	4	231	62571	0	30551	Snapshot HK: Start REC_RIU3 for RIU B		-1	16	Y			0	A	
+5	4	231	62572	0	30560	Snapshot HK: Start REC_SADE2 - FMON_SADE1_B Off-point		-1	16	Y			0	A	
 5	4	231	65280	0	64610	REC_SYS1 Ops Alarm Ground Cmd		-1	16	Y			0	A	
 5	4	263	49472	0	27115	SMON_TCS1 TCL 1 Low		-1	16	Y			0	A	
 5	4	263	49473	0	27116	SMON_TCS1 TCL 1 High		-1	16	Y			0	A	
@@ -7108,9 +7304,9 @@
 5	4	263	49662	0	27604	SMON_TCS1 TCL 95 High		-1	16	Y			0	A	
 5	4	263	49663	0	27605	SMON_TCS1 TCL 96 Low		-1	16	Y			0	A	
 5	4	263	49664	0	27606	SMON_TCS1 TCL 96 High		-1	16	Y			0	A	
-5	4	263	49665	0	27607	FMON_TCS2 MAG OBS Low (TCL 97)		-1	16	Y			0	A	
+5	4	263	49665	0	27607	REC_TCS1 - FMON_TCS2 MAG OBS Low (TCL 97)		-1	16	Y			0	A	
 5	4	263	49666	0	27608	SMON_TCS1 TCL 97 High		-1	16	Y			0	A	
-5	4	263	49667	0	27609	FMON_TCS3 MAG IBS Low (TCL 98)		-1	16	Y			0	A	
+5	4	263	49667	0	27609	REC_TCS1 - FMON_TCS3 MAG IBS Low (TCL 98)		-1	16	Y			0	A	
 5	4	263	49668	0	27610	SMON_TCS1 TCL 98 High		-1	16	Y			0	A	
 5	4	263	49669	0	27611	SMON_TCS1 TCL 99 Low		-1	16	Y			0	A	
 5	4	263	49670	0	27612	SMON_TCS1 TCL 99 High		-1	16	Y			0	A	
@@ -7124,43 +7320,43 @@
 5	4	263	49678	0	27621	SMON_TCS1 TCL 103 High		-1	16	Y			0	A	
 5	4	263	49679	0	27622	SMON_TCS1 TCL 104 Low		-1	16	Y			0	A	
 5	4	263	49680	0	27623	SMON_TCS1 TCL 104 High		-1	16	Y			0	A	
-5	4	263	49681	0	27624	EID spare 208		-1	16	Y			0	A	
-5	4	263	49682	0	27625	EID spare 209		-1	16	Y			0	A	
-5	4	263	49683	0	27627	EID spare 210		-1	16	Y			0	A	
-5	4	263	49684	0	27628	EID spare 211		-1	16	Y			0	A	
-5	4	263	49685	0	27629	EID spare 212		-1	16	Y			0	A	
-5	4	263	49686	0	27630	EID spare 213		-1	16	Y			0	A	
-5	4	263	49687	0	27631	EID spare 214		-1	16	Y			0	A	
-5	4	263	49688	0	27632	EID spare 215		-1	16	Y			0	A	
-5	4	263	49689	0	27633	EID spare 216		-1	16	Y			0	A	
-5	4	263	49690	0	27634	EID spare 217		-1	16	Y			0	A	
-5	4	263	49691	0	27635	EID spare 218		-1	16	Y			0	A	
-5	4	263	49692	0	27636	EID spare 219		-1	16	Y			0	A	
-5	4	263	49693	0	27638	EID spare 220		-1	16	Y			0	A	
-5	4	263	49694	0	27639	EID spare 221		-1	16	Y			0	A	
-5	4	263	49695	0	27640	EID spare 222		-1	16	Y			0	A	
-5	4	263	49696	0	27641	EID spare 223		-1	16	Y			0	A	
-5	4	263	49697	0	27642	EID spare 224		-1	16	Y			0	A	
-5	4	263	49698	0	27643	EID spare 225		-1	16	Y			0	A	
-5	4	263	49699	0	27644	EID spare 226		-1	16	Y			0	A	
-5	4	263	49700	0	27645	EID spare 227		-1	16	Y			0	A	
-5	4	263	49701	0	27646	EID spare 228		-1	16	Y			0	A	
-5	4	263	49702	0	27647	EID spare 229		-1	16	Y			0	A	
-5	4	263	49703	0	27649	EID spare 230		-1	16	Y			0	A	
-5	4	263	49704	0	27650	EID spare 231		-1	16	Y			0	A	
-5	4	263	49705	0	27651	EID spare 232		-1	16	Y			0	A	
-5	4	263	49706	0	27652	EID spare 233		-1	16	Y			0	A	
-5	4	263	49707	0	27653	EID spare 234		-1	16	Y			0	A	
-5	4	263	49708	0	27654	EID spare 235		-1	16	Y			0	A	
-5	4	263	49709	0	27655	EID spare 236		-1	16	Y			0	A	
-5	4	263	49710	0	27656	EID spare 237		-1	16	Y			0	A	
-5	4	263	49711	0	27657	EID spare 238		-1	16	Y			0	A	
-5	4	263	49712	0	27658	EID spare 239		-1	16	Y			0	A	
+5	4	263	49681	0	27624	EID high severity spare 208		-1	16	Y			0	A	
+5	4	263	49682	0	27625	EID high severity spare 209		-1	16	Y			0	A	
+5	4	263	49683	0	27627	EID high severity spare 210		-1	16	Y			0	A	
+5	4	263	49684	0	27628	EID high severity spare 211		-1	16	Y			0	A	
+5	4	263	49685	0	27629	EID high severity spare 212		-1	16	Y			0	A	
+5	4	263	49686	0	27630	EID high severity spare 213		-1	16	Y			0	A	
+5	4	263	49687	0	27631	EID high severity spare 214		-1	16	Y			0	A	
+5	4	263	49688	0	27632	EID high severity spare 215		-1	16	Y			0	A	
+5	4	263	49689	0	27633	EID high severity spare 216		-1	16	Y			0	A	
+5	4	263	49690	0	27634	EID high severity spare 217		-1	16	Y			0	A	
+5	4	263	49691	0	27635	EID high severity spare 218		-1	16	Y			0	A	
+5	4	263	49692	0	27636	EID high severity spare 219		-1	16	Y			0	A	
+5	4	263	49693	0	27638	EID high severity spare 220		-1	16	Y			0	A	
+5	4	263	49694	0	27639	EID high severity spare 221		-1	16	Y			0	A	
+5	4	263	49695	0	27640	EID high severity spare 222		-1	16	Y			0	A	
+5	4	263	49696	0	27641	EID high severity spare 223		-1	16	Y			0	A	
+5	4	263	49697	0	27642	EID high severity spare 224		-1	16	Y			0	A	
+5	4	263	49698	0	27643	EID high severity spare 225		-1	16	Y			0	A	
+5	4	263	49699	0	27644	EID high severity spare 226		-1	16	Y			0	A	
+5	4	263	49700	0	27645	EID high severity spare 227		-1	16	Y			0	A	
+5	4	263	49701	0	27646	EID high severity spare 228		-1	16	Y			0	A	
+5	4	263	49702	0	27647	EID high severity spare 229		-1	16	Y			0	A	
+5	4	263	49703	0	27649	EID high severity spare 230		-1	16	Y			0	A	
+5	4	263	49704	0	27650	EID high severity spare 231		-1	16	Y			0	A	
+5	4	263	49705	0	27651	EID high severity spare 232		-1	16	Y			0	A	
+5	4	263	49706	0	27652	EID high severity spare 233		-1	16	Y			0	A	
+5	4	263	49707	0	27653	EID high severity spare 234		-1	16	Y			0	A	
+5	4	263	49708	0	27654	EID high severity spare 235		-1	16	Y			0	A	
+5	4	263	49709	0	27655	EID high severity spare 236		-1	16	Y			0	A	
+5	4	263	49710	0	27656	EID high severity spare 237		-1	16	Y			0	A	
+5	4	263	49711	0	27657	EID high severity spare 238		-1	16	Y			0	A	
+5	4	263	49712	0	27658	EID high severity spare 239		-1	16	Y			0	A	
 5	4	263	58241	0	27351	REC_TCS3 - FMON_TCS1_1 TCL01-32		-1	16	Y			0	A	
 5	4	263	58242	0	27352	REC_TCS3 - FMON_TCS1_2 TCL33-64		-1	16	Y			0	A	
 5	4	263	58243	0	27353	REC_TCS3 - FMON_TCS1_3 TCL65-96		-1	16	Y			0	A	
 5	4	263	58244	0	27354	REC_TCS3 - FMON_TCS1_4 TCL97-104		-1	16	Y			0	A	
-5	4	263	58245	0	27355	FMON Event 05		-1	16	Y			0	A	
+5	4	263	58245	0	27355	REC_TCS1 - FMON_TCS4 EUI ME Low T1		-1	16	Y			0	A	
 5	4	263	58246	0	27356	FMON Event 06		-1	16	Y			0	A	
 5	4	263	58247	0	27357	FMON Event 07		-1	16	Y			0	A	
 5	4	263	58248	0	27358	FMON Event 08		-1	16	Y			0	A	
@@ -7473,7 +7669,6 @@
 5	4	263	62443	0	33663	Snapshot HK: Start REC_TCS1 for loop ID76		-1	16	Y			0	A	
 5	4	263	62444	0	33664	Snapshot HK: Start REC_TCS1 for loop ID77		-1	16	Y			0	A	
 5	4	263	62445	0	33787	Snapshot HK: Start REC_TCS1 for loop ID78		-1	16	Y			0	A	
-5	4	263	62446	0	33788	Snapshot HK: Start REC_TCS1 for loop ID79		-1	16	Y			0	A	
 5	4	263	62447	0	33665	Snapshot HK: Start REC_TCS1 for loop ID80		-1	16	Y			0	A	
 5	4	263	62448	0	33666	Snapshot HK: Start REC_TCS1 for loop ID81		-1	16	Y			0	A	
 5	4	263	62449	0	33667	Snapshot HK: Start REC_TCS1 for loop ID82		-1	16	Y			0	A	
@@ -7567,7 +7762,6 @@
 5	4	263	62547	0	33754	Snapshot HK: Start REC_TCS2 for loop ID76		-1	16	Y			0	A	
 5	4	263	62548	0	33755	Snapshot HK: Start REC_TCS2 for loop ID77		-1	16	Y			0	A	
 5	4	263	62549	0	33790	Snapshot HK: Start REC_TCS2 for loop ID78		-1	16	Y			0	A	
-5	4	263	62550	0	33791	Snapshot HK: Start REC_TCS2 for loop ID79		-1	16	Y			0	A	
 5	4	263	62551	0	33756	Snapshot HK: Start REC_TCS2 for loop ID80		-1	16	Y			0	A	
 5	4	263	62552	0	33757	Snapshot HK: Start REC_TCS2 for loop ID81		-1	16	Y			0	A	
 5	4	263	62553	0	33758	Snapshot HK: Start REC_TCS2 for loop ID82		-1	16	Y			0	A	
@@ -8084,6 +8278,7 @@
 6	6	1961	101	8961	64116	Dump_RMHA_LOGDOR_CROME_REG_A		-1	16	Y		Y	0	N	
 6	6	1961	291	1620568	65790	Dump TCT Config TL1-52 PM B RAM		-1	16	Y		Y	0	N	
 6	6	1961	291	1620724	65791	Dump TCT Config TL53-104 PM B RAM		-1	16	Y		Y	0	N	
+6	6	1961	291	54261	65891	PM_B WSM Strob STR Activate 3.1.1		-1	16	Y		Y	0	N	
 6	6	1961	354	8064	64135	Dump_Reconf_Log_CROME_SRAM_B		-1	16	Y		Y	0	N	
 6	6	1961	357	5642	64117	Dump_RMH_ATPTR_CROME_REG_B		-1	16	Y		Y	0	N	
 6	6	1961	357	5644	64118	Dump_RMH_PAPPTR_CROME_REG_B		-1	16	Y		Y	0	N	
@@ -8104,7 +8299,10 @@
 6	6	1961	357	8961	64133	Dump_RMHA_LOGDOR_CROME_REG_B		-1	16	Y		Y	0	N	
 6	6	1965	35	1620568	65788	Dump TCT Config TL1-52 PM A RAM		-1	16	Y		Y	0	N	
 6	6	1965	35	1620724	65789	Dump TCT Config TL53-104 PM A RAM		-1	16	Y		Y	0	N	
+6	6	1965	35	54261	65889	PM_A WSM Strob STR Activate 3.1.1		-1	16	Y		Y	0	N	
+6	6	1965	35	401399	65892	PM_A Time to Next OBT Write 3.1.1		-1	16	Y		Y	0	N	
 6	6	1965	100	1027	65000	Dump A_HMSTER Hptm_MiscC		-1	16	Y		Y	0	N	
+6	6	1965	291	401399	65893	PM_B Time to Next OBT Write 3.1.1		-1	16	Y		Y	0	N	
 6	6	1965	356	1027	65001	Dump B_HMSTER Hptm_MiscC		-1	16	Y		Y	0	N	
 6	6	1976	40	33758772	64136	STR1 Settable Parameters 1		-1	16	Y		Y	0	N	
 6	6	1976	40	33759000	64137	STR1 Settable Parameters 2		-1	16	Y		Y	0	N	
@@ -8213,6 +8411,7 @@
 21	3	1068	32	0	50215	Burst (B) Science Report		-1	16	Y		Y	0	N	
 21	3	1068	33	0	50218	Burst (B64) Science Report		-1	16	Y		Y	0	N	
 21	3	1068	34	0	50217	Burst (B128) Science Report		-1	16	Y		Y	0	N	
+21	3	1068	35	0	50221	Burst (E64) Science Report		-1	16	Y		Y	0	N	
 21	3	1228	13	0	55184	LFR science TM, NORMAL mode, ASM, at f2 = 256 Hz		55184	16	Y		Y	0	N	
 21	3	1228	14	0	55185	LFR science TM, NORMAL mode, BP 1, at f0 = 24576 Hz		55185	16	Y		Y	0	N	
 21	3	1228	15	0	55186	LFR science TM, NORMAL mode, BP 1, at f1 = 4096 Hz		55186	16	Y		Y	0	N	
@@ -8325,29 +8524,41 @@
 21	5	908	182	0	52147	TM 21,5 HE2 SelDL SCI		52147	16	Y		Y	0	N	
 21	5	908	186	0	52148	TM 21,5 HE2 SelDL PHA		52148	16	Y		Y	0	N	
 21	5	924	0	0	51200	EUI_SciReport_57		51200	16	Y		Y	0	N	
-21	5	924	1	0	51201	EUI_SciReport_57		51201	16	Y		Y	0	N	
-21	5	924	2	0	51202	EUI_SciReport_57		51202	16	Y		Y	0	N	
-21	5	924	3	0	51203	EUI_SciReport_57		51203	16	Y		Y	0	N	
-21	5	940	32	0	51216	EUI_SciReport_58		51216	16	Y		Y	0	N	
-21	5	940	33	0	51217	EUI_SciReport_58		51217	16	Y		Y	0	N	
-21	5	940	34	0	51218	EUI_SciReport_58		51218	16	Y		Y	0	N	
-21	5	940	35	0	51219	EUI_SciReport_58		51219	16	Y		Y	0	N	
-21	5	956	64	0	51232	EUI_SciReport_59		51232	16	Y		Y	0	N	
-21	5	956	65	0	51233	EUI_SciReport_59		51233	16	Y		Y	0	N	
-21	5	956	66	0	51234	EUI_SciReport_59		51234	16	Y		Y	0	N	
-21	5	956	67	0	51235	EUI_SciReport_59		51235	16	Y		Y	0	N	
-21	5	972	128	0	51248	EUI_SciReport_60		51248	16	Y		Y	0	N	
-21	5	972	129	0	51249	EUI_SciReport_60		51249	16	Y		Y	0	N	
-21	5	972	130	0	51250	EUI_SciReport_60		51250	16	Y		Y	0	N	
-21	5	972	131	0	51251	EUI_SciReport_60		51251	16	Y		Y	0	N	
-21	5	988	160	0	51264	EUI_SciReport_61		51264	16	Y		Y	0	N	
-21	5	988	161	0	51265	EUI_SciReport_61		51265	16	Y		Y	0	N	
-21	5	988	162	0	51266	EUI_SciReport_61		51266	16	Y		Y	0	N	
-21	5	988	163	0	51267	EUI_SciReport_61		51267	16	Y		Y	0	N	
-21	5	1004	192	0	51280	EUI_SciReport_62		51280	16	Y		Y	0	N	
-21	5	1004	193	0	51281	EUI_SciReport_62		51281	16	Y		Y	0	N	
-21	5	1004	194	0	51282	EUI_SciReport_62		51282	16	Y		Y	0	N	
-21	5	1004	195	0	51283	EUI_SciReport_62		51283	16	Y		Y	0	N	
+21	5	924	1	0	51201	EUI_SciReport_57_Image		51201	16	Y		Y	0	N	
+21	5	924	2	0	51202	EUI_SciReport_57_Histogram		51202	16	Y		Y	0	N	
+21	5	924	3	0	51203	EUI_SciReport_57_Stats		51203	16	Y		Y	0	N	
+21	5	924	4	0	51204	EUI_SciReport_57_PerBlockStats		51204	16	Y		Y	0	N	
+21	5	924	5	0	51205	EUI_SciReport_57_PerBlockTimeStats		51205	16	Y		Y	0	N	
+21	5	940	0	0	51216	EUI_SciReport_58		51216	16	Y		Y	0	N	
+21	5	940	1	0	51217	EUI_SciReport_58_Image		51217	16	Y		Y	0	N	
+21	5	940	2	0	51218	EUI_SciReport_58_Histogram		51218	16	Y		Y	0	N	
+21	5	940	3	0	51219	EUI_SciReport_58_Stats		51219	16	Y		Y	0	N	
+21	5	940	4	0	51220	EUI_SciReport_58_PerBlockStats		51220	16	Y		Y	0	N	
+21	5	940	5	0	51221	EUI_SciReport_58_PerBlockTimeStats		51221	16	Y		Y	0	N	
+21	5	956	0	0	51232	EUI_SciReport_59		51232	16	Y		Y	0	N	
+21	5	956	1	0	51233	EUI_SciReport_59_Image		51233	16	Y		Y	0	N	
+21	5	956	2	0	51234	EUI_SciReport_59_Histogram		51234	16	Y		Y	0	N	
+21	5	956	3	0	51235	EUI_SciReport_59_Stats		51235	16	Y		Y	0	N	
+21	5	956	4	0	51236	EUI_SciReport_59_PerBlockStats		51236	16	Y		Y	0	N	
+21	5	956	5	0	51237	EUI_SciReport_59_PerBlockTimeStats		51237	16	Y		Y	0	N	
+21	5	972	0	0	51248	EUI_SciReport_60		51248	16	Y		Y	0	N	
+21	5	972	1	0	51249	EUI_SciReport_60_Image		51249	16	Y		Y	0	N	
+21	5	972	2	0	51250	EUI_SciReport_60_Histogram		51250	16	Y		Y	0	N	
+21	5	972	3	0	51251	EUI_SciReport_60_Stats		51251	16	Y		Y	0	N	
+21	5	972	4	0	51252	EUI_SciReport_60_PerBlockStats		51252	16	Y		Y	0	N	
+21	5	972	5	0	51253	EUI_SciReport_60_PerBlockTimeStats		51253	16	Y		Y	0	N	
+21	5	988	0	0	51264	EUI_SciReport_61		51264	16	Y		Y	0	N	
+21	5	988	1	0	51265	EUI_SciReport_61_Image		51265	16	Y		Y	0	N	
+21	5	988	2	0	51266	EUI_SciReport_61_Histogram		51266	16	Y		Y	0	N	
+21	5	988	3	0	51267	EUI_SciReport_61_Stats		51267	16	Y		Y	0	N	
+21	5	988	4	0	51268	EUI_SciReport_61_PerBlockStats		51268	16	Y		Y	0	N	
+21	5	988	5	0	51269	EUI_SciReport_61_PerBlockTimeStats		51269	16	Y		Y	0	N	
+21	5	1004	0	0	51280	EUI_SciReport_62		51280	16	Y		Y	0	N	
+21	5	1004	1	0	51281	EUI_SciReport_62_Image		51281	16	Y		Y	0	N	
+21	5	1004	2	0	51282	EUI_SciReport_62_Histogram		51282	16	Y		Y	0	N	
+21	5	1004	3	0	51283	EUI_SciReport_62_Stats		51283	16	Y		Y	0	N	
+21	5	1004	4	0	51284	EUI_SciReport_62_PerBlockStats		51284	16	Y		Y	0	N	
+21	5	1004	5	0	51285	EUI_SciReport_62_PerBlockTimeStats		51285	16	Y		Y	0	N	
 21	5	1612	130	0	52049	TM 21,5 STEP SelDL STF		52049	16	Y		Y	0	N	
 21	5	1612	134	0	52157	TM 21,5 STEP SelDL SCI		52157	16	Y		Y	0	N	
 21	5	1612	138	0	52158	TM 21,5 STEP SelDL PHA		52158	16	Y		Y	0	N	
@@ -8508,7 +8719,6 @@
 21	7	1436	0	0	57403	SPICE Low Latency Science Compressed		-1	16	Y		Y	0	N	
 21	7	1628	0	0	57405	SPICE Selective Downlink Science Compressed		-1	16	Y		Y	0	N	
 21	7	1644	0	0	57404	SPICE Selective Downlink Science Uncompressed		-1	16	Y		Y	0	N	
-22	2	1163	0	0	53091	PHI_contextData		53091	16	Y		Y	0	N	
 22	2	1451	0	0	54331	STIX Context Report from User		-1	16	Y		Y	0	N	
 128	6	809	0	0	52014	TM 128,6 Get data pool rep		52014	16	Y		Y	0	N	
 128	129	809	0	0	52012	TM128,129 Monitoring list rep		52012	16	Y		Y	0	N	
@@ -8574,7 +8784,10 @@
 131	2	1971	215	0	64011	PCDU Snapshot HGA_Deploy_FP6		-1	16	Y			0		
 131	2	1971	216	0	64015	PCDU Snapshot MGA_Deploy_FP2		-1	16	Y			0		
 131	128	179	0	0	20172	OBDB Dump		20172	16	Y			0		
+131	128	1972	285212675	285212676	65796	OBDB Dump - Alignments 1		-1	16	Y			0		
 131	128	1972	285212683	285212684	64510	OBDB Dump - strSetParams #1		-1	16	Y			0		
+131	128	1972	285212720	285212729	65799	OBDB Dump - RW Speed&CO		-1	16	Y			0		
+131	128	1972	285212749	285212750	65797	OBDB Dump - Alignments 2		-1	16	Y			0		
 131	128	1972	285212767	285212768	64509	OBDB Dump - rwUnitSetParams #2		-1	16	Y			0		
 131	128	1972	285212781	285212782	64508	OBDB Dump - rwUnitSetParams #1		-1	16	Y			0		
 131	128	1972	285212822	285212823	64355	OBDB Dump - fssSetParams #20		-1	16	Y			0		
@@ -8735,6 +8948,7 @@
 131	128	1972	285221798	285221772	64487	OBDB Dump - fssSetParams #152		-1	16	Y			0		
 131	128	1972	285221856	285221857	64488	OBDB Dump - fssSetParams #153		-1	16	Y			0		
 131	128	1972	285221896	285221897	64302	OBDB Dump - accSetParams #3		-1	16	Y			0		
+131	128	1972	285221945	285221946	65798	OBDB Dump - OCMAccPosit		-1	16	Y			0		
 131	128	1972	285221949	285221950	64303	OBDB Dump - accSetParams #4		-1	16	Y			0		
 131	128	1972	285221973	285221971	64300	OBDB Dump - accSetParams #1		-1	16	Y			0		
 131	128	1972	285222015	285222016	64301	OBDB Dump - accSetParams #2		-1	16	Y			0		
@@ -8760,6 +8974,7 @@
 131	128	1972	285223068	285223066	64327	OBDB Dump - cpsParams #5		-1	16	Y			0		
 131	128	1972	285223108	285223109	64331	OBDB Dump - dataFusionParams #4		-1	16	Y			0		
 131	128	1972	285223132	285223155	64332	OBDB Dump - dataFusionParams #5		-1	16	Y			0		
+131	128	1972	285223147	285223146	65795	OBDB Dump - GseEstimator		-1	16	Y			0		
 131	128	1972	285223166	285223167	64333	OBDB Dump - dataFusionParams #6		-1	16	Y			0		
 131	128	1972	285223282	285223283	64330	OBDB Dump - dataFusionParams #3		-1	16	Y			0		
 131	128	1972	285223354	285223355	64328	OBDB Dump - dataFusionParams #1		-1	16	Y			0		
@@ -8889,6 +9104,25 @@
 139	3	1953	219426831	0	65794	Increase in TC Link MonThr		-1	16	Y			0		
 140	2	483	0	0	80026	SSMM  Operational BIT Test Report		-1	16	Y		Y	0	N	
 141	3	486	0	0	80027	SSMM Direct Read Report		80027	16	Y		Y	0	N	
+141	3	1980	0	0	65839	SSMM DirRead Host_IF		65839	16	Y		Y	0	N	
+141	3	1980	16	0	65840	SSMM DirRead SerIF IM_B		65840	16	Y		Y	0	N	
+141	3	1980	17	0	65841	SSMM DirRead SerIF IM_A		65841	16	Y		Y	0	N	
+141	3	1980	18	0	65842	SSMM DirRead SerIF OM_B		65842	16	Y		Y	0	N	
+141	3	1980	19	0	65843	SSMM DirRead SerIF OM_A		65843	16	Y		Y	0	N	
+141	3	1980	20	0	65844	SSMM DirRead SerIF MM1		65844	16	Y		Y	0	N	
+141	3	1980	21	0	65845	SSMM DirRead SerIF MM2		65845	16	Y		Y	0	N	
+141	3	1980	22	0	65846	SSMM DirRead SerIF MM3		65846	16	Y		Y	0	N	
+141	3	1980	32	0	65847	SSMM DirRead SerReg IM_B		65847	16	Y		Y	0	N	
+141	3	1980	33	0	65848	SSMM DirRead SerReg IM_A		65848	16	Y		Y	0	N	
+141	3	1980	34	0	65849	SSMM DirRead SerReg OM_B		65849	16	Y		Y	0	N	
+141	3	1980	35	0	65862	SSMM DirRead SerReg OM_A		65862	16	Y		Y	0	N	
+141	3	1980	36	0	65863	SSMM DirRead SerReg MM1		65863	16	Y		Y	0	N	
+141	3	1980	36	48	65873	SSMM HardSoftTestErr MM1		-1	16	Y		Y	0	N	
+141	3	1980	37	0	65864	SSMM DirRead SerReg MM2		65864	16	Y		Y	0	N	
+141	3	1980	37	48	65874	SSMM HardSoftTestErr MM2		-1	16	Y		Y	0	N	
+141	3	1980	38	0	65865	SSMM DirRead SerReg MM3		65865	16	Y		Y	0	N	
+141	3	1980	38	48	65875	SSMM HardSoftTestErr MM3		-1	16	Y		Y	0	N	
+141	3	1980	48	0	65872	SSMM DirRead SpW_Reg		65872	16	Y		Y	0	N	
 142	7	483	0	0	80028	SSMM Router Configuration  Report		-1	16	Y		Y	0	N	
 142	9	163	0	0	14155	Current Functional Monitoring List Report		14155	16	Y			0		
 142	9	179	0	0	20121	Current Functional Monitoring List Report		20121	16	Y			0		

@@ -295,7 +295,7 @@ ZCA2Z05P	Define HK: AOCS OCM/WOL Slow (1/2)			N	NOM_TC	3	1	188	56	N	Y	N	C	2	N			
 ZCA2Z05R	Define HK: AOCS OCM/WOL Slow (2/2)			N	NOM_TC	3	138	188	55	N	Y	N	C	2	N				9	2
 ZCA2Z05S	Define HK: AOCS IMU RAW			N	NOM_TC	3	1	188	11	N	Y	N	C	2	N				9	2
 ZCA2Z05T	Define HK: AOCS FDIR Monitoring (1/2)			N	NOM_TC	3	1	188	56	N	Y	N	C	2	N				9	2
-ZCA2Z05U	Define HK: AOCS FDIR Monitoring (2/2)			N	NOM_TC	3	138	188	48	N	Y	N	C	2	N				9	2
+ZCA2Z05U	Define HK: AOCS FDIR Monitoring (2/2)			N	NOM_TC	3	138	188	49	N	Y	N	C	2	N				9	2
 ZCA2Z05V	Define HK: AOCS SYS Summary (1/2)			N	NOM_TC	3	1	188	56	N	Y	N	C	2	N				9	2
 ZCA2Z05W	Define HK: AOCS SYS Summary (2/2)			N	NOM_TC	3	138	188	8	N	Y	N	C	2	N				9	2
 ZCA2Z05X	Define HK: AOCS SYS FDIR Summary			N	NOM_TC	3	1	188	45	N	Y	N	C	2	N				9	2
@@ -324,7 +324,7 @@ ZCA2Z06N	Modify param monitor high/low (float8)			N	NOM_TC	12	7	188	11	N	Y	N	C	2
 ZCA2Z06P	Modify param monitor exp.value (uint8)			N	NOM_TC	12	7	188	14	N	Y	N	C	2	N				9	2
 ZCA2Z06R	Modify param monitor exp.value (uint16)			N	NOM_TC	12	7	188	14	N	Y	N	C	2	N				9	2
 ZCA2Z06S	Modify param monitor exp.value (uint32)			N	NOM_TC	12	7	188	13	N	Y	N	C	2	N				9	2
-ZCA2Z06T	Define HK: AOCS Configuration (2/2)			N	NOM_TC	3	138	188	12	N	Y	N	C	2	N				9	2
+ZCA2Z06T	Define HK: AOCS Configuration (2/2)			N	NOM_TC	3	138	188	21	N	Y	N	C	2	N				9	2
 ZCA2Z06U	Define HK: AOCS Gyro Dynamics (2/2)			N	NOM_TC	3	138	188	10	N	Y	N	C	2	N				9	2
 ZCA2Z06V	Define Diag: AOCS OCM 8Hz Diag			N	NOM_TC	3	2	188	23	N	Y	N	C	2	N				9	2
 ZCA2Z06W	Define Diag: AOCS Diag STR A			N	NOM_TC	3	2	188	45	N	Y	N	C	2	N				9	2
@@ -364,6 +364,10 @@ ZCA2Z08A	Set NCM-G RAD thresh. before RPW Deploy			N	NOM_TC	139	1	188	3	N	Y	N	C	
 ZCA2Z08B	Set NCM-G RAD thresh. after RPW Deploy			N	NOM_TC	139	1	188	3	N	Y	N	C	8	N				9	8
 ZCA2Z08C	Set NCM CEC X/YZ thresh. before RPW Depl			N	NOM_TC	139	1	188	5	N	Y	N	C	8	N				9	8
 ZCA2Z08D	Set NCM CEC X/YZ thresh. after RPW Depl			N	NOM_TC	139	1	188	5	N	Y	N	C	8	N				9	8
+ZCA2Z08E	Set GSE Gyro Biases			N	NOM_TC	139	1	188	7	N	Y	N	C	8	N				9	8
+ZCA2Z08F	Set GFE Gyro Biases			N	NOM_TC	139	1	188	7	N	Y	N	C	8	N				9	8
+ZCA2Z08G	Define HK: AOCS STR Unit			N	NOM_TC	3	1	188	5	N	Y	N	C	2	N				9	2
+ZCA2Z08H	Define HK: AOCS STR Core			N	NOM_TC	3	1	188	33	N	Y	N	C	2	N				9	2
 ZCAD12C1	RWL Direct Command	Direct commanding of zero or more wheels for a specified duratio		N	NOM_TC	131	1	188	5	N	Y	N	C	2	N				9	2
 ZCAD12C2	THR Direct Command	Direct commanding of zero or more of the 9 thruster IDs. The on-		N	NOM_TC	131	1	188	6	N	Y	N	C	2	N				9	2
 ZCAD4803	Change AOCS Mode	Command requesting the transition to a designated AOCS mode. Ref		N	NOM_TC	131	1	188	2	N	Y	N	C	2	N				9	2
@@ -401,6 +405,9 @@ ZCAD4831	Inc GSE Threshold	Command requesting for the Gyro-Stellar Estimator to 
 ZCADADB1	OBDB Update	Command requesting the update of a sequence of OBDB parameters.		N	NOM_TC	131	1	188	4	N	Y	N	C	2	N				9	2
 ZCADADB2	OBDB Update	Command requesting the update of a sequence of OBDB parameters.		N	NOM_TC	131	1	188	4	N	Y	N	C	2	N				9	2
 ZCADADB3	OBDB Update	Command requesting the update of a sequence of OBDB parameters.		N	NOM_TC	131	1	188	4	N	Y	N	C	2	N				9	2
+ZCAX0001	Dump WSM Strob STR Activate 3.1.1	This Telecommand requests the dump of data or code within the sp		N	NOM_TC	6	5	172	3	N	Y	N	C	1	N				9	1
+ZCAX0002	NOP WSM Strob STR Activate 3.1.1	This telecommand allows the ground to load data or code within t		N	NOM_TC	6	2	172	4	N	Y	N	C	1	N				9	1
+ZCAX0003	Restore WSM Strob STR Activate 3.1.1	This telecommand allows the ground to load data or code within t		N	NOM_TC	6	2	172	4	N	Y	N	C	1	N				9	1
 ZCAX0700	Dump OBDB - accSetParams #1			N	NOM_TC	131	1	188	60	N	Y	N	C	2	N				9	2
 ZCAX0701	Dump OBDB - accSetParams #2			N	NOM_TC	131	1	188	60	N	Y	N	C	2	N				9	2
 ZCAX0702	Dump OBDB - accSetParams #3			N	NOM_TC	131	1	188	60	N	Y	N	C	2	N				9	2
@@ -618,6 +625,11 @@ ZCAX0913	Dump OBDB - supervisorParams #3			N	NOM_TC	131	1	188	60	N	Y	N	C	2	N				
 ZCAX0914	Dump OBDB - supervisorParams #4			N	NOM_TC	131	1	188	60	N	Y	N	C	2	N				9	2
 ZCAX0915	Dump OBDB - supervisorParams #5			N	NOM_TC	131	1	188	10	N	Y	N	C	2	N				9	2
 ZCAX0916	Dump OBDB - tcParams #1			N	NOM_TC	131	1	188	44	N	Y	N	C	2	N				9	2
+ZCAX0917	Dump OBDB - GseEstimator			N	NOM_TC	131	1	188	38	N	Y	N	C	2	N				9	2
+ZCAX0918	Dump OBDB - Alignments 1			N	NOM_TC	131	1	188	38	N	Y	N	C	2	N				9	2
+ZCAX0919	Dump OBDB - Alignments 2			N	NOM_TC	131	1	188	30	N	Y	N	C	2	N				9	2
+ZCAX0920	Dump OBDB - OCMAccPosit			N	NOM_TC	131	1	188	5	N	Y	N	C	2	N				9	2
+ZCAX0921	Dump OBDB - RW Speed&CO			N	NOM_TC	131	1	188	29	N	Y	N	C	2	N				9	2
 ZCAX12C1	Wheel Direct Command	Direct commanding of zero or more wheels for a specified duratio		N	NOM_TC	131	1	188	7	N	Y	N	C	2	N				9	2
 ZCAXA222	CPS B Enable Nullspace Adjust CSWv3_0			N	NOM_TC	131	1	188	4	N	Y	N	C	2	N				9	2
 ZCAXA285	CPS A Enable Nullspace Adjust CSWv3_0			N	NOM_TC	131	1	188	4	N	Y	N	C	2	N				9	2
@@ -658,6 +670,7 @@ ZCAXZ203	FSS A XP Update Alignment SGM (CSW 3.0)			N	NOM_TC	132	3	172	8	N	Y	N	C	
 ZCAXZ204	FSS B XP Update Alignment SGM (CSW 3.0)			N	NOM_TC	132	3	172	8	N	Y	N	C	1	N				9	1
 ZCAXZ205	FSS A ZM Update Alignment SGM (CSW 3.0)			N	NOM_TC	132	3	172	8	N	Y	N	C	1	N				9	1
 ZCAXZ206	FSS B ZM Update Alignment SGM (CSW 3.0)			N	NOM_TC	132	3	172	8	N	Y	N	C	1	N				9	1
+ZCAXZ252	Define Diag:AOCS Diag RS Platform Stab			N	NOM_TC	3	2	188	35	N	Y	N	C	2	N				9	2
 ZCAXZ253	Define Diag: GyroA Calib 8Hz CSW3_0			N	NOM_TC	3	2	188	12	N	Y	N	C	2	N				9	2
 ZCAXZ255	Define Diag: GyroB Calib 8Hz CSW3_0			N	NOM_TC	3	2	188	12	N	Y	N	C	2	N				9	2
 ZCAXZ660	Update Eclipse Table PM-RAM CSWv3_0			N	NOM_TC	139	1	188	41	N	Y	N	C	2	N				9	2
@@ -1014,15 +1027,15 @@ ZCD2Z071	Define HK: DMS OBC Status Fast			N	NOM_TC	3	1	172	25	N	Y	N	C	1	N				9	1
 ZCD2Z072	Define HK: DMS OMM Overview			N	NOM_TC	3	1	172	27	N	Y	N	C	1	N				9	1
 ZCD2Z073	Define HK: DMS SSMM Summary			N	NOM_TC	3	1	172	7	N	Y	N	C	1	N				9	1
 ZCD2Z074	Define Diag: DMS 1553 Bus Manager Invest			N	NOM_TC	3	2	172	5	N	Y	N	C	1	N				9	1
-ZCD2Z075	Define HK: DMS OBC Status Slow (2/2)			N	NOM_TC	3	138	172	28	N	Y	N	C	1	N				9	1
+ZCD2Z075	Define HK: DMS OBC Status Slow (2/2)			N	NOM_TC	3	138	172	29	N	Y	N	C	1	N				9	1
 ZCD2Z077	Define HK: DMS OBC Status Slow (1/2)			N	NOM_TC	3	1	172	56	N	Y	N	C	1	N				9	1
 ZCD2Z078	Define HK: DMS Reconfiguration Reports			N	NOM_TC	3	1	172	11	N	Y	N	C	1	N				9	1
 ZCD2Z079	Define HK: DMS CPU Load			N	NOM_TC	3	1	172	5	N	Y	N	C	1	N				9	1
 ZCD2Z07A	Define HK: DMS Overview Fast (1/2)			N	NOM_TC	3	1	172	56	N	Y	N	C	1	N				9	1
-ZCD2Z07B	Define HK: DMS Overview Fast (2/2)			N	NOM_TC	3	138	172	14	N	Y	N	C	1	N				9	1
+ZCD2Z07B	Define HK: DMS Overview Fast (2/2)			N	NOM_TC	3	138	172	15	N	Y	N	C	1	N				9	1
 ZCD2Z07C	Define HK: DMS MIL-STD-1553b-BUS Details			N	NOM_TC	3	1	172	10	N	Y	N	C	1	N				9	1
 ZCD2Z07D	Define HK: DMS SGM Group Status (1/2)			N	NOM_TC	3	1	172	56	N	Y	N	C	1	N				9	1
-ZCD2Z07E	Define HK: DMS SGM Health			N	NOM_TC	3	1	172	49	N	Y	N	C	1	N				9	1
+ZCD2Z07E	Define HK: DMS SGM Health (1/2)			N	NOM_TC	3	1	172	56	N	Y	N	C	1	N				9	1
 ZCD2Z07F	Define HK: DMS OMM Packet Stores			N	NOM_TC	3	1	172	49	N	Y	N	C	1	N				9	1
 ZCD2Z07G	Define HK: DMS OBCP Details			N	NOM_TC	3	1	172	5	N	Y	N	C	1	N				9	1
 ZCD2Z07H	Define HK: DMS Overview Slow			N	NOM_TC	3	1	172	34	N	Y	N	C	1	N				9	1
@@ -1093,12 +1106,12 @@ ZCD2Z09J	Modify STARTUP_COUNT			N	NOM_TC	132	3	172	5	N	Y	N	C	1	N				9	1
 ZCD2Z09K	Mod TC_FILE_MGT - Eclipse Entry File CRC			N	NOM_TC	132	3	172	5	N	Y	N	C	1	N				9	1
 ZCD2Z09L	Mod TC_FILE_MGT - Eclipse Exit File CRC			N	NOM_TC	132	3	172	5	N	Y	N	C	1	N				9	1
 ZCD2Z09M	Mod TC_FILE_MGT - Eclipse File Selection			N	NOM_TC	132	3	172	5	N	Y	N	C	1	N				9	1
+ZCD2Z0A0	Define HK: DMS SGM Health (2/2)			N	NOM_TC	3	138	172	5	N	Y	N	C	1	N				9	1
 ZCD4Z001	SGM TCS Set limits: ANY G15K 4D489			N	NOM_TC	132	3	172	7	N	Y	N	C	1	N				9	1
 ZCD4Z002	SGM TCS Set limits: ANY PT-1000			N	NOM_TC	132	3	172	7	N	Y	N	C	1	N				9	1
 ZCD4Z003	SGM TCS Set limits: ANP PT-1000			N	NOM_TC	132	3	172	7	N	Y	N	C	1	N				9	1
 ZCD4Z005	SGM TCS Set limits: ANY UTC 0118MM			N	NOM_TC	132	3	172	7	N	Y	N	C	1	N				9	1
 ZCD4Z006	SGM TCS Set limits: ANY YSI-44907			N	NOM_TC	132	3	172	7	N	Y	N	C	1	N				9	1
-ZCD4Z008	SGM TCS Set limits: ANP iBoom YSI + res			N	NOM_TC	132	3	172	7	N	Y	N	C	1	N				9	1
 ZCDHPA03	Dis-Enable HPTM on TTRM A	This telecommand allows the ground to load a single 32-bit word		N	NOM_TC	6	140	172	4	N	Y	N	C	1	N				9	1
 ZCDHPA13	Set HPTM on TTRM A	This telecommand allows the ground to load a single 32-bit word		N	NOM_TC	6	140	172	4	N	Y	N	C	1	N				9	1
 ZCDHPA23	TTRM_A HPTM_MISCC Reg	This telecommand allows the ground to load a single 32-bit word		N	NOM_TC	6	5	172	3	N	Y	N	C	1	N				9	1
@@ -1178,6 +1191,7 @@ ZCDX0235	Dump Reconf Log CROME_SRAM_B			N	NOM_TC	6	5	172	3	N	Y	N	C	1	N				9	1
 ZCDX0236	Dump TCT Conf TL1-52 PMRAM CSWv303p1			N	NOM_TC	6	5	172	3	N	Y	N	C	1	N				9	1
 ZCDX0237	Dump TCT Conf TL53-104 PMRAM CSWv303p1			N	NOM_TC	6	5	172	3	N	Y	N	C	1	N				9	1
 ZCDX0238	Set TCT Conf PM RAM CSWv303p1			N	NOM_TC	6	2	172	9	N	Y	N	C	1	N				9	1
+ZCDX0300	Dump Time to Next OBT Write 3.1.1	This Telecommand requests the dump of data or code within the sp		N	NOM_TC	6	5	172	3	N	Y	N	C	1	N				9	1
 ZCDX0600	Dump Boot Report PM-A RAM	This Telecommand requests the dump of data or code within the sp		N	NOM_TC	6	5	172	3	N	Y	N	C	1	N				9	1
 ZCDX0601	Dump Boot Report PM-B RAM	This Telecommand requests the dump of data or code within the sp		N	NOM_TC	6	5	172	3	N	Y	N	C	1	N				9	1
 ZCDX0602	DMS Load Memory by Absolu address (OBSM)			N	NOM_TC	6	2	172	4	N	Y	N	C	1	N				9	1
@@ -1275,7 +1289,7 @@ ZCF2Z02E	Define HK: PLF PCDU HK			N	NOM_TC	3	1	220	19	N	Y	N	C	6	N				9	6
 ZCF2Z02F	Define HK: PLF Comms Summary (1/2)			N	NOM_TC	3	1	220	56	N	Y	N	C	6	N				9	6
 ZCF2Z02H	Define HK: PLF APME HK			N	NOM_TC	3	1	220	8	N	Y	N	C	6	N				9	6
 ZCF2Z02J	Define HK: PLF SADE HK (1/2)			N	NOM_TC	3	1	220	56	N	Y	N	C	6	N				9	6
-ZCF2Z02K	Define HK: PLF SADE HK (2/2)			N	NOM_TC	3	138	220	40	N	Y	N	C	6	N				9	6
+ZCF2Z02K	Define HK: PLF SADE HK (2/2)			N	NOM_TC	3	138	220	47	N	Y	N	C	6	N				9	6
 ZCF2Z02L	Define HK: PLF DEU HK (1/2)			N	NOM_TC	3	1	220	56	N	Y	N	C	6	N				9	6
 ZCF2Z02M	Define HK: PLF PCDU EDAC			N	NOM_TC	3	1	220	23	N	Y	N	C	6	N				9	6
 ZCF2Z02P	Add param monitor high/low (sint16)			N	NOM_TC	12	5	220	20	N	Y	N	C	6	N				9	6
@@ -1286,7 +1300,7 @@ ZCF2Z02U	Modify param monitor high/low (sint16)			N	NOM_TC	12	7	220	15	N	Y	N	C	6
 ZCF2Z02V	Modify param monitor high/low (sint32)			N	NOM_TC	12	7	220	13	N	Y	N	C	6	N				9	6
 ZCF2Z02W	Modify param monitor exp.value (sint16)			N	NOM_TC	12	7	220	14	N	Y	N	C	6	N				9	6
 ZCF2Z02X	Modify param monitor exp.value (sint32)			N	NOM_TC	12	7	220	13	N	Y	N	C	6	N				9	6
-ZCF2Z02Y	Define HK: PLF Comms Summary (2/2)			N	NOM_TC	3	138	220	9	N	Y	N	C	6	N				9	6
+ZCF2Z02Y	Define HK: PLF Comms Summary (2/2)			N	NOM_TC	3	138	220	10	N	Y	N	C	6	N				9	6
 ZCF2Z02Z	Define Diag: PLF SADE Diagnostic			N	NOM_TC	3	2	220	6	N	Y	N	C	6	N				9	6
 ZCF2Z031	Define Diag: PLF PCDU Snapshot A			N	NOM_TC	3	2	220	6	N	Y	N	C	6	N				9	6
 ZCF2Z032	Define Diag: PLF PCDU Snapshot B			N	NOM_TC	3	2	220	6	N	Y	N	C	6	N				9	6
@@ -1313,9 +1327,10 @@ ZCF2Z03N	Modify param monitor high/low (float8)			N	NOM_TC	12	7	220	11	N	Y	N	C	6
 ZCF2Z03P	Modify param monitor exp.value (uint8)			N	NOM_TC	12	7	220	14	N	Y	N	C	6	N				9	6
 ZCF2Z03R	Modify param monitor exp.value (uint16)			N	NOM_TC	12	7	220	14	N	Y	N	C	6	N				9	6
 ZCF2Z03S	Modify param monitor exp.value (uint32)			N	NOM_TC	12	7	220	13	N	Y	N	C	6	N				9	6
-ZCF2Z03T	Define Diag: PLF Spare Parameters & S130			N	NOM_TC	3	2	220	50	N	Y	N	C	6	N				9	6
+ZCF2Z03T	Define Diag: PLF Spare Parameters			N	NOM_TC	3	2	220	40	N	Y	N	C	6	N				9	6
 ZCF2Z03U	Define Diag: AIT Comms low data rate			N	NOM_TC	3	2	220	14	N	Y	N	C	6	N				9	6
 ZCF2Z03V	Define HK: PLF Summary (3/3)			N	NOM_TC	3	138	220	4	N	Y	N	C	6	N				9	6
+ZCF2Z03W	Define Diag: PLF S130			N	NOM_TC	3	2	220	24	N	Y	N	C	6	N				9	6
 ZCF2Z0A5	Define HK: PLF DEU HK (2/2)			N	NOM_TC	3	138	220	15	N	Y	N	C	6	N				9	6
 ZCF2Z0BT	Define Diag: SADE Steer Temp Buffer - Pa			N	NOM_TC	3	2	220	5	N	Y	N	C	6	N				9	6
 ZCF2Z0BU	Define Diag: SADE Steer Temp Buffer - Pa			N	NOM_TC	3	2	220	5	N	Y	N	C	6	N				9	6
@@ -1380,12 +1395,14 @@ ZCL2Z00M	Modify param monitor high/low (sint32)			N	NOM_TC	12	7	204	13	N	Y	N	C	7
 ZCL2Z00N	Modify param monitor exp.value (sint16)			N	NOM_TC	12	7	204	14	N	Y	N	C	7	N				9	7
 ZCL2Z00P	Modify param monitor exp.value (sint32)			N	NOM_TC	12	7	204	13	N	Y	N	C	7	N				9	7
 ZCL2Z00R	Define Diag: PL Spare Parameters 1			N	NOM_TC	3	2	204	25	N	Y	N	C	7	N				9	7
-ZCL2Z00S	Define Diag: PL Spare Parameters 2			N	NOM_TC	3	2	204	34	N	Y	N	C	7	N				9	7
+ZCL2Z00S	Define Diag: PL Spare Parameters 2			N	NOM_TC	3	2	204	44	N	Y	N	C	7	N				9	7
 ZCL2Z00T	Define Diag: PL S130 1			N	NOM_TC	3	2	204	51	N	Y	N	C	7	N				9	7
 ZCL2Z00U	Define Diag: PL S130 2			N	NOM_TC	3	2	204	35	N	Y	N	C	7	N				9	7
 ZCL2Z00V	Define Diag: PL S130 3			N	NOM_TC	3	2	204	34	N	Y	N	C	7	N				9	7
 ZCL2Z00W	Define Diag: PL S130 4			N	NOM_TC	3	2	204	43	N	Y	N	C	7	N				9	7
 ZCL2Z00X	Define Diag: PL S130 5			N	NOM_TC	3	2	204	39	N	Y	N	C	7	N				9	7
+ZCL2Z00Y	Define HK: PL FDIR (1/2)			N	NOM_TC	3	1	204	56	N	Y	N	C	7	N				9	7
+ZCL2Z00Z	Define HK: PL FDIR (2/2)			N	NOM_TC	3	138	204	21	N	Y	N	C	7	N				9	7
 ZCL2Z01A	Add param monitor high/low (uint8)			N	NOM_TC	12	5	204	20	N	Y	N	C	7	N				9	7
 ZCL2Z01B	Add param monitor high/low (uint16)			N	NOM_TC	12	5	204	20	N	Y	N	C	7	N				9	7
 ZCL2Z01C	Add param monitor high/low (uint32)			N	NOM_TC	12	5	204	18	N	Y	N	C	7	N				9	7
@@ -1473,7 +1490,7 @@ ZCS2Z00G	Set TTR/CPDU B SCV Health			N	NOM_TC	139	1	236	3	N	Y	N	C	8	N				9	8
 ZCS2Z00H	Set SSMM A SCV Health			N	NOM_TC	139	1	236	3	N	Y	N	C	8	N				9	8
 ZCS2Z00J	Set SSMM B SCV Health			N	NOM_TC	139	1	236	3	N	Y	N	C	8	N				9	8
 ZCS2Z00L	Add/Modify Upper/Lower Limit monitor			N	NOM_TC	12	5	236	16	N	Y	N	C	8	N				9	8
-ZCS2Z00M	Define HK: SYS System Performance (2/2)			N	NOM_TC	3	138	236	9	N	Y	N	C	8	N				9	8
+ZCS2Z00M	Define HK: SYS System Performance (2/2)			N	NOM_TC	3	138	236	10	N	Y	N	C	8	N				9	8
 ZCS2Z00P	Set FSS XP SCV Config Presel = A			N	NOM_TC	139	1	236	5	N	Y	N	C	8	N				9	8
 ZCS2Z00R	Set FSS XP SCV Config Presel = B			N	NOM_TC	139	1	236	5	N	Y	N	C	8	N				9	8
 ZCS2Z00S	Set FSS XP A SCV Health			N	NOM_TC	139	1	236	3	N	Y	N	C	8	N				9	8
@@ -1702,7 +1719,7 @@ ZCS2Z0A7	Set TCS LCL Group SCV Health			N	NOM_TC	139	1	236	3	N	Y	N	C	8	N				9	8
 ZCS2Z0A8	Define HK: SYS MIL-STD-1553b-BUS E (1/2)			N	NOM_TC	3	1	236	56	N	Y	N	C	8	N				9	8
 ZCS2Z0A9	Define HK: SYS MIL-STD-1553b-BUS E (2/2)			N	NOM_TC	3	138	236	11	N	Y	N	C	8	N				9	8
 ZCS2Z0AA	Define HK: SYS FDIR Monitoring			N	NOM_TC	3	1	236	37	N	Y	N	C	8	N				9	8
-ZCS2Z0AC	Define Diag: S130 Extracted Parameters -			N	NOM_TC	3	2	236	54	N	Y	N	C	8	N				9	8
+ZCS2Z0AC	Define Diag: S130 Extracted Parameters -			N	NOM_TC	3	2	236	55	N	Y	N	C	8	N				9	8
 ZCS2Z0AD	Define Diag: S130 Extracted Parameters -			N	NOM_TC	3	2	236	47	N	Y	N	C	8	N				9	8
 ZCS2Z0AE	Set DST TX A Output Pwr Sel EM			N	NOM_TC	139	1	236	3	N	Y	N	C	8	N				9	8
 ZCS2Z0AF	Set DST TX A Output Pwr Sel PFM			N	NOM_TC	139	1	236	3	N	Y	N	C	8	N				9	8
@@ -1772,10 +1789,11 @@ ZCSD0009	Full Nullspace Matrix Update	TC to update the AOCS Core Thruster Nullsp
 ZCSD000A	Abort survival recovery	This telecommand starts the abort survival recovery		N	NOM_TC	131	1	236	1	N	Y	N	C	8	N				9	8
 ZCSD000B	SWA HIS PowerDown	The telecommand allows the SWA HIS PowerDown function to be invo		N	NOM_TC	131	1	236	2	N	Y	N	C	8	N				9	8
 ZCSD000C	Dst Set TM Reset Flag	This telecommand allows the Dst TM Reset Flag function to be inv		N	NOM_TC	131	1	236	3	N	Y	N	C	8	N				9	8
-ZCSD000D	TC to update the AOCS Core Torque Demand	TC to update the AOCS Core Torque Demand Pseudo-Inverse Matrix f		N	NOM_TC	131	1	236	50	N	Y	N	C	8	N				9	8
-ZCSD000E	TC to update the AOCS Core Torque Demand	TC to update the AOCS Core Torque Demand Pseudo-Inverse Matrix f		N	NOM_TC	131	1	236	8	N	Y	N	C	8	N				9	8
-ZCSD000F	TC to update the AOCS Core Force Demand	TC to update the AOCS Core Force Demand Pseudo-Inverse Matrix fo		N	NOM_TC	131	1	236	50	N	Y	N	C	8	N				9	8
-ZCSD0010	TC to update the AOCS Core Force Demand	TC to update the AOCS Core Force Demand Pseudo-Inverse Matrix fo		N	NOM_TC	131	1	236	8	N	Y	N	C	8	N				9	8
+ZCSD000D	AOCS update Torque Demand Thruster 1-8	TC to update the AOCS Core Torque Demand Pseudo-Inverse Matrix f		N	NOM_TC	131	1	236	50	N	Y	N	C	8	N				9	8
+ZCSD000E	AOCS update Torque Demand Thruster 9	TC to update the AOCS Core Torque Demand Pseudo-Inverse Matrix f		N	NOM_TC	131	1	236	8	N	Y	N	C	8	N				9	8
+ZCSD000F	AOCS update Force Demand Thruster 1-8	TC to update the AOCS Core Force Demand Pseudo-Inverse Matrix fo		N	NOM_TC	131	1	236	50	N	Y	N	C	8	N				9	8
+ZCSD0010	AOCS update Force Demand Thruster 9	TC to update the AOCS Core Force Demand Pseudo-Inverse Matrix fo		N	NOM_TC	131	1	236	8	N	Y	N	C	8	N				9	8
+ZCSD0011	Create Partition	This telecommand allows the Create Partition function to be invo		N	NOM_TC	131	1	236	2	N	Y	N	C	8	N				9	8
 ZCSD1010	TWTA Activate Function	The telecommand allows the TWTA Activate function to be invoked		N	NOM_TC	131	1	236	1	N	Y	N	C	8	N				9	8
 ZCSD1012	TWTA Power Up Function	The telecommand allows the TWTA Power Up function to be invoked		N	NOM_TC	131	1	236	2	N	Y	N	C	8	N				9	8
 ZCSD1013	TWTA Power Down	The telecommand allows the TWTA Power Down function to be invoke		N	NOM_TC	131	1	236	2	N	Y	N	C	8	N				9	8
@@ -1961,7 +1979,7 @@ ZCSD390A	Load SA Steering Data	This telecommand allows the SADE Load Steering Pr
 ZCSD390B	Apply SA Steering Data	This telecommand allows the SADE Apply Steering Profile function		N	NOM_TC	131	1	236	2	N	Y	N	C	8	N				9	8
 ZCSD390C	Select SA Steering Data	This telecommand allows the SADE Select Steering Profile functio		N	NOM_TC	131	1	236	2	N	Y	N	C	8	N				9	8
 ZCSD390D	Clear SA Steering Data	This telecommand allows the SADE Clear Steering Profile function		N	NOM_TC	131	1	236	1	N	Y	N	C	8	N				9	8
-ZCSD3912	Execute SA Steering	This telecommand allows the SADE Start Execute Steering Event fu		Y	NOM_TC	131	1	236	4	N	Y	N	C	8	N				9	8
+ZCSD3912	Execute SA Steering	This telecommand allows the SADE Start Execute Steering Event fu		Y	NOM_TC	131	1	236	3	N	Y	N	C	8	N				9	8
 ZCSD3913	Abort SA Steering	This telecommand allows the SADE Stop Execute Steering Event fun		N	NOM_TC	131	1	236	1	N	Y	N	C	8	N				9	8
 ZCSD3A02	LEOP stop function	The telecommand allows the LEOP Stop function to be invoked.		N	NOM_TC	131	1	236	1	N	Y	N	C	8	N				9	8
 ZCSD3B01	Enable or disable a hardcoded fdir monit	This telecommand Enable or disable a system fdir monitoring. It		N	NOM_TC	131	1	236	3	N	Y	N	C	8	N				9	8
@@ -2006,8 +2024,10 @@ ZCSF0007	OMM Failure Recovery	This telecommand starts the recovery of the OMM.		
 ZCSF0008	TCS Execute Action1 Function	The telecommands allows the TCS Heater switch-over function to b		N	NOM_TC	8	1	236	4	N	Y	N	C	8	N				9	8
 ZCSF0009	TCS Execute Action2 Function	The telecommands allows the TCS Heater power down function to be		N	NOM_TC	8	1	236	4	N	Y	N	C	8	N				9	8
 ZCSF000A	TCS Execute Action3 Function	The telecommands allows the PCDU switch-over and TCS FDIR disabl		N	NOM_TC	8	1	236	4	N	Y	N	C	8	N				9	8
-ZCSF000B	Sun Protection Recovery Action Function	This telecommand triggers the Sun Protection Recovery Action for		N	NOM_TC	8	1	236	1	N	Y	N	C	8	N				9	8
-ZCSF000C	Sun Protection Recovery Action Function	This telecommand triggers the Sun Protection Recovery Action for		N	NOM_TC	8	1	236	1	N	Y	N	C	8	N				9	8
+ZCSF000B	Sun Protect Recovery Action Fast Drift	This telecommand triggers the Sun Protection Recovery Action for		N	NOM_TC	8	1	236	1	N	Y	N	C	8	N				9	8
+ZCSF000C	Sun Protect Recovery Action Slow Drift	This telecommand triggers the Sun Protection Recovery Action for		N	NOM_TC	8	1	236	1	N	Y	N	C	8	N				9	8
+ZCSF000D	EPS Execute Recovery Action 4 Function	The telecommands allows the EPS Execute Recovey Action 4 functio		N	NOM_TC	8	1	236	5	N	Y	N	C	8	N				9	8
+ZCSF000E	SADE Execute Recovery Action 2 Function	The telecommands allows the SADE Execute Recovey Action 2 functi		N	NOM_TC	8	1	236	4	N	Y	N	C	8	N				9	8
 ZCSF0010	System Failure Recovery: PM reset	This telecommand starts a system PM reset.		N	NOM_TC	8	1	236	3	N	Y	N	C	8	N				9	8
 ZCSF0011	System Failure Recovery: PM switch over	This telecommand starts a system PM switch over.		N	NOM_TC	8	1	236	3	N	Y	N	C	8	N				9	8
 ZCSF0012	1553 Failure Recovery	This telecommand starts the recovery of the 1553.		N	NOM_TC	8	1	236	4	N	Y	N	C	8	N				9	8
@@ -2042,7 +2062,7 @@ ZCSF0031	DEU Execute Recovery Action 1 Function	The telecommands allows the DEU 
 ZCSF0032	DEU Execute Recovery Action 2 Function	The telecommands allows the DEU Execute Recovey Action 2 functio		N	NOM_TC	8	1	236	3	N	Y	N	C	8	N				9	8
 ZCSF0040	STR Execute Recovery Action 1 Function	The telecommands allows the STR Execute Recovey Action 1 functio		N	NOM_TC	8	1	236	4	N	Y	N	C	8	N				9	8
 ZCSF0041	STR Execute Recovery Action 2 Function	The telecommands allows the STR Execute Recovey Action 2 functio		N	NOM_TC	8	1	236	4	N	Y	N	C	8	N				9	8
-ZCSF0042	STR Execute Recovery Action 3 Function	The telecommands allows the STR Execute Recovey Action 3 functio		N	NOM_TC	8	1	236	4	N	Y	N	C	8	N				9	8
+ZCSF0042	STR Execute Recovery Action 3 Function	The telecommands allows the STR Execute Recovey Action 3 functio		N	NOM_TC	8	1	236	3	N	Y	N	C	8	N				9	8
 ZCSF0043	STR Execute Recovery Action 4 Function	The telecommands allows the STR Execute Recovery Action 4 functi		N	NOM_TC	8	1	236	4	N	Y	N	C	8	N				9	8
 ZCSF0044	IMU Gyro Execute Recovery Action 2 Funct	The telecommands allows the IMU Gyro Execute Recovey Action 2 fu		N	NOM_TC	8	1	236	4	N	Y	N	C	8	N				9	8
 ZCSF0045	IMU Gyro Execute Recovery Action 3 Funct	The telecommands allows the IMU Gyro Execute Recovey Action 3 fu		N	NOM_TC	8	1	236	4	N	Y	N	C	8	N				9	8
@@ -3342,12 +3362,12 @@ ZID52357	129,178 SIS_EGY_THRESH	Set Energy Threshold		N	NOM_TC	129	178	876	5	N	Y
 ZID52358	129,194 SIS_HV_COM_LEVEL	Set Common High Voltage Goal		N	NOM_TC	129	194	876	2	N	Y	N	C	103	N	54			9	103
 ZID52359	129,195 SIS_HV_COM_LIMIT	Set Common High Voltage Limit		N	NOM_TC	129	195	876	2	N	Y	N	C	103	N	54			9	103
 ZID52360	129,196 SIS_HV_MCP_CURLIM	Set MCP High Voltage Current Limit		N	NOM_TC	129	196	876	4	N	Y	N	C	103	N	54			9	103
-ZID52361	129,197 SIS_HV_MCP_LEVEL	Set MCP High Voltage Goal		Y	NOM_TC	129	197	876	4	N	Y	N	C	103	N	54			9	103
-ZID52362	129,198 SIS_HV_MCP_LIMIT	Set MCP High Voltage Limit		Y	NOM_TC	129	198	876	4	N	Y	N	C	103	N	54			9	103
-ZID52363	129,199 SIS_HV_MCP_STEP	Step MCP High Voltage Goal		Y	NOM_TC	129	199	876	5	N	Y	N	C	103	N	54			9	103
-ZID52364	129,200 SIS_IRIS_AUTO	Automatically Control Iris Position		Y	NOM_TC	129	200	876	4	N	Y	N	C	103	N	54			9	103
-ZID52365	129,201 SIS_IRIS_HOME	Find Iris Position		Y	NOM_TC	129	201	876	2	N	Y	N	C	103	N	54			9	103
-ZID52366	129,202 SIS_IRIS_MANUAL	Manually Control Iris Position		Y	NOM_TC	129	202	876	3	N	Y	N	C	103	N	54			9	103
+ZID52361	129,197 SIS_HV_MCP_LEVEL	Set MCP High Voltage Goal		N	NOM_TC	129	197	876	4	N	Y	N	C	103	N	54			9	103
+ZID52362	129,198 SIS_HV_MCP_LIMIT	Set MCP High Voltage Limit		N	NOM_TC	129	198	876	4	N	Y	N	C	103	N	54			9	103
+ZID52363	129,199 SIS_HV_MCP_STEP	Step MCP High Voltage Goal		N	NOM_TC	129	199	876	5	N	Y	N	C	103	N	54			9	103
+ZID52364	129,200 SIS_IRIS_AUTO	Automatically Control Iris Position		N	NOM_TC	129	200	876	4	N	Y	N	C	103	N	54			9	103
+ZID52365	129,201 SIS_IRIS_HOME	Find Iris Position		N	NOM_TC	129	201	876	2	N	Y	N	C	103	N	54			9	103
+ZID52366	129,202 SIS_IRIS_MANUAL	Manually Control Iris Position		N	NOM_TC	129	202	876	3	N	Y	N	C	103	N	54			9	103
 ZID52367	129,205 SIS_PW_MULTI	Enable/Disable PW Multiple Start/Stop		N	NOM_TC	129	205	876	4	N	Y	N	C	103	N	54			9	103
 ZID52368	129,179 SIS_PW_REQ	Set Pulse Width Required		N	NOM_TC	129	179	876	4	N	Y	N	C	103	N	54			9	103
 ZID52369	129,180 SIS_PW_SEL	Select Pulse Width Measurement		N	NOM_TC	129	180	876	4	N	Y	N	C	103	N	54			9	103
@@ -3535,9 +3555,9 @@ ZIM22701	Set OBS Range (FM)	TC 227,1 Sets the outboard sensor magnetic range.		Y
 ZIM22702	Set IBS Range (FM)	TC(227,2) Sets the inboard sensor magnetic range		Y	NOM_TC	227	2	1020	4	N	Y	N	C	101	N	1			9	101
 ZIM22703	Enable ICU Auto Range	TC 227,3 Enable the Auto-ranging mode of ICU		N	NOM_TC	227	3	1020	2	N	Y	N	C	101	N	1			9	101
 ZIM22704	Disable ICU Auto Range	TC 227,4 Disables the Auto-ranging mode of ICU		N	NOM_TC	227	4	1020	1	N	Y	N	C	101	N	1			9	101
-ZIM22705	Enable FEE Auto Range (FM)	TC 227,05 Enables the Auto-ranging mode on FEE		Y	NOM_TC	227	5	1020	2	N	Y	N	C	101	N	1			9	101
-ZIM22706	Disable FEE Auto Range (FM)	TC 227,06 Disables the Auto-ranging mode of FEE		Y	NOM_TC	227	6	1020	1	N	Y	N	C	101	N	1			9	101
-ZIM22707	Set FEE Delay Val parameter (FM)	TC(227, 07) Sets the FEE Delay Val Filter Paramter		Y	NOM_TC	227	7	1020	2	N	Y	N	C	101	N	1			9	101
+ZIM22705	Enable FEE Auto Range (FM)	TC 227,05 Enables the Auto-ranging mode on FEE		N	NOM_TC	227	5	1020	2	N	Y	N	C	101	N	1			9	101
+ZIM22706	Disable FEE Auto Range (FM)	TC 227,06 Disables the Auto-ranging mode of FEE		N	NOM_TC	227	6	1020	1	N	Y	N	C	101	N	1			9	101
+ZIM22707	Set FEE Delay Val parameter (FM)	TC(227, 07) Sets the FEE Delay Val Filter Paramter		N	NOM_TC	227	7	1020	2	N	Y	N	C	101	N	1			9	101
 ZIM22708	Set OBS ICU autorange limit	Set a limit on the range the ICU autorange can transition to		N	NOM_TC	227	8	1020	1	N	Y	N	C	101	N	1			9	101
 ZIM22709	Set IBS ICU autorange limit	Limit the range the IBS ICU autorange can transition to		N	NOM_TC	227	9	1020	1	N	Y	N	C	101	N	1			9	101
 ZIM22711	Set Calibration Matrix	TC 227,11 Sets  primary sensor calibration used for IIC		N	NOM_TC	227	11	1020	13	N	Y	N	C	101	N	1			9	101
@@ -3558,10 +3578,10 @@ ZIM22730	Set Internal-triggered Burst Duration	TC 227,30 - Set Internal-triggere
 ZIM22731	Set External-triggered Burst Duration	TC 227,31 - Set External-trigerred Burst Duration		N	NOM_TC	227	31	1020	1	N	Y	N	C	101	N				9	101
 ZIM22732	Set Internal Burst Trigger Parameter	TC 227,32 - Set Internal Burst Trigger Parameter		N	NOM_TC	227	32	1020	1	N	Y	N	C	101	N				9	101
 ZIM22733	Set Active HKADC to Main	Sets the active HK ADC to Main.		N	NOM_TC	227	33	1020	0	N	Y	N	C	101	N	1			9	101
-ZIM22734	Set Active HKADC to Redundant (FM)	Set Active HKADC to Redundant		Y	NOM_TC	227	34	1020	0	N	Y	N	C	101	N	1			9	101
+ZIM22734	Set Active HKADC to Redundant (FM)	Set Active HKADC to Redundant		N	NOM_TC	227	34	1020	0	N	Y	N	C	101	N	1			9	101
 ZIM22735	Set FIB Clock to Internal	Set FIB Clock to Internal		N	NOM_TC	227	35	1020	0	N	Y	N	C	101	N	1			9	101
 ZIM22736	Set FIB Clock to External	Set FIB Clock to External		N	NOM_TC	227	36	1020	0	N	Y	N	C	101	N	1			9	101
-ZIM22737	Set FOB Clock to Internal (FM)	Set FOB Clock to Internal		Y	NOM_TC	227	37	1020	0	N	Y	N	C	101	N	1			9	101
+ZIM22737	Set FOB Clock to Internal (FM)	Set FOB Clock to Internal		N	NOM_TC	227	37	1020	0	N	Y	N	C	101	N	1			9	101
 ZIM22738	Set FOB Clock to External	Set FOB Clock to External		N	NOM_TC	227	38	1020	0	N	Y	N	C	101	N	1			9	101
 ZIM22739	Activate FIB	Set FIB board to active		N	NOM_TC	227	39	1020	0	N	Y	N	C	101	N	1			9	101
 ZIM22740	Activate FOB	Set FOB board to active		N	NOM_TC	227	40	1020	0	N	Y	N	C	101	N	1			9	101
@@ -3595,8 +3615,8 @@ ZIM22901	Reset ICU	Soft reset the ICU into specified software at address provide
 ZIM22902	Reset FIB	Send a reset signal to FIB		N	NOM_TC	229	2	1020	0	N	Y	N	C	101	N	1			9	101
 ZIM22903	Reset FOB	Send a reset signal to FOB.		N	NOM_TC	229	3	1020	0	N	Y	N	C	101	N	1			9	101
 ZIM22905	Clear TM Buffer	Clear TM Buffer		N	NOM_TC	229	5	1020	0	N	Y	N	C	101	N	1			9	101
-ZIM22910	Enable FIB ramp (FM)	Enable FIB ramp		Y	NOM_TC	229	10	1020	0	N	Y	N	C	101	N	1			9	101
-ZIM22911	Enable FOB ramp (FM)	Enable FOB ramp		Y	NOM_TC	229	11	1020	0	N	Y	N	C	101	N	1			9	101
+ZIM22910	Enable FIB ramp (FM)	Enable FIB ramp		N	NOM_TC	229	10	1020	0	N	Y	N	C	101	N	1			9	101
+ZIM22911	Enable FOB ramp (FM)	Enable FOB ramp		N	NOM_TC	229	11	1020	0	N	Y	N	C	101	N	1			9	101
 ZIM22912	Disable FIB ramp	Disable FIB ramp		N	NOM_TC	229	12	1020	0	N	Y	N	C	101	N	1			9	101
 ZIM22913	Disable FOB ramp	Disable FOB ramp		N	NOM_TC	229	13	1020	0	N	Y	N	C	101	N	1			9	101
 ZIM23001	Send FIB Command	TC 230,1 - Send specified command to FIB		Y	NOM_TC	230	1	1020	1	N	Y	N	C	101	N				9	101
@@ -3680,7 +3700,6 @@ ZIPE8019	gotoProcessingAndAnneal	Go to PROCESS_ANNEAL mode		N	NOM_TC	232	1	1164	
 ZIPE801A	gotoAnnealing	Go to ANNEALING mode		N	NOM_TC	232	1	1164	1	N	Y	N	C	104	N				9	104
 ZIPE801Z	reboot	Soft reboot the DPU		N	NOM_TC	232	1	1164	1	N	Y	N	C	104	N				9	104
 ZIPE8020	switchService	Switch Service		N	NOM_TC	232	2	1164	2	N	Y	N	C	104	N				9	104
-ZIPE8030	armCriticalCommandOld	Arm Critical Command (old variable TC version)		N	NOM_TC	232	3	1164	4	N	Y	N	C	104	N				9	104
 ZIPE803X	armCriticalCommand	Arm Critical Command		N	NOM_TC	232	3	1164	4	N	Y	N	C	104	N				9	104
 ZIPE8040	reloadTelemetryConfig	Reload Telemetry Configuration		N	NOM_TC	232	4	1164	1	N	Y	N	C	104	N				9	104
 ZIPE8050	reloadInformationConfig	Reload Information Service Configuration		N	NOM_TC	232	5	1164	1	N	Y	N	C	104	N				9	104
@@ -3779,7 +3798,6 @@ ZIPE90D0	createFile	Create RAMFS File		N	NOM_TC	233	13	1164	2	N	Y	N	C	104	N				9
 ZIPE90E0	openFile	Open RAMFS File		N	NOM_TC	233	14	1164	1	N	Y	N	C	104	N				9	104
 ZIPE90F0	closeFile	Close RAMFS File		N	NOM_TC	233	15	1164	0	N	Y	N	C	104	N				9	104
 ZIPE9100	readFile	Read RAMFS File		N	NOM_TC	233	16	1164	2	N	Y	N	C	104	N				9	104
-ZIPE9120	writeFileOld	Write RAMFS File (old variable TC version)		N	NOM_TC	233	18	1164	3	N	Y	N	C	104	N				9	104
 ZIPE912X	writeFile	Write RAMFS File		N	NOM_TC	233	18	1164	3	N	Y	N	C	104	N				9	104
 ZIPE9130	resizeFile	Resize RAMFS File		N	NOM_TC	233	19	1164	2	N	Y	N	C	104	N				9	104
 ZIPE9150	getGPIOStatus	Get I/O Status Of GPIO Port		N	NOM_TC	233	21	1164	1	N	Y	N	C	104	N				9	104
@@ -3799,9 +3817,7 @@ ZIPE9361	enableRFPGAScrubbing	Enable RFPGA Scrubbing		N	NOM_TC	233	54	1164	2	N	Y
 ZIPE9362	disableRFPGAScrubbing	Disable RFPGA Scrubbing		N	NOM_TC	233	54	1164	2	N	Y	N	C	104	N				9	104
 ZIPE9371	setRFPGAReset	Set RFPGA Reset Line		N	NOM_TC	233	55	1164	2	N	Y	N	C	104	N				9	104
 ZIPE9372	releaseRFPGAReset	Release RFPGA Reset Line		N	NOM_TC	233	55	1164	2	N	Y	N	C	104	N				9	104
-ZIPE93D0	prepareSWUpdateOld	Load SW image to static memory (old)		N	NOM_TC	233	61	1164	0	N	Y	N	C	104	N				9	104
 ZIPE93DX	prepareSWUpdate	Load SW image to static memory		N	NOM_TC	233	61	1164	1	N	Y	N	C	104	N				9	104
-ZIPE93E0	performSWUpdateOld	Update SW image from static memory or desired address (old)		N	NOM_TC	233	62	1164	1	N	Y	N	C	104	N				9	104
 ZIPE93EX	performSWUpdate	Update SW image from static memory or desired address		N	NOM_TC	233	62	1164	2	N	Y	N	C	104	N				9	104
 ZIPE9470	getSoCWNodeInformation	Request the SoCWire node information		N	NOM_TC	233	71	1164	0	N	Y	N	C	104	N				9	104
 ZIPE9510	getSpWInformation	Request the SpaceWire information		N	NOM_TC	233	81	1164	0	N	Y	N	C	104	N				9	104
@@ -3893,7 +3909,7 @@ ZIT24305	SWITCH PMP ON	TC(243,5) - Switch On PMP		N	NOM_TC	243	5	1084	1	N	Y	N	C	
 ZIT24306	Configure VLDA	TC(243,6) - Configure VLDA		N	NOM_TC	243	6	1084	5	N	Y	N	C	110	N				9	110
 ZIT24307	Configure UVDA	TC(243,7) - Configure UVDA		N	NOM_TC	243	7	1084	4	N	Y	N	C	110	N				9	110
 ZIT24309	Select PMP Polarization	TC(243,9) - Select PMP Polarization		N	NOM_TC	243	9	1084	1	N	Y	N	C	110	N				9	110
-ZIT2430A	Configure HVU	TC(243,10) - Configure the HVU		Y	NOM_TC	243	10	1084	8	N	Y	N	C	110	N				9	110
+ZIT2430A	Configure HVU	TC(243,10) - Configure the HVU		N	NOM_TC	243	10	1084	8	N	Y	N	C	110	N				9	110
 ZIT2430B	Drive IOM	TC(243,11) - Drive Motors of the IOM		N	NOM_TC	243	11	1084	4	N	Y	N	C	110	N				9	110
 ZIT2430C	Drive Calibration LEDs	TC(243,12) - Drive Calibration LEDs		N	NOM_TC	243	12	1084	2	N	Y	N	C	110	N				9	110
 ZIT2430D	Send VLDA Command	TC(243,13) - Send raw Command to VLDA		N	NOM_TC	243	13	1084	4	N	Y	N	C	110	N				9	110
@@ -3901,16 +3917,16 @@ ZIT2430F	Send UVDA Command	TC(243,15) - Send raw Command to UVDA		N	NOM_TC	243	1
 ZIT24316	Configure VLDA - 1 Reg	TC(243,6) - Configure VLDA - 1 Reg		N	NOM_TC	243	6	1084	5	N	Y	N	C	110	N				9	110
 ZIT24317	Configure UVDA - 1 Reg	TC(243,7) - Configure UVDA - 1 Reg		N	NOM_TC	243	7	1084	4	N	Y	N	C	110	N				9	110
 ZIT24318	PMP Pol. Angles - 1 Pol	TC(243,8) - Configure PMP Polarization Angles - 1 Pol		N	NOM_TC	243	8	1084	5	N	Y	N	C	110	N				9	110
-ZIT2431A	Configure HVU Set SCREEN	TC(243,10) - Configure the HVU - Set SCREEN		Y	NOM_TC	243	10	1084	8	N	Y	N	C	110	N				9	110
+ZIT2431A	Configure HVU Set SCREEN	TC(243,10) - Configure the HVU - Set SCREEN		N	NOM_TC	243	10	1084	8	N	Y	N	C	110	N				9	110
 ZIT24326	Configure VLDA - 2 Reg	TC(243,6) - Configure VLDA - 2 Reg		N	NOM_TC	243	6	1084	5	N	Y	N	C	110	N				9	110
 ZIT24327	Configure UVDA - 2 Reg	TC(243,7) - Configure UVDA - 2 Reg		N	NOM_TC	243	7	1084	4	N	Y	N	C	110	N				9	110
 ZIT24328	PMP Pol. Angles - 2 Pol	TC(243,8) - Configure PMP Polarization Angles - 2 Pol		N	NOM_TC	243	8	1084	5	N	Y	N	C	110	N				9	110
-ZIT2432A	Configure HVU Set MCP	TC(243,10) - Configure the HVU - Set MCP		Y	NOM_TC	243	10	1084	8	N	Y	N	C	110	N				9	110
+ZIT2432A	Configure HVU Set MCP	TC(243,10) - Configure the HVU - Set MCP		N	NOM_TC	243	10	1084	8	N	Y	N	C	110	N				9	110
 ZIT24336	Configure VLDA - 3 Reg	TC(243,6) - Configure VLDA - 3 Reg		N	NOM_TC	243	6	1084	5	N	Y	N	C	110	N				9	110
 ZIT24337	Configure UVDA - 3 Reg	TC(243,7) - Configure UVDA - 3 Reg		N	NOM_TC	243	7	1084	4	N	Y	N	C	110	N				9	110
 ZIT2433A	Configure HVU SAFE En.	TC(243,10) - Configure the HVU - SAFE Enable		N	NOM_TC	243	10	1084	8	N	Y	N	C	110	N				9	110
 ZIT24348	PMP Pol. Angles - 4 Pol	TC(243,8) - Configure PMP Polarization Angles - 4 Pol		N	NOM_TC	243	8	1084	5	N	Y	N	C	110	N				9	110
-ZIT2434A	Configure HVU SAFE Dis.	TC(243,10) - Configure the HVU - SAFE Disable		Y	NOM_TC	243	10	1084	8	N	Y	N	C	110	N				9	110
+ZIT2434A	Configure HVU SAFE Dis.	TC(243,10) - Configure the HVU - SAFE Disable		N	NOM_TC	243	10	1084	8	N	Y	N	C	110	N				9	110
 ZIT24356	Configure VLDA - 5 Reg	TC(243,6) - Configure VLDA - 5 Reg		N	NOM_TC	243	6	1084	5	N	Y	N	C	110	N				9	110
 ZIT24357	Configure UVDA - 5 Reg	TC(243,7) - Configure UVDA - 5 Reg		N	NOM_TC	243	7	1084	4	N	Y	N	C	110	N				9	110
 ZIT24378	PMP Pol. Angles - 7 pol	TC(243,8) - Configure PMP Polarization Angles - 7 Pol		N	NOM_TC	243	8	1084	5	N	Y	N	C	110	N				9	110
@@ -3943,7 +3959,7 @@ ZIU51004	EUI_ResetOutputBuffer	EUI_TC_reset_output_buffer		N	NOM_TC	21	128	924	0
 ZIU51050	EUI_EnHK_ReportGen	EUI_TC_enable_HK_parameter_report_generation		N	NOM_TC	3	5	924	1	N	Y	N	C	102	N				9	102
 ZIU51051	EUI_DisHK_ReportGen	EUI_TC_disable_HK_parameter_report_generation		N	NOM_TC	3	6	924	1	N	Y	N	C	102	N				9	102
 ZIU51052	EUI_HK_GenPeriod	EUI_TC_update_HK_generation_period		N	NOM_TC	3	129	924	3	N	Y	N	C	102	N				9	102
-ZIU51053	EUI_LoadMem8AbsAddr	EUI_TC_load_memory_8-bit_using_abs_address		Y	NOM_TC	6	2	924	4	N	Y	N	C	102	N				9	102
+ZIU51053	EUI_LoadMem8AbsAddr	EUI_TC_load_memory_8-bit_using_abs_address		N	NOM_TC	6	2	924	4	N	Y	N	C	102	N				9	102
 ZIU51054	EUI_DumpMemAbsAddr	EUI_TC_dump_memory_using_abs_address		N	NOM_TC	6	5	924	3	N	Y	N	C	102	N				9	102
 ZIU51055	EUI_ChkMemAbsAddr	EUI_TC_check_memory_using_abs_address		N	NOM_TC	6	9	924	3	N	Y	N	C	102	N				9	102
 ZIU51057	EUI_AcceptTimeUpdate	EUI_TC_accept_time_update		N	NOM_TC	9	129	924	1	N	Y	N	C	102	N				9	102
@@ -3980,11 +3996,11 @@ ZIU51735	EUI_LoadCalMap	EUI_TC_load_cal_map		N	NOM_TC	212	1	924	4	N	Y	N	C	102	N	
 ZIU51736	EUI_EnEventDet	EUI_TC_event_detection_enable		N	NOM_TC	213	1	924	0	N	Y	N	C	102	N				9	102
 ZIU51737	EUI_DisEventDet	EUI_TC_event_detection_disable		N	NOM_TC	213	2	924	0	N	Y	N	C	102	N				9	102
 ZIU51739	EUI_EnHV_Safe	EUI_TC_HV_Safe_enable		N	NOM_TC	214	1	924	0	N	Y	N	C	102	N				9	102
-ZIU51740	EUI_DisHV_Safe	EUI_TC_HV_Safe_disable		Y	NOM_TC	214	2	924	0	N	Y	N	C	102	N				9	102
-ZIU51741	EUI_SetHV	EUI_TC_HV_set_voltage		Y	NOM_TC	214	3	924	2	N	Y	N	C	102	N				9	102
-ZIU51744	EUI_SetupFWheelToPos	EUI_TC_setup_move_filter_wheel_to_position		Y	NOM_TC	215	1	924	2	N	Y	N	C	102	N				9	102
-ZIU51745	EUI_SetupFWheelRelSteps	EUI_TC_setup_move_filter_wheel_relative_steps		Y	NOM_TC	215	2	924	3	N	Y	N	C	102	N				9	102
-ZIU51746	EUI_SetupDoorToPos	EUI_TC_setup_move_door_number_position		Y	NOM_TC	215	3	924	2	N	Y	N	C	102	N				9	102
+ZIU51740	EUI_DisHV_Safe	EUI_TC_HV_Safe_disable		N	NOM_TC	214	2	924	0	N	Y	N	C	102	N				9	102
+ZIU51741	EUI_SetHV	EUI_TC_HV_set_voltage		N	NOM_TC	214	3	924	2	N	Y	N	C	102	N				9	102
+ZIU51744	EUI_SetupFWheelToPos	EUI_TC_setup_move_filter_wheel_to_position		N	NOM_TC	215	1	924	2	N	Y	N	C	102	N				9	102
+ZIU51745	EUI_SetupFWheelRelSteps	EUI_TC_setup_move_filter_wheel_relative_steps		N	NOM_TC	215	2	924	3	N	Y	N	C	102	N				9	102
+ZIU51746	EUI_SetupDoorToPos	EUI_TC_setup_move_door_number_position		N	NOM_TC	215	3	924	2	N	Y	N	C	102	N				9	102
 ZIU51747	EUI_MoveMechanismGO	EUI_TC_move_mechanism		N	NOM_TC	215	5	924	0	N	Y	N	C	102	N				9	102
 ZIU51748	EUI_AbortMechanism	EUI_TC_abort_mechanism		N	NOM_TC	215	6	924	0	N	Y	N	C	102	N				9	102
 ZIU51749	EUI_LoadFPGA_Register	EUI_TC_load_FPGA_register		N	NOM_TC	214	50	924	3	N	Y	N	C	102	N				9	102
@@ -4005,16 +4021,16 @@ ZIU51766	EUI_CompareFlash	EUI_TC_compare_Flash_memory		N	NOM_TC	209	1	924	0	N	Y	
 ZIU51767	EUI_TestFlash	EUI_TC_test_Flash_memory		N	NOM_TC	209	2	924	1	N	Y	N	C	102	N				9	102
 ZIU51768	EUI_TestFlashGO	EUI_TC_test_Flash_memory_go		N	NOM_TC	209	3	924	0	N	Y	N	C	102	N				9	102
 ZIU51769	EUI_FlashBadBlocks	EUI_TC_dump_Flash_bad_blocks		N	NOM_TC	209	4	924	1	N	Y	N	C	102	N				9	102
-ZIU51770	EUI_FlashEraseBlocks	EUI_TC_erase_Flash_blocks		Y	NOM_TC	209	6	924	4	N	Y	N	C	102	N				9	102
+ZIU51770	EUI_FlashEraseBlocks	EUI_TC_erase_Flash_blocks		N	NOM_TC	209	6	924	4	N	Y	N	C	102	N				9	102
 ZIU51771	EUI_CurrentTrips	EUI_TC_Current_Trips		N	NOM_TC	214	40	924	2	N	Y	N	C	102	N				9	102
-ZIU51772	EUI_SetupDoorRelSteps	EUI_TC_setup_move_door_relative_steps		Y	NOM_TC	215	4	924	3	N	Y	N	C	102	N				9	102
-ZIU51773	EUI_LaunchLockP_FSI	EUI_TC_launch_lock_prime_arm_FSI		Y	NOM_TC	215	10	924	0	N	Y	N	C	102	N				9	102
-ZIU51774	EUI_LaunchLockP_Lya	EUI_TC_launch_lock_prime_arm_Lya		Y	NOM_TC	215	11	924	0	N	Y	N	C	102	N				9	102
-ZIU51775	EUI_LaunchLockP_EUV	EUI_TC_launch_lock_prime_arm_EUV		Y	NOM_TC	215	12	924	0	N	Y	N	C	102	N				9	102
-ZIU51776	EUI_LaunchLockR_FSI	EUI_TC_launch_lock_redundant_arm_FSI		Y	NOM_TC	215	13	924	0	N	Y	N	C	102	N				9	102
-ZIU51777	EUI_LaunchLockR_Lya	EUI_TC_launch_lock_redundant_arm_Lya		Y	NOM_TC	215	14	924	0	N	Y	N	C	102	N				9	102
-ZIU51778	EUI_LaunchLockR_EUV	EUI_TC_launch_lock_redundant_arm_EUV		Y	NOM_TC	215	15	924	0	N	Y	N	C	102	N				9	102
-ZIU51779	EUI_LaunchLockFIRE	EUI_TC_launch_lock_FIRE		Y	NOM_TC	215	16	924	0	N	Y	N	C	102	N				9	102
+ZIU51772	EUI_SetupDoorRelSteps	EUI_TC_setup_move_door_relative_steps		N	NOM_TC	215	4	924	3	N	Y	N	C	102	N				9	102
+ZIU51773	EUI_LaunchLockP_FSI	EUI_TC_launch_lock_prime_arm_FSI		N	NOM_TC	215	10	924	0	N	Y	N	C	102	N				9	102
+ZIU51774	EUI_LaunchLockP_Lya	EUI_TC_launch_lock_prime_arm_Lya		N	NOM_TC	215	11	924	0	N	Y	N	C	102	N				9	102
+ZIU51775	EUI_LaunchLockP_EUV	EUI_TC_launch_lock_prime_arm_EUV		N	NOM_TC	215	12	924	0	N	Y	N	C	102	N				9	102
+ZIU51776	EUI_LaunchLockR_FSI	EUI_TC_launch_lock_redundant_arm_FSI		N	NOM_TC	215	13	924	0	N	Y	N	C	102	N				9	102
+ZIU51777	EUI_LaunchLockR_Lya	EUI_TC_launch_lock_redundant_arm_Lya		N	NOM_TC	215	14	924	0	N	Y	N	C	102	N				9	102
+ZIU51778	EUI_LaunchLockR_EUV	EUI_TC_launch_lock_redundant_arm_EUV		N	NOM_TC	215	15	924	0	N	Y	N	C	102	N				9	102
+ZIU51779	EUI_LaunchLockFIRE	EUI_TC_launch_lock_FIRE		N	NOM_TC	215	16	924	0	N	Y	N	C	102	N				9	102
 ZIU51780	EUI_EnUseService20	EUI_TC_use_Service_20_enable		N	NOM_TC	213	7	924	0	N	Y	N	C	102	N				9	102
 ZIU51781	EUI_DisUseService20	EUI_TC_use_Service_20_disable		N	NOM_TC	213	8	924	0	N	Y	N	C	102	N				9	102
 ZIU51782	EUI_AbortExposure	EUI_TC_detector_abort_exposure_or_selftest		N	NOM_TC	210	11	924	0	N	Y	N	C	102	N				9	102
@@ -4041,7 +4057,7 @@ ZIU51802	EUI_SelectGainOffMap	EUI_TC_select_gain_and_offset_map		N	NOM_TC	212	2	
 ZIU51803	EUI_DumpGainOffMap	EUI_TC_dump_gain_and_offset_map		N	NOM_TC	212	3	924	1	N	Y	N	C	102	N				9	102
 ZIU51804	EUI_SelectBadPixelMap	EUI_TC_select_bad_pixel_map		N	NOM_TC	212	5	924	1	N	Y	N	C	102	N				9	102
 ZIU51806	EUI_DumpCalMap	EUI_TC_dump_calibration_map		N	NOM_TC	212	8	924	1	N	Y	N	C	102	N				9	102
-ZIU51807	EUI_RampHV	EUI_TC_HV_ramp_voltage		Y	NOM_TC	214	4	924	2	N	Y	N	C	102	N				9	102
+ZIU51807	EUI_RampHV	EUI_TC_HV_ramp_voltage		N	NOM_TC	214	4	924	2	N	Y	N	C	102	N				9	102
 ZIU51808	EUI_RampAbortHV	EUI_TC_HV_ramp_abort		N	NOM_TC	214	5	924	0	N	Y	N	C	102	N				9	102
 ZIU51809	EUI_ClockOHQ	EUI_TC_clock_OHQ		N	NOM_TC	214	31	924	1	N	Y	N	C	102	N				9	102
 ZIU51810	EUI_ClockSOB	EUI_TC_clock_SOB		N	NOM_TC	214	32	924	1	N	Y	N	C	102	N				9	102
@@ -4056,6 +4072,7 @@ ZIU51819	EUI_LoadBadPixels	EUI_TC_load_bad_pixels		N	NOM_TC	210	60	924	7	N	Y	N	C
 ZIU51820	EUI_FlashCopyPages	EUI_TC_copy_Flash_pages		N	NOM_TC	209	7	924	4	N	Y	N	C	102	N				9	102
 ZIU51821	EUI_DumpBadPixelMap	EUI_TC_dump_bad_pixel_map		N	NOM_TC	212	6	924	1	N	Y	N	C	102	N				9	102
 ZIU51822	EUI_SaveSeqTables	EUI_TC_save_seq_tables		N	NOM_TC	210	61	924	0	N	Y	N	C	102	N				9	102
+ZIU51823	EUI_FlashRemapBlock	EUI_TC_remap_Flash_block		N	NOM_TC	209	8	924	2	N	Y	N	C	102	N				9	102
 ZIW00000	DPU_ENABLE_HK	Enable DPU Housekeeping Parameter Report Generation.		N	NOM_TC	3	5	1212	2	N	Y	N	C	106	N				9	106
 ZIW00001	DPU_DISABLE_HK	Disable DPU Housekeeping Parameter Report Generation.		N	NOM_TC	3	6	1212	2	N	Y	N	C	106	N				9	106
 ZIW00002	DPU_UPDATE_HK_PERIOD	Change the period for DPU HK acquisition.		N	NOM_TC	3	130	1212	3	N	Y	N	C	106	N				9	106
@@ -4212,8 +4229,8 @@ ZIX22003	STIX Accept Context	Accept Context		N	NOM_TC	22	3	1452	2	N	Y	N	C	105	N	
 ZIX36001	STIX Mode transition	STIX Mode transition		N	NOM_TC	236	1	1452	2	N	Y	N	C	105	N				9	105
 ZIX36002	STIX Instrument warm reset	STIX Instrument warm reset		N	NOM_TC	236	2	1452	0	N	Y	N	C	105	N				9	105
 ZIX36003	STIX Load Application SW image to RAM	Load Application SW image to RAM		N	NOM_TC	236	3	1452	1	N	Y	N	C	105	N				9	105
-ZIX36004	STIX Power ON a STIX subsystem	Power ON a STIX subsystem		Y	NOM_TC	236	4	1452	2	N	Y	N	C	105	N				9	105
-ZIX36005	STIX Power OFF a STIX subsystem	Power OFF a STIX subsystem		Y	NOM_TC	236	5	1452	2	N	Y	N	C	105	N				9	105
+ZIX36004	STIX Power ON a STIX subsystem	Power ON a STIX subsystem		N	NOM_TC	236	4	1452	2	N	Y	N	C	105	N				9	105
+ZIX36005	STIX Power OFF a STIX subsystem	Power OFF a STIX subsystem		N	NOM_TC	236	5	1452	2	N	Y	N	C	105	N				9	105
 ZIX36007	STIX Enable FDIR function	Enable FDIR function		N	NOM_TC	236	7	1452	1	N	Y	N	C	105	N				9	105
 ZIX36008	STIX Disable FDIR function	Disable FDIR function		N	NOM_TC	236	8	1452	1	N	Y	N	C	105	N				9	105
 ZIX36009	STIX Execute STIX instrument self-test	Execute STIX instrument self-testn		N	NOM_TC	236	9	1452	1	N	Y	N	C	105	N				9	105
@@ -5199,6 +5216,11 @@ ZTC2Z01H	Modify param monitor exp.value (sint16)			N	NOM_TC	12	7	268	14	N	Y	N	C	
 ZTC2Z01J	Modify param monitor exp.value (sint32)			N	NOM_TC	12	7	268	13	N	Y	N	C	6	N				9	6
 ZTC2Z01K	Define HK: TCS Thermal Validity			N	NOM_TC	3	1	268	4	N	Y	N	C	6	N				9	6
 ZTC2Z01M	Define Diag: TCS Spare Parameters			N	NOM_TC	3	2	268	34	N	Y	N	C	6	N				9	6
+ZTC2Z01N	TCS Update heater ID 1			N	NOM_TC	139	1	268	3	N	Y	N	C	6	N				9	6
+ZTC2Z01P	TCS Update heater ID 2			N	NOM_TC	139	1	268	3	N	Y	N	C	6	N				9	6
+ZTC2Z021	TCS Update thermistor ID 1			N	NOM_TC	139	1	268	3	N	Y	N	C	6	N				9	6
+ZTC2Z022	TCS Update thermistor ID 2			N	NOM_TC	139	1	268	3	N	Y	N	C	6	N				9	6
+ZTC2Z023	TCS Update thermistor ID 3			N	NOM_TC	139	1	268	3	N	Y	N	C	6	N				9	6
 ZTC2Z02A	Add param monitor high/low (uint8)			N	NOM_TC	12	5	268	20	N	Y	N	C	6	N				9	6
 ZTC2Z02B	Add param monitor high/low (uint16)			N	NOM_TC	12	5	268	20	N	Y	N	C	6	N				9	6
 ZTC2Z02C	Add param monitor high/low (uint32)			N	NOM_TC	12	5	268	18	N	Y	N	C	6	N				9	6
@@ -5220,7 +5242,6 @@ ZTC4Z002	TCS Set limits: ANY PT-1000			N	NOM_TC	131	1	236	5	N	Y	N	C	8	N				9	8
 ZTC4Z003	TCS Set limits: ANP PT-1000			N	NOM_TC	131	1	236	5	N	Y	N	C	8	N				9	8
 ZTC4Z005	TCS Set limits: ANY UTC 0118MM			N	NOM_TC	131	1	236	5	N	Y	N	C	8	N				9	8
 ZTC4Z006	TCS Set limits: ANY YSI-44907			N	NOM_TC	131	1	236	5	N	Y	N	C	8	N				9	8
-ZTC4Z008	TCS Set limits: ANP iBoom YSI + res			N	NOM_TC	131	1	236	5	N	Y	N	C	8	N				9	8
 ZYP66984	PSS Set HK Gen Pckt 7	This telecommand allows the Dst Set Tlm Symbol Rate selection fu		N	NOM_TC	3	129	1948	3	N	Y	N	C		N				9	
 ZYP66985	PSS Set HK Gen Pckt 6	This telecommand allows the Dst Set Tlm Symbol Rate selection fu		N	NOM_TC	3	129	1948	3	N	Y	N	C		N				9	
 ZYP66986	PSS Set HK Gen Pckt 5	This telecommand allows the Dst Set Tlm Symbol Rate selection fu		N	NOM_TC	3	129	1948	3	N	Y	N	C		N				9	

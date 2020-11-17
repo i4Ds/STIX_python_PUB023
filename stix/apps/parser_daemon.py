@@ -59,7 +59,7 @@ def create_flare_notification(raw_filename, flare_info):
         msg+='\nPeak counts:\n'
         msg+=str(flare_info['peak_counts'])
         msg+='\n'
-        msg+='http://pub023.cs.technik.fhnw.ch/plot/lightcurves?run={}'.format(flare_info['run_id'])
+        msg+='https://www.cs.technik.fhnw.ch/stix/view/plot/lightcurves?run={}'.format(flare_info['run_id'])
         log.write(msg)
         log.close()
 
@@ -106,7 +106,7 @@ def process(instrument, filename):
             logger.info('Starting calibration spectrum analysis...')
             try:
                 calibration_run_ids=summary['calibration_run_ids']
-                report_path=config.calibration['report_path']
+                report_path=DAEMON_CONFIG['report_path']
                 for run_id in calibration_run_ids:
                     calibration.analyze(run_id, report_path)
             except Exception as e:

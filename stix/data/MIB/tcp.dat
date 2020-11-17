@@ -1,4 +1,4 @@
 HPC1_TC	HPC_TC_Packet_Header
 NO_HDR	TCP Header for CF/CS
-NOM_TC	Normal Header
+NOM_TC	NOM_DH_TC_Packet_Header
 NOS2KHDR	NIS Throw Events

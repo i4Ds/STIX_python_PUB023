@@ -2,6 +2,7 @@
 # -*- encoding: utf-8 -*-
 # @title        : stix_parameter.py
 # @date         : Feb. 11, 2019
+# @author       : Hualin Xiao (hualin.xiao@fhnw.ch)
 # @description:
 #               definitions of structures of decoded parameters
 from stix.core import stix_idb

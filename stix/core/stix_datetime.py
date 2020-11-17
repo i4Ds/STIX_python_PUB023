@@ -60,7 +60,7 @@ class SpiceManager:
 
     def scet2utc(self, coarse, fine=0):
         obt_string = '{}:{}'.format(coarse, fine)
-        print(obt_string)
+        #print(obt_string)
         return self.obt2utc(obt_string)
 
     def utc2scet(self, utc):

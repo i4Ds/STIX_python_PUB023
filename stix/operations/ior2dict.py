@@ -39,6 +39,26 @@ def remove_namespace(doc, namespace):
 def unix2utc(ts):
     return datetime.utcfromtimestamp(ts).isoformat()
 
+def get_aspect_uid(utc):
+    if not utc.endswith('Z'):
+        utc += 'Z'
+    level = 5
+    version = 0 
+    start_datetime = dtparser.parse(utc)
+    year = start_datetime.year
+    month = start_datetime.month
+    day = start_datetime.day
+    hour = start_datetime.hour
+    minute = start_datetime.minute
+    request_id = (year & 0xF) << 28
+    request_id |= (month & 0xF) << 24
+    request_id |= (day & 0x1F) << 19
+    request_id |= (hour & 0x1F) << 14
+    request_id |= (minute & 0x3F) << 8
+    request_id |= (level & 0xF) << 4
+    request_id += version
+    return request_id
+
 
 class IORReader(object):
     def __init__(self, mib_path=MIB_PATH):
@@ -253,6 +273,8 @@ class IORReader(object):
                     ]
                     if parameter[0] in ['PIX00076','XF417B01', 'XF417A01']:
                         request['data_request_unique_ids'].append(int(parameter[1]))
+
+
                     occ['parameters'].append(parameter)
 
             occurrences.append(occ)

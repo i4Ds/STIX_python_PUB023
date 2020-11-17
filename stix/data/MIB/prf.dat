@@ -75,11 +75,17 @@ VCD00352	Integer between 1 and 16	R	U	D	1
 VCD00353	Integer between 1 and 19	R	U	D	1	
 VCD00363	Integer between 0 and 22	R	U	D	1	
 VCD00379	Integer between 0 and 12	R	U	D	1	
+VCD00383	Integer between 0 and 16	R	U	D	1	
 VCD2Z001	SGM Door Priority 0 To 6	R	U	D	1	
 VCDX0001	Source Sequence Count	R	U	D	1	
 VCDX0002	Reserved IDs	R	U	D	1	
 VCDX0003	Reserved IDs FCT	R	U	D	1	
 VCDX0004	Reserved IDs MPS	R	U	D	1	
+VCDX0005	INT between 200 and 255	R	U	D	1	
+VCDX0006	INT between 100 and 199	R	U	D	1	
+VCDX0007	INT equal to 0	R	U	D	1	
+VCDX0008	INT between 0 and 255	R	U	D	1	
+VCDX0009	PM RAM Memory IDs	E	A		2	
 VCS2Z000	Health status	R	U	D	1	
 VCTX0001	Thermal Loop Address	E	A		104	
 VIC00000	Valid Macro IDs	R	U	D	1	

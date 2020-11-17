@@ -16,6 +16,9 @@ logger = stix_logger.get_logger()
 
 
 def find_idb(filename):
+    '''
+        search for idb
+    '''
     if filename:
         if os.path.exists(filename):
             return filename
