@@ -1,8 +1,8 @@
 import pymongo
 connect = pymongo.MongoClient('localhost',9000)
 stix=connect['stix']
-collection= stix['operation_requests']
-dreq_collection= stix['user_data_request_forms']
+collection= stix['iors']
+dreq_collection= stix['bsd_req_forms']
 
 def search_occurrences(search_strings):
     results = []

@@ -55,7 +55,7 @@ class IORMongoDB(object):
                                                    password=pwd,
                                                    authSource='stix')
             self.db = self.connect["stix"]
-            self.collection_IOR = self.db['operation_requests']
+            self.collection_IOR = self.db['iors']
         except Exception as e:
             print('can not connect to mongodb')
 
@@ -110,6 +110,7 @@ class IORMongoDB(object):
                 'hidden':False,
                 'phase': '',
                 'processing_time': get_now(),
+                'status':1,
                 'log': ''
             }
 
