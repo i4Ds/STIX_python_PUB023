@@ -22,9 +22,7 @@
 			"file":"/opt/stix/log/stix_message.log"
 		},
 		"fits_path":"/opt/stix/fits",
+		"report_path":"/data/",
 		"ngnix_cache":"/opt/stix/nginx/stix_cache/*"
-	},
-	"calibration":{
-		"report_path":"/data/"
 	}
 }
