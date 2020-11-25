@@ -1,7 +1,7 @@
 
-## STIX Python package
+## STIX data analysis package
 
-This package includes STIX raw data parser, ior reader, data parser Qt GUI, and STIX pipeline data processing scripts. 
+This package includes STIX raw data parser, ior reader, data parser Qt GUI, calibration data processing code, and STIX pipeline data processing code. 
 
 
 
