@@ -1,7 +1,7 @@
 
 ## STIX Python tools
 
-STIX python tools including STIX raw data parser, ior reader, data parser Qt GUI, and STIX data analysis scripts. 
+This package includes STIX raw data parser, ior reader, data parser Qt GUI, and STIX data analysis scripts. 
 
 
 
