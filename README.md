@@ -1,5 +1,5 @@
 
-## STIX Python tools
+## STIX Python package
 
 This package includes STIX raw data parser, ior reader, data parser Qt GUI, and STIX pipeline data processing scripts. 
 
@@ -7,7 +7,7 @@ This package includes STIX raw data parser, ior reader, data parser Qt GUI, and 
 
 
 ### 2. Installation
-   The packet relies on python3 and some extra python modules. 
+   The package relies on python3 and some extra python modules. 
    
 
     
