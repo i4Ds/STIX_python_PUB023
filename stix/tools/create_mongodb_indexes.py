@@ -8,6 +8,13 @@ try:
     collection_ql= db['quick_look']
     collection_data_request_forms= db['bsd_req_forms']
     collection_fits= db['fits']
+    collection_goes= db['goes']
+    print('creating indexes for goes')
+    indexes=[[('start_unix',1)],[('stop_unix',1)]]
+
+    for index in indexes:
+        collection_goes.create_index(index)
+
     print('creating indexes for runs')
     if collection_raw_files:
         indexes=[[('file',1)],[('date',1)]]

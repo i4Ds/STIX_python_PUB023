@@ -56,11 +56,10 @@ def create_notification(raw_filename, alert_headers, summary, flare_info):
             pass
         msg+='\n'
         if alert_headers:
-            msg+='STIX Service 5 message:'
+            msg+='STIX Service 5 message:\n'
             for header in alert_headers:
                 msg+='\tAt {}, TM({},{}) {}\n'.format(header['UTC'], header['service_type'],
                     header['service_subtype'],header['descr'] )
-            msg+='\nMore at https://www.cs.technik.fhnw.ch/stix'
         else:
             msg+='No Service 5 report in the file.\n'
 
