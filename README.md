@@ -68,7 +68,7 @@ python3 setup.py install
 pip install -e .[dev]
 ```
 
-### 3. Usages
+### 3. Usage
 
 #### 3.1. As a command-line STIX data parser
 
