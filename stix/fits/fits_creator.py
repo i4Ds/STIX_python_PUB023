@@ -139,104 +139,7 @@ def generate_filename(level, product_name, product, status, unique_id):
             f'_{dateobs}_{status}{user_req}_{unique_id:05d}.fits'
 
 
-def get_products(packet_list, spids=None):
-    """
-    Filter and split TM packet by SPID and status complete or incomlete
 
-    Complete product are stand-alone packets, or a packet sequence with with with 1 start,
-    n continuation packets and 1 end packet, where n = 0, 1, 2
-
-    Parameters
-    ----------
-    packet_list : `list`
-        List of packets
-    spids : `list` (optional)
-        List of SPIDs if set only process theses SPID other wise process all
-
-    Returns
-    -------
-    `tuple`
-        Two dictionaries containing the complete and incomplete products
-    """
-    filtered_packets = {}
-    num = 0 
-    num_tc=0
-    for pkt in packet_list:
-        if pkt['header']['TMTC'] != 'TM':
-            num_tc += 1
-            continue
-        if 'SPID' in pkt['header']:
-            if pkt['header']['SPID'] not in filtered_packets:
-                filtered_packets[ pkt['header']['SPID']]=[]
-            filtered_packets[pkt['header']['SPID']].append(pkt)
-            num += 1
-    logger.info(f'Number of telemetry packets: {num}')
-    logger.info(f'Number of telecommands: {num_tc}')
-
-
-
-    complete = defaultdict(list)
-    incomplete = defaultdict(list)
-
-
-    for key, packets in filtered_packets.items():
-        sequences = extract_sequences(packets[:])
-        for seq in sequences:
-            if len(seq) == 1 and seq[0]['header']['seg_flag'] == 3: #'stand-alone packet':
-                complete[key].append(seq)
-            elif seq[0]['header']['seg_flag'] == 1  and seq[-1]['header']['seg_flag'] ==  2: #'last packet'):
-                complete[key].append(seq)
-            else:
-                incomplete[key].append(seq)
-                logger.warning(f'Incomplete sequence for {key}')
-
-    return complete, incomplete
-
-
-def extract_sequences(packets):
-    """
-    Extract complete and incomplete sequences of packets.
-
-    Packets can be either stand-alone, first ,continuation or last when TM is downloaded maybe
-    missing some packet so we we try to extract complete and incomplete sequences.
-
-    Parameters
-    ----------
-    packets : list
-        List of packets
-
-    Returns
-    -------
-    list
-        A list of packet packets
-    """
-    out = []
-    i = 0
-    cur_seq = None
-    while i < len(packets):
-        cur_packet = packets.pop(i)
-        cur_flag = cur_packet['header']['segmentation']
-        if cur_flag == 'stand-alone packet':
-            out.append([cur_packet])
-        elif cur_flag == 'first packet':
-            cur_seq = [cur_packet]
-        if cur_flag == 'continuation packet':
-            if cur_seq:
-                cur_seq.append(cur_packet)
-            else:
-                cur_seq = [cur_packet]
-        if cur_flag == 'last packet':
-            if cur_seq:
-                cur_seq.append(cur_packet)
-                out.append(cur_seq)
-            else:
-                out.append([cur_packet])
-            cur_seq = None
-
-    if cur_seq:
-        out.append(cur_seq)
-
-    return out
 
 
 def process_packets(file_id, packet_lists, spid, product, report_status,  basepath=FITS_FILE_DIRECTORY, overwrite=False):
@@ -377,26 +280,52 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  basepa
             logger.error(str(e))
 
 
-def process_products(file_id, products, report_status, basepath, overwrite=False):
-    for spid, packets in products.items():
-        logger.info(f'Processing {report_status} products SPID {spid}')
-        if spid not in SPID_MAP:
-            logger.warning(f'Not supported spid : {spid}')
-            continue
-        product = SPID_MAP[spid]
-        try:
-            process_packets(file_id, packets, spid, product, report_status, basepath, overwrite=overwrite)
-        except Exception as e:
-            raise
-            logger.error(str(e))
 
 
 def create_fits(file_id, output_path):
-    logger.info(f'Requesting packets of file {file_id} from MongoDB')
-    packets = db.select_packets_by_run(file_id)
-    complete_products, incomplete_products = get_products(packets)  # SPID_MAP.keys())
-    process_products(file_id, complete_products, 'complete', output_path, overwrite=True)
-    process_products(file_id, incomplete_products, 'incomplete', output_path, overwrite=True)
+    raw_info=db.get_raw_info(file_id)
+    if not raw_info:
+        logger.info(f"File {file_id} doesn't exist")
+        return
+    spid_packets=raw_info['summary']['spid']
+    for spid in spid_packets:
+        spid=int(spid)
+        logger.info(f'Requesting packets of file {file_id} from MongoDB')
+        if spid not in SPID_MAP:
+            logger.warning(f'Not supported spid : {spid}')
+            continue
+        cursor= db.select_packets_by_run(file_id, [spid])
+        logger.info(f'Number of packets selected for {spid}: {cursor.count()}')
+        product = SPID_MAP[spid]
+        report_status='complete'
+        if spid in [54101, 54102]:
+            packets=[list(cursor)]
+            process_packets(file_id, packets, spid, product, report_status, output_path, overwrite=True)
+            continue
+        packets=[]
+        for i, pkt in enumerate(cursor):
+            seg_flag = int(pkt['header']['seg_flag'])
+            if seg_flag == 3: #'stand-alone packet':
+                packets=[pkt]
+            elif seg_flag == 1:# 'first packet':
+                packets= [pkt]
+            elif seg_flag == 0: #'continuation packet':
+                if packets:
+                    packets.append(pkt)
+                else:
+                    packets= [pkt]
+            elif seg_flag ==2: # 'last packet':
+                if packets:
+                    packets.append(pkt)
+                else:
+                    packets= [pkt]
+            if seg_flag in [3,2]:
+                try:
+                    process_packets(file_id, [packets], spid, product, report_status, output_path, overwrite=True)
+                except Exception as e:
+                    raise
+                    logger.error(str(e))
+
 
 
 if  __name__ == '__main__':

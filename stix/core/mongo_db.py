@@ -72,6 +72,13 @@ class MongoDB(object):
             return True
         else:
             return False
+    def get_raw_info(self,run_id):
+        if self.collection_raw_files:
+            cursor = self.collection_raw_files.find_one({'_id': int(run_id)})
+            return cursor
+        return None
+
+
 
     def get_filename_of_run(self, run_id):
         if self.collection_raw_files:
@@ -149,14 +156,11 @@ class MongoDB(object):
             query_string = {'run_id': int(run_id)}
             if SPIDs:
                 query_string = {
-                    '$and': [{
-                        'run_id': int(run_id)
-                    }, {
+                        'run_id': int(run_id),
                         'header.SPID': {
                             '$in': SPIDs
                         }
-                    }]
-                }
+                    }
             pkts = self.collection_packets.find(query_string).sort(
                 sort_field, order)
         return pkts
