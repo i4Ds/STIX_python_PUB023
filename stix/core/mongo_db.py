@@ -66,6 +66,8 @@ class MongoDB(object):
 
     def get_collection_packets(self):
         return self.collection_packets
+    def get_collection_bsd(self):
+        return self.collection_data_requests
 
     def is_connected(self):
         if self.db:
@@ -77,6 +79,21 @@ class MongoDB(object):
             cursor = self.collection_raw_files.find_one({'_id': int(run_id)})
             return cursor
         return None
+
+    def get_packets_of_bsd_request(self, record_id, header_only=True):
+        packets=[]
+        requests=list(self.collection_data_requests.find({'_id':record_id}).limit(1))
+        if not requests:
+            return []
+        request=requests[0]
+        SPID=request['SPID']
+        if request['SPID'] not in [54114, 54115, 54116,54117, 54143, 54125]:
+            return []
+        packet_ids=request['packet_ids']
+        if header_only:
+            return self.collection_packets.find({'_id':{'$in':packet_ids}}, {'header':1})
+        return self.collection_packets.find({'_id':{'$in':packet_ids}})
+
 
 
 
@@ -300,6 +317,7 @@ class MongoDB(object):
                 sort_field, 1)
             return cursor
         return []
+
 
     def get_quicklook_packets_of_run(self, packet_type, run):
         collection = None

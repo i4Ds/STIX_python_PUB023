@@ -14,7 +14,6 @@ import numpy as np
 from stix.core import stix_datatypes as sdt
 from stix.core import mongo_db as db
 from stix.core import stix_datetime
-from stix.core import stix_datetime
 from stix.core import stix_logger
 logger = stix_logger.get_logger()
 

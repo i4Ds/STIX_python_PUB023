@@ -20,12 +20,14 @@ from stix.core import stix_logger, stix_idb, stix_parser
 from stix.fits import fits_creator
 from  stix.analysis import calibration
 from  stix.analysis import flare_detection
+from  stix.analysis import sci_packets_merger
 logger = stix_logger.get_logger()
 
 S20_EXCLUDED=True
 DO_CALIBRATIONS=True
 ENABLE_FITS_CREATION=True
 DO_FLARE_SEARCH=True
+DO_BULK_SCIENCE_DATA_MERGING=True
 
 daemon_config=config.get_config()['pipeline']['daemon']
 noti_config=daemon_config['notification']
@@ -125,6 +127,10 @@ def process(instrument, filename):
         if DO_FLARE_SEARCH:
             print('Searching for flares')
             flare_info=flare_detection.search(file_id)
+        if DO_BULK_SCIENCE_DATA_MERGING:
+            print('merging bulk science data')
+            sci_packets_merger.process(file_id)
+
     try:
         create_notification(base,alert_headers, summary,flare_info )
     except Exception as e:
