@@ -96,21 +96,21 @@ void find_peaks(TString filename="spectra.root", TString filename_out="test.root
 	Double_t par[10]={0};
 	cout<<"detector, pixel, 35 keV peak, sigma, 80 keV, sigma, Emin, Emax, factor"<<endl;
 	TH2F hcal("hcal","calibration factors", 32,0,32,12,0,12);
-//	for(int i=0;i<32;i++)
-//		for(int j=0;j<12;j++)
- int i=0;
- int j=0;
-if(true)
-		{
+	//	for(int i=0;i<32;i++)
+	//		for(int j=0;j<12;j++)
+	int i=0;
+	int j=0;
+	if(true)
+	{
 
-			peaks(fin, fout,i, j,par);
-			Double_t factor= (par[5]-par[2])/(81-35.);
-			if(par[5]>par[2]){
-				cout<<i<<","<<j<<","<<par[2]<<","<<par[3]<<","<<par[5]<<","<<par[6]
-					<< ","<<350/factor<<","<<1000./factor<<","<<factor<<endl;
-				hcal.SetBinContent(i+1,j+1,factor);
-			}
+		peaks(fin, fout,i, j,par);
+		Double_t factor= (par[5]-par[2])/(81-35.);
+		if(par[5]>par[2]){
+			cout<<i<<","<<j<<","<<par[2]<<","<<par[3]<<","<<par[5]<<","<<par[6]
+				<< ","<<350/factor<<","<<1000./factor<<","<<factor<<endl;
+			hcal.SetBinContent(i+1,j+1,factor);
 		}
+	}
 	fout->cd();
 	hcal.Write();
 

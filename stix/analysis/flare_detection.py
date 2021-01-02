@@ -78,8 +78,8 @@ def find_peaks(data, filter_cutoff_freq=0.03, filter_order=4,
         peak_min_width=15, peak_min_distance=75,  sigma=20 ): # 1min, seperated by 75*4=300 seconds):
     unix_time=data['time']
     lightcurve=data['lc']
-    lc_mean=np.mean(lightcurve)
-    height=lc_mean+sigma
+    median=np.median(lightcurve)
+    height=median+3*np.sqrt(median)
     b,a=signal.butter(filter_order, filter_cutoff_freq, 'low', analog=False) 
     lc_smoothed = signal.filtfilt(b, a, lightcurve)
     xpeaks, properties = signal.find_peaks(lc_smoothed,

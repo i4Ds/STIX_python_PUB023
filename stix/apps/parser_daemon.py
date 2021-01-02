@@ -66,9 +66,9 @@ def create_notification(raw_filename, alert_headers, summary, flare_info):
             msg+='No Service 5 report in the file.\n'
 
         if flare_info:
-            msg+='''\nSTIX detected at least {} solar flares\n \n'''.format(flare_info['num_peaks'])
+            msg+='''\nSTIX detected at least {} solar flare(s)\n \n'''.format(flare_info['num_peaks'])
         else:
-            msg+='\n No solar flare  detected.\n'
+            msg+='\n No solar flare detected.\n'
 
 
         log.write(msg)

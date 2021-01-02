@@ -33,7 +33,7 @@ class SpiceManager:
             SpiceManager.__instance = self
         for pattern in config.get_spice():
             for fname in glob.glob(pattern):
-                logger.info(f'loading spice data file: {fname}')
+                #logger.info(f'loading spice data file: {fname}')
                 spiceypy.furnsh(fname)
 
     def obt2utc(self, obt_string):

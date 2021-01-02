@@ -56,13 +56,13 @@ class StixBulkL0Analyzer(object):
             'counts': [],
         }
 
-        def format_report(self):
-            report = {
+    def format_report(self):
+        report = {
                 'packet_unix': self.packet_unix,
                 'boxes': self.boxes,
                 'auxiliary': self.auxiliary,
             }
-            return report
+        return report
 
     def merge(self, cursor):
 
@@ -131,15 +131,16 @@ class StixBulkL1L2Analyzer(object):
         self.detector_mask = []
         self.triggers = []
         self.hits = []
-        self.hits_time_int = np.zeros((33, 12, 32))  # total hits
-        self.hits_time_ene_int = np.zeros(
-            (33, 12))  # energy integrated total hits
+        #self.hits_time_int = np.zeros((33, 12, 32))  # total hits
+        #self.hits_time_ene_int = np.zeros(
+        #    (33, 12))  # energy integrated total hits
         # self.T0=[]
         self.eacc_SKM = ()
         self.trig_SKM = ()
         self.request_id = -1
         self.packet_unix = 0
         self.groups = []
+        self.pixel_total_counts=[0]*384
         self.num_time_bins = []
 
     def format_report(self):
@@ -149,6 +150,7 @@ class StixBulkL1L2Analyzer(object):
             'groups': self.groups,
             'trig_skm': self.trig_SKM,
             'eacc_skm': self.eacc_SKM,
+            'pixel_total_counts':self.pixel_total_counts,
         }
         return report
 
@@ -214,16 +216,19 @@ class StixBulkL1L2Analyzer(object):
                 num_samples = children[21 + offset][1]
                 samples = children[21 + offset][3]
                 energies = []
+                pixel_indexes = self.get_spectrum_pixel_indexes(
+                    detector_mask, pixel_mask)
                 for j in range(0, num_samples):
                     k = j * 4
                     E1_low = samples[k + 1][1]
                     E2_high = samples[k + 2][1]
-                    pixel_counts = [e[counts_idx] for e in samples[k + 3][3]]
+                    pixel_counts=[]
+                    for idx, e in enumerate(samples[k + 3][3]):
+                        pixel_counts.append(e[counts_idx])
+                        self.pixel_total_counts[pixel_indexes[idx]] += e[counts_idx]
                     energies.append(
                         [E1_low, E2_high,
                          sum(pixel_counts), pixel_counts])
-                pixel_indexes = self.get_spectrum_pixel_indexes(
-                    detector_mask, pixel_mask)
                 group = {
                     'time': time,
                     'rcr': rcr,
