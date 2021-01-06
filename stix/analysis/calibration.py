@@ -267,8 +267,11 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
         
         calibration_params=gpeaks.GetFunction('pol1').GetParameters()
         chisquare=gpeaks.GetFunction('pol1').GetChisquare()
-        result['fcal']={'p0':calibration_params[0],'p1':calibration_params[1], 'chi2':chisquare}
-        result['fcal_errors']=gpeaks.GetFunction('pol1').GetParErrors()
+        fcal_errors=gpeaks.GetFunction('pol1').GetParErrors()
+        result['fcal']={'p0':calibration_params[0],'p1':calibration_params[1], 'chi2':chisquare,
+                'p0error':fcal_errors[0],
+                'p1error':fcal_errors[1],
+                }
     
 
     return result, [g_full_spec, gspec, gpeaks]
