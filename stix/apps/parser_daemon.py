@@ -28,6 +28,7 @@ DO_CALIBRATIONS=True
 ENABLE_FITS_CREATION=True
 DO_FLARE_SEARCH=True
 DO_BULK_SCIENCE_DATA_MERGING=True
+SCI_PACKET_SPIDS= ['54114', '54115', '54116', '54117', '54143', '54125']
 
 daemon_config=config.get_config()['pipeline']['daemon']
 noti_config=daemon_config['notification']
@@ -46,30 +47,36 @@ def create_notification(raw_filename, alert_headers, summary, flare_info):
                 )
         file_id=summary['_id']
         msg+='\n'
-        msg+='\nHK plots: https://www.cs.technik.fhnw.ch/stix/view/plot/housekeeping/file/{}\n'.format(file_id)
+        msg+='\nRaw packets: https://www.cs.technik.fhnw.ch/stix/view/packet/file/{}\n'.format(file_id)
+
         try:
+
+            if '54102' in summary['summary']['spid'] or '54101' in summary['summary']['spid']:
+                msg+='\nHK plots: https://www.cs.technik.fhnw.ch/stix/view/plot/housekeeping/file/{}\n'.format(file_id)
             if '54118' in summary['summary']['spid']:
-                msg+='\nLightcurves: https://www.cs.technik.fhnw.ch/stix/view/plot/lightcurves?run={}\n'.format(file_id)
-            msg+='\nFITS files: https://www.cs.technik.fhnw.ch/stix/view/list/fits/file/{}\n'.format(file_id)
+                msg+='\nLight curves: https://www.cs.technik.fhnw.ch/stix/view/plot/lightcurves?run={}\n'.format(file_id)
+            msg+='\nL1 FITS files: https://www.cs.technik.fhnw.ch/stix/view/list/fits/file/{}\n'.format(file_id)
             if summary['calibration_run_ids']:
-                msg+='\nCalibration: https://www.cs.technik.fhnw.ch/stix/view/plot/calibration/file/{}\n'.format(file_id)
+                msg+='\nCalibration runs: https://www.cs.technik.fhnw.ch/stix/view/plot/calibration/file/{}\n'.format(file_id)
+            if [x for x  in summary['summary']['spid'] if x in SCI_PACKET_SPIDS]:
+                msg+='\nScience data: https://www.cs.technik.fhnw.ch/stix/view/list/bsd/file/{}\n'.format(file_id)
+
         except Exception as e:
             print(e)
             pass
         msg+='\n'
         if alert_headers:
-            msg+='STIX Service 5 message:\n'
+            msg+='STIX Service 5 packets:\n'
             for header in alert_headers:
                 msg+='\tAt {}, TM({},{}) {}\n'.format(header['UTC'], header['service_type'],
                     header['service_subtype'],header['descr'] )
         else:
-            msg+='No Service 5 report in the file.\n'
+            msg+='No Service 5 packet found in the file.\n'
 
         if flare_info:
             msg+='''\nSTIX detected at least {} solar flare(s)\n \n'''.format(flare_info['num_peaks'])
         else:
             msg+='\n No solar flare detected.\n'
-
 
         log.write(msg)
 
