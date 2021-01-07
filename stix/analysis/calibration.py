@@ -98,6 +98,8 @@ def rebin(spec, h, offset, slope):
     pass
 
 def interp(xvals,yvals,xnew):
+    #x y define orignal points
+    #xnew interpolated data points
     f2=interp1d(xvals, yvals)
     min_x=min(xvals)
     max_x=max(xvals)
@@ -269,8 +271,8 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
         chisquare=gpeaks.GetFunction('pol1').GetChisquare()
         fcal_errors=gpeaks.GetFunction('pol1').GetParErrors()
         result['fcal']={'p0':calibration_params[0],'p1':calibration_params[1], 'chi2':chisquare,
-                'p0error':fcal_errors[0],
-                'p1error':fcal_errors[1],
+                'p0error':round(fcal_errors[0],5),
+                'p1error':round(fcal_errors[1],5),
                 }
     
 
@@ -296,6 +298,8 @@ def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
 
     slope = np.zeros((32,12))
     offset = np.zeros((32,12))
+    slope_error = np.zeros((32,12))
+    offset_error = np.zeros((32,12))
 
     
     report={}
@@ -353,16 +357,23 @@ def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
             if 'fcal' in par:
                 slope[detector][pixel]=par['fcal']['p1']
                 offset[detector][pixel]=par['fcal']['p0']
+                slope_error[detector][pixel]=par['fcal']['p1error']
+                offset_error[detector][pixel]=par['fcal']['p0error']
+
     report['pdf']=pdf
     report['elut']=compute_elut(offset,slope)
 
     slope1d=[]
     offset1d=[]
+    slope_error_1d=[]
+    offset_error_1d=[]
 
     for det in range(0,32):
         for pix in range(0,12):
             slope1d.append(slope[det][pix])
             offset1d.append(offset[det][pix])
+            slope_error_1d.append(slope_error[det][pix])
+            offset_error_1d.append(offset_error[det][pix])
 
 
     #do calibration
@@ -416,6 +427,8 @@ def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
 
     report['slope']=slope1d
     report['offset']=offset1d
+    report['slope_error']=slope_error_1d
+    report['offset_error']=offset_error_1d
     report['sum_spectra']=sub_sum_spec
     #calibrated sum spectra
     
