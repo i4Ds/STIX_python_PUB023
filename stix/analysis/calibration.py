@@ -23,7 +23,7 @@ from array import array
 from datetime import datetime
 from stix.core import stix_datatypes as sdt 
 from stix.core import mongo_db  as db
-from ROOT import TGraph, TFile, TCanvas, TH1F, gROOT, TBrowser, gSystem, TH2F, gPad, TF1, TGraphErrors, gStyle, TSpectrum, gRandom, TPaveLabel
+from ROOT import TGraph, TFile, TCanvas, TH1F, gROOT, TBrowser, gSystem, TH2F, gPad, TF1, TGraphErrors, gStyle, TSpectrum, gRandom, TPaveLabel, TPaveText
 
 from scipy.interpolate import interp1d
 
@@ -32,7 +32,7 @@ from scipy.interpolate import interp1d
 FIT_MIN_X=252
 FIT_MAX_X=448
 MAX_ALLOWED_SIGMA_ERROR = 20  #maximum allowed peak error
-ENERGY_CONVERSION_FACTOR=2.3 
+MEAN_ENERGY_CONVERSION_FACTOR=2.31
 MIN_COUNTS=100
 #2.3 ADC/keV
 #Estimated energy conversion factor
@@ -40,8 +40,7 @@ MIN_COUNTS=100
 
 DEFAULT_OUTPUT_DIR='/data/'
 MIN_COUNTS_PEAK_FIND=50
-ELUT_ENERGIES=[
-4, 5, 6, 7,
+ELUT_ENERGIES=[4, 5, 6, 7,
 8, 9, 10,11,
 12, 13,14, 15,
 16,18, 20, 22,
@@ -50,6 +49,8 @@ ELUT_ENERGIES=[
 63, 70, 76, 84,
 100,120, 150]
 
+PHOTO_PEAKS_POS=[30.85, 35.13, 81]
+#PHOTO_PEAKS_POS=[30.85, 35.05, 81]
 
 mdb = db.MongoDB()
 gROOT.SetBatch(True)
@@ -171,19 +172,19 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
     peak1_x=x[y.index(peak1_y)]
     #find the peak with highest counts in the predefined range
 
-    x_shift=ENERGY_CONVERSION_FACTOR*(81-31)
+    x_shift=MEAN_ENERGY_CONVERSION_FACTOR*(81-31)
     peak3_xmin=peak1_x+ 0.9*x_shift
     peak3_xmax=peak1_x+ 1.1*x_shift
 
     # max conversion factor = 2.5 ADC/keV
     fit_range_x_left=5
     fit_range_x_right=15
-    fit_range_peak3_x_left=3
+    fit_range_peak3_x_left=2
 
     peak3_max_x=0
     peak3_max_y=0
 
-    peak2_x=peak1_x+4.1*ENERGY_CONVERSION_FACTOR
+    peak2_x=peak1_x+4.2*MEAN_ENERGY_CONVERSION_FACTOR
 
 
     
@@ -194,31 +195,31 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
             peak3_max_x=ix
             peak3_max_y=iy
     fgaus1 = TF1( 'fgaus1_{}'.format(name), 'gaus',  peak1_x-fit_range_x_left,  peak1_x+ fit_range_x_right)
-    fgaus2 = TF1( 'fgaus2_{}'.format(name), 'gaus', peak2_x - 5, peak2_x + fit_range_x_right)
+    fgaus2 = TF1( 'fgaus2_{}'.format(name), 'gaus', peak2_x - fit_range_x_left, peak2_x + fit_range_x_right)
     fgaus3 = TF1( 'fgaus3_{}'.format(name), 'gaus', peak3_max_x- fit_range_peak3_x_left,  peak3_max_x + fit_range_x_right)
 
-    fgaus12 = TF1( 'fgaus12_{}'.format(name), 'gaus(0)+gaus(3)', peak1_x-fit_range_x_left, peak2_x+fit_range_x_right, 6)
+
     gspec=graph2(x,y, 'Spectrum - {}'.format(title), 'ADC channel','Counts')
 
 
     gspec.Fit(fgaus1,'RQ')
     gspec.Fit(fgaus2,'RQ+')
     gspec.Fit(fgaus3,'RQ')
-    gspec.Fit(fgaus12,'RQ+')
-    par = array( 'd', 6*[0.] )
     par1 = fgaus1.GetParameters()
     par2 = fgaus2.GetParameters()
     par3 = fgaus3.GetParameters()
     par3_errors = fgaus3.GetParErrors()
-    par[0], par[1], par[2] = par1[0], par1[1], par1[2]
-    par[3], par[4], par[5] = par2[0], par2[1], par2[2]
+
+    fgaus12 = TF1( 'fgaus12_{}'.format(name), 'gaus(0)+gaus(3)', par1[1]-2, par2[1]+3, 6)
+    par=array('d',[par1[0], par1[1], par1[2],par2[0], par2[1], par2[2]])
     fgaus12.SetParameters(par)
     gspec.Fit( fgaus12, 'RQ+' )
     param=fgaus12.GetParameters()
     param_errors=fgaus12.GetParErrors()
 
     fo.cd()
-    gspec.Write()
+    gspec.Write(f'spec_fits_{name}')
+    g_full_spec.Write(f'spec_{name}')
     fgaus12.Write()
     result={
             'detector':detector,
@@ -242,17 +243,17 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
     peak_y=[]
     peak_ey=[]
     if param_errors[2]<MAX_ALLOWED_SIGMA_ERROR:
-        peak_x.append(30.85)
+        peak_x.append(PHOTO_PEAKS_POS[0])
         peak_ex.append(0.)
         peak_y.append(param[1])
         peak_ey.append(param_errors[1])
-    if param_errors[5]<MAX_ALLOWED_SIGMA_ERROR:
-        peak_x.append(35.2)
-        peak_ex.append(0.)
-        peak_y.append(param[4])
-        peak_ey.append(param_errors[4])
+    #if param_errors[5]<MAX_ALLOWED_SIGMA_ERROR:
+    #    peak_x.append(PHOTO_PEAKS_POS[1])
+    #    peak_ex.append(0.)
+    #    peak_y.append(param[4])
+    #    peak_ey.append(param_errors[4])
     if par3_errors[2]<MAX_ALLOWED_SIGMA_ERROR:
-        peak_x.append(81)
+        peak_x.append(PHOTO_PEAKS_POS[2])
         peak_ex.append(0.)
         peak_y.append(par3[1])
         peak_ey.append(par3_errors[1])
@@ -276,7 +277,7 @@ def find_peaks(detector, pixel, subspec, start, num_summed, spectrum, fo):
                 }
     
 
-    return result, [g_full_spec, gspec, gpeaks]
+    return result, [g_full_spec, gspec, gpeaks,fgaus12, fgaus3]
     
 
 
@@ -309,6 +310,24 @@ def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
     canvas=TCanvas("c","canvas", 1200, 500)
     pdf='{}.pdf'.format(fname_out)
     canvas.Print(pdf+'[')
+    # make cover
+    cover=TCanvas()
+    t1 = TPaveText(.1, .6, .9, .9)
+    t1.AddText(f"Calibration run {calibration_id} analysis report")
+    t1.SetTextAlign(22)
+    t1.SetTextFont(52)
+    t1.SetTextColor(4)
+    t1.SetFillColor(24)
+    t1.Draw()
+    t2ptxt = TPaveText(.1, .3, .9, .58)
+    t2ptxt.SetTextAlign(12)
+    t2ptxt.SetTextFont(52)
+    now=f'Created at {datetime.now().isoformat()}'
+    t2ptxt.AddText(now)
+    t2ptxt.Draw()
+    cover.Print(pdf)
+
+
     canvas.Divide(3,2)
     last_plots=None
     for spec in spectra:
@@ -337,16 +356,17 @@ def analyze(calibration_id, output_dir=DEFAULT_OUTPUT_DIR):
                 last_plots[1].Draw("AL")
             canvas.cd(3)
             if last_plots[2]:
-                last_plots[2].Draw("ALP")
+                last_plots[2].Draw("AP")
             canvas.cd(4)
             if plots[0]:
                 plots[0].Draw("AL")
             canvas.cd(5)
             if plots[1]:
+                #plot[3].Draw()
                 plots[1].Draw("AL")
             canvas.cd(6)
             if plots[2]:
-                plots[2].Draw("ALP")
+                plots[2].Draw("AP")
             canvas.Print(pdf)
             last_plots=[]
         else:

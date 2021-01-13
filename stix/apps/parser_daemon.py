@@ -105,7 +105,6 @@ def process(instrument, filename):
     parser.set_MongoDB_writer(mongodb_config['host'],mongodb_config['port'],
             mongodb_config['user'], mongodb_config['password'],'',filename, instrument)
     logger.info('{}, processing {} ...'.format(get_now(), filename))
-    print('{}, processing {} ...'.format(get_now(), filename))
     if S20_EXCLUDED:
         parser.exclude_S20()
     parser.set_store_binary_enabled(False)
@@ -115,6 +114,7 @@ def process(instrument, filename):
         parser.parse_file(filename) 
         alert_headers=parser.get_stix_alerts()
     except Exception as e:
+        print(str(e))
         logger.error(str(e))
         return
     summary=parser.done()
@@ -131,12 +131,12 @@ def process(instrument, filename):
         if ENABLE_FITS_CREATION:
             file_id=summary['_id']
             fits_creator.create_fits(file_id, daemon_config['fits_path'])
-        if DO_FLARE_SEARCH:
-            print('Searching for flares')
-            flare_info=flare_detection.search(file_id)
         if DO_BULK_SCIENCE_DATA_MERGING:
-            print('merging bulk science data')
+            logger.info('merging bulk science data')
             sci_packets_merger.process(file_id)
+        if DO_FLARE_SEARCH:
+            logger.info('Searching for flares')
+            flare_info=flare_detection.search(file_id)
 
     try:
         create_notification(base,alert_headers, summary,flare_info )
@@ -147,8 +147,7 @@ def process(instrument, filename):
 def main_loop():
     while True:
 
-        print('Start checking ...')
-        print(get_now())
+        print('Start checking for new files...')
         mdb=mongo_db.MongoDB(mongodb_config['host'], mongodb_config['port'], 
                 mongodb_config['user'], mongodb_config['password'])
 

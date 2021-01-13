@@ -1,4 +1,7 @@
-# merge bulk science data packets and write results to mongodb
+#!/usr/bin/python3
+# author: Hualin Xiao
+# pre-process science data, merge bulk science data packets and write merged data to json files 
+# so that web client side could load the data quickly
 import sys
 import os
 import json

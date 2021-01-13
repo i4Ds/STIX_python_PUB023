@@ -12,6 +12,7 @@ import math
 import re
 import struct as st
 import binascii
+import hashlib
 import pathlib
 from pprint import pprint
 import xmltodict
@@ -1019,6 +1020,7 @@ class StixTCTMParser(StixParameterParser):
         self.inc_counter('total_length', length)
         if i >= length:
             return []
+        raw_binary = b''
         while i < length and not self.stop_parsing:
             packet = None
             STIX_DECOMPRESSOR.reset()
@@ -1085,8 +1087,11 @@ class StixTCTMParser(StixParameterParser):
 
                 packet = {'header': header, 'parameters': parameters}
                 self.inc_counter('num_tm_parsed')
+                raw_binary=header_raw + data_field_raw
                 if self.store_binary:
-                    packet['bin'] = header_raw + data_field_raw
+                    packet['bin'] = raw_binary
+
+                #unique id
 
             elif buf[i] in stix_header.TC_HEADER_FIRST_BYTE:
 
@@ -1133,8 +1138,9 @@ class StixTCTMParser(StixParameterParser):
                     #used for instrument health tracking
                 packet = {'header': header, 'parameters': parameters}
                 self.inc_counter('num_tc_parsed')
+                raw_binary=buf[i:i + 10] + data_field_raw
                 if self.store_binary:
-                    packet['bin'] = buf[i:i + 10] + data_field_raw
+                    packet['bin'] = raw_binary
 
             else:
                 old_i = i
@@ -1149,6 +1155,7 @@ class StixTCTMParser(StixParameterParser):
                         i, i - old_i))
 
             if packet:
+                packet['hash']=hashlib.shake_256(raw_binary).hexdigest(8)
                 if header_auxiliary:
                     for key, val in header_auxiliary.items():
                         packet['header'][key] = val
