@@ -107,7 +107,7 @@ def process(instrument, filename):
     logger.info('{}, processing {} ...'.format(get_now(), filename))
     if S20_EXCLUDED:
         parser.exclude_S20()
-    parser.set_store_binary_enabled(False)
+    #parser.set_store_binary_enabled(False)
     parser.set_packet_buffer_enabled(False)
     alert_headers=None
     try:

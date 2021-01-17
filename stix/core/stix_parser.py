@@ -14,7 +14,6 @@ import struct as st
 import binascii
 import hashlib
 import pathlib
-from pprint import pprint
 import xmltodict
 from scipy import interpolate
 from dateutil import parser as dtparser
@@ -772,8 +771,8 @@ class StixTCTMParser(StixParameterParser):
         self.context_parser = StixContextParser()
         self.selected_services = []
         self.selected_spids = []
-        self.store_binary = True
-        self.is_live_hex_stream = False
+        #self.store_binary = True
+        #self.is_live_hex_stream = False
         #self.decoded_packets = []
         self.raw_filename = ''
         self.in_filesize = 0
@@ -843,11 +842,11 @@ class StixTCTMParser(StixParameterParser):
         self.selected_services = selected_services
         self.selected_spids = selected_spids
 
-    def set_store_binary_enabled(self, status):
-        """
-          store raw binary  in the output 
-        """
-        self.store_binary = status
+    #def set_store_binary_enabled(self, status):
+    #    """
+    #      store raw binary  in the output 
+    #    """
+    #    self.store_binary = status
 
     def parse_telemetry_header(self, packet):
         """ see STIX ICD-0812-ESC  (Page # 57) """
@@ -1088,8 +1087,8 @@ class StixTCTMParser(StixParameterParser):
                 packet = {'header': header, 'parameters': parameters}
                 self.inc_counter('num_tm_parsed')
                 raw_binary=header_raw + data_field_raw
-                if self.store_binary:
-                    packet['bin'] = raw_binary
+                #if self.store_binary:
+                #    packet['bin'] = raw_binary
 
                 #unique id
 
@@ -1139,8 +1138,8 @@ class StixTCTMParser(StixParameterParser):
                 packet = {'header': header, 'parameters': parameters}
                 self.inc_counter('num_tc_parsed')
                 raw_binary=buf[i:i + 10] + data_field_raw
-                if self.store_binary:
-                    packet['bin'] = raw_binary
+                #if self.store_binary:
+                #    packet['bin'] = raw_binary
 
             else:
                 old_i = i
@@ -1171,12 +1170,12 @@ class StixTCTMParser(StixParameterParser):
 
         return packets
 
-    def parse_live_hex_stream(self, raw):
-        #used to parse live hex stream from TSC
-        self.is_live_hex_stream = True
-        self.set_store_binary_enabled(False)
-        self.set_packet_buffer_enabled(False)
-        self.parse_hex(raw)
+    #def parse_live_hex_stream(self, raw):
+    #    #used to parse live hex stream from TSC
+    #    self.is_live_hex_stream = True
+    #    #self.set_store_binary_enabled(False)
+    #    self.set_packet_buffer_enabled(False)
+    #    self.parse_hex(raw)
 
     def parse_hex(self, raw_hex):
         hex_string = re.sub(r"\s+", "", raw_hex)
@@ -1223,12 +1222,13 @@ class StixTCTMParser(StixParameterParser):
 
         pkt_header['UTC'] = ''
         pkt_header['unix_time'] = 0
-        if self.is_live_hex_stream:
-            pkt_header['unix_time'] = stix_datetime.get_now('unix')
-            pkt_header['UTC'] = stix_datetime.get_now('utc')
-            return
+        #if self.is_live_hex_stream:
+        #    pkt_header['unix_time'] = stix_datetime.get_now('unix')
+        #    pkt_header['UTC'] = stix_datetime.get_now('utc')
+        #    return
         use_receipt_time = False
         if self.receipt_utc:
+            #GU data
             try:
                 dt = dtparser.parse(self.receipt_utc)
                 pkt_header['UTC'] = dt

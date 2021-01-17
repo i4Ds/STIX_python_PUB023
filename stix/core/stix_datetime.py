@@ -5,6 +5,8 @@ import glob
 from datetime import datetime
 from dateutil import parser as dtparser
 
+from astropy.time import Time
+
 import spiceypy
 from stix.core import stix_logger
 from stix.core import config
@@ -209,6 +211,8 @@ def utc_to_scet(utc):
 
 
 def datetime_to_scet(dt):
+    if isinstance(dt, Time):
+        dt= dt.to_datetime()
     utc_iso = dt.isoformat(timespec='microseconds')
     scet = utc_to_scet(utc_iso)[2:]
     return scet

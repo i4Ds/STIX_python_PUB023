@@ -5,17 +5,15 @@ import numpy as np
 
 from stix.core.stix_datetime import scet_to_datetime
 from stix.fits.io.housekeeping import mini, maxi
-
-
 SKIP_ATTRS = {'scet_coarse', 'scet_fine', 'obs_utc', 'obs_beg', 'period', 'obs_avg', 'obs_end',
               'num_samples'}
-
 
 class MiniReport:
     """
     Mini house keeping reported during start up of the flight software.
     """
     def __init__(self, stix_packets):
+
         self.num_samples = len(stix_packets['coarse_time'])
         # Header
         self.scet_coarse = stix_packets['coarse_time']
@@ -91,6 +89,7 @@ class MaxiReport:
     Maxi house keeping reported in all modes while the flight software is running.
     """
     def __init__(self, stix_packets):
+
         self.num_samples = len(stix_packets['coarse_time'])
         # Header
         self.scet_coarse = stix_packets['coarse_time']

@@ -57,6 +57,8 @@ class MongoDB(object):
 
     def get_db(self):
         return self.db
+    def get_collection(self,colname):
+        return self.db[colname]
 
     def get_collection_calibration(self):
         return self.collection_calibration

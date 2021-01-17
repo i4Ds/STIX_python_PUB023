@@ -24,6 +24,9 @@ def load_config(path='./config'):
         for namespace, filename in data.items():
             import_config(namespace, path, filename)
 
+def config(key):
+    return parser_config.get(key,'')
+
 
 def get_idb(utc=None):
     if not utc:
