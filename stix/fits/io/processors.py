@@ -170,13 +170,13 @@ class FitsL1Processor:
             path=self.archive_path
             #path.mkdir(parents=True, exist_ok=True)
             fitspath = path / filename
-            print('Fits filename:', fitspath.as_posix())
-            if fitspath.exists():
-                logger.info('Fits file %s exists appending data', fitspath.name)
-                existing = prod.from_fits(fitspath)
-                # logger.debug('Existing %s \n New %s', existing, prod)
-                prod = prod + existing
-                # logger.debug('Combined %s', prod)
+            logger.info(f'Fits filename:{fitspath.as_posix()}')
+            #if fitspath.exists():
+            #    logger.info(f'Fits file %s exists appending data {fitspath.name}')
+            #    existing = prod.from_fits(fitspath)
+            #    # logger.debug('Existing %s \n New %s', existing, prod)
+            #    prod = prod + existing
+            #    # logger.debug('Combined %s', prod)
 
             control = prod.control
             data = prod.data

@@ -223,14 +223,13 @@ def purge_fits_for_raw_file(file_id):
 
 
 def create_fits(file_id, output_path, overwrite=True,  version=1):
-    raw_info=db.get_raw_info(file_id)
     if overwrite:
         purge_fits_for_raw_file(file_id)
-    if not raw_info:
-        logger.info(f"File {file_id} doesn't exist")
+    spid_packets=db.get_file_spids(file_id)
+    print(spid_packets)
+    if not spid_packets:
+        logger.warning(f'File {file_id} has no packet!')
         return
-    spid_packets=raw_info['summary']['spid']
-    #print(spid_packets)
     for spid in spid_packets:
         spid=int(spid)
         if spid not in SPID_MAP.keys():

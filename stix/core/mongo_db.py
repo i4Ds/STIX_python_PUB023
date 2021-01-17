@@ -319,6 +319,9 @@ class MongoDB(object):
                 sort_field, 1)
             return cursor
         return []
+    def get_file_spids(self, file_id):
+        return [int(x) for x in self.collection_packets.distinct('header.SPID',{'run_id':int(file_id)}) if x]
+
 
 
     def get_quicklook_packets_of_run(self, packet_type, run):

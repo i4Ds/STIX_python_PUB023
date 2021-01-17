@@ -129,14 +129,27 @@ def process(instrument, filename):
             except Exception as e:
                 logger.error(str(e))
         if ENABLE_FITS_CREATION:
-            file_id=summary['_id']
-            fits_creator.create_fits(file_id, daemon_config['fits_path'])
+            logger.info('Creating fits files...')
+            try:
+                file_id=summary['_id']
+                fits_creator.create_fits(file_id, daemon_config['fits_path'])
+            except Exception as e:
+                logger.error(str(e))
+
         if DO_BULK_SCIENCE_DATA_MERGING:
-            logger.info('merging bulk science data')
-            sci_packets_merger.process(file_id)
+            logger.info('merging bulk science data and preparing bsd json files...')
+            try:
+                sci_packets_merger.process(file_id)
+            except Exception as e:
+                logger.error(str(e))
+            
         if DO_FLARE_SEARCH:
             logger.info('Searching for flares')
-            flare_info=flare_detection.search(file_id)
+            try:
+                flare_info=flare_detection.search(file_id)
+            except Exception as e:
+                logger.error(str(e))
+
 
     try:
         create_notification(base,alert_headers, summary,flare_info )
