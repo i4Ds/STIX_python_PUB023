@@ -157,7 +157,6 @@ def maxi(num_samples):
     )
 
     data_coldefs = fits.ColDefs(data_columns)
-    data_hdu = fits.BinTableHDU.from_columns(data_coldefs)
-    data_hdu.name='DATA'
+    data_hdu = fits.BinTableHDU.from_columns(data_coldefs, name='DATA')
     primary = fits.PrimaryHDU()
     return fits.HDUList([primary, data_hdu])

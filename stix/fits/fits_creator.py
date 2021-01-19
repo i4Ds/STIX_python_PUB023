@@ -26,7 +26,8 @@ db= mongo_db.MongoDB()
 
 FITS_PATH='/data/fits/'
 
-fits_version=1
+DATA_LEVEL='L1A'
+
 
 
 SPID_MAP = {
@@ -189,6 +190,7 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  base_p
                     'filename': meta['filename'],
                     'complete':complete,
                     'version': version,
+                    'level':DATA_LEVEL,
                     'creation_time':datetime.utcnow(),
                     'path':base_path_name,
                     }

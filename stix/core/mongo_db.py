@@ -242,7 +242,7 @@ class MongoDB(object):
 
     def get_next_fits_id(self):
         try:
-            return self.collection_fits.find().sort('_id',
+            return self.collection_fits.find({}).sort('_id',
                                                     -1).limit(1)[0]['_id'] + 1
         except IndexError:
             return 0

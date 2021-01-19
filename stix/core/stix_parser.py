@@ -1395,5 +1395,7 @@ class StixTCTMParser(StixParameterParser):
     def set_verbose_level(self, verbose_level):
         logger.set_level(verbose_level)
 
+    def set_store_binary_enabled(self, stat):
+        self.store_binary=stat
     def set_progress_bar_enabed(self, value):
         logger.set_progress_enabled(value)
