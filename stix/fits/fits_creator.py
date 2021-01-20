@@ -185,19 +185,19 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  base_p
                     'file_id':int(file_id), 
                     'product_type':product, 
                     'product_group':product_type,
-                    'data_start_unix':meta['data_start_unix'],
-                    'data_end_unix':meta['data_end_unix'],
-                    'filename': meta['filename'],
+                    #'data_start_unix':meta['data_start_unix'],
+                    #'data_end_unix':meta['data_end_unix'],
+                    #'filename': meta['filename'],
                     'complete':complete,
                     'version': version,
                     'level':DATA_LEVEL,
                     'creation_time':datetime.utcnow(),
                     'path':base_path_name,
                     }
-            if hasattr(prod, 'request_id'):
-                doc['request_id']=prod['request_id']
+            if meta:
+                doc.update(meta)
 
-            #print(doc)
+            print(doc)
             db.write_fits_index_info(doc)
             logger.info(f'created  fits file:  {meta["filename"]}')
 

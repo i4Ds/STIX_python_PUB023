@@ -211,6 +211,8 @@ class FitsL1Processor:
                     'data_end_unix': prod.obs_end.to_datetime().timestamp(),
                     'filename':filename
                     }
+            if 'request_id' in control.colnames:
+                self.meta['request_id']=int(control['request_id'][0])
 
     def generate_filename(self, product=None, status=''):
         """
