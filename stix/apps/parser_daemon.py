@@ -30,15 +30,12 @@ DO_FLARE_SEARCH=True
 DO_BULK_SCIENCE_DATA_MERGING=True
 SCI_PACKET_SPIDS= ['54114', '54115', '54116', '54117', '54143', '54125']
 
-daemon_config=config.get_config()['pipeline']['daemon']
-noti_config=daemon_config['notification']
-mongodb_config=config.get_config()['pipeline']['mongodb']
+daemon_config=config.get_config('pipeline.daemon')
+noti_config=config.get_config('pipeline.daemon.notification')
+mongodb_config=config.get_config('pipeline.mongodb')
 
 def get_now():
     return datetime.now().isoformat()
-
-
-
 def create_notification(raw_filename, alert_headers, summary, flare_info):
     with open(noti_config['file'],'a+') as log:
         msg='New file: {}\n'.format(raw_filename)
@@ -48,9 +45,7 @@ def create_notification(raw_filename, alert_headers, summary, flare_info):
         file_id=summary['_id']
         msg+='\n'
         msg+='\nRaw packets: https://www.cs.technik.fhnw.ch/stix/view/packet/file/{}\n'.format(file_id)
-
         try:
-
             if '54102' in summary['summary']['spid'] or '54101' in summary['summary']['spid']:
                 msg+='\nHK plots: https://www.cs.technik.fhnw.ch/stix/view/plot/housekeeping/file/{}\n'.format(file_id)
             if '54118' in summary['summary']['spid']:
@@ -80,17 +75,19 @@ def create_notification(raw_filename, alert_headers, summary, flare_info):
 
         log.write(msg)
 
-
-def remove_ngnix_cache_files():
+def remove_ngnix_cache():
     '''
         remove ngnix cache if ngnix cache folder is defined in the configuration file
     '''
-    try:
-        files=glob.glob(daemon_config['ngnix_cache'])
-    except Exception:
-        return
+    files=glob.glob(daemon_config['ngnix_cache'])
+    logger.info('Removing nginx cache..')
     for fname in files:
-        os.remove(fname)
+        try:
+            os.remove(fname)
+        except OSError as e:
+            logger.error(str(e))
+    logger.info('Nginx cache removed')
+
 
 
 
@@ -123,7 +120,7 @@ def process(instrument, filename):
             logger.info('Starting calibration spectrum analysis...')
             try:
                 calibration_run_ids=summary['calibration_run_ids']
-                report_path=daemon_config['report_path']
+                report_path=daemon_config['calibration_report_path']
                 for run_id in calibration_run_ids:
                     calibration.analyze(run_id, report_path)
             except Exception as e:
@@ -144,18 +141,16 @@ def process(instrument, filename):
                 logger.error(str(e))
             
         if DO_FLARE_SEARCH:
-            logger.info('Searching for flares')
+            logger.info('Searching for flares..')
             try:
                 flare_info=flare_detection.search(file_id)
             except Exception as e:
                 logger.error(str(e))
-
-
     try:
         create_notification(base,alert_headers, summary,flare_info )
     except Exception as e:
-        print(str(e))
-    remove_ngnix_cache_files()
+        logger.info(str(e))
+    remove_ngnix_cache()
 
 def main_loop():
     while True:
@@ -165,7 +160,6 @@ def main_loop():
                 mongodb_config['user'], mongodb_config['password'])
 
         filelist={}
-        
         for instrument, selectors in daemon_config['data_source'].items():
             for pattern in selectors:
                 filenames=glob.glob(pattern)
@@ -187,6 +181,5 @@ if __name__ == '__main__':
     if len(sys.argv)==1:
         main_loop()
     else:
-        #for test
         process('GU', sys.argv[1])
 

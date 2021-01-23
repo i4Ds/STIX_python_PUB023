@@ -12,14 +12,16 @@
 """
 import sys
 import os
+sys.path.append('.')
 import json
 import time
 import requests
 import pymongo
 from datetime import datetime
 from dateutil import parser as dtparser
+from stix.core import config
 
-GEOS_DATA_DIRECTORY='/opt/stix/goes'
+GEOS_DATA_DIRECTORY=config.get_config('pipeline.daemon.goes_lc_path')
 
 def utc2unix(utc):
     if isinstance(utc, str):

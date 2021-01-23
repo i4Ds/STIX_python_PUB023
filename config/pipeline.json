@@ -11,19 +11,19 @@
 				"/home/xiaohl/data/*.ascii"
 		 ],
 		 "PFM":[
-			 "/data/*ascii",
-			 "/data/*xml",
-			 "/opt/stix/gfts/solmoc/from_moc/*.xml",
-			 "/opt/stix/gfts/solmoc/from_moc/*ascii"
+			 "/data/gfts/solmoc/from_moc/*.xml",
+			 "/data/gfts/solmoc/from_edds/*.xml",
+			 "/data/gfts/solmoc/from_moc/*ascii"
 		 ]
 		},
-		"log_path":"/opt/stix/log/",
+		"log_path":"/data/log/",
 		"notification":{
-			"file":"/opt/stix/log/stix_message.log"
+			"file":"/data/log/stix_message.log"
 		},
-		"fits_path":"/opt/stix/fits",
-		"report_path":"/data/",
+		"fits_path":"/data/fits",
+		"calibration_report_path":"/data/calibration/",
 		"level1_products_path":"/data/level1/",
-		"ngnix_cache":"/opt/stix/nginx/stix_cache/*"
+		"ngnix_cache":"/data/nginx/stix_cache/*",
+		"goes_lc_path": "/data/goes/"
 	}
 }

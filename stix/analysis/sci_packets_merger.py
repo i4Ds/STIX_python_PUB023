@@ -13,7 +13,7 @@ from stix.core import stix_logger
 from stix.core import config
 mdb = db.MongoDB()
 logger = stix_logger.get_logger()
-level1_products_path=config.get_config()['pipeline']['daemon'].get('level1_products_path','')
+level1_products_path=config.get_config('pipeline.daemon.level1_products_path')
 
 DATA_REQUEST_REPORT_SPIDS = [54114, 54115, 54116, 54117, 54143, 54125]
 DATA_REQUEST_REPORT_NAME = {

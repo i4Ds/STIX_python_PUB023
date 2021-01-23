@@ -23,8 +23,25 @@ def load_config(path='./config'):
         data=json.load(f)
         for namespace, filename in data.items():
             import_config(namespace, path, filename)
-
 def config(key):
+    return parser_config.get(key,'')
+
+
+def get_config(key=None):
+    # get configuration value
+    # For example:  get_config(pipeline.daemon.fits_path)
+    if not key:
+        return  parser_config
+
+    if '.' in key:
+        result=parser_config
+        try:
+            for  item in key.split('.'):
+                result=result[item]
+            return result
+        except IndexError or ValueError:
+            logger.error(f'Can not find  {key} in config')
+            return None
     return parser_config.get(key,'')
 
 
@@ -54,8 +71,6 @@ def get_spice(utc=None):
         if dt > dtparser.parse(item['validity_period'][0]) and dt<=dtparser.parse(item['validity_period'][1]):
             return item['data']
     return []
-def get_config():
-    return parser_config
 
 
     
