@@ -197,7 +197,7 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  base_p
             if meta:
                 doc.update(meta)
 
-            print(doc)
+            #print(doc)
             db.write_fits_index_info(doc)
             logger.info(f'created  fits file:  {meta["filename"]}')
 
@@ -228,7 +228,7 @@ def create_fits(file_id, output_path, overwrite=True,  version=1):
     if overwrite:
         purge_fits_for_raw_file(file_id)
     spid_packets=db.get_file_spids(file_id)
-    print(spid_packets)
+    #print(spid_packets)
     if not spid_packets:
         logger.warning(f'File {file_id} has no packet!')
         return

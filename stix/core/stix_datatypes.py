@@ -340,7 +340,7 @@ class Packet(object):
         for p in parameters:
             param = Parameter(p)
             name = param.name
-            value = param['raw']
+            value = param['eng'] if value_type=='eng' and param['eng'] else param['raw']
             if value_type == 'eng':
                 value = param['eng']
             #if 'NIXG' not in name:
@@ -351,7 +351,7 @@ class Packet(object):
 
             if param['children']:
                 Packet.merge_parameters(result, param.children, value_type)
-            #dosen't work
+            #doesn't work
 
     def children_as_dict(self, parameter_names=None, children=None):
         if not children:

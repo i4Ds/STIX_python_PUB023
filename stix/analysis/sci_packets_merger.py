@@ -360,7 +360,6 @@ class StixBulkL4Analyzer(object):
         return report
 
     def merge(self, cursor):
-
         for pkt in cursor:
             packet = sdt.Packet(pkt)
             self.request_id = packet[3].raw

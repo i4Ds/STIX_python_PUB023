@@ -12,7 +12,8 @@
 		 ],
 		 "PFM":[
 			 "/data/gfts/solmoc/from_moc/*.xml",
-			 "/data/gfts/solmoc/from_edds/*.xml",
+			 "/data/gfts/solmoc/from_edds/tm/*.xml",
+			 "/data/gfts/solmoc/from_edds/tc/*.xml",
 			 "/data/gfts/solmoc/from_moc/*ascii"
 		 ]
 		},

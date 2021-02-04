@@ -9,6 +9,8 @@
 """
 
 import os
+import sys
+sys.path.append('.')
 from scipy import signal
 import numpy as np
 from stix.core import stix_datatypes as sdt
@@ -108,7 +110,7 @@ def save_database(data):
                 #'properties':properties,
                 'run_id':data['run_id']
                 }
-        mdb.write_flares(result)
+        mdb.save_flare_candidate_info(result)
     return result
 
 def search(run_id, filter_cutoff_freq=0.03, filter_order=4,

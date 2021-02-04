@@ -49,7 +49,7 @@ class MongoDB(object):
             self.collection_data_requests = self.db['bsd']
             self.collection_fits = self.db['fits']
             self.collection_events = self.db['events']
-            self.collection_auto_flares = self.db['auto_flares']
+            self.collection_flares_tbc = self.db['flares_tbc']
 
         except Exception as e:
             print('Error occurred while initializing mongodb: {}'.format(
@@ -143,8 +143,8 @@ class MongoDB(object):
         if self.collection_data_requests:
             cursor = self.collection_data_requests.delete_many(
                 {'run_id': int(run_id)})
-        if self.collection_auto_flares:
-            cursor = self.collection_auto_flares.delete_many(
+        if self.collection_flares_tbc:
+            cursor = self.collection_flares_tbc.delete_many(
                 {'run_id': int(run_id)})
         if self.collection_fits:
             cursor = self.collection_fits.delete_many({'file_id': int(run_id)})
@@ -247,14 +247,14 @@ class MongoDB(object):
         except IndexError:
             return 0
 
-    def get_next_auto_flare_id(self):
+    def get_next_flare_candidate_id(self):
         try:
-            return self.collection_auto_flares.find().sort(
+            return self.collection_flares_tbc.find().sort(
                 '_id', -1).limit(1)[0]['_id'] + 1
         except IndexError:
             return 0
 
-    def write_flares(self, result):
+    def save_flare_candidate_info(self, result):
         """
             write flare info into database
         """
@@ -264,24 +264,35 @@ class MongoDB(object):
             return
 
         try:
-            cursor = self.collection_auto_flares.delete_many(
+            cursor = self.collection_flares_tbc.delete_many(
                 {'run_id': int(result['run_id'])})
             #delete
         except Exception as e:
             pass
 
-        if self.collection_auto_flares:
-            first_id = self.get_next_auto_flare_id()
+        if self.collection_flares_tbc:
+            first_id = self.get_next_flare_candidate_id()
 
         for i in range(result['num_peaks']):
+            peak_unix=float(result['peak_unix_time'][i])
+            time_window=300
+            hidden=False
+            exists=self.collection_flares_tbc.find_one({'peak_unix_time':
+                {'$gt':peak_unix-time_window, '$lt':peak_unix+time_window}})
+            #if it is exists in db
+            if exists:
+                #hidden=True
+                continue
+
             doc = {
                 '_id': first_id + i,
                 'run_id': result['run_id'],
+                'hidden': hidden,
                 'peak_counts': result['peak_counts'][i],
                 'peak_utc': result['peak_utc'][i],
                 'peak_unix_time': result['peak_unix_time'][i],
             }
-            self.collection_auto_flares.save(doc)
+            self.collection_flares_tbc.save(doc)
 
     def get_quicklook_packets(self,
                               packet_type,
