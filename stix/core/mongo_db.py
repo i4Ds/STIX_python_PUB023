@@ -272,6 +272,7 @@ class MongoDB(object):
 
         if self.collection_flares_tbc:
             first_id = self.get_next_flare_candidate_id()
+        new_inserted_flares=[]
 
         for i in range(result['num_peaks']):
             peak_unix=float(result['peak_unix_time'][i])
@@ -281,7 +282,7 @@ class MongoDB(object):
                 {'$gt':peak_unix-time_window, '$lt':peak_unix+time_window}})
             #if it is exists in db
             if exists:
-                #hidden=True
+                hidden=True
                 continue
 
             doc = {
@@ -292,7 +293,17 @@ class MongoDB(object):
                 'peak_utc': result['peak_utc'][i],
                 'peak_unix_time': result['peak_unix_time'][i],
             }
+            new_inserted_flares.append(doc)
             self.collection_flares_tbc.save(doc)
+        return new_inserted_flares 
+    def set_tbc_flare_lc_filename(self, _id, lc_filename):
+
+        doc=self.collection_flares_tbc.find_one({'_id':_id})
+        if doc:
+            doc['lc_path']=os.path.dirname(lc_filename)
+            doc['lc_filename']=os.path.basename(lc_filename)
+            self.collection_flares_tbc.replace_one({'_id':_id}, doc)
+
 
     def get_quicklook_packets(self,
                               packet_type,

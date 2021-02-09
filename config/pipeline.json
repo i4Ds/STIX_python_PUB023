@@ -22,6 +22,7 @@
 			"file":"/data/log/stix_message.log"
 		},
 		"fits_path":"/data/fits",
+		"flare_lc_snapshot_path":"/data/flare_lc",
 		"calibration_report_path":"/data/calibration/",
 		"level1_products_path":"/data/level1/",
 		"ngnix_cache":"/data/nginx/stix_cache/*",
