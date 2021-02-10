@@ -116,17 +116,21 @@ def make_lightcurve_snapshot(data, flare_list,snapshot_path):
         end_unix=flare['peak_unix_time']+600
         where=np.where((data['time'] > start_unix )&(data['time']<end_unix))
         unix_ts=data['time'][where]
-        t_since_t0=unix_ts-unix_ts[0]
-        
+        t_since_t0=unix_ts-flare['peak_unix_time']
         lc=data['lc'][where]
-        fig=plt.figure()
+        peak_counts=flare['peak_counts']
+
+
+        fig=plt.figure(figsize=(6,2))
         plt.plot(t_since_t0, lc)
-        T0=stix_datetime.unix2utc(unix_ts[0])
-        plt.xlabel(f'Seconds since {T0}')
-        plt.ylabel('Counts in 4 - 10 keV / 4 s')
+        T0=stix_datetime.unix2utc(flare['peak_unix_time'])
+        plt.text(0, peak_counts,'+', fontsize=25,color='cyan')
+        plt.xlabel(f'T - T0 (s),  T0: {T0}')
+        plt.ylabel('Counts / 4 s')
         plt.title(f'Flare #{_id}')
         filename=os.path.join(snapshot_path, f'flare_lc_{_id}.png')
-        plt.savefig(filename)
+        fig.tight_layout()
+        plt.savefig(filename,dpi=100)
         mdb.set_tbc_flare_lc_filename(_id, filename)
 
         plt.close()
@@ -173,6 +177,8 @@ def search(run_id, filter_cutoff_freq=0.03, filter_order=4,
                 #'properties':properties,
                 'run_id':result['run_id']
                 }
+
+
         new_inserted_flares=mdb.save_flare_candidate_info(doc)
         make_lightcurve_snapshot(data, new_inserted_flares, snapshot_path)
     return doc

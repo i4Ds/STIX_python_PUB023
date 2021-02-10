@@ -274,6 +274,7 @@ class MongoDB(object):
             first_id = self.get_next_flare_candidate_id()
         new_inserted_flares=[]
 
+        num_inserted=0
         for i in range(result['num_peaks']):
             peak_unix=float(result['peak_unix_time'][i])
             time_window=300
@@ -286,16 +287,18 @@ class MongoDB(object):
                 continue
 
             doc = {
-                '_id': first_id + i,
+                '_id': first_id + num_inserted,
                 'run_id': result['run_id'],
                 'hidden': hidden,
                 'peak_counts': result['peak_counts'][i],
                 'peak_utc': result['peak_utc'][i],
                 'peak_unix_time': result['peak_unix_time'][i],
             }
+            num_inserted+=1
             new_inserted_flares.append(doc)
             self.collection_flares_tbc.save(doc)
         return new_inserted_flares 
+
     def set_tbc_flare_lc_filename(self, _id, lc_filename):
 
         doc=self.collection_flares_tbc.find_one({'_id':_id})
