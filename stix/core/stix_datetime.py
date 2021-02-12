@@ -14,7 +14,6 @@ from stix.core import config
 logger = stix_logger.get_logger()
 
 
-
 # SOLAR ORBITER naif identifier
 class SpiceManager:
     """taken from https://issues.cosmos.esa.int/solarorbiterwiki/display/SOSP/Translate+from+OBT+to+UTC+and+back
@@ -212,7 +211,7 @@ def utc_to_scet(utc):
 
 def datetime_to_scet(dt):
     if isinstance(dt, Time):
-        dt= dt.to_datetime()
+        dt = dt.to_datetime()
     utc_iso = dt.isoformat(timespec='microseconds')
     scet = utc_to_scet(utc_iso)[2:]
     return scet

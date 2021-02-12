@@ -36,7 +36,9 @@ SCET_PARAMETERS = [
     'PIX0022', 'PIX0025', 'PIX0026', 'PIX00086', 'PIX00087', 'PIX00009'
 ]
 
-PARMETERS_CALIBRATION_ENABLED = ['NIX00101', 'NIX00102', 'NIX00125', 'NIXD0003']
+PARMETERS_CALIBRATION_ENABLED = [
+    'NIX00101', 'NIX00102', 'NIX00125', 'NIXD0003'
+]
 PARMETERS_CALIBRATION_ENABLED.extend(SCET_PARAMETERS)
 
 STIX_IDB = stix_idb.stix_idb()
@@ -190,7 +192,7 @@ class StixParameterParser(object):
             if length == 8 and offset_bits == 0:
                 #only used to extract archive memory information
                 return result
-            elif length < 16: #and length % 8 != 0:
+            elif length < 16:  #and length % 8 != 0:
                 # bit-offset only for 8 bits or 16 bits integer
                 # only valid for STIX
                 start_bit = nbytes * 8 - (offset_bits + length)
@@ -238,13 +240,16 @@ class StixParameterParser(object):
         if param_name == 'NIX00125':  #temperature calibration factors, parameter from Richard on June 22, 2020
             try:
                 x = math.log(12000. * raw_value / (4095 - raw_value))
-                return round(1 / (9.27e-4 + 2.34e-4 * x + 9.09e-7 * x **2 + 1.04e-7 * x ** 3) - 273.15, 2)
+                return round(
+                    1 /
+                    (9.27e-4 + 2.34e-4 * x + 9.09e-7 * x**2 + 1.04e-7 * x**3) -
+                    273.15, 2)
             except ValueError:
                 logger.warning(
                     'Could not calibrate NIX00125 temperature raw value :{}'.
                     format(raw_value))
         if param_name == 'NIXD0003':
-            return round(raw_value/2.5,1) # archive memory to raw value
+            return round(raw_value / 2.5, 1)  # archive memory to raw value
 
         #conversion based on the equation in SIRIUS source code
         #    return (raw_value * 1.1 * 3.0 / 4095 - 1.281) * 213.17
@@ -844,7 +849,7 @@ class StixTCTMParser(StixParameterParser):
 
     #def set_store_binary_enabled(self, status):
     #    """
-    #      store raw binary  in the output 
+    #      store raw binary  in the output
     #    """
     #    self.store_binary = status
 
@@ -1086,7 +1091,7 @@ class StixTCTMParser(StixParameterParser):
 
                 packet = {'header': header, 'parameters': parameters}
                 self.inc_counter('num_tm_parsed')
-                raw_binary=header_raw + data_field_raw
+                raw_binary = header_raw + data_field_raw
                 #if self.store_binary:
                 #    packet['bin'] = raw_binary
 
@@ -1137,7 +1142,7 @@ class StixTCTMParser(StixParameterParser):
                     #used for instrument health tracking
                 packet = {'header': header, 'parameters': parameters}
                 self.inc_counter('num_tc_parsed')
-                raw_binary=buf[i:i + 10] + data_field_raw
+                raw_binary = buf[i:i + 10] + data_field_raw
                 #if self.store_binary:
                 #    packet['bin'] = raw_binary
 
@@ -1154,7 +1159,7 @@ class StixTCTMParser(StixParameterParser):
                         i, i - old_i))
 
             if packet:
-                packet['hash']=hashlib.shake_256(raw_binary).hexdigest(8)
+                packet['hash'] = hashlib.shake_256(raw_binary).hexdigest(8)
                 if header_auxiliary:
                     for key, val in header_auxiliary.items():
                         packet['header'][key] = val
@@ -1396,6 +1401,7 @@ class StixTCTMParser(StixParameterParser):
         logger.set_level(verbose_level)
 
     def set_store_binary_enabled(self, stat):
-        self.store_binary=stat
+        self.store_binary = stat
+
     def set_progress_bar_enabed(self, value):
         logger.set_progress_enabled(value)

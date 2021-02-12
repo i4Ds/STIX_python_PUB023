@@ -22,11 +22,13 @@ from stix.core import stix_logger
 logger = stix_logger.get_logger()
 matplotlib.use('Agg')
 
-mdb=db.MongoDB()
+mdb = db.MongoDB()
 
 SPID = 54118
 
-terminal=False
+terminal = False
+
+
 def info(msg):
     if terminal:
         print(msg)
@@ -79,26 +81,29 @@ def get_lightcurve_data(file_id):
         return None
     return {'time': np.array(unix_time), 'lc': np.array(lightcurves[0])}
 
-def find_peaks(data, filter_cutoff_freq, filter_order, 
-        peak_min_width, threshold, peak_min_distance,  sigma): # 1min, seperated by 75*4=300 seconds):
-    unix_time=data['time']
-    lightcurve=data['lc']
+
+def find_peaks(data, filter_cutoff_freq, filter_order, peak_min_width,
+               threshold, peak_min_distance,
+               sigma):  # 1min, seperated by 75*4=300 seconds):
+    unix_time = data['time']
+    lightcurve = data['lc']
     #median=np.median(lightcurve)
     #height=median+3*np.sqrt(median)
-    height=threshold#360 counts /4 
-    b,a=signal.butter(filter_order, filter_cutoff_freq, 'low', analog=False) 
+    height = threshold  #360 counts /4
+    b, a = signal.butter(filter_order, filter_cutoff_freq, 'low', analog=False)
     lc_smoothed = signal.filtfilt(b, a, lightcurve)
-    xpeaks, properties = signal.find_peaks(lc_smoothed,
-                                                height=height,
-                                                #threshold=threshold,
-                                                width=peak_min_width,
-                                                distance=peak_min_distance)
-    data['xpeaks']=xpeaks
-    data['properties']=properties
+    xpeaks, properties = signal.find_peaks(
+        lc_smoothed,
+        height=height,
+        #threshold=threshold,
+        width=peak_min_width,
+        distance=peak_min_distance)
+    data['xpeaks'] = xpeaks
+    data['properties'] = properties
     return data
 
 
-def make_lightcurve_snapshot(data, flare_list,snapshot_path):
+def make_lightcurve_snapshot(data, flare_list, snapshot_path):
     '''
                 '_id': first_id + i,
                 'run_id': result['run_id'],
@@ -109,87 +114,88 @@ def make_lightcurve_snapshot(data, flare_list,snapshot_path):
     '''
     #print(flare_list)
     for flare in flare_list:
-        if not flare: 
+        if not flare:
             continue
-        _id=flare['_id']
-        start_unix=flare['peak_unix_time']-600
-        end_unix=flare['peak_unix_time']+600
-        where=np.where((data['time'] > start_unix )&(data['time']<end_unix))
-        unix_ts=data['time'][where]
-        t_since_t0=unix_ts-flare['peak_unix_time']
-        lc=data['lc'][where]
-        peak_counts=flare['peak_counts']
+        _id = flare['_id']
+        start_unix = flare['peak_unix_time'] - 600
+        end_unix = flare['peak_unix_time'] + 600
+        where = np.where((data['time'] > start_unix)
+                         & (data['time'] < end_unix))
+        unix_ts = data['time'][where]
+        t_since_t0 = unix_ts - flare['peak_unix_time']
+        lc = data['lc'][where]
+        peak_counts = flare['peak_counts']
 
-
-        fig=plt.figure(figsize=(6,2))
+        fig = plt.figure(figsize=(6, 2))
         plt.plot(t_since_t0, lc)
-        T0=stix_datetime.unix2utc(flare['peak_unix_time'])
-        plt.text(0, peak_counts,'+', fontsize=25,color='cyan')
+        T0 = stix_datetime.unix2utc(flare['peak_unix_time'])
+        plt.text(0, peak_counts, '+', fontsize=25, color='cyan')
         plt.xlabel(f'T - T0 (s),  T0: {T0}')
         plt.ylabel('Counts / 4 s')
         plt.title(f'Flare #{_id}')
-        filename=os.path.join(snapshot_path, f'flare_lc_{_id}.png')
+        filename = os.path.join(snapshot_path, f'flare_lc_{_id}.png')
         fig.tight_layout()
-        plt.savefig(filename,dpi=100)
+        plt.savefig(filename, dpi=100)
         mdb.set_tbc_flare_lc_filename(_id, filename)
 
         plt.close()
         plt.clf()
 
 
-
-
-
-def search(run_id, filter_cutoff_freq=0.03, filter_order=4,
-        peak_min_width=15, threshold=350, 
-        peak_min_distance=75, sigma=20, snapshot_path='.'):
-    data=get_lightcurve_data(run_id)
+def search(run_id,
+           filter_cutoff_freq=0.03,
+           filter_order=4,
+           peak_min_width=15,
+           threshold=350,
+           peak_min_distance=75,
+           sigma=20,
+           snapshot_path='.'):
+    data = get_lightcurve_data(run_id)
     if not data:
         info(f'No QL LC packets found for file {run_id}')
         return None
-    result=find_peaks(data, filter_cutoff_freq, filter_order,
-            peak_min_width, threshold, peak_min_distance, sigma)
+    result = find_peaks(data, filter_cutoff_freq, filter_order, peak_min_width,
+                        threshold, peak_min_distance, sigma)
     if not result:
         info(f'No peaks found for file {run_id}')
         return None
     info('Number of peaks:{}'.format(len(result['xpeaks'])))
-    data['run_id']=run_id
-    data['conditions']={'filter_cutoff_freq':filter_cutoff_freq,
-            'filter_order':filter_order, 
-            'peak_min_width':peak_min_width, 
-            'peak_min_distance':peak_min_distance,
-            'sigma':sigma
-            }
+    data['run_id'] = run_id
+    data['conditions'] = {
+        'filter_cutoff_freq': filter_cutoff_freq,
+        'filter_order': filter_order,
+        'peak_min_width': peak_min_width,
+        'peak_min_distance': peak_min_distance,
+        'sigma': sigma
+    }
 
-    unix_time=result['time']
-    lightcurve=result['lc']
-    xpeaks=result['xpeaks']
-    doc={}
-    if xpeaks.size>0:
-        peak_values=lightcurve[xpeaks]
+    unix_time = result['time']
+    lightcurve = result['lc']
+    xpeaks = result['xpeaks']
+    doc = {}
+    if xpeaks.size > 0:
+        peak_values = lightcurve[xpeaks]
         peak_unix_times = unix_time[xpeaks]
-        peaks_utc=[stix_datetime.unix2utc(x) for x in peak_unix_times]
-        doc={'num_peaks':xpeaks.size,
-                'peak_unix_time':peak_unix_times.tolist(),
-                'peak_counts':peak_values.tolist(),
-                'peak_utc':peaks_utc,
-                'peak_idx':xpeaks.tolist(),
-                #'properties':properties,
-                'run_id':result['run_id']
-                }
+        peaks_utc = [stix_datetime.unix2utc(x) for x in peak_unix_times]
+        doc = {
+            'num_peaks': xpeaks.size,
+            'peak_unix_time': peak_unix_times.tolist(),
+            'peak_counts': peak_values.tolist(),
+            'peak_utc': peaks_utc,
+            'peak_idx': xpeaks.tolist(),
+            #'properties':properties,
+            'run_id': result['run_id']
+        }
 
-
-        new_inserted_flares=mdb.save_flare_candidate_info(doc)
+        new_inserted_flares = mdb.save_flare_candidate_info(doc)
         make_lightcurve_snapshot(data, new_inserted_flares, snapshot_path)
     return doc
 
 
-
-
 if __name__ == '__main__':
     import sys
-    terminal=True
-    if len(sys.argv)!=2:
+    terminal = True
+    if len(sys.argv) != 2:
         print('flare_detection file_number')
     else:
         search(int(sys.argv[1]), snapshot_path='/data/flare_lc')

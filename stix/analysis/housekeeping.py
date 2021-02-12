@@ -1,4 +1,3 @@
-
 import os
 import sys
 import math
@@ -38,69 +37,55 @@ groups = [{
     'IDPU': ['NIXD0004']
 }, {
     'FDIR': ['NIX00085']
-},
-          {
-              'DPU voltages':
-              ['NIXD0027', 'NIXD0028', 'NIXD0029', 'NIXD0030', 'NIXD0031']
-          }, {
-              'DPU voltages': ['NIXD0032', 'NIXD0035', 'NIXD0036', 'NIXD0037']
-          }, {
-              'DPU temperature sensors': ['NIXD0025', 'NIXD0026']
-          }, {
-              'PSU': [
-                  'NIXD0024',
-              ]
-          }, {
-              'LV': ['NIXD0092']
-          },
-          {
-              'Aspect system power/voltages': [
-                  'NIXD0086', 'NIXD0087', 'NIXD0038', 'NIXD0039', 'NIXD0048',
-                  'NIXD0049'
-              ]
-          },
-          {
-              'Aspect system temperature sensors':
-              ['NIXD0040', 'NIXD0041', 'NIXD0042', 'NIXD0043']
-          },
-          {
-              'Aspect system temperature sensors group 2':
-              ['NIXD0044', 'NIXD0045', 'NIXD0046', 'NIXD0047']
-          },
-          {
-              'Aspect readouts':
-              ['NIX00078', 'NIX00079', 'NIX00080', 'NIX00081']
-          }, {
-              'Attenuator': ['NIXD0050', 'NIXD0051', 'NIXD0088', 'NIXD0089']
-          },
-          {
-              'Attenuator':
-              ['NIXD0068', 'NIXD0069', 'NIX00076', 'NIX00094', 'NIXD0075']
-          }, {
-              'HV and depolarization': ['NIXD0023', 'NIXD0090', 'NIXD0091']
-          },
-          {
-              'HV and depolarization':
-              ['NIXD0023', 'NIXD0066', 'NIXD0067', 'NIXD0074']
-          }, {
-              'High voltage': ['NIXD0052', 'NIXD0053']
-          },
-          {
-              'Detector temperature sensors':
-              ['NIXD0054', 'NIXD0055', 'NIXD0056', 'NIXD0057']
-          },
-          {
-              'Detector': [
-                  'NIXD0082',
-                  'NIXD0083',
-                  'NIXD0084',
-                  'NIXD0085',
-                  'NIXD0070',
-                  'NIXD0058',
-              ]
-          }, {
-              'Trigger rates': ['NIXD0023', 'NIX00072', 'NIX00073']
-          }]
+}, {
+    'DPU voltages':
+    ['NIXD0027', 'NIXD0028', 'NIXD0029', 'NIXD0030', 'NIXD0031']
+}, {
+    'DPU voltages': ['NIXD0032', 'NIXD0035', 'NIXD0036', 'NIXD0037']
+}, {
+    'DPU temperature sensors': ['NIXD0025', 'NIXD0026']
+}, {
+    'PSU': [
+        'NIXD0024',
+    ]
+}, {
+    'LV': ['NIXD0092']
+}, {
+    'Aspect system power/voltages':
+    ['NIXD0086', 'NIXD0087', 'NIXD0038', 'NIXD0039', 'NIXD0048', 'NIXD0049']
+}, {
+    'Aspect system temperature sensors':
+    ['NIXD0040', 'NIXD0041', 'NIXD0042', 'NIXD0043']
+}, {
+    'Aspect system temperature sensors group 2':
+    ['NIXD0044', 'NIXD0045', 'NIXD0046', 'NIXD0047']
+}, {
+    'Aspect readouts': ['NIX00078', 'NIX00079', 'NIX00080', 'NIX00081']
+}, {
+    'Attenuator': ['NIXD0050', 'NIXD0051', 'NIXD0088', 'NIXD0089']
+}, {
+    'Attenuator': ['NIXD0068', 'NIXD0069', 'NIX00076', 'NIX00094', 'NIXD0075']
+}, {
+    'HV and depolarization': ['NIXD0023', 'NIXD0090', 'NIXD0091']
+}, {
+    'HV and depolarization': ['NIXD0023', 'NIXD0066', 'NIXD0067', 'NIXD0074']
+}, {
+    'High voltage': ['NIXD0052', 'NIXD0053']
+}, {
+    'Detector temperature sensors':
+    ['NIXD0054', 'NIXD0055', 'NIXD0056', 'NIXD0057']
+}, {
+    'Detector': [
+        'NIXD0082',
+        'NIXD0083',
+        'NIXD0084',
+        'NIXD0085',
+        'NIXD0070',
+        'NIXD0058',
+    ]
+}, {
+    'Trigger rates': ['NIXD0023', 'NIX00072', 'NIX00073']
+}]
 
 #delta_time between packets
 
@@ -120,29 +105,26 @@ class Plugin(object):
     def __init__(self, packets=[]):
         self.packets = packets
 
-    def run(self,  pdf):
+    def run(self, pdf):
         print('Number of packets : {}'.format(len(self.packets)))
 
-        param_values= sdt.Packet.merge(self.packets, SPIDs)
+        param_values = sdt.Packet.merge(self.packets, SPIDs)
         #with PdfPages(filename) as pdf:
         fig = None
         fig = plt.figure(figsize=figsize)
         plt.axis('off')
         try:
             title = ' Housekeeping data SPID(s): {} ,start: {} stop: {}'.format(
-                str(SPIDs), param_values['UTC'][0],
-                param_values['UTC'][-1])
+                str(SPIDs), param_values['UTC'][0], param_values['UTC'][-1])
         except KeyError:
             title = ' Housekeeping data SPID(s): {} ,start: {} stop: {}'.format(
                 str(SPIDs), param_values['unix_time'][0],
                 param_values['unix_time'][-1])
         plt.text(0.5, 0.5, title, ha='center', va='center')
 
-
         pdf.savefig()
         plt.close()
         fig.clf()
-
 
         fig = plt.figure(figsize=figsize)
         title = "Timestamps"
@@ -201,4 +183,3 @@ class Plugin(object):
             pdf.savefig()
             plt.close()
             fig.clf()
-

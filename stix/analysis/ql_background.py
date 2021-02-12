@@ -1,4 +1,4 @@
-# plugin to draw current 
+# plugin to draw current
 import os
 
 import sys
@@ -9,7 +9,6 @@ import numpy as np
 from matplotlib import pyplot as plt
 from datetime import datetime
 from stix.core import stix_datatypes as sdt
-
 
 SPID = 54119
 
@@ -22,55 +21,46 @@ class Plugin:
 
     def run(self, pdf):
         for pkt in self.packets:
-            packet=sdt.Packet(pkt)
+            packet = sdt.Packet(pkt)
             if not packet.isa(SPID):
                 continue
 
             figsize = (12, 8)
 
-
             #fig.clf()
-
-
-
 
             isub = 0
             spectra_container = []
             T0 = 0
-            pkt=self.packets[self.current_row]
-            packet=sdt.Packet(pkt)
+            pkt = self.packets[self.current_row]
+            packet = sdt.Packet(pkt)
             if not packet.isa(SPID):
-                return 
+                return
             seg_flag = packet['seg_flag']
             fig = None
-              
-            scet_coarse=packet[1].raw
-            scet_fine=packet[2].raw
-            int_duration=packet[3].raw+1
 
+            scet_coarse = packet[1].raw
+            scet_fine = packet[2].raw
+            int_duration = packet[3].raw + 1
 
             compression_s = packet[5].raw
             compression_k = packet[6].raw
             compression_m = packet[7].raw
-            UTC= packet[7].raw
-
+            UTC = packet[7].raw
 
             fig = plt.figure(figsize=figsize)
             plt.axis('off')
             title = ' QL background: # {} \n Packets received at: {} \n T0: {} \
             \n SCET: {} \n Comp_S: {} \n Comp_K: {} \n Comp_M:{}'.format(
                 self.iql, UTC, int_duration * 0.1,
-                scet_coarse + scet_fine / 65536., compression_s,
-                compression_k, compression_m)
+                scet_coarse + scet_fine / 65536., compression_s, compression_k,
+                compression_m)
             plt.text(0.5, 0.5, title, ha='center', va='center')
             pdf.savefig()
             plt.close()
 
-
             light_curve = packet.get('NIX00270/NIX00277/*.eng')[0]
             triggers = packet.get('NIX00273/*.eng')
-
-
 
             fig = plt.figure(figsize=figsize)
 

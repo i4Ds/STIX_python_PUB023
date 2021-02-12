@@ -1,4 +1,3 @@
-
 import os
 import sys
 import array
@@ -81,8 +80,8 @@ class Plugin:
                 if sum(spec) > 0:
                     det = detector_ids[i]
                     pixel = pixels_ids[i]
-                    print('Detector %d Pixel %d, counts: %d ' % (det, pixel,
-                                                                 sum(spec)))
+                    print('Detector %d Pixel %d, counts: %d ' %
+                          (det, pixel, sum(spec)))
 
                     xlabel = 'Energy channel'
                     ylabel = 'Counts'

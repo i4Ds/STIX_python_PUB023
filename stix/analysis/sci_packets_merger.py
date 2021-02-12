@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # author: Hualin Xiao
-# pre-process science data, merge bulk science data packets and write merged data to json files 
+# pre-process science data, merge bulk science data packets and write merged data to json files
 # so that web client side could load the data quickly
 import sys
 import os
@@ -13,7 +13,8 @@ from stix.core import stix_logger
 from stix.core import config
 mdb = db.MongoDB()
 logger = stix_logger.get_logger()
-level1_products_path=config.get_config('pipeline.daemon.level1_products_path')
+level1_products_path = config.get_config(
+    'pipeline.daemon.level1_products_path')
 
 DATA_REQUEST_REPORT_SPIDS = [54114, 54115, 54116, 54117, 54143, 54125]
 DATA_REQUEST_REPORT_NAME = {
@@ -61,10 +62,10 @@ class StixBulkL0Analyzer(object):
 
     def format_report(self):
         report = {
-                'packet_unix': self.packet_unix,
-                'boxes': self.boxes,
-                'auxiliary': self.auxiliary,
-            }
+            'packet_unix': self.packet_unix,
+            'boxes': self.boxes,
+            'auxiliary': self.auxiliary,
+        }
         return report
 
     def merge(self, cursor):
@@ -143,7 +144,7 @@ class StixBulkL1L2Analyzer(object):
         self.request_id = -1
         self.packet_unix = 0
         self.groups = []
-        self.pixel_total_counts=[0]*384
+        self.pixel_total_counts = [0] * 384
         self.num_time_bins = []
 
     def format_report(self):
@@ -153,7 +154,7 @@ class StixBulkL1L2Analyzer(object):
             'groups': self.groups,
             'trig_skm': self.trig_SKM,
             'eacc_skm': self.eacc_SKM,
-            'pixel_total_counts':self.pixel_total_counts,
+            'pixel_total_counts': self.pixel_total_counts,
         }
         return report
 
@@ -225,10 +226,11 @@ class StixBulkL1L2Analyzer(object):
                     k = j * 4
                     E1_low = samples[k + 1][1]
                     E2_high = samples[k + 2][1]
-                    pixel_counts=[]
+                    pixel_counts = []
                     for idx, e in enumerate(samples[k + 3][3]):
                         pixel_counts.append(e[counts_idx])
-                        self.pixel_total_counts[pixel_indexes[idx]] += e[counts_idx]
+                        self.pixel_total_counts[
+                            pixel_indexes[idx]] += e[counts_idx]
                     energies.append(
                         [E1_low, E2_high,
                          sum(pixel_counts), pixel_counts])
@@ -450,6 +452,8 @@ class StixBulkAspectAnalyzer(object):
             'read_time': read_time,
             'start_time': start_time,
         }
+
+
 def process(file_id):
     try:
         merge(file_id)
@@ -457,12 +461,13 @@ def process(file_id):
         print(str(e))
         logger.error(str(e))
 
+
 def merge(file_id):
     collection = mdb.get_collection_bsd()
     bsd_cursor = collection.find({'run_id': file_id}).sort('_id', 1)
     for doc in bsd_cursor:
         logger.info(f'processing {doc["_id"]}')
-        spid=int(doc['SPID'])
+        spid = int(doc['SPID'])
         cursor = mdb.get_packets_of_bsd_request(doc['_id'], header_only=False)
         if not cursor:
             continue
@@ -484,11 +489,12 @@ def merge(file_id):
             analyzer = StixBulkL4Analyzer()
             result = analyzer.merge(cursor)
         if result:
-            json_filename=os.path.join(level1_products_path, f'L1_{doc["_id"]}.json')
+            json_filename = os.path.join(level1_products_path,
+                                         f'L1_{doc["_id"]}.json')
             with open(json_filename, 'w') as outfile:
                 json.dump(result, outfile)
-            doc['level1']=json_filename
-            collection.replace_one({'_id':doc['_id']},doc)
+            doc['level1'] = json_filename
+            collection.replace_one({'_id': doc['_id']}, doc)
 
 
 if __name__ == '__main__':

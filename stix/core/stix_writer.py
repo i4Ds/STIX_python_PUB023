@@ -18,13 +18,12 @@ from stix.core import stix_logger
 from stix.core import stix_sci_report_analyzer as scia
 
 logger = stix_logger.get_logger()
-MONGODB_CONFIG=config.get_config()['pipeline']['mongodb']
+MONGODB_CONFIG = config.get_config()['pipeline']['mongodb']
 
 MAX_POSSIBLE_UNIX_TIME = 2051222400  #2035-01-01
 
 
 class StixPacketWriter(object):
-
     def write_all(self, packets):
         pass
 
@@ -208,7 +207,7 @@ class StixMongoDBWriter(StixPacketWriter):
             'path': self.path,
             'comment': comment,
             'log': log_filename,
-            'hidden':False,
+            'hidden': False,
             'date': datetime.datetime.now(),
             'run_start_unix_time': time.time(),
             'run_stop_unix_time': 0,

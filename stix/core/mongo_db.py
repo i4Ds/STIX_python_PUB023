@@ -14,6 +14,7 @@ import pymongo
 
 NUM_MAX_PACKETS = 20000
 MAX_REQUEST_LC_TIME_SPAN_DAYS = 3
+MAX_NUM_RETURN_RECORDS=20000
 QL_SPIDS = {
     'lc': 54118,
     'bkg': 54119,
@@ -50,6 +51,7 @@ class MongoDB(object):
             self.collection_fits = self.db['fits']
             self.collection_events = self.db['events']
             self.collection_flares_tbc = self.db['flares_tbc']
+            self.collection_background= self.db['background']
 
         except Exception as e:
             print('Error occurred while initializing mongodb: {}'.format(
@@ -57,7 +59,8 @@ class MongoDB(object):
 
     def get_db(self):
         return self.db
-    def get_collection(self,colname):
+
+    def get_collection(self, colname):
         return self.db[colname]
 
     def get_collection_calibration(self):
@@ -68,6 +71,7 @@ class MongoDB(object):
 
     def get_collection_packets(self):
         return self.collection_packets
+
     def get_collection_bsd(self):
         return self.collection_data_requests
 
@@ -76,28 +80,60 @@ class MongoDB(object):
             return True
         else:
             return False
-    def get_raw_info(self,run_id):
+
+    def get_raw_info(self, run_id):
         if self.collection_raw_files:
             cursor = self.collection_raw_files.find_one({'_id': int(run_id)})
             return cursor
         return None
 
+    
+
+    def get_LC_pkt_by_tw(self, start_unix_time, span):
+        if not self.collection_ql:
+            yield []
+        span = float(span)
+        start_unix_time = float(start_unix_time)
+        max_duration=3600 * 24 * MAX_REQUEST_LC_TIME_SPAN_DAYS
+        span=span if span <= max_duration else max_duration
+        stop_unix_time = start_unix_time + span
+        SPID=54118
+        query_string = {
+                'stop_unix_time': {
+                    '$gt': start_unix_time
+                }, 
+            'start_unix_time': {
+                    '$lt': stop_unix_time
+                },
+            'SPID':SPID
+        }
+        ret = self.collection_ql.find(query_string, {'packet_id': 1}).sort('_id', 1)
+        packet_ids = [x['packet_id'] for x in ret]
+        if not packet_ids:
+            yield []
+        if packet_ids:
+            for  _id in packet_ids:
+                #query_string = {'_id': {'$in': packet_ids}}
+                yield self.collection_packets.find_one({'_id':_id})
+
     def get_packets_of_bsd_request(self, record_id, header_only=True):
-        packets=[]
-        requests=list(self.collection_data_requests.find({'_id':record_id}).limit(1))
+        packets = []
+        requests = list(
+            self.collection_data_requests.find({
+                '_id': record_id
+            }).limit(1))
         if not requests:
             return []
-        request=requests[0]
-        SPID=request['SPID']
-        if request['SPID'] not in [54114, 54115, 54116,54117, 54143, 54125]:
+        request = requests[0]
+        SPID = request['SPID']
+        if request['SPID'] not in [54114, 54115, 54116, 54117, 54143, 54125]:
             return []
-        packet_ids=request['packet_ids']
+        packet_ids = request['packet_ids']
         if header_only:
-            return self.collection_packets.find({'_id':{'$in':packet_ids}}, {'header':1})
-        return self.collection_packets.find({'_id':{'$in':packet_ids}})
-
-
-
+            return self.collection_packets.find({'_id': {
+                '$in': packet_ids
+            }}, {'header': 1})
+        return self.collection_packets.find({'_id': {'$in': packet_ids}})
 
     def get_filename_of_run(self, run_id):
         if self.collection_raw_files:
@@ -105,9 +141,14 @@ class MongoDB(object):
             for x in cursor:
                 return x['filename']
         return ''
+    def get_raw_file_info(self,_id):
+        cursor = self.collection_raw_files.find({'_id': int(run_id)})
+        for x in cursor:
+            return x
+        return None
+
 
     def get_file_id(self, filename):
-
         if not self.collection_raw_files:
             return -1
         basename = os.path.basename(filename)
@@ -175,11 +216,11 @@ class MongoDB(object):
             query_string = {'run_id': int(run_id)}
             if SPIDs:
                 query_string = {
-                        'run_id': int(run_id),
-                        'header.SPID': {
-                            '$in': SPIDs
-                        }
+                    'run_id': int(run_id),
+                    'header.SPID': {
+                        '$in': SPIDs
                     }
+                }
             pkts = self.collection_packets.find(query_string).sort(
                 sort_field, order)
         return pkts
@@ -242,8 +283,8 @@ class MongoDB(object):
 
     def get_next_fits_id(self):
         try:
-            return self.collection_fits.find({}).sort('_id',
-                                                    -1).limit(1)[0]['_id'] + 1
+            return self.collection_fits.find({}).sort(
+                '_id', -1).limit(1)[0]['_id'] + 1
         except IndexError:
             return 0
 
@@ -272,18 +313,22 @@ class MongoDB(object):
 
         if self.collection_flares_tbc:
             first_id = self.get_next_flare_candidate_id()
-        new_inserted_flares=[]
+        new_inserted_flares = []
 
-        num_inserted=0
+        num_inserted = 0
         for i in range(result['num_peaks']):
-            peak_unix=float(result['peak_unix_time'][i])
-            time_window=300
-            hidden=False
-            exists=self.collection_flares_tbc.find_one({'peak_unix_time':
-                {'$gt':peak_unix-time_window, '$lt':peak_unix+time_window}})
+            peak_unix = float(result['peak_unix_time'][i])
+            time_window = 300
+            hidden = False
+            exists = self.collection_flares_tbc.find_one({
+                'peak_unix_time': {
+                    '$gt': peak_unix - time_window,
+                    '$lt': peak_unix + time_window
+                }
+            })
             #if it is exists in db
             if exists:
-                hidden=True
+                hidden = True
                 continue
 
             doc = {
@@ -294,19 +339,18 @@ class MongoDB(object):
                 'peak_utc': result['peak_utc'][i],
                 'peak_unix_time': result['peak_unix_time'][i],
             }
-            num_inserted+=1
+            num_inserted += 1
             new_inserted_flares.append(doc)
             self.collection_flares_tbc.save(doc)
-        return new_inserted_flares 
+        return new_inserted_flares
 
     def set_tbc_flare_lc_filename(self, _id, lc_filename):
 
-        doc=self.collection_flares_tbc.find_one({'_id':_id})
+        doc = self.collection_flares_tbc.find_one({'_id': _id})
         if doc:
-            doc['lc_path']=os.path.dirname(lc_filename)
-            doc['lc_filename']=os.path.basename(lc_filename)
-            self.collection_flares_tbc.replace_one({'_id':_id}, doc)
-
+            doc['lc_path'] = os.path.dirname(lc_filename)
+            doc['lc_filename'] = os.path.basename(lc_filename)
+            self.collection_flares_tbc.replace_one({'_id': _id}, doc)
 
     def get_quicklook_packets(self,
                               packet_type,
@@ -344,10 +388,42 @@ class MongoDB(object):
                 sort_field, 1)
             return cursor
         return []
+
     def get_file_spids(self, file_id):
-        return [int(x) for x in self.collection_packets.distinct('header.SPID',{'run_id':int(file_id)}) if x]
+        return [
+            int(x) for x in self.collection_packets.distinct(
+                'header.SPID', {'run_id': int(file_id)}) if x
+        ]
 
-
+    def search_flares_tbc_by_tw(self,
+                                start_unix,
+                                duration,
+                                num=MAX_NUM_RETURN_RECORDS,
+                                threshold=0):
+        #flares to be confirmed
+        results = []
+        if self.collection_flares_tbc:
+            query_string = {
+                'peak_unix_time': {
+                    '$gte': start_unix,
+                    '$lt': start_unix + duration
+                },
+                'peak_counts': {
+                    '$gte': threshold
+                }
+            }
+            results = self.collection_flares_tbc.find(query_string).sort(
+                'peak_unix_time', -1).limit(num)
+        return results
+    def insert_background(self, doc):
+        next_id=0
+        try:
+            next_id=self.collection_background.find({}).sort(
+                '_id', -1).limit(1)[0]['_id'] + 1
+        except IndexError:
+            pass
+        doc['_id']=next_id
+        self.collection_background.save(doc)
 
     def get_quicklook_packets_of_run(self, packet_type, run):
         collection = None

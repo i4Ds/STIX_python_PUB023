@@ -340,7 +340,8 @@ class Packet(object):
         for p in parameters:
             param = Parameter(p)
             name = param.name
-            value = param['eng'] if value_type=='eng' and param['eng'] else param['raw']
+            value = param['eng'] if value_type == 'eng' and param[
+                'eng'] else param['raw']
             if value_type == 'eng':
                 value = param['eng']
             #if 'NIXG' not in name:

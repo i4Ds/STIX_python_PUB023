@@ -14,7 +14,7 @@ sys.path.append(os.path.abspath(__file__ + "/../../"))
 from core import stix_logger
 from core import stix_parser
 from core import stix_idb
-from analysis import calibration 
+from analysis import calibration
 from analysis import housekeeping as hk2
 from analysis import ql_lightcurve as qllc
 
@@ -27,13 +27,13 @@ def process(run_id, output, process='hk'):
     print("request packet from mongodb")
     packets = mdb.select_packets_by_run(run_id)
     print('number of packets:{}'.format(len(packets)))
-    plugin=None
-    if process=='hk':
+    plugin = None
+    if process == 'hk':
         plugin = hk2.Plugin(packets)
-    elif process=='cal':
+    elif process == 'cal':
         plugin = calibration.Plugin(packets)
-    elif process=='qllc':
-        plugin=qllc.Plugin(packets)
+    elif process == 'qllc':
+        plugin = qllc.Plugin(packets)
     if plugin:
         plugin.run(output)
 
@@ -44,19 +44,22 @@ def main():
     required = ap.add_argument_group('Required arguments')
     optional = ap.add_argument_group('Optional arguments')
 
+    required.add_argument("-i",
+                          dest='run',
+                          required=True,
+                          nargs='?',
+                          help="run ID.")
+    optional.add_argument("-o",
+                          dest='output',
+                          default=None,
+                          required=False,
+                          help="Output filename. ")
 
-    required.add_argument(
-        "-i", dest='run', required=True, nargs='?', help="run ID.")
-    optional.add_argument(
-        "-o",
-        dest='output',
-        default=None,
-        required=False,
-        help="Output filename. ")
-    
-    required.add_argument(
-        "-p", dest='process', required=True,  
-        choices=('hk','cal','qllc'),help="what processing ?")
+    required.add_argument("-p",
+                          dest='process',
+                          required=True,
+                          choices=('hk', 'cal', 'qllc'),
+                          help="what processing ?")
 
     args = vars(ap.parse_args())
     process(args['run'], args['output'], args['process'])

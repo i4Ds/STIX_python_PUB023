@@ -52,7 +52,7 @@ class _IDB(object):
             _IDB.__instance = self
         self.conn = None
         self.cur = None
-    #below are look-up tables in order to reduce db query time
+        #below are look-up tables in order to reduce db query time
         self.parameter_structures = dict()
         self.parameter_units = dict()
         self.calibration_polynomial = dict()
@@ -61,7 +61,7 @@ class _IDB(object):
         self.soc_descriptions = dict()
         self.parameter_descriptions = dict()
         self.s2k_table_contents = dict()
-        
+
         self.filename = filename
         if self.filename == "":
             self.filename = config.get_idb(utc)

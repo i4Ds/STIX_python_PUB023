@@ -1,4 +1,3 @@
-
 import os
 
 import sys
@@ -8,10 +7,8 @@ from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib import pyplot as plt
 from datetime import datetime
 
-
 from stix.core import stix_datatypes as sdt
 import pprint
-
 
 SPID = 54118
 
@@ -31,7 +28,7 @@ class Plugin:
         spectra_container = []
         T0 = 0
         for pkt in self.packets:
-            packet=sdt.Packet(pkt)
+            packet = sdt.Packet(pkt)
             if not packet.isa(SPID):
                 continue
             seg_flag = packet['seg_flag']
@@ -40,23 +37,21 @@ class Plugin:
                 self.h2counter.clear()
 
             fig = None
-              
-            scet_coarse=packet[1].raw
-            scet_fine=packet[2].raw
-            int_duration=packet[3].raw+1
 
-            detector_mask=packet[4].raw
-            pixel_mask=packet[6].raw
+            scet_coarse = packet[1].raw
+            scet_fine = packet[2].raw
+            int_duration = packet[3].raw + 1
+
+            detector_mask = packet[4].raw
+            pixel_mask = packet[6].raw
 
             num_lc = packet[17].raw
-
 
             compression_s = packet[8].raw
             compression_k = packet[9].raw
             compression_m = packet[10].raw
 
             num_lc_points = packet.get('NIX00270/NIX00271')[0]
-
 
             light_curve = packet.get('NIX00270/NIX00271/*.eng')[0]
             triggers = packet.get('NIX00273/*.eng')
@@ -69,8 +64,8 @@ class Plugin:
             title = ' QL sum LC: # {} \n Packets received at: {} \n T0: {} \
             \n SCET: {} \n Comp_S: {} \n Comp_K: {} \n Comp_M:{}'.format(
                 self.iql, UTC, int_duration * 0.1,
-                scet_coarse + scet_fine / 65536., compression_s,
-                compression_k, compression_m)
+                scet_coarse + scet_fine / 65536., compression_s, compression_k,
+                compression_m)
             plt.text(0.5, 0.5, title, ha='center', va='center')
             pdf.savefig()
             plt.close()
