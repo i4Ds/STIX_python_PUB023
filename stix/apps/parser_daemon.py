@@ -19,6 +19,7 @@ from stix.core import mongo_db
 from stix.core import stix_logger, stix_idb, stix_parser
 from stix.fits import fits_creator
 from  stix.analysis import calibration
+from  stix.analysis import background_estimation as bkg
 from  stix.analysis import flare_detection
 from  stix.analysis import sci_packets_merger
 logger = stix_logger.get_logger()
@@ -29,6 +30,8 @@ ENABLE_FITS_CREATION=True
 DO_FLARE_SEARCH=True
 DO_BULK_SCIENCE_DATA_MERGING=True
 SCI_PACKET_SPIDS= ['54114', '54115', '54116', '54117', '54143', '54125']
+
+DO_BACKGROUND_ESTIMATION=True
 
 daemon_config=config.get_config('pipeline.daemon')
 noti_config=config.get_config('pipeline.daemon.notification')
@@ -146,6 +149,13 @@ def process(instrument, filename):
                 flare_info=flare_detection.search(file_id, daemon_config['flare_lc_snapshot_path'])
             except Exception as e:
                 logger.error(str(e))
+        if DO_BACKGROUND_ESTIMATION:
+            logger.info('Background estimation..')
+            try:
+                bkg.process_file(file_id)
+            except Exception as e:
+                logger.error(str(e))
+
     try:
         create_notification(base,alert_headers, summary,flare_info )
     except Exception as e:
