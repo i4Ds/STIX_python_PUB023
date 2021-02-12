@@ -20,7 +20,7 @@ from stix.core import stix_datetime
 
 mdb = db.MongoDB()
 
-MARGIN = 1800
+MARGIN = 3600
 FRAME_SPAN=1800
 
 
@@ -51,9 +51,13 @@ def process_file(file_id):
 
 def get_background(start, end, file_id):
     span=end-start
+    bkg_db=mdb.get_collection('background')
+    if bkg_db.find({'start_unix':{'$lt':(start+end)/2}, 'end_unix':{'$gt':(start+end)/2}}).count()>0:
+        #background exists 
+        return
+
+
     num_flares=mdb.search_flares_tbc_by_tw(start-MARGIN,  span+2*MARGIN).count()
-    if num_flares>0:
-        return None
     unix_time = []
     packets=mdb.get_LC_pkt_by_tw(start, span)
     last_unix=0
@@ -116,6 +120,7 @@ def get_background(start, end, file_id):
         amin.append(min(lc))
 
     doc={
+            'num_flares':num_flares,
             'file_id':file_id,
             'num_points': num_points,
             'start_unix': unix_time[0], 
@@ -139,5 +144,5 @@ if __name__ == '__main__':
     elif len(sys.argv)==2:
         process_file(int(sys.argv[1]))
     else:
-        for i in range(520):
+        for i in range(265, 423):
             process_file(i)
