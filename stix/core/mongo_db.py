@@ -51,7 +51,7 @@ class MongoDB(object):
             self.collection_fits = self.db['fits']
             self.collection_events = self.db['events']
             self.collection_flares_tbc = self.db['flares_tbc']
-            self.collection_background= self.db['background']
+            self.collection_qllc_statistics= self.db['qllc_statistics']
 
         except Exception as e:
             print('Error occurred while initializing mongodb: {}'.format(
@@ -300,9 +300,9 @@ class MongoDB(object):
             write flare info into database
         """
         if 'run_id' not in result:
-            return
+            return None
         if result['num_peaks'] == 0:
-            return
+            return None
 
         try:
             cursor = self.collection_flares_tbc.delete_many(
@@ -316,7 +316,12 @@ class MongoDB(object):
         new_inserted_flares = []
 
         num_inserted = 0
+        inserted_ids=[None]*result['num_peaks']
         for i in range(result['num_peaks']):
+            if not result['is_major'][i]:
+                #not major peak
+                continue
+
             peak_unix = float(result['peak_unix_time'][i])
             time_window = 300
             hidden = False
@@ -328,21 +333,29 @@ class MongoDB(object):
             })
             #if it is exists in db
             if exists:
+                #duplicated flares
                 hidden = True
                 continue
 
             doc = {
                 '_id': first_id + num_inserted,
-                'run_id': result['run_id'],
                 'hidden': hidden,
-                'peak_counts': result['peak_counts'][i],
-                'peak_utc': result['peak_utc'][i],
-                'peak_unix_time': result['peak_unix_time'][i],
             }
+            for key in  result:
+                if isinstance(result[key], list):
+                    if len(result[key])==result['num_peaks']:
+                        doc[key]=result[key][i]
+                else:
+                    doc[key]=result[key]
+
             num_inserted += 1
+            doc['peak_index']=i
             new_inserted_flares.append(doc)
+
+            inserted_ids[i]=doc['_id']
             self.collection_flares_tbc.save(doc)
-        return new_inserted_flares
+        #return new_inserted_flares
+        result['inserted_ids']=inserted_ids
 
     def set_tbc_flare_lc_filename(self, _id, lc_filename):
 
@@ -415,15 +428,33 @@ class MongoDB(object):
             results = self.collection_flares_tbc.find(query_string).sort(
                 'peak_unix_time', -1).limit(num)
         return results
-    def insert_background(self, doc):
+    def insert_qllc_statistics(self, doc):
         next_id=0
         try:
-            next_id=self.collection_background.find({}).sort(
+            next_id=self.collection_qllc_statistics.find({}).sort(
                 '_id', -1).limit(1)[0]['_id'] + 1
         except IndexError:
             pass
         doc['_id']=next_id
-        self.collection_background.save(doc)
+        self.collection_qllc_statistics.save(doc)
+    def get_nearest_qllc_statistics(self, start_unix, max_limit=500):
+        right_closest=list(self.collection_qllc_statistics.find({'start_unix': {'$gte':start_unix}, 'is_quiet':True,'max.0':{'$lt':max_limit}}).sort('start_unix',1).limit(1))
+        left_closest=list(self.collection_qllc_statistics.find({'start_unix': {'$lte':start_unix}, 'is_quiet':True, 'max.0':{'$lt':max_limit}}).sort('start_unix',-1).limit(1))
+        if right_closest and not left_closest:
+            return left_closest[0]
+        if not right_closest and left_closest:
+            return left_closest[0]
+        if not right_closest and not left_closest:
+            return None
+        left_unix = left_closest[0]['start_unix']
+        right_unix = right_closest[0]['start_unix']
+        if start_unix-left_unix>right_unix-start_unix:
+            return right_closest[0]
+        return left_closest[0]
+
+
+
+
 
     def get_quicklook_packets_of_run(self, packet_type, run):
         collection = None

@@ -143,12 +143,7 @@ def process(instrument, filename):
             except Exception as e:
                 logger.error(str(e))
             
-        if DO_FLARE_SEARCH:
-            logger.info('Searching for flares..')
-            try:
-                flare_info=flare_detection.search(file_id, daemon_config['flare_lc_snapshot_path'])
-            except Exception as e:
-                logger.error(str(e))
+
         if DO_BACKGROUND_ESTIMATION:
             logger.info('Background estimation..')
             try:
@@ -156,6 +151,12 @@ def process(instrument, filename):
             except Exception as e:
                 logger.error(str(e))
 
+        if DO_FLARE_SEARCH:
+            logger.info('Searching for flares..')
+            try:
+                flare_info=flare_detection.search(file_id, daemon_config['flare_lc_snapshot_path'])
+            except Exception as e:
+                logger.error(str(e))
     try:
         create_notification(base,alert_headers, summary,flare_info )
     except Exception as e:

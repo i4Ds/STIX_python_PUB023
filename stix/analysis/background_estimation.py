@@ -4,13 +4,14 @@
     Construct STIX QL background level history
     Procedure:
        requesting QL data hour by hour from Mongo database
-       Check if there is a flare in the selected time
-       take median as the background if no flares occur in the window 
+       Check if STIX is quiet 
+       calculate mean, median, rms and save them to database 
 
 """
 
 import os
 import sys
+import math
 sys.path.append('.')
 from scipy import signal
 import numpy as np
@@ -20,12 +21,17 @@ from stix.core import stix_datetime
 
 mdb = db.MongoDB()
 
-MARGIN = 3600
-FRAME_SPAN=1800
+MARGIN = 0
+FRAME_SPAN=3600
 
 
 SPID = 54118
 terminal = False
+
+def is_quiet(median,mean, _max, _std):
+    if _std[0]<3*math.sqrt(median[0]):
+        return True
+    return False
 
 
 
@@ -51,13 +57,11 @@ def process_file(file_id):
 
 def get_background(start, end, file_id):
     span=end-start
-    bkg_db=mdb.get_collection('background')
+    bkg_db=mdb.get_collection('qllc_statistics')
     if bkg_db.find({'start_unix':{'$lt':(start+end)/2}, 'end_unix':{'$gt':(start+end)/2}}).count()>0:
         #background exists 
         return
 
-
-    num_flares=mdb.search_flares_tbc_by_tw(start-MARGIN,  span+2*MARGIN).count()
     unix_time = []
     packets=mdb.get_LC_pkt_by_tw(start, span)
     last_unix=0
@@ -120,8 +124,8 @@ def get_background(start, end, file_id):
         amin.append(min(lc))
 
     doc={
-            'num_flares':num_flares,
             'file_id':file_id,
+            'is_quiet':is_quiet(median, mean, max, std),
             'num_points': num_points,
             'start_unix': unix_time[0], 
             'end_unix':unix_time[-1],
@@ -133,7 +137,7 @@ def get_background(start, end, file_id):
             'max':amax,
             'min':amin,
             }
-    mdb.insert_background(doc)
+    mdb.insert_qllc_statistics(doc)
 
 
 if __name__ == '__main__':
