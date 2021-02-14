@@ -37,7 +37,14 @@ def info(msg):
     logger.info(msg)
 
 
-def get_lightcurve_data(file_id):
+def smooth(y, N=15):
+
+    y_padded = np.pad(y, (N//2, N-1-N//2), mode='edge')
+    y_smooth = np.convolve(y_padded, np.ones((N,))/N, mode='valid') 
+    return y_smooth
+
+
+def get_lightcurve_data(file_id, rebin=30):
     packets = mdb.select_packets_by_run(file_id, SPID)
     if not packets:
         info(f'No QL LC packets found for run {file_id}')
@@ -80,6 +87,9 @@ def get_lightcurve_data(file_id):
 
     if not lightcurves:
         return None
+    time=np.array(unix_time)
+    lc=np.array(lightcurves[0])
+
     return {'time': np.array(unix_time), 'lc': np.array(lightcurves[0])}
 
 
@@ -93,44 +103,63 @@ def make_lightcurve_snapshot(data, docs, snapshot_path):
                 'peak_unix_time': result['peak_unix_time'][i],
     '''
     #print(flare_list)
-    inserted_ids=docs['inserted_ids']
+    inserted_ids = docs['inserted_ids']
+    #print(inserted_ids)
 
     for i, inserted_id in enumerate(inserted_ids):
-        if inserted_id==None:
+        if inserted_id == None:
             continue
-        _id=inserted_id
-        min_height=docs['conditions']['min_height']
+        _id = inserted_id
+        #print('_id', inserted_id)
+        min_height = docs['conditions']['min_height']
 
         start_unix = docs['start_unix'][i]
         end_unix = docs['end_unix'][i]
-        margin=300
-        where = np.where((data['time'] > start_unix-margin)
-                         & (data['time'] < end_unix+margin))
+        margin = 300
+        where = np.where((data['time'] > start_unix - margin)
+                         & (data['time'] < end_unix + margin))
         unix_ts = data['time'][where]
         t_since_t0 = unix_ts - docs['peak_unix_time'][i]
         lc = data['lc'][where]
         peak_counts = docs['peak_counts'][i]
 
-
         fig = plt.figure(figsize=(6, 2))
         plt.plot(t_since_t0, lc)
+        plt.plot(t_since_t0,data['lc_smoothed'][where])
         T0 = stix_datetime.unix2utc(docs['peak_unix_time'][i])
+        xmin = docs['start_unix'][i] - docs['peak_unix_time'][i]
+        xmax = docs['end_unix'][i] - docs['peak_unix_time'][i]
 
-        plt.vlines(0, peak_counts-docs['properties']['prominences'][i], peak_counts,color='C1')
+        plt.vlines(0,
+                   peak_counts - docs['properties']['prominences'][i],
+                   peak_counts,
+                   color='C1')
+        ylow = peak_counts - 1.1 * docs['properties']['prominences'][i]
 
-        plt.hlines(docs['properties']['width_heights'][i], 
-               xmin=docs['start_unix'][i]-docs['peak_unix_time'][i], 
-               xmax=docs['end_unix'][i]-docs['peak_unix_time'][i], 
-               linewidth=2, 
-               color='C2')
+        plt.vlines(xmin, ylow, peak_counts, linestyle='dashed', color='C3')
+        plt.vlines(xmax, ylow, peak_counts, linestyle='dashed', color='C3')
+        plt.text(xmin, 0.8 * peak_counts, 'Start')
+        plt.text(xmax, 0.8 * peak_counts, 'End')
 
-        plt.hlines(min_height, t_since_t0[0], t_since_t0[-1], linestyle='dotted', color='red',label="threshold")
+        plt.hlines(docs['properties']['width_heights'][i],
+                   xmin=xmin,
+                   xmax=xmax,
+                   linewidth=2,
+                   color='C2')
+
+        plt.hlines(min_height,
+                   t_since_t0[0],
+                   t_since_t0[-1],
+                   linestyle='dotted',
+                   color='red',
+                   label="threshold")
         plt.xlabel(f'T - T0 (s),  T0: {T0}')
         plt.ylabel('Counts / 4 s')
         plt.title(f'Flare #{_id}')
         #plt.yscale('log')
         filename = os.path.join(snapshot_path, f'flare_lc_{_id}.png')
         fig.tight_layout()
+        #print(filename)
         plt.savefig(filename, dpi=100)
         mdb.set_tbc_flare_lc_filename(_id, filename)
         plt.close()
@@ -139,106 +168,125 @@ def make_lightcurve_snapshot(data, docs, snapshot_path):
 
 def major_peaks(lefts, rights):
     #remove small peaks
-    num=lefts.size
-    major=[True]*num
+    num = lefts.size
+    major = [True] * num
     for i in range(num):
-        a=(lefts[i],rights[i])
+        a = (lefts[i], rights[i])
         for j in range(num):
-            if i==j:
+            if i == j:
                 continue
-            b=(lefts[j],rights[j])
-            
-            if a[0]>=b[0] and a[1]<=b[1]:  #a in b
-                major[i]=False
+            b = (lefts[j], rights[j])
+
+            if a[0] >= b[0] and a[1] <= b[1]:  #a in b
+                major[i] = False
     return major
+
+
 def search(run_id,
            filter_cutoff_freq=0.03,
            filter_order=4,
            peak_min_width=15,
-           default_threshold=300,
            peak_min_distance=150,
-           prominence=20,
            rel_height=0.9,
            snapshot_path='.'):
+
     data = get_lightcurve_data(run_id)
+
+    print(f'deleting file {run_id}')
+
+    mdb.delete_flare_candidates_for_file(run_id)
+
     if not data:
         info(f'No QL LC packets found for file {run_id}')
         return None
 
-
     unix_time = data['time']
     lightcurve = data['lc']
-
-    height = default_threshold
-
-    stat=mdb.get_nearest_qllc_statistics(unix_time[0],500)
-    #load historical background data
+    med = np.median(lightcurve)
+    prominence = 2 * np.sqrt(med)
+    height = med + 3 * np.sqrt(med)
+    stat = mdb.get_nearest_qllc_statistics(unix_time[0], 500)
     if stat:
-        if stat['std'][0]<2*math.sqrt(stat['median'][0]): #valid background
-            height=stat['median'][0]+2*stat['std'][0]
-            prominence=2*stat['std'][0]
-
+        if stat['std'][0] < 2 * math.sqrt(
+                stat['median'][0]):  #valid background
+            height = stat['median'][0] + 2 * stat['std'][0]
+            prominence = 2 * stat['std'][0]
 
     #b, a = signal.butter(filter_order, filter_cutoff_freq, 'low', analog=False)
     #lc_smoothed = signal.filtfilt(b, a, lightcurve)
-    result={}
+    lc_smoothed=smooth(lightcurve)
+    result = {}
     xpeaks, properties = signal.find_peaks(
-        lightcurve,
+        lc_smoothed,
         height=height,
         prominence=prominence,
-        #threshold=threshold,
         width=peak_min_width,
-        rel_height=rel_height, #T90 calculation
+        rel_height=rel_height,  #T90 calculation
         distance=peak_min_distance)
-    if xpeaks.size==0:
+    if xpeaks.size == 0:
         info(f'No peaks found for file {run_id}')
-        return 
+        return
     info('Number of peaks:{}'.format(xpeaks.size))
     conditions = {
         'filter_cutoff_freq': filter_cutoff_freq,
         'filter_order': filter_order,
         'peak_min_width': peak_min_width,
         'peak_min_distance': peak_min_distance,
-        'rel_height':rel_height,
+        'rel_height': rel_height,
         'prominence': prominence,
         'bkg_statistics': stat,
         'min_height': height,
-
     }
     doc = {}
     peak_values = properties['peak_heights']
     peak_unix_times = unix_time[xpeaks]
     peaks_utc = [stix_datetime.unix2utc(x) for x in peak_unix_times]
-    majors=major_peaks(properties['left_ips'],properties['right_ips'])
-    range_indexs=[(properties['left_ips'][i].astype(int), properties['right_ips'][i].astype(int)) 
-            for  i in range(xpeaks.size)]
-    total_counts=[int(np.sum(lightcurve[int(r[0]):int(r[1])])) for r in range_indexs]
+    majors = major_peaks(properties['left_ips'], properties['right_ips'])
+    range_indexs = [(properties['left_ips'][i].astype(int),
+                     properties['right_ips'][i].astype(int))
+                    for i in range(xpeaks.size)]
+    total_counts = [
+        int(np.sum(lightcurve[int(r[0]):int(r[1])])) for r in range_indexs
+    ]
     doc = {
-            'num_peaks': xpeaks.size,
-            'peak_unix_time': peak_unix_times.tolist(),
-            'peak_counts': peak_values.tolist(),
-            'peak_utc': peaks_utc,
-            'total_counts':total_counts,
-            #'peak_idx': xpeaks.tolist(),
-            'conditions':conditions,
-            'peak_width_bins': properties['widths'].tolist(),
-            'peak_prominence': properties['prominences'].tolist(),
-            'start_unix': unix_time[properties['left_ips'].astype(int)].tolist(),
-            'end_unix':unix_time[properties['right_ips'].astype(int)].tolist(),
-            'is_major': majors,
-            'run_id': run_id
-        }
+        'num_peaks': xpeaks.size,
+        'peak_unix_time': peak_unix_times.tolist(),
+        'peak_counts': peak_values.tolist(),
+        'peak_utc': peaks_utc,
+        'total_counts': total_counts,
+        #'peak_idx': xpeaks.tolist(),
+        'conditions': conditions,
+        'peak_width_bins': properties['widths'].tolist(),
+        'peak_prominence': properties['prominences'].tolist(),
+        'start_unix': unix_time[properties['left_ips'].astype(int)].tolist(),
+        'end_unix': unix_time[properties['right_ips'].astype(int)].tolist(),
+        'is_major': majors,
+        'run_id': run_id
+    }
 
     mdb.save_flare_candidate_info(doc)
-    doc['properties']=properties
-    make_lightcurve_snapshot(data, doc,  snapshot_path)
+    doc['properties'] = properties
+    data['lc_smoothed']=lc_smoothed
+    make_lightcurve_snapshot(data, doc, snapshot_path)
     return doc
+
+
+def search_in_many(fid_start, fid_end, img_path='/data/flare_lc'):
+    for i in range(fid_start, fid_end + 1):
+        print(f'deleting files {i}')
+        mdb.delete_flare_candidates_for_file(i)
+    for i in range(fid_start, fid_end + 1):
+        search(i, snapshot_path=img_path)
 
 
 if __name__ == '__main__':
     import sys
     terminal = True
-    if len(sys.argv) != 2:
+    if len(sys.argv) < 2:
         print('flare_detection file_number')
-    else:
+    elif len(sys.argv) == 2:
         search(int(sys.argv[1]), snapshot_path='/data/flare_lc')
+    else:
+        search_in_many(int(sys.argv[1]),
+                       int(sys.argv[2]),
+                       img_path='/data/flare_lc')

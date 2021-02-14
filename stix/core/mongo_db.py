@@ -333,8 +333,6 @@ class MongoDB(object):
             })
             #if it is exists in db
             if exists:
-                #duplicated flares
-                hidden = True
                 continue
 
             doc = {
@@ -408,6 +406,12 @@ class MongoDB(object):
                 'header.SPID', {'run_id': int(file_id)}) if x
         ]
 
+    def delete_flare_candidates_for_file(self,run_id):
+        if self.collection_flares_tbc:
+            self.collection_flares_tbc.delete_many({'run_id': int(run_id)})
+
+
+
     def search_flares_tbc_by_tw(self,
                                 start_unix,
                                 duration,
@@ -438,19 +442,22 @@ class MongoDB(object):
         doc['_id']=next_id
         self.collection_qllc_statistics.save(doc)
     def get_nearest_qllc_statistics(self, start_unix, max_limit=500):
-        right_closest=list(self.collection_qllc_statistics.find({'start_unix': {'$gte':start_unix}, 'is_quiet':True,'max.0':{'$lt':max_limit}}).sort('start_unix',1).limit(1))
-        left_closest=list(self.collection_qllc_statistics.find({'start_unix': {'$lte':start_unix}, 'is_quiet':True, 'max.0':{'$lt':max_limit}}).sort('start_unix',-1).limit(1))
-        if right_closest and not left_closest:
+        try:
+            right_closest=list(self.collection_qllc_statistics.find({'start_unix': {'$gte':start_unix}, 'is_quiet':True,'max.0':{'$lt':max_limit}}).sort('start_unix',1).limit(1))
+            left_closest=list(self.collection_qllc_statistics.find({'start_unix': {'$lte':start_unix}, 'is_quiet':True, 'max.0':{'$lt':max_limit}}).sort('start_unix',-1).limit(1))
+            if right_closest and not left_closest:
+                return left_closest[0]
+            if not right_closest and left_closest:
+                return left_closest[0]
+            if not right_closest and not left_closest:
+                return None
+            left_unix = left_closest[0]['start_unix']
+            right_unix = right_closest[0]['start_unix']
+            if start_unix-left_unix>right_unix-start_unix:
+                return right_closest[0]
             return left_closest[0]
-        if not right_closest and left_closest:
-            return left_closest[0]
-        if not right_closest and not left_closest:
+        except:
             return None
-        left_unix = left_closest[0]['start_unix']
-        right_unix = right_closest[0]['start_unix']
-        if start_unix-left_unix>right_unix-start_unix:
-            return right_closest[0]
-        return left_closest[0]
 
 
 
