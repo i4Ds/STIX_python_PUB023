@@ -115,6 +115,7 @@ def make_lightcurve_snapshot(data, docs, snapshot_path):
 
         start_unix = docs['start_unix'][i]
         end_unix = docs['end_unix'][i]
+        flare_id=docs['flare_id'][i]
         margin = 300
         where = np.where((data['time'] > start_unix - margin)
                          & (data['time'] < end_unix + margin))
@@ -124,22 +125,22 @@ def make_lightcurve_snapshot(data, docs, snapshot_path):
         peak_counts = docs['peak_counts'][i]
 
         fig = plt.figure(figsize=(6, 2))
-        plt.plot(t_since_t0, lc)
-        plt.plot(t_since_t0,data['lc_smoothed'][where])
+        plt.plot(t_since_t0, lc, label="4-10 keV LC")
+        plt.plot(t_since_t0,data['lc_smoothed'][where], label='1-min moving mean')
         T0 = stix_datetime.unix2utc(docs['peak_unix_time'][i])
         xmin = docs['start_unix'][i] - docs['peak_unix_time'][i]
         xmax = docs['end_unix'][i] - docs['peak_unix_time'][i]
 
-        plt.vlines(0,
-                   peak_counts - docs['properties']['prominences'][i],
-                   peak_counts,
-                   color='C1')
+        plt.plot([0],
+                   [peak_counts],
+                   marker='+',color='cyan', markersize=15)
+
         ylow = peak_counts - 1.1 * docs['properties']['prominences'][i]
 
-        plt.vlines(xmin, ylow, peak_counts, linestyle='dashed', color='C3')
-        plt.vlines(xmax, ylow, peak_counts, linestyle='dashed', color='C3')
-        plt.text(xmin, 0.8 * peak_counts, 'Start')
-        plt.text(xmax, 0.8 * peak_counts, 'End')
+        plt.vlines(xmin, ylow, peak_counts, linestyle='dashed', color='C3' )
+        plt.vlines(xmax, ylow, peak_counts, linestyle='dashed', color='C3' )
+        plt.text(xmin, 0.9*peak_counts, 'Start', color='C3')
+        plt.text(0.8*xmax, 0.9*peak_counts, 'End', color='C3')
 
         plt.hlines(docs['properties']['width_heights'][i],
                    xmin=xmin,
@@ -153,10 +154,11 @@ def make_lightcurve_snapshot(data, docs, snapshot_path):
                    linestyle='dotted',
                    color='red',
                    label="threshold")
+
+
         plt.xlabel(f'T - T0 (s),  T0: {T0}')
         plt.ylabel('Counts / 4 s')
-        plt.title(f'Flare #{_id}')
-        #plt.yscale('log')
+        plt.title(f'Flare #{flare_id}')
         filename = os.path.join(snapshot_path, f'flare_lc_{_id}.png')
         fig.tight_layout()
         #print(filename)
@@ -183,11 +185,9 @@ def major_peaks(lefts, rights):
 
 
 def search(run_id,
-           filter_cutoff_freq=0.03,
-           filter_order=4,
            peak_min_width=15,
            peak_min_distance=150,
-           rel_height=0.9,
+           rel_height=0.95,
            snapshot_path='.'):
 
     data = get_lightcurve_data(run_id)
@@ -206,14 +206,14 @@ def search(run_id,
     prominence = 2 * np.sqrt(med)
     height = med + 3 * np.sqrt(med)
     stat = mdb.get_nearest_qllc_statistics(unix_time[0], 500)
+    bkg_level=med
     if stat:
         if stat['std'][0] < 2 * math.sqrt(
                 stat['median'][0]):  #valid background
             height = stat['median'][0] + 2 * stat['std'][0]
+            bkg_level=stat['median'][0]
             prominence = 2 * stat['std'][0]
 
-    #b, a = signal.butter(filter_order, filter_cutoff_freq, 'low', analog=False)
-    #lc_smoothed = signal.filtfilt(b, a, lightcurve)
     lc_smoothed=smooth(lightcurve)
     result = {}
     xpeaks, properties = signal.find_peaks(
@@ -228,8 +228,6 @@ def search(run_id,
         return
     info('Number of peaks:{}'.format(xpeaks.size))
     conditions = {
-        'filter_cutoff_freq': filter_cutoff_freq,
-        'filter_order': filter_order,
         'peak_min_width': peak_min_width,
         'peak_min_distance': peak_min_distance,
         'rel_height': rel_height,
@@ -241,22 +239,38 @@ def search(run_id,
     peak_values = properties['peak_heights']
     peak_unix_times = unix_time[xpeaks]
     peaks_utc = [stix_datetime.unix2utc(x) for x in peak_unix_times]
+    flare_ids=[stix_datetime.unix2datetime(x).strftime("%y%m%d%H%M")
+            for x in peak_unix_times]
+
     majors = major_peaks(properties['left_ips'], properties['right_ips'])
-    range_indexs = [(properties['left_ips'][i].astype(int),
-                     properties['right_ips'][i].astype(int))
+    range_indexs = [(int(properties['left_ips'][i]),
+                     int(properties['right_ips'][i]))
                     for i in range(xpeaks.size)]
     total_counts = [
-        int(np.sum(lightcurve[int(r[0]):int(r[1])])) for r in range_indexs
+        int(np.sum(lightcurve[r[0]:r[1]])) for r in range_indexs
     ]
+    seconds_per_bin=4
+    durations=np.array([(r[1]-r[0])*seconds_per_bin for r in range_indexs])
+    cps=total_counts/durations
+
+    total_signal_counts = [
+        cnts -dur*bkg_level/seconds_per_bin for cnts, dur in zip(total_counts, durations) 
+    ]
+    
     doc = {
         'num_peaks': xpeaks.size,
         'peak_unix_time': peak_unix_times.tolist(),
         'peak_counts': peak_values.tolist(),
         'peak_utc': peaks_utc,
+        'flare_id':flare_ids,
+        'bkg_counts_per_bin':bkg_level,
         'total_counts': total_counts,
-        #'peak_idx': xpeaks.tolist(),
+        'total_signal_counts':total_signal_counts,
+        'duration':durations.tolist(),
+        'mean_cps':cps.tolist(),
         'conditions': conditions,
-        'peak_width_bins': properties['widths'].tolist(),
+        'peak_width_bins': properties['widths'].tolist(),  #width of height
+        'width_height':properties['width_heights'].tolist(),  # height of the width, background level
         'peak_prominence': properties['prominences'].tolist(),
         'start_unix': unix_time[properties['left_ips'].astype(int)].tolist(),
         'end_unix': unix_time[properties['right_ips'].astype(int)].tolist(),
