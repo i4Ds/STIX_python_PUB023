@@ -187,7 +187,7 @@ def major_peaks(lefts, rights):
 def search(run_id,
            peak_min_width=15,
            peak_min_distance=150,
-           rel_height=0.95,
+           rel_height=0.9,
            snapshot_path='.'):
 
     data = get_lightcurve_data(run_id)
@@ -253,9 +253,12 @@ def search(run_id,
     durations=np.array([(r[1]-r[0])*seconds_per_bin for r in range_indexs])
     cps=total_counts/durations
 
-    total_signal_counts = [
-        cnts -dur*bkg_level/seconds_per_bin for cnts, dur in zip(total_counts, durations) 
-    ]
+    total_signal_counts = []
+    for i, (cnts, dur) in enumerate(zip(total_counts, durations)) :
+        sig_cnts=cnts -dur*bkg_level/seconds_per_bin
+        if sig_cnts<0:
+            sig_cnts=cnts-dur*properties['width_heights'][i]/seconds_per_bin
+        total_signal_counts.append(sig_cnts)
     
     doc = {
         'num_peaks': xpeaks.size,
