@@ -338,6 +338,7 @@ class MongoDB(object):
             doc = {
                 '_id': first_id + num_inserted,
                 'hidden': hidden,
+                'published':False
             }
             for key in  result:
                 if isinstance(result[key], list):
