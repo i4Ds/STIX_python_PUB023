@@ -52,6 +52,7 @@ class MongoDB(object):
             self.collection_events = self.db['events']
             self.collection_flares_tbc = self.db['flares_tbc']
             self.collection_qllc_statistics= self.db['qllc_statistics']
+            self.collection_notifications= self.db['notifications']
 
         except Exception as e:
             print('Error occurred while initializing mongodb: {}'.format(
@@ -460,6 +461,16 @@ class MongoDB(object):
         except:
             return None
 
+    def insert_notification(self, doc):
+        next_id=0
+        try:
+            next_id=self.collection_notifications.find({}).sort(
+                '_id', -1).limit(1)[0]['_id'] + 1
+        except IndexError:
+            pass
+        doc['_id']=next_id
+        doc['is_sent']=False
+        self.collection_notifications.save(doc)
 
 
 

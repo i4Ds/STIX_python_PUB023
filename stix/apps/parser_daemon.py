@@ -37,46 +37,48 @@ daemon_config=config.get_config('pipeline.daemon')
 noti_config=config.get_config('pipeline.daemon.notification')
 mongodb_config=config.get_config('pipeline.mongodb')
 
+MDB=mongo_db.MongoDB(mongodb_config['host'], mongodb_config['port'], 
+            mongodb_config['user'], mongodb_config['password'])
+
+HOST='https://pub023.cs.technik.fhnw.ch'
 def get_now():
     return datetime.now().isoformat()
-def create_notification(raw_filename, alert_headers, summary, flare_info):
-    with open(noti_config['file'],'a+') as log:
-        msg='New file: {}\n'.format(raw_filename)
-        msg+='Data acq. time: {} - {} \n'.format(stix_datetime.unix2utc(summary['data_start_unix_time']),
-                stix_datetime.unix2utc(summary['data_stop_unix_time']),
-                )
-        file_id=summary['_id']
-        msg+='\n'
-        msg+='\nRaw packets: https://www.cs.technik.fhnw.ch/stix/view/packet/file/{}\n'.format(file_id)
-        try:
-            if '54102' in summary['summary']['spid'] or '54101' in summary['summary']['spid']:
-                msg+='\nHK plots: https://www.cs.technik.fhnw.ch/stix/view/plot/housekeeping/file/{}\n'.format(file_id)
-            if '54118' in summary['summary']['spid']:
-                msg+='\nLight curves: https://www.cs.technik.fhnw.ch/stix/view/plot/lightcurves?run={}\n'.format(file_id)
-            msg+='\nL1 FITS files: https://www.cs.technik.fhnw.ch/stix/view/list/fits/file/{}\n'.format(file_id)
-            if summary['calibration_run_ids']:
-                msg+='\nCalibration runs: https://www.cs.technik.fhnw.ch/stix/view/plot/calibration/file/{}\n'.format(file_id)
-            if [x for x  in summary['summary']['spid'] if x in SCI_PACKET_SPIDS]:
-                msg+='\nScience data: https://www.cs.technik.fhnw.ch/stix/view/list/bsd/file/{}\n'.format(file_id)
+def create_notification(raw_filename, TM5_headers, summary, num_flares):
+    file_id=summary['_id']
+    start=stix_datetime.unix2utc(summary['data_start_unix_time'])
+    end=stix_datetime.unix2utc(summary['data_stop_unix_time'])
+    content=f'New file: {raw_filename}\nObservation time: {start} - {end} \nRaw packets: {HOST}/view/packet/file/{file_id}\n'
+    try:
+        if '54102' in summary['summary']['spid'] or '54101' in summary['summary']['spid']:
+            content+=f'\nHousekeeping data: {HOST}/view/plot/housekeeping/file/{file_id}\n'
+        if '54118' in summary['summary']['spid']:
+            content+=f'\nLight curves: {HOST}/view/plot/lightcurves?run={file_id}\n'
+        content+=f'\nL1A FITS files: {HOST}/view/list/fits/file/{file_id}\n'
+        if summary['calibration_run_ids']:
+            content+=f'\nCalibration runs: {HOST}/view/plot/calibration/file/{file_id}\n'
+        if [x for x  in summary['summary']['spid'] if x in SCI_PACKET_SPIDS]:
+            content+=f'\nScience data: {HOST}/view/list/bsd/file/{file_id}\n'
+    except Exception as e:
+        logger.error(e)
+    if TM5_headers:
+        content+='\nSTIX Service 5 packets:\n'
+        for header in TM5_headers:
+            content+='\tAt {}, TM({},{}) {}\n'.format(header['UTC'], header['service_type'],
+                header['service_subtype'],header['descr'] )
+    else:
+        content+='No Service 5 packet found in the file.\n'
 
-        except Exception as e:
-            print(e)
-            pass
-        msg+='\n'
-        if alert_headers:
-            msg+='STIX Service 5 packets:\n'
-            for header in alert_headers:
-                msg+='\tAt {}, TM({},{}) {}\n'.format(header['UTC'], header['service_type'],
-                    header['service_subtype'],header['descr'] )
-        else:
-            msg+='No Service 5 packet found in the file.\n'
-
-        if flare_info:
-            msg+='''\nSTIX detected at least {} solar flare(s)\n \n'''.format(flare_info['num_peaks'])
-        else:
-            msg+='\n No solar flare detected.\n'
-
-        log.write(msg)
+    if num_flares>0:
+        content+='''\n{} solar flare(s) identified in the file\n \n'''.format(num_flares)
+    else:
+        content+='\n No solar flare detected.\n'
+    doc={'title': 'STIX operational message',
+            'type': 'operations',
+            'content':content,
+            'time': stix_datetime.get_now(),
+            'file':file_id
+            }
+    MDB.insert_notification(doc)
 
 def remove_ngnix_cache():
     '''
@@ -97,7 +99,7 @@ def remove_ngnix_cache():
 def process(instrument, filename):
     base= os.path.basename(filename)
     name=os.path.splitext(base)[0]
-    flare_info=None
+    num_flares=0
     log_path=daemon_config['log_path']
     log_filename=os.path.join(log_path,name+'.log')
     logger.set_logger(log_filename, level=3)
@@ -109,15 +111,16 @@ def process(instrument, filename):
         parser.exclude_S20()
     #parser.set_store_binary_enabled(False)
     parser.set_packet_buffer_enabled(False)
-    alert_headers=None
+    TM5_headers=None
     try:
         parser.parse_file(filename) 
-        alert_headers=parser.get_stix_alerts()
+        TM5_headers=parser.get_stix_alerts()
     except Exception as e:
         print(str(e))
         logger.error(str(e))
         return
     summary=parser.done()
+    message={}
     if summary:
         if DO_CALIBRATIONS:
             logger.info('Starting calibration spectrum analysis...')
@@ -154,34 +157,27 @@ def process(instrument, filename):
         if DO_FLARE_SEARCH:
             logger.info('Searching for flares..')
             try:
-                flare_info=flare_detection.search(file_id, daemon_config['flare_lc_snapshot_path'])
+                num_flares=flare_detection.search(file_id, daemon_config['flare_lc_snapshot_path'])
             except Exception as e:
                 logger.error(str(e))
     try:
-        create_notification(base,alert_headers, summary,flare_info )
+        create_notification(base,TM5_headers, summary, num_flares)
     except Exception as e:
         logger.info(str(e))
     remove_ngnix_cache()
 
 def main_loop():
     while True:
-
-        print('Start checking for new files...')
-        mdb=mongo_db.MongoDB(mongodb_config['host'], mongodb_config['port'], 
-                mongodb_config['user'], mongodb_config['password'])
-
         filelist={}
         for instrument, selectors in daemon_config['data_source'].items():
             for pattern in selectors:
                 filenames=glob.glob(pattern)
                 for filename in filenames:
-                    file_id=mdb.get_file_id(filename)
+                    file_id=MDB.get_file_id(filename)
                     if file_id == -2 :
                         if instrument not in filelist:
                             filelist[instrument]=[]
                         filelist[instrument].append(filename)
-
-        mdb.close()
         for instrument, files in filelist.items():
             for filename in files:
                 process(instrument, filename)

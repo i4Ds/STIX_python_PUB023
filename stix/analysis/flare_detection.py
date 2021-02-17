@@ -198,7 +198,7 @@ def search(run_id,
 
     if not data:
         info(f'No QL LC packets found for file {run_id}')
-        return None
+        return 0
 
     unix_time = data['time']
     lightcurve = data['lc']
@@ -225,7 +225,7 @@ def search(run_id,
         distance=peak_min_distance)
     if xpeaks.size == 0:
         info(f'No peaks found for file {run_id}')
-        return
+        return 0
     info('Number of peaks:{}'.format(xpeaks.size))
     conditions = {
         'peak_min_width': peak_min_width,
@@ -285,7 +285,7 @@ def search(run_id,
     doc['properties'] = properties
     data['lc_smoothed']=lc_smoothed
     make_lightcurve_snapshot(data, doc, snapshot_path)
-    return doc
+    return xpeaks.size
 
 
 def search_in_many(fid_start, fid_end, img_path='/data/flare_lc'):
@@ -302,7 +302,8 @@ if __name__ == '__main__':
     if len(sys.argv) < 2:
         print('flare_detection file_number')
     elif len(sys.argv) == 2:
-        search(int(sys.argv[1]), snapshot_path='/data/flare_lc')
+        res=search(int(sys.argv[1]), snapshot_path='/data/flare_lc')
+        print('Number of peaks:', res)
     else:
         search_in_many(int(sys.argv[1]),
                        int(sys.argv[2]),
