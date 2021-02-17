@@ -25,10 +25,11 @@ from  stix.analysis import sci_packets_merger
 logger = stix_logger.get_logger()
 
 S20_EXCLUDED=True
-DO_CALIBRATIONS=True
-ENABLE_FITS_CREATION=True
+DO_CALIBRATIONS= True
+ENABLE_FITS_CREATION= True
+DO_BULK_SCIENCE_DATA_MERGING= True
+
 DO_FLARE_SEARCH=True
-DO_BULK_SCIENCE_DATA_MERGING=True
 SCI_PACKET_SPIDS= ['54114', '54115', '54116', '54117', '54143', '54125']
 
 DO_BACKGROUND_ESTIMATION=True
@@ -73,7 +74,7 @@ def create_notification(raw_filename, TM5_headers, summary, num_flares):
     else:
         content+='\n No solar flare detected.\n'
     doc={'title': 'STIX operational message',
-            'type': 'operations',
+            'group': 'operations',
             'content':content,
             'time': stix_datetime.get_now(),
             'file':file_id
@@ -101,7 +102,7 @@ def process(instrument, filename):
     name=os.path.splitext(base)[0]
     num_flares=0
     log_path=daemon_config['log_path']
-    log_filename=os.path.join(log_path,name+'.log')
+    log_filename=os.path.join(log_path, name+'.log')
     logger.set_logger(log_filename, level=3)
     parser = stix_parser.StixTCTMParser()
     parser.set_MongoDB_writer(mongodb_config['host'],mongodb_config['port'],
@@ -122,6 +123,23 @@ def process(instrument, filename):
     summary=parser.done()
     message={}
     if summary:
+        file_id=summary['_id']
+        
+        if DO_BACKGROUND_ESTIMATION:
+            logger.info('Background estimation..')
+            try:
+                bkg.process_file(file_id)
+            except Exception as e:
+                logger.error(str(e))
+
+        if DO_FLARE_SEARCH:
+            logger.info('Searching for flares..')
+            try:
+                num_flares=flare_detection.search(file_id, snapshot_path=daemon_config['flare_lc_snapshot_path'])
+            except Exception as e:
+                raise
+                logger.error(str(e))
+
         if DO_CALIBRATIONS:
             logger.info('Starting calibration spectrum analysis...')
             try:
@@ -134,7 +152,6 @@ def process(instrument, filename):
         if ENABLE_FITS_CREATION:
             logger.info('Creating fits files...')
             try:
-                file_id=summary['_id']
                 fits_creator.create_fits(file_id, daemon_config['fits_path'])
             except Exception as e:
                 logger.error(str(e))
@@ -147,19 +164,6 @@ def process(instrument, filename):
                 logger.error(str(e))
             
 
-        if DO_BACKGROUND_ESTIMATION:
-            logger.info('Background estimation..')
-            try:
-                bkg.process_file(file_id)
-            except Exception as e:
-                logger.error(str(e))
-
-        if DO_FLARE_SEARCH:
-            logger.info('Searching for flares..')
-            try:
-                num_flares=flare_detection.search(file_id, daemon_config['flare_lc_snapshot_path'])
-            except Exception as e:
-                logger.error(str(e))
     try:
         create_notification(base,TM5_headers, summary, num_flares)
     except Exception as e:
