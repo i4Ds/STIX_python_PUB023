@@ -169,26 +169,41 @@ class MongoDB(object):
         return []
 
     def delete_one_run(self, run_id):
+        run_id=int(run_id)
         if self.collection_packets:
             cursor = self.collection_packets.delete_many(
-                {'run_id': int(run_id)})
+                {'run_id': run_id})
 
         if self.collection_raw_files:
             cursor = self.collection_raw_files.delete_many(
-                {'_id': int(run_id)})
+                {'_id': run_id})
 
         if self.collection_calibration:
             cursor = self.collection_calibration.delete_many(
-                {'run_id': int(run_id)})
+                {'run_id': run_id})
+
+        if self.collection_qllc_statistics:
+            self.collection_qllc_statistics.delete_many(
+                {'file_id': run_id})
+
+
         if self.collection_ql:
-            cursor = self.collection_ql.delete_many({'run_id': int(run_id)})
+            cursor = self.collection_ql.delete_many({'run_id': run_id})
+
         if self.collection_data_requests:
             cursor = self.collection_data_requests.delete_many(
-                {'run_id': int(run_id)})
+                {'run_id': run_id})
         if self.collection_flares_tbc:
             cursor = self.collection_flares_tbc.delete_many(
-                {'run_id': int(run_id)})
+                {'run_id': run_id})
         if self.collection_fits:
+            fits_docs=self.collection_fits.find({'file_id':run_id})
+            for doc in fits_docs:
+                filename=os.path.join(doc['path'],doc['filename'])
+                try:
+                    os.remove(filename)
+                except OSError as e:
+                    pass
             cursor = self.collection_fits.delete_many({'file_id': int(run_id)})
 
     def delete_runs(self, runs):
@@ -445,8 +460,10 @@ class MongoDB(object):
         self.collection_qllc_statistics.save(doc)
     def get_nearest_qllc_statistics(self, start_unix, max_limit=500):
         try:
-            right_closest=list(self.collection_qllc_statistics.find({'start_unix': {'$gte':start_unix}, 'is_quiet':True,'max.0':{'$lt':max_limit}}).sort('start_unix',1).limit(1))
-            left_closest=list(self.collection_qllc_statistics.find({'start_unix': {'$lte':start_unix}, 'is_quiet':True, 'max.0':{'$lt':max_limit}}).sort('start_unix',-1).limit(1))
+            right_closest=list(self.collection_qllc_statistics.find({'start_unix': {'$gte':start_unix},
+                'is_quiet':True,'max.0':{'$lt':max_limit}}).sort('start_unix',1).limit(1))
+            left_closest=list(self.collection_qllc_statistics.find({'start_unix': {'$lte':start_unix}, 
+                'is_quiet':True, 'max.0':{'$lt':max_limit}}).sort('start_unix',-1).limit(1))
             if right_closest and not left_closest:
                 return left_closest[0]
             if not right_closest and left_closest:
@@ -461,7 +478,7 @@ class MongoDB(object):
         except:
             return None
 
-    def insert_notification(self, doc):
+    def insert_notification(self, doc, is_sent=False):
         next_id=0
         try:
             next_id=self.collection_notifications.find({}).sort(
@@ -469,7 +486,7 @@ class MongoDB(object):
         except IndexError:
             pass
         doc['_id']=next_id
-        doc['is_sent']=False
+        doc['is_sent']=is_sent
         self.collection_notifications.save(doc)
 
 

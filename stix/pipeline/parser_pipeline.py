@@ -1,18 +1,15 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8 -*-
-# @title        : parser_daemon.py
-# @description  : STIX packet parser daemon. It detects new files in the specified folder, 
+# @title        : parser_pipeline.py
+# @description  : STIX packet parser pipeline. It detects new files in the specified folder, 
 #                 parses the packets and stores the decoded packets in the MongoDB
 # @author       : Hualin Xiao
 # @date         : Feb. 11, 2020
 #
 
-import sys
-sys.path.append('.')
 import os
 import glob
 import time
-import threading
 from datetime import datetime
 from stix.core import config
 from stix.core import stix_datetime
@@ -25,14 +22,13 @@ from  stix.analysis import flare_detection
 from  stix.analysis import sci_packets_merger
 logger = stix_logger.get_logger()
 
+
 S20_EXCLUDED=True
 DO_CALIBRATIONS= True
 ENABLE_FITS_CREATION= True
 DO_BULK_SCIENCE_DATA_MERGING= True
-
 DO_FLARE_SEARCH=True
 SCI_PACKET_SPIDS= ['54114', '54115', '54116', '54117', '54143', '54125']
-
 DO_BACKGROUND_ESTIMATION=True
 
 daemon_config=config.get_config('pipeline.daemon')
@@ -80,7 +76,7 @@ def create_notification(raw_filename, TM5_headers, summary, num_flares):
             'time': stix_datetime.get_now(),
             'file':file_id
             }
-    MDB.insert_notification(doc)
+    MDB.insert_notification(doc, is_sent=False)
 
 def remove_ngnix_cache():
     '''
@@ -96,9 +92,14 @@ def remove_ngnix_cache():
     logger.info('Nginx cache removed')
 
 
+def process_one(filename):
+    process('FM',filename, False)
 
+def process(instrument, filename, notification_enabled=True):
 
-def process(instrument, filename):
+    stix_datetime.spice_manager.refresh_kernels()
+    #always load the latest kernel files
+
     base= os.path.basename(filename)
     name=os.path.splitext(base)[0]
     num_flares=0
@@ -123,56 +124,61 @@ def process(instrument, filename):
         return
     summary=parser.done()
     message={}
-    if summary:
-        file_id=summary['_id']
+    if not summary:
+        return
+
+    file_id=summary['_id']
+
+    if DO_BACKGROUND_ESTIMATION:
+        logger.info('Background estimation..')
+        try:
+            bkg.process_file(file_id)
+        except Exception as e:
+            logger.error(str(e))
+
+    if DO_FLARE_SEARCH:
+        logger.info('Searching for flares..')
+        try:
+            num_flares=flare_detection.search(file_id, snapshot_path=daemon_config['flare_lc_snapshot_path'])
+        except Exception as e:
+            raise
+            logger.error(str(e))
+
+    if DO_CALIBRATIONS:
+        logger.info('Starting calibration spectrum analysis...')
+        try:
+            calibration_run_ids=summary['calibration_run_ids']
+            report_path=daemon_config['calibration_report_path']
+            for run_id in calibration_run_ids:
+                calibration.analyze(run_id, report_path)
+        except Exception as e:
+            logger.error(str(e))
+    if ENABLE_FITS_CREATION:
+        logger.info('Creating fits files...')
+        try:
+            fits_creator.create_fits(file_id, daemon_config['fits_path'])
+        except Exception as e:
+            logger.error(str(e))
+
+    if DO_BULK_SCIENCE_DATA_MERGING:
+        logger.info('merging bulk science data and preparing bsd json files...')
+        try:
+            sci_packets_merger.process(file_id)
+        except Exception as e:
+            logger.error(str(e))
         
-        if DO_BACKGROUND_ESTIMATION:
-            logger.info('Background estimation..')
-            try:
-                bkg.process_file(file_id)
-            except Exception as e:
-                logger.error(str(e))
 
-        if DO_FLARE_SEARCH:
-            logger.info('Searching for flares..')
-            try:
-                num_flares=flare_detection.search(file_id, snapshot_path=daemon_config['flare_lc_snapshot_path'])
-            except Exception as e:
-                raise
-                logger.error(str(e))
+    if notification_enabled:
+        try:
+            create_notification(base,TM5_headers, summary, num_flares)
+        except Exception as e:
+            logger.info(str(e))
 
-        if DO_CALIBRATIONS:
-            logger.info('Starting calibration spectrum analysis...')
-            try:
-                calibration_run_ids=summary['calibration_run_ids']
-                report_path=daemon_config['calibration_report_path']
-                for run_id in calibration_run_ids:
-                    calibration.analyze(run_id, report_path)
-            except Exception as e:
-                logger.error(str(e))
-        if ENABLE_FITS_CREATION:
-            logger.info('Creating fits files...')
-            try:
-                fits_creator.create_fits(file_id, daemon_config['fits_path'])
-            except Exception as e:
-                logger.error(str(e))
-
-        if DO_BULK_SCIENCE_DATA_MERGING:
-            logger.info('merging bulk science data and preparing bsd json files...')
-            try:
-                sci_packets_merger.process(file_id)
-            except Exception as e:
-                logger.error(str(e))
-            
-
-    try:
-        create_notification(base,TM5_headers, summary, num_flares)
-    except Exception as e:
-        logger.info(str(e))
     remove_ngnix_cache()
 
 def main():
     filelist={}
+    print('checking new files ...')
     for instrument, selectors in daemon_config['data_source'].items():
         for pattern in selectors:
             filenames=glob.glob(pattern)
@@ -187,7 +193,10 @@ def main():
             process(instrument, filename)
 
 
+
 if __name__ == '__main__':
+    import sys
+    sys.path.append('.')
     if len(sys.argv)==1:
         main()
     else:

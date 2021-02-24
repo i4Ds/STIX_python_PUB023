@@ -18,24 +18,23 @@ logger = stix_logger.get_logger()
 class SpiceManager:
     """taken from https://issues.cosmos.esa.int/solarorbiterwiki/display/SOSP/Translate+from+OBT+to+UTC+and+back
     """
-
-    __instance = None
-
-    @staticmethod
-    def get_instance():
-        if not SpiceManager.__instance:
-            SpiceManager()
-        return SpiceManager.__instance
-
     def __init__(self):
-        if SpiceManager.__instance:
-            raise Exception('Spice Manager already initialized')
-        else:
-            SpiceManager.__instance = self
+        self.refresh_kernels()
+        self.loaded_kernels=[]
+        self.last_sclk_file=None
+    def get_last_sclk_filename(self):
+        return self.last_sclk_file
+
+
+    def refresh_kernels(self):
         for pattern in config.get_spice():
             for fname in glob.glob(pattern):
                 #logger.info(f'loading spice data file: {fname}')
-                spiceypy.furnsh(fname)
+                if fname not in self.loaded_kernels:
+                    self.loaded_kernels.append(fname)
+                    if 'sclk' in fname:
+                        self.last_sclk_file=fname
+                    spiceypy.furnsh(fname)
 
     def obt2utc(self, obt_string):
         # Obt to Ephemeris time (seconds past J2000)
@@ -71,7 +70,7 @@ class SpiceManager:
         return spiceypy.sce2s(-144, ephemeris_time)
 
 
-spice_manager = SpiceManager.get_instance()
+spice_manager = SpiceManager()
 
 
 def format_datetime(dt):
