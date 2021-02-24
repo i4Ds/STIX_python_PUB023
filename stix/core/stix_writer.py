@@ -208,7 +208,7 @@ class StixMongoDBWriter(StixPacketWriter):
             'comment': comment,
             'log': log_filename,
             'hidden': False,
-            'date': datetime.datetime.now(),
+            'creation_time': datetime.datetime.now(),
             'run_start_unix_time': time.time(),
             'run_stop_unix_time': 0,
             'data_start_unix_time': 0,

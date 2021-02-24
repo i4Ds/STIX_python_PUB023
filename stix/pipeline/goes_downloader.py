@@ -64,7 +64,7 @@ def save_geos(data, filename=None):
     connect.close()
 
 
-def download_7_day_data():
+def main():
     url='http://services.swpc.noaa.gov/json/goes/primary/xrays-7-day.json'
     r = requests.get(url)
     data=r.json()
@@ -75,15 +75,10 @@ def import_data(filename):
         data=json.loads(f.read())
         save_geos(data, filename)
 
-def loop():
-    while True:
-        download_7_day_data()
-        time.sleep(24*3600)
-
 
 if __name__=='__main__':
     if len(sys.argv)==1:
-        loop()
+        main()
     else:
         import_data(sys.argv[1])
 

@@ -7,11 +7,12 @@
 # @date         : Feb. 11, 2020
 #
 
-import os
 import sys
+sys.path.append('.')
+import os
 import glob
 import time
-sys.path.append('.')
+import threading
 from datetime import datetime
 from stix.core import config
 from stix.core import stix_datetime
@@ -170,27 +171,25 @@ def process(instrument, filename):
         logger.info(str(e))
     remove_ngnix_cache()
 
-def main_loop():
-    while True:
-        filelist={}
-        for instrument, selectors in daemon_config['data_source'].items():
-            for pattern in selectors:
-                filenames=glob.glob(pattern)
-                for filename in filenames:
-                    file_id=MDB.get_file_id(filename)
-                    if file_id == -2 :
-                        if instrument not in filelist:
-                            filelist[instrument]=[]
-                        filelist[instrument].append(filename)
-        for instrument, files in filelist.items():
-            for filename in files:
-                process(instrument, filename)
+def main():
+    filelist={}
+    for instrument, selectors in daemon_config['data_source'].items():
+        for pattern in selectors:
+            filenames=glob.glob(pattern)
+            for filename in filenames:
+                file_id=MDB.get_file_id(filename)
+                if file_id == -2 :
+                    if instrument not in filelist:
+                        filelist[instrument]=[]
+                    filelist[instrument].append(filename)
+    for instrument, files in filelist.items():
+        for filename in files:
+            process(instrument, filename)
 
-        time.sleep(60)
 
 if __name__ == '__main__':
     if len(sys.argv)==1:
-        main_loop()
+        main()
     else:
         process('GU', sys.argv[1])
 

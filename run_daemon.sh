@@ -1,2 +1,2 @@
-nohup  python3 stix/apps/parser_daemon.py&
-nohup  python3 stix/analysis/calibration.py&
+nohup  python3 stix/pipeline/parser_daemon.py&
+nohup  python3 stix/tools/grab_goes_daemon.py&

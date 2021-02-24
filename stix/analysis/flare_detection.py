@@ -123,6 +123,7 @@ def make_lightcurve_snapshot(data, docs, snapshot_path):
         t_since_t0 = unix_ts - docs['peak_unix_time'][i]
         lc = data['lc'][where]
         peak_counts = docs['peak_counts'][i]
+        
 
         fig = plt.figure(figsize=(6, 2))
         plt.plot(t_since_t0, lc, label="4-10 keV LC")
@@ -141,6 +142,7 @@ def make_lightcurve_snapshot(data, docs, snapshot_path):
         plt.vlines(xmax, ylow, peak_counts, linestyle='dashed', color='C3' )
         plt.text(xmin, 0.9*peak_counts, 'Start', color='C3')
         plt.text(0.8*xmax, 0.9*peak_counts, 'End', color='C3')
+        baseline=docs['baseline']
 
         plt.hlines(docs['properties']['width_heights'][i],
                    xmin=xmin,
@@ -148,12 +150,19 @@ def make_lightcurve_snapshot(data, docs, snapshot_path):
                    linewidth=2,
                    color='C2')
 
-        plt.hlines(min_height,
-                   t_since_t0[0],
-                   t_since_t0[-1],
-                   linestyle='dotted',
-                   color='red',
-                   label="threshold")
+        #plt.hlines(min_height,
+        #           t_since_t0[0],
+        #           t_since_t0[-1],
+        #           linestyle='dotted',
+        #           color='red',
+        #           label="threshold")
+        #plt.hlines(baseline,
+        #           t_since_t0[0],
+        #           t_since_t0[-1],
+        #           linestyle='dotted',
+        #           color='blue',
+        #           label="baseline")
+
 
 
         plt.xlabel(f'T - T0 (s),  T0: {T0}')
@@ -204,15 +213,18 @@ def search(run_id,
     lightcurve = data['lc']
     med = np.median(lightcurve)
     prominence = 2 * np.sqrt(med)
+    noise_rms=np.sqrt(med)
+    baseline=med
+
     height = med + 3 * np.sqrt(med)
     stat = mdb.get_nearest_qllc_statistics(unix_time[0], 500)
-    bkg_level=med
     if stat:
         if stat['std'][0] < 2 * math.sqrt(
                 stat['median'][0]):  #valid background
             height = stat['median'][0] + 2 * stat['std'][0]
-            bkg_level=stat['median'][0]
+            baseline=stat['median'][0]
             prominence = 2 * stat['std'][0]
+            noise_rms=  stat['std'][0]
 
     lc_smoothed=smooth(lightcurve)
     result = {}
@@ -255,7 +267,7 @@ def search(run_id,
 
     total_signal_counts = []
     for i, (cnts, dur) in enumerate(zip(total_counts, durations)) :
-        sig_cnts=cnts -dur*bkg_level/seconds_per_bin
+        sig_cnts=cnts -dur*baseline/seconds_per_bin
         if sig_cnts<0:
             sig_cnts=cnts-dur*properties['width_heights'][i]/seconds_per_bin
         total_signal_counts.append(sig_cnts)
@@ -266,7 +278,8 @@ def search(run_id,
         'peak_counts': peak_values.tolist(),
         'peak_utc': peaks_utc,
         'flare_id':flare_ids,
-        'bkg_counts_per_bin':bkg_level,
+        'baseline':baseline,
+        'noise_rms':noise_rms,
         'total_counts': total_counts,
         'total_signal_counts':total_signal_counts,
         'duration':durations.tolist(),

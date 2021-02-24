@@ -34,6 +34,7 @@ HOST = 'https://pub023.cs.technik.fhnw.ch' if not DEBUG else 'http://localhost:5
 
 
 def send_email(subject, content,  conf, receivers):
+    print('sending email...')
     msg = MIMEMultipart()
     msg['Subject'] = subject
     msg['From'] = conf['Email_from']
@@ -53,13 +54,14 @@ def send_email(subject, content,  conf, receivers):
         return False
     print('sending email...')
     if not DEBUG:
-        server.sendmail(conf['Email_from'], conf['Email_receivers'], msg.as_string())
+        server.sendmail(conf['Email_from'], receivers, msg.as_string())
     print("done!")
     server.quit()
     return True
 
 
 def set_notification_sent(_id):
+    print('updating notification...')
     url = '{}/request/operations/notifications/set-sent'.format(HOST)
     data = {'_id': _id}
     x = requests.post(url, data=data).json()
@@ -71,13 +73,16 @@ def main():
     notes = requests.get(url).json()
     for note in notes:
         _id = note['_id']
-        print(note)
         content = note.get('content',None)
         title = note.get('title',None)
         receivers = note.get('user_emails',[])
-        if _id and content and receivers and title:
+        if content and receivers and title:
             if send_email(title, content,  config, receivers):
                 set_notification_sent(_id)
+        else:
+            print('ERROR: something is not invalid')
+            print(note)
+    print('done')
 
 
 if __name__ == "__main__":
