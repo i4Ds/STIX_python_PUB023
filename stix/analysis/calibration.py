@@ -521,7 +521,7 @@ if __name__ == '__main__':
     #output_dir='./'
 
     if len(sys.argv) == 1:
-        daemon()
+        print('calibration run_id')
     elif len(sys.argv) >= 2:
         if len(sys.argv) >= 3:
             output_dir = sys.argv[2]

@@ -284,9 +284,15 @@ if  __name__ == '__main__':
                    It reads packets from mongodb and write them into fits
                 Usage:
                 packets_to_fits   <file_id>
+                packets_to_fits   <file_start_id> <end_id>
                 ''')
     elif len(sys.argv)==2:
         create_fits(sys.argv[1], FITS_PATH, overwrite=True, version=1)
     else:
-        create_fits(sys.argv[1], sys.argv[2], overwrite=True, version=1)
+        start=int(sys.argv[1])
+        end=int(sys.argv[2])
+        for i in range(start,end+1):
+            purge_fits_for_raw_file(i)
+        for i in range(start,end+1):
+            create_fits(i, FITS_PATH, overwrite=False, version=1)
 

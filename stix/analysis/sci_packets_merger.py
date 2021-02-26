@@ -3,9 +3,11 @@
 # pre-process science data, merge bulk science data packets and write merged data to json files
 # so that web client side could load the data quickly
 import sys
+sys.path.append('.')
 import os
 import json
 import numpy as np
+from datetime import datetime
 from stix.core import stix_datatypes as sdt
 from stix.core import stix_datetime
 from stix.core import mongo_db as db
@@ -462,7 +464,7 @@ def process(file_id):
         logger.error(str(e))
 
 
-def merge(file_id):
+def merge(file_id, remove_existing=True):
     collection = mdb.get_collection_bsd()
     bsd_cursor = collection.find({'run_id': file_id}).sort('_id', 1)
     for doc in bsd_cursor:
@@ -489,16 +491,22 @@ def merge(file_id):
             analyzer = StixBulkL4Analyzer()
             result = analyzer.merge(cursor)
         if result:
+            date_str=datetime.now().strftime("%y%m%d%H")
             json_filename = os.path.join(level1_products_path,
-                                         f'L1_{doc["_id"]}.json')
+                                         f'L1_{doc["_id"]}_{date_str}.json')
             with open(json_filename, 'w') as outfile:
                 json.dump(result, outfile)
-            doc['level1'] = json_filename
-            collection.replace_one({'_id': doc['_id']}, doc)
+            collection.update_one({'_id': doc['_id']}, {'$set':{'level1': json_filename}})
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
+    if len(sys.argv) < 2:
         print('sci_packet_merger  run_id')
-    else:
+        print('sci_packet_merger  run_id_start id_end')
+    elif len(sys.argv)==2:
         process(int(sys.argv[1]))
+    else:
+        for i in range(int(sys.argv[1]),int(sys.argv[2])+1):
+            print('process:',i)
+            process(i)
+

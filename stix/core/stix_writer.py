@@ -17,6 +17,7 @@ from stix.core import config
 from stix.core import stix_datetime
 from stix.core import stix_logger
 from stix.core import stix_sci_report_analyzer as scia
+from stix.core import spice_manager as spm
 
 logger = stix_logger.get_logger()
 MONGODB_CONFIG = config.get_config()['pipeline']['mongodb']
@@ -139,8 +140,8 @@ class StixMongoDBWriter(StixPacketWriter):
         self.packets = []
         self.start_unix = 0
         self.end_unix = 0
-        self.start_scet = None
-        self.end_scet = None
+        self.start_scet = 0
+        self.end_scet = 0
         self.db = None
         self.filename = ''
         self.path = ''
@@ -213,13 +214,15 @@ class StixMongoDBWriter(StixPacketWriter):
             'hidden': False,
             'creation_time': datetime.datetime.now(),
             'run_start_unix_time': time.time(),
+            'data_start_scet' :0, 
+            'data_end_scet':0, 
             'run_stop_unix_time': 0,
             'data_start_unix_time': 0,
             'data_stop_unix_time': 0,
             '_id': self.current_run_id,
             'status': stix_global.UNKNOWN,
             'summary': '',
-            'spice_sclk': stix_datetime.spice_manager.get_last_sclk_filename(),
+            'spice_sclk': spm.spice.get_last_sclk_filename(),
             'filesize': filesize,
             'instrument': instrument,
             'idb_version': idb_version
@@ -245,9 +248,10 @@ class StixMongoDBWriter(StixPacketWriter):
         header_unix = packet['header']['unix_time']
         scet=packet['header'].get('SCET',0)
 
-        if self.start_scet is None:
+        if self.start_scet ==0  and scet > 0:
             self.start_scet = scet 
-        self.end_scet = scet
+        if scet>0:
+            self.end_scet = scet
 
         if self.start_unix == 0:
             if header_unix < MAX_POSSIBLE_UNIX_TIME:
@@ -288,7 +292,7 @@ class StixMongoDBWriter(StixPacketWriter):
             run['data_stop_unix_time'] = self.end_unix
 
             run['data_start_scet'] = self.start_scet
-            run['data_stop_scet'] = self.end_scet
+            run['data_end_scet'] = self.end_scet
 
             run['run_stop_unix_time'] = time.time()
             run['filename'] = self.filename

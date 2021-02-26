@@ -8,6 +8,8 @@
 #
 
 import os
+import sys
+sys.path.append('.')
 import glob
 import time
 from datetime import datetime
@@ -20,11 +22,12 @@ from  stix.analysis import calibration
 from  stix.analysis import background_estimation as bkg
 from  stix.analysis import flare_detection
 from  stix.analysis import sci_packets_merger
+from stix.core import spice_manager as spm
 logger = stix_logger.get_logger()
 
 
 S20_EXCLUDED=True
-DO_CALIBRATIONS= True
+DO_CALIBRATIONS= False
 ENABLE_FITS_CREATION= True
 DO_BULK_SCIENCE_DATA_MERGING= True
 DO_FLARE_SEARCH=True
@@ -93,11 +96,13 @@ def remove_ngnix_cache():
 
 
 def process_one(filename):
-    process('FM',filename, False)
+    file_id=MDB.get_file_id(filename)
+    if file_id == -2 :
+        process('FM',filename, False, debugging=True)
 
-def process(instrument, filename, notification_enabled=True):
+def process(instrument, filename, notification_enabled=True, debugging=False):
 
-    stix_datetime.spice_manager.refresh_kernels()
+    spm.spice.refresh_kernels()
     #always load the latest kernel files
 
     base= os.path.basename(filename)
@@ -106,6 +111,8 @@ def process(instrument, filename, notification_enabled=True):
     log_path=daemon_config['log_path']
     log_filename=os.path.join(log_path, name+'.log')
     logger.set_logger(log_filename, level=3)
+    if debugging:
+        logger.enable_debugging()
     parser = stix_parser.StixTCTMParser()
     parser.set_MongoDB_writer(mongodb_config['host'],mongodb_config['port'],
             mongodb_config['user'], mongodb_config['password'],'',filename, instrument)
@@ -195,10 +202,8 @@ def main():
 
 
 if __name__ == '__main__':
-    import sys
-    sys.path.append('.')
     if len(sys.argv)==1:
         main()
     else:
-        process('GU', sys.argv[1])
+        process_one(sys.argv[1])
 

@@ -168,7 +168,7 @@ def make_lightcurve_snapshot(data, docs, snapshot_path):
         plt.xlabel(f'T - T0 (s),  T0: {T0}')
         plt.ylabel('Counts / 4 s')
         plt.title(f'Flare #{flare_id}')
-        filename = os.path.join(snapshot_path, f'flare_lc_{_id}.png')
+        filename = os.path.join(snapshot_path, f'flare_lc_{_id}_{flare_id}.png')
         fig.tight_layout()
         #print(filename)
         plt.savefig(filename, dpi=100)

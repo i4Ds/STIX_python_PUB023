@@ -6,11 +6,13 @@
 # @date         : May. 12, 2019
 #import json
 import os
+import re
 import pprint
-import datetime
+from datetime import datetime
 import uuid
 import bson
 import pymongo
+from pathlib import Path
 
 NUM_MAX_PACKETS = 20000
 MAX_REQUEST_LC_TIME_SPAN_DAYS = 3
@@ -53,6 +55,7 @@ class MongoDB(object):
             self.collection_flares_tbc = self.db['flares_tbc']
             self.collection_qllc_statistics= self.db['qllc_statistics']
             self.collection_notifications= self.db['notifications']
+            self.collection_spice= self.db['spice']
 
         except Exception as e:
             print('Error occurred while initializing mongodb: {}'.format(
@@ -458,6 +461,41 @@ class MongoDB(object):
             pass
         doc['_id']=next_id
         self.collection_qllc_statistics.save(doc)
+
+    def get_spice_kernels(self):
+        return self.collection_spice.find({}).sort('file_date',1)
+
+    def insert_spice_kernel(self, filename):
+        next_id=0
+        doc={}
+
+        pfilename=Path(filename)
+
+        fdate=re.findall(r"\d{4}\d{2}\d{2}", filename)
+        date_str=fdate[0] if fdate else '19700101'
+        doc['file_date']=datetime.strptime(date_str, "%Y%m%d")
+
+
+ 
+        doc['path']=pfilename.parent.as_posix()
+        doc['filename']=pfilename.name
+        doc['type']=pfilename.parent.name
+        if self.collection_spice:
+            is_found=self.collection_spice.find_one({'filename':doc['filename']})
+            if is_found:
+                return
+        try:
+            next_id=self.collection_spice.find({}).sort(
+                '_id', -1).limit(1)[0]['_id'] + 1
+        except IndexError:
+            pass
+
+        doc['_id']=next_id
+        doc['entry_time']=datetime.now()
+        self.collection_spice.save(doc)
+        
+
+
     def get_nearest_qllc_statistics(self, start_unix, max_limit=500):
         try:
             right_closest=list(self.collection_qllc_statistics.find({'start_unix': {'$gte':start_unix},

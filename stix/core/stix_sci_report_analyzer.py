@@ -225,16 +225,18 @@ class StixQuickLookReportAnalyzer(object):
         start_unix_time = stix_datetime.scet2unix(start_coarse_time,
                                                   start_fine_time)
 
+        start_scet=start_coarse_time+start_fine_time/65536.
         report = {
             '_id': self.current_report_id,
             'run_id': run_id,
             'SPID': packet.SPID,
             'packet_id': packet_id,
             'start_unix_time': start_unix_time,
+            'start_scet': start_scet,
             'packet_header_time': packet['unix_time'],
             'integrations': integrations,
             'duration': duration,
-            'stop_unix_time': start_unix_time + duration,
+            'stop_scet': start_scet+ duration,
             #'detector_mask': detector_mask,
             #'pixel_mask': pixel_mask
         }
@@ -294,12 +296,14 @@ class StixUserDataRequestReportAnalyzer(object):
             if self.db:
                 report = {
                     'start_unix_time': stix_datetime.scet2unix(start),
+                    'start_scet': start,
                     'unique_id': unique_id,
                     'packet_ids': self.packet_ids,
                     'run_id': run_id,
                     'SPID': packet['SPID'],
                     'name': DATA_REQUEST_REPORT_NAME[packet['SPID']],
                     'header_unix_time': packet['unix_time'],
+                    'header_scet': packet['SCET'],
                     '_id': self.current_id,
                 }
                 self.db.insert_one(report)
@@ -326,14 +330,16 @@ class StixUserDataRequestReportAnalyzer(object):
             #the last or standalone
             if self.db:
                 report = {
-                    'start_unix_time':
-                    stix_datetime.scet2unix(self.start_obt_time),
+                    'start_unix_time':stix_datetime.scet2unix(self.start_obt_time),
                     'end_unix_time': stix_datetime.scet2unix(end_time),
+                    'start_scet':self.start_obt_time,
+                    'end_scet': end_time,
                     'packet_ids': self.packet_ids,
                     'SPID': packet['SPID'],
                     'run_id': run_id,
                     'name': DATA_REQUEST_REPORT_NAME[packet['SPID']],
                     'header_unix_time': packet['unix_time'],
+                    'header_scet': packet.get('SCET',0),
                     '_id': self.current_id,
                 }
                 self.db.insert_one(report)

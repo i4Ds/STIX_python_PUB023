@@ -4,73 +4,11 @@ import re
 import glob
 from datetime import datetime
 from dateutil import parser as dtparser
-
 from astropy.time import Time
+from stix.core import spice_manager as spm
 
 import spiceypy
 from stix.core import stix_logger
-from stix.core import config
-
-logger = stix_logger.get_logger()
-
-
-# SOLAR ORBITER naif identifier
-class SpiceManager:
-    """taken from https://issues.cosmos.esa.int/solarorbiterwiki/display/SOSP/Translate+from+OBT+to+UTC+and+back
-    """
-    def __init__(self):
-        self.refresh_kernels()
-        self.loaded_kernels=[]
-        self.last_sclk_file=None
-    def get_last_sclk_filename(self):
-        return self.last_sclk_file
-
-
-    def refresh_kernels(self):
-        for pattern in config.get_spice():
-            for fname in glob.glob(pattern):
-                #logger.info(f'loading spice data file: {fname}')
-                if fname not in self.loaded_kernels:
-                    self.loaded_kernels.append(fname)
-                    if 'sclk' in fname:
-                        self.last_sclk_file=fname
-                    spiceypy.furnsh(fname)
-
-    def obt2utc(self, obt_string):
-        # Obt to Ephemeris time (seconds past J2000)
-        ephemeris_time = spiceypy.scs2e(-144, obt_string)
-        # Ephemeris time to Utc
-        # Format of output epoch: ISOC (ISO Calendar format, UTC)
-        # Digits of precision in fractional seconds: 3
-        return spiceypy.et2utc(ephemeris_time, "ISOC", 3)
-
-    def utc2obt(self, utc_string):
-        # Utc to Ephemeris time (seconds past J2000)
-        ephemeris_time = spiceypy.utc2et(utc_string)
-        # Ephemeris time to Obt
-        #return ephemeris_time
-        obt_string = spiceypy.sce2s(-144, ephemeris_time)
-        time_fields = re.search('\/(.*?):(\d*)', obt_string)
-        group = time_fields.groups()
-        try:
-            return int(group[0]) + int(group[1]) / 65536.
-        except Exception as e:
-            logger.warning(str(e))
-            return 0
-
-    def scet2utc(self, coarse, fine=0):
-        obt_string = '{}:{}'.format(coarse, fine)
-        #print(obt_string)
-        return self.obt2utc(obt_string)
-
-    def utc2scet(self, utc):
-        # Utc to Ephemeris time (seconds past J2000)
-        ephemeris_time = spiceypy.utc2et(utc)
-        # Ephemeris time to Obt
-        return spiceypy.sce2s(-144, ephemeris_time)
-
-
-spice_manager = SpiceManager()
 
 
 def format_datetime(dt):
@@ -96,13 +34,13 @@ def get_now(dtype='unix'):
 
 def scet2utc(coarse, fine=0):
     try:
-        return spice_manager.scet2utc(coarse, fine)
+        return spm.spice.scet2utc(coarse, fine)
     except spiceypy.utils.support_types.SpiceyError:
         return ''
 
 
 def utc2scet(utc):
-    return spice_manager.utc2obt(utc)
+    return spm.spice.utc2obt(utc)
 
 
 def utc2unix(utc):
@@ -196,7 +134,7 @@ def utc2datetime(utc):
 
 
 def scet_to_utc(scet):
-    return spice_manager.obt2utc(scet)
+    return spm.spice.obt2utc(scet)
 
 
 def scet_to_datetime(scet):
@@ -205,7 +143,7 @@ def scet_to_datetime(scet):
 
 
 def utc_to_scet(utc):
-    return spice_manager.utc2scet(utc)
+    return spm.spice.utc2scet(utc)
 
 
 def datetime_to_scet(dt):

@@ -205,7 +205,7 @@ class FitsL1Processor:
 
             hdul = fits.HDUList([primary_hdu, control_hdu, data_hdu, energy_hdu])
 
-            logger.debug(f'Writing fits file to {path / filename}')
+            #logger.debug(f'Writing fits file to {path / filename}')
             hdul.writeto(path / filename, overwrite=True, checksum=True)
             self.meta={'data_start_unix': prod.obs_beg.to_datetime().timestamp(),
                     'data_end_unix': prod.obs_end.to_datetime().timestamp(),
