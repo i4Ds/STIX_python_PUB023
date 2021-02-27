@@ -34,7 +34,12 @@ def get_now(dtype='unix'):
 
 def scet2utc(coarse, fine=0):
     try:
-        return spm.spice.scet2utc(coarse, fine)
+        coarse_int = coarse
+        if isinstance(coarse, float):
+            coarse_int = int(coarse)
+        fine_int = int((coarse - coarse_int) * 65536)+fine
+
+        return spm.spice.scet2utc(coarse_int, fine_int)
     except spiceypy.utils.support_types.SpiceyError:
         return ''
 
@@ -91,14 +96,7 @@ def datetime2unix(timestamp):
 
 def scet2unix(coarse, fine=0):
     try:
-        coarse_int = coarse
-        fine_int = fine
-        if isinstance(coarse, float):
-            coarse_int = int(coarse)
-
-        fine_int = int((coarse - coarse_int) * 65535)
-
-        utc = scet2utc(coarse_int, fine_int)
+        utc = scet2utc(coarse, fine)
         return utc2unix(utc)
     except spiceypy.utils.support_types.SpiceyError:
         return 0

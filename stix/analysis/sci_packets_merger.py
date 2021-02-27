@@ -468,8 +468,8 @@ def merge(file_id, remove_existing=True):
     collection = mdb.get_collection_bsd()
     bsd_cursor = collection.find({'run_id': file_id}).sort('_id', 1)
     for doc in bsd_cursor:
-        logger.info(f'processing {doc["_id"]}')
         spid = int(doc['SPID'])
+        logger.info(f'processing bsd id: {doc["_id"]}, spid:{spid}')
         cursor = mdb.get_packets_of_bsd_request(doc['_id'], header_only=False)
         if not cursor:
             continue
@@ -492,6 +492,12 @@ def merge(file_id, remove_existing=True):
             result = analyzer.merge(cursor)
         if result:
             date_str=datetime.now().strftime("%y%m%d%H")
+            existing_fname=doc.get('levl1','')
+            if existing_fname:
+                old_file= os.path.join(level1_products_path,existing_fname)
+                os.remove(old_file)
+
+
             json_filename = os.path.join(level1_products_path,
                                          f'L1_{doc["_id"]}_{date_str}.json')
             with open(json_filename, 'w') as outfile:

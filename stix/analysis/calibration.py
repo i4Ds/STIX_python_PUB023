@@ -35,7 +35,7 @@ MIN_COUNTS = 100
 #2.3 ADC/keV
 #Estimated energy conversion factor
 
-DEFAULT_OUTPUT_DIR = '/data/'
+DEFAULT_OUTPUT_DIR = '/data/calibration/'
 MIN_COUNTS_PEAK_FIND = 50
 ELUT_ENERGIES = [
     4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 25, 28, 32, 36,
@@ -519,10 +519,11 @@ def daemon():
 if __name__ == '__main__':
     output_dir = DEFAULT_OUTPUT_DIR
     #output_dir='./'
-
     if len(sys.argv) == 1:
-        print('calibration run_id')
+        daemon()
     elif len(sys.argv) >= 2:
+        start_id= int(sys.argv[1])
         if len(sys.argv) >= 3:
-            output_dir = sys.argv[2]
-        analyze(int(sys.argv[1]), output_dir)
+            end_id= int(sys.argv[2])
+        for i in range(start_id, end_id+1):
+            analyze(i, output_dir)
