@@ -16,7 +16,7 @@ from stix.core import stix_global
 from stix.core import config
 from stix.core import stix_datetime
 from stix.core import stix_logger
-from stix.core import stix_sci_report_analyzer as scia
+from stix.core import index_builder as idxb
 from stix.core import spice_manager as spm
 
 logger = stix_logger.get_logger()
@@ -164,7 +164,7 @@ class StixMongoDBWriter(StixPacketWriter):
         except Exception as e:
             logger.error(str(e))
 
-        self.science_report_analyzer = scia.StixScienceReportAnalyzer(self.db)
+        self.science_report_analyzer = idxb.StixScienceReportAnalyzer(self.db)
 
     def is_processed(self, in_filename):
         filename = os.path.basename(in_filename)
