@@ -232,6 +232,7 @@ class StixQuickLookReportAnalyzer(object):
             'SPID': packet.SPID,
             'packet_id': packet_id,
             'start_unix_time': start_unix_time,
+            'stop_unix_time': start_unix_time+duration,
             'start_scet': start_scet,
             'packet_header_time': packet['unix_time'],
             'integrations': integrations,
