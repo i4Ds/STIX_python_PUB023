@@ -751,6 +751,8 @@ class Aspect(Product):
         return cls(control=control, data=data)
 
     def to_requests(self):
+        return [type(self)(control=self.control, data=self.data)]
+        """
         days = set([(t.year, t.month, t.day) for t in self.data['time'].to_datetime()])
         date_ranges = [(datetime(*day), datetime(*day) + timedelta(days=1)) for day in days]
         for dstart, dend in date_ranges:
@@ -764,7 +766,8 @@ class Aspect(Product):
 
             data['control_index'] = data['control_index'] - control_index_min
             control['index'] = control['index'] - control_index_min
-            yield type(self)(control=control, data=data)
+        type(self)(control=control, data=data)
+        """
 
 
 def rebin_proportional(y1, x1, x2):

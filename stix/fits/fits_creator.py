@@ -103,6 +103,8 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  base_p
     for packets in packet_lists:
         if not packets:
             continue
+        if spid==54125:
+            print("SPID, len:",spid,len(packets))
         parsed_packets = sdt.Packet.merge(packets, spid, value_type='raw')
         e_parsed_packets = sdt.Packet.merge(packets, spid, value_type='eng')
 
@@ -210,8 +212,8 @@ def purge_fits_for_raw_file(file_id):
     if fits_collection:
         cursor=fits_collection.find({'file_id':int(file_id)})
         for cur in cursor:
-            fits_filename=os.path.join(cur['path'],cur['filename'])
             try:
+                fits_filename=os.path.join(cur['path'],cur['filename'])
                 logger.info(f'Removing file: {fits_filename}')
                 os.unlink(fits_filename)
             except Exception as e:

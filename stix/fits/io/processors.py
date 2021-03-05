@@ -153,8 +153,10 @@ class FitsL1Processor:
 
     def write_fits(self, product):
         if callable(getattr(product, 'to_days', None)):
+            print("# to_days")
             products = product.to_days()
         else:
+            print("# to_request")
             products = product.to_requests()
         for prod in products:
             #create an fits for each request
