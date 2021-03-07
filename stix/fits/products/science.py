@@ -752,6 +752,7 @@ class Aspect(Product):
 
     def to_requests(self):
         return [type(self)(control=self.control, data=self.data)]
+        #updated by Hualin Xiao, the lines below created multiple fits as reported by Frederic
         """
         days = set([(t.year, t.month, t.day) for t in self.data['time'].to_datetime()])
         date_ranges = [(datetime(*day), datetime(*day) + timedelta(days=1)) for day in days]

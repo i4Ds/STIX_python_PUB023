@@ -213,15 +213,6 @@ class MongoDB(object):
         for run in runs:
             self.delete_one_run(run)
 
-    '''
-    def select_packets_by_run(self, run_id):
-        if self.collection_packets:
-            cursor = self.collection_packets.find({
-                'run_id': int(run_id)
-            }).sort('_id', 1)
-            return list(cursor)
-        return []
-        '''
 
     def select_packets_by_run(self,
                               run_id,

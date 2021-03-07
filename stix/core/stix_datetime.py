@@ -119,10 +119,21 @@ def scet2datetime(coarse, fine=0):
 def unix2datetime(unix_timestamp):
     return datetime.utcfromtimestamp(unix_timestamp)
 
+def is_unix_time_valid(unix):
+    unix=float(unix)
+    return unix > 1577833200 and unix< 2524604400
+    #2020-01-01 to 2050-01-01
+def is_scet_valid(scet):
+    j2000=946724400
+    scet=float(scet)
+    return is_unix_time_valid(j2000+scet)
+
 
 '''
     code taken from Shane's datetime script
 '''
+
+
 
 
 def utc2datetime(utc):

@@ -94,6 +94,6 @@ def write_fits(basepath,unique_id, prod, product_type, overwrite=True, version=1
 
     full_path=basepath/filename
     hdul.writeto(full_path, checksum=True, overwrite=overwrite)
-    return {'data_start_unix': prod.obs_beg.timestamp(), 'data_end_unix':prod.obs_end.timestamp(),
+    return {'data_start_unix': prod.obs_beg.timestamp(), 'data_end_unix':prod.obs_end.timestamp(), '_id':unique_id,
             'filename': filename}
 

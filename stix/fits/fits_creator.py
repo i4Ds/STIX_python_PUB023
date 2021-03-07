@@ -103,8 +103,6 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  base_p
     for packets in packet_lists:
         if not packets:
             continue
-        if spid==54125:
-            print("SPID, len:",spid,len(packets))
         parsed_packets = sdt.Packet.merge(packets, spid, value_type='raw')
         e_parsed_packets = sdt.Packet.merge(packets, spid, value_type='eng')
 
@@ -170,16 +168,16 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  base_p
             unique_id=db.get_next_fits_id()
             #print('Unique id:',unique_id)
             complete=report_status=='complete'
-            meta=None
+            meta_entries=[]
             if product_type=='housekeeping':
                 meta=hkw.write_fits(base_path,unique_id,  prod, product, overwrite, version) 
             else:
                 fits_processor = FitsL1Processor(base_path, unique_id, version)
                 fits_processor.write_fits(prod)
-                meta=fits_processor.get_meta_data()
-            
-            doc={
-                    '_id':unique_id,
+                meta_entries=fits_processor.get_meta_data()
+            for meta in meta_entries :
+                doc={
+                    #'_id':unique_id,
                     'packet_id_start': packets[0]['_id'],
                     'packet_id_end': packets[-1]['_id'],
                     'packet_spid':spid,
@@ -196,18 +194,17 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  base_p
                     'creation_time':datetime.utcnow(),
                     'path':base_path_name,
                     }
-            if meta:
                 doc.update(meta)
-
-            #print(doc)
-            db.write_fits_index_info(doc)
-            logger.info(f'created  fits file:  {meta["filename"]}')
+                #print(doc)
+                db.write_fits_index_info(doc)
+                logger.info(f'created  fits file:  {meta["filename"]}')
 
         except Exception as e:
             logger.error(str(e))
             raise e
 
 def purge_fits_for_raw_file(file_id):
+    print(f'Removing existing fits files for {file_id}')
     fits_collection=db.get_collection('fits')
     if fits_collection:
         cursor=fits_collection.find({'file_id':int(file_id)})
@@ -240,9 +237,12 @@ def create_fits(file_id, output_path, overwrite=True,  version=1):
             logger.warning(f'Not supported spid : {spid}')
             continue
         logger.info(f'Requesting packets of file {file_id} from MongoDB')
-        cursor= db.select_packets_by_run(file_id, [spid])
+        sort_field='header.unix_time'
+        #if spid==54118:
+        cursor= db.select_packets_by_run(file_id, [spid],sort_field=sort_field)
         if cursor:
-            logger.info(f'Packets have been selected for SPID {spid}')
+            logger.info(f'packets have been selected for SPID {spid}')
+
         product = SPID_MAP[spid]
         report_status='complete'
         if spid in [54101, 54102]:
@@ -270,11 +270,14 @@ def create_fits(file_id, output_path, overwrite=True,  version=1):
                     packets= [pkt]
             if seg_flag in [3,2]:
                 report_status='complete'
+                #print('complete packets')
                 process_packets(file_id, [packets], spid, product, report_status, output_path, overwrite, version)
                 packets=[] #clean container after processing packets
         if packets:
             #incomplete packets, QL packets are always incomplete 
             report_status='incomplete'
+            #print('incomplete packets:')
+            #print([(pkt['_id'], pkt['header']['segmentation']) for pkt in packets])
             process_packets(file_id, [packets], spid, product, report_status, output_path, overwrite, version)
 
 

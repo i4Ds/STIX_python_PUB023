@@ -145,18 +145,19 @@ class FitsL1Processor:
     def __init__(self, archive_path, db_id, ver):
         self.archive_path = archive_path
         self.fits_db_id=db_id
-        self.meta=None
+        self.meta=[]
         self.version=ver
     def get_meta_data(self):
         return self.meta
 
 
     def write_fits(self, product):
+        self.meta=[]
         if callable(getattr(product, 'to_days', None)):
-            print("# to_days")
+            #print("# to_days")
             products = product.to_days()
         else:
-            print("# to_request")
+            #print("# to_request")
             products = product.to_requests()
         for prod in products:
             #create an fits for each request
@@ -209,12 +210,16 @@ class FitsL1Processor:
 
             #logger.debug(f'Writing fits file to {path / filename}')
             hdul.writeto(path / filename, overwrite=True, checksum=True)
-            self.meta={'data_start_unix': prod.obs_beg.to_datetime().timestamp(),
+            _meta={'data_start_unix': prod.obs_beg.to_datetime().timestamp(),
                     'data_end_unix': prod.obs_end.to_datetime().timestamp(),
+                    '_id': self.fits_db_id,
                     'filename':filename
                     }
             if 'request_id' in control.colnames:
-                self.meta['request_id']=int(control['request_id'][0])
+                _meta['request_id']=int(control['request_id'][0])
+
+            self.fits_db_id+=1
+            self.meta.append(_meta)
 
     def generate_filename(self, product=None, status=''):
         """
@@ -252,9 +257,11 @@ class FitsL1Processor:
             start_obs = product.obs_beg.to_datetime().strftime("%Y%m%dT%H%M%S")
             end_obs = product.obs_end.to_datetime().strftime("%Y%m%dT%H%M%S")
             date_range = f'{start_obs}-{end_obs}'
-        return f'solo_{product.level}_stix-{product.type}-' \
+
+        fits_filename=f'solo_{product.level}_stix-{product.type}-' \
                f'{product.name.replace("_", "-")}{user_req}' \
                f'_{date_range}_{self.fits_db_id:06d}_V{self.version:02d}.fits'
+        return fits_filename
                #f'_{date_range}_V{version:02d}{status}{tc_control}_{self.fits_db_id}.fits'
 
     def generate_primary_header(self, filename, product):

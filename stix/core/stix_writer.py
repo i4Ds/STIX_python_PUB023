@@ -9,6 +9,7 @@ import gzip
 import os
 import pickle
 import time
+import math
 
 import pymongo
 
@@ -22,7 +23,6 @@ from stix.core import spice_manager as spm
 logger = stix_logger.get_logger()
 MONGODB_CONFIG = config.get_config()['pipeline']['mongodb']
 
-MAX_POSSIBLE_UNIX_TIME = 2051222400  #2035-01-01
 
 
 class StixPacketWriter(object):
@@ -138,9 +138,9 @@ class StixMongoDBWriter(StixPacketWriter):
 
         self.ipacket = 0
         self.packets = []
-        self.start_unix = 0
+        self.start_unix = math.inf
         self.end_unix = 0
-        self.start_scet = 0
+        self.start_scet = math.inf
         self.end_scet = 0
         self.db = None
         self.filename = ''
@@ -248,17 +248,17 @@ class StixMongoDBWriter(StixPacketWriter):
         header_unix = packet['header']['unix_time']
         scet=packet['header'].get('SCET',0)
 
-        if self.start_scet ==0  and scet > 0:
-            self.start_scet = scet 
-        if scet>0:
-            self.end_scet = scet
-
-        if self.start_unix == 0:
-            if header_unix < MAX_POSSIBLE_UNIX_TIME:
+        if stix_datetime.is_scet_valid(scet):
+            if scet <self.start_scet :
+                self.start_scet = scet 
+            if scet>self.end_scet:
+                self.end_scet = scet
+        if stix_datetime.is_unix_time_valid(header_unix):
+            if header_unix < self.start_unix:
                 self.start_unix = header_unix
-        #exclude invalid timestamps
-        if header_unix < MAX_POSSIBLE_UNIX_TIME:
-            self.end_unix = header_unix
+            if header_unix > self.end_unix:
+                self.end_unix = header_unix
+
         #insert header
 
 
