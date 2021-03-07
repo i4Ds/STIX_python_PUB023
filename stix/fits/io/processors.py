@@ -209,7 +209,12 @@ class FitsL1Processor:
             hdul = fits.HDUList([primary_hdu, control_hdu, data_hdu, energy_hdu])
 
             #logger.debug(f'Writing fits file to {path / filename}')
-            hdul.writeto(path / filename, overwrite=True, checksum=True)
+            full_path=path/filename
+            if full_path.is_file():
+                print("Removing existing fits:", str(full_path))
+                full_path.unlink()
+
+            hdul.writeto(full_path, overwrite=True, checksum=True)
             _meta={'data_start_unix': prod.obs_beg.to_datetime().timestamp(),
                     'data_end_unix': prod.obs_end.to_datetime().timestamp(),
                     '_id': self.fits_db_id,

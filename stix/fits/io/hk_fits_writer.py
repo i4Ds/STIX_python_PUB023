@@ -93,6 +93,12 @@ def write_fits(basepath,unique_id, prod, product_type, overwrite=True, version=1
     hdul[0].header.update({'HISTORY': 'Processed by STIX LLDP VM'})
 
     full_path=basepath/filename
+    if full_path.is_file():
+        print("Removing existing fits:", str(full_path))
+        full_path.unlink()
+        
+
+
     hdul.writeto(full_path, checksum=True, overwrite=overwrite)
     return {'data_start_unix': prod.obs_beg.timestamp(), 'data_end_unix':prod.obs_end.timestamp(), '_id':unique_id,
             'filename': filename}
