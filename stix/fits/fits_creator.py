@@ -155,7 +155,7 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  base_p
                 product_type = 'science'
             elif product == 'aspect':
                 prod = Aspect.from_packets(parsed_packets, e_parsed_packets)
-                product_type = 'aspect'
+                product_type = 'science'
             else:
                 logger.warning(f'Not implemented {product}, SPID {spid}.')
                 continue
@@ -171,11 +171,19 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  base_p
             meta_entries=[]
             if product_type=='housekeeping':
                 meta=hkw.write_fits(base_path,unique_id,  prod, product, overwrite, version) 
+                meta_entries=[meta]
             else:
                 fits_processor = FitsL1Processor(base_path, unique_id, version)
                 fits_processor.write_fits(prod)
                 meta_entries=fits_processor.get_meta_data()
             for meta in meta_entries :
+                file_size=0
+                try: 
+                    abs_path=base_path/meta['filename']
+                    file_size=abs_path.stat().st_size
+                except:
+                    pass
+
                 doc={
                     #'_id':unique_id,
                     'packet_id_start': packets[0]['_id'],
@@ -193,6 +201,7 @@ def process_packets(file_id, packet_lists, spid, product, report_status,  base_p
                     'level':DATA_LEVEL,
                     'creation_time':datetime.utcnow(),
                     'path':base_path_name,
+                    'file_size':file_size
                     }
                 doc.update(meta)
                 #print(doc)
