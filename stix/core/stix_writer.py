@@ -288,6 +288,10 @@ class StixMongoDBWriter(StixPacketWriter):
             self.ipacket))
         run = self.collection_raw_files.find_one({'_id': self.inserted_run_id})
         if run:
+            if self.start_unix==math.inf:
+                self.start_unix=0
+            if self.start_scet==math.inf:
+                self.start_scet=0
             run['data_start_unix_time'] = self.start_unix
             run['data_stop_unix_time'] = self.end_unix
 

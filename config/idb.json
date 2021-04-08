@@ -10,6 +10,13 @@
 	"version":"2.26.34",
 	"path":".",
 	"aswVersion":180,
-	"validityPeriod":["2020-12-28T00:00:00", "2025-12-28T00:00:00"]
+	"validityPeriod":["2020-12-28T00:00:00", "2020-12-28T00:00:00"]
+},
+{
+	"filename":"/data/pub/data/idb/idb_2.26.35_alpha.sqlite3",
+	"path":".",
+	"version":"2.26.35",
+	"aswVersion":179,
+	"validityPeriod":["2021-01-01T00:00:00", "2020-12-28T00:00:00"]
 }
 ]
