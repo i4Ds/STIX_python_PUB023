@@ -19,6 +19,10 @@ def get_packets(unique_id):
                 
 ebins= [0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 22, 25, 28, 32, 36, 40, 45, 50, 56, 63, 70, 76, 84, 100, 120, 150, 1e3];  
 
+ebin_map={
+        '8-12':[4,9],
+        '8-10':[4,7]
+        }
 
 
 class StixBulkL1L2Analyzer(object):
@@ -74,7 +78,12 @@ class StixBulkL1L2Analyzer(object):
                     continue
                 pixel_indexes.append(i * 12 + j)
         return pixel_indexes
-
+    def process(self,unique_id, start_utc, end_utc,range_name):
+        emin,emax=ebin_map[range_name]
+        start_unix=stix_datetime.utc2unix(start_utc)
+        end_unix=stix_datetime.utc2unix(end_utc)
+        packets=get_packets(unique_id,start_unix, end_unix, emin,emax)
+        return merge(packets,start_unix, end_unix, emin, emax) 
     def merge(self, cursor, start_unix, end_unix, emin, emax):
         for pkt in cursor:
             packet = sdt.Packet(pkt)
@@ -158,7 +167,7 @@ class StixBulkL1L2Analyzer(object):
         #return self.format_report()
 
 
-ebin_map={
-        '8-12':[4,9],
-        '8-10':[4,7]
-        }
+
+
+p=StixBulkL1L2Analyzer()
+counts=p.process(unique_id, start_utc, end_utc, e_range)

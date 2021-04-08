@@ -21,7 +21,11 @@ def import_config(namespace, path, filename):
 
 def load_config(path='./config'):
     parser_config = {}
-    with open(os.path.join(path, 'index.json')) as f:
+    if not os.path.exists(path):
+        path= os.path.join(os.path.dirname(__file__),'../../config') 
+
+    fname=os.path.join(path, 'index.json')
+    with open(fname) as f:
         data = json.load(f)
         for namespace, filename in data.items():
             import_config(namespace, path, filename)
