@@ -1,5 +1,5 @@
 
-## data parser running on pub023
+## Data processing pipeline running on pub023 server
 
 This package includes STIX raw data parser, ior reader, data parser Qt GUI, calibration data processing code, and STIX pipeline data processing code. 
 
