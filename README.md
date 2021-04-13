@@ -1,5 +1,5 @@
 
-## STIX data analysis package
+## data parser running on pub023
 
 This package includes STIX raw data parser, ior reader, data parser Qt GUI, calibration data processing code, and STIX pipeline data processing code. 
 
