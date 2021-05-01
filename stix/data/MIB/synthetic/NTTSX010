@@ -1,0 +1,10 @@
+if (NCDX05JV.raw == 0) then
+VAR_CSR := 16.777216;
+else
+if (NCDX05JV.raw == 1) then
+VAR_CSR := 20;
+else
+VAR_CSR := 0;
+endif;
+endif; 
+return((VAR_CSR*1000000)/(2*NCDD05JA.raw)/(1+NCDD05JB.raw));

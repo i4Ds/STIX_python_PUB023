@@ -1,0 +1,9 @@
+if NYG01923.raw == 2 then
+        return (NYGDB668.raw);
+endif;
+
+if NYG01923.raw == 1 then
+        return (NYGDA668.raw);
+endif;
+#default
+return (0);

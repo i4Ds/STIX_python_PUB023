@@ -1,0 +1,74 @@
+###################################################################################################
+#
+# Characterize double EDAC errors in the PCDU B EEPROM memory for Reconfiguration Table 3
+#
+#  Description: The PCDU raises the REC1 EDAC double error flag whenever it passes through 
+#               uninitialised memory as per SOL.CRS.UM.00020, section 6.3.5
+#
+#               If non-initialized memory areas are read using SA28T, EDAC flags will indicate 
+#               simple or double error. This is because EDAC information has not been stored in 
+#               memory.
+#
+#               This synthetic also checks the checked address against the defined ranges and
+#               sets accordingly the result value so that only in meaningful cases an alarm is
+#               raised.
+#
+#               The defined memory ranges are as follows
+#                  Reconfiguration Table #1: 0x4000 to 0x4100 (16384 to 16640) 
+#                  Reconfiguration Table #2: 0x4100 to 0x4200 (16640 to 16896) 
+#                  Reconfiguration Table #3: 0x4200 to 0x4300 (16896 to 17152) 
+#                  Reconfiguration Table #4: 0x4300 to 0x4400 (17152 to 17408) 
+#                                Empty Area: 0x4400 to 0x8000 (17408 to 32768) 
+#
+#  Return values: The following values are returned
+#                    If NPWT0799 == OK then 0 is returned
+#                    If NPWT0799 == NOK and NPWT6502 in the Reconfiguration Table #3 range then 1 is returned
+#                    If NPWT0799 == NOK and NPWT6502 in any other range then 0 is returned
+#                               
+###################################################################################################
+
+
+# Define the memory ranges
+VAR_REC_1_START := 16384;
+VAR_REC_1_END := 16640;
+VAR_REC_2_START := 16640;
+VAR_REC_2_END := 16896;
+VAR_REC_3_START := 16896;
+VAR_REC_3_END := 17152;
+VAR_REC_4_START := 17152;
+VAR_REC_4_END := 17408;
+VAR_EMPTY_START := 17408;
+VAR_EMPTY_END := 32768;
+
+
+# Double EDAC error detected in EEPROM Reconfiguration Table 3
+if (NPWT0799.eng == "NOK") then
+
+  # Check if the error address is in the Reconfiguration Table 1 range
+  if ((NPWT6502.raw >= VAR_REC_1_START) land (NPWT6502.raw < VAR_REC_1_END)) then
+	 # Return the OK code as this is not the reconfiguration table corresponding to the parameter
+     return(0);
+  endif;
+
+  # Check if the error address is in the Reconfiguration Table 2 range
+  if ((NPWT6502.raw >= VAR_REC_2_START) land (NPWT6502.raw < VAR_REC_2_END)) then
+     # Return the OK code as this is not the reconfiguration table corresponding to the parameter
+     return(0);
+  endif;
+
+  # Check if the error address is in the Reconfiguration Table 3 range
+  if ((NPWT6502.raw >= VAR_REC_3_START) land (NPWT6502.raw < VAR_REC_3_END)) then
+     # Return the NOK code for the reconfiguration table #3
+     return(1);
+  endif;
+
+  # Check if the error address is in the Reconfiguration Table 4 range
+  if ((NPWT6502.raw >= VAR_REC_4_START) land (NPWT6502.raw < VAR_REC_4_END)) then
+     # Return the OK code as this is not the reconfiguration table corresponding to the parameter
+     return(0);
+  endif;
+
+else
+     # No error detected
+     return(0);
+endif;

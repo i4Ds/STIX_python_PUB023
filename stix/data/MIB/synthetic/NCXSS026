@@ -1,0 +1,5 @@
+if NSM01133.raw == 3 then
+    return ((abs(NSM01138-NSM01139)*4.112*8)/(NTTSX007.eng/1000 - NCDZ0001/1000));
+else
+    return (0);
+endif;

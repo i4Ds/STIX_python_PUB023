@@ -1,0 +1,90 @@
+###################################################################################################
+#
+# Characterize double EDAC errors in the PCDU A SRAM memory
+#
+#  Description: The PCDU raises the EDAC double error flag whenever it passes through 
+#               uninitialised memory as per SOL.CRS.UM.00020, section 6.3.5
+#
+#               If non-initialized memory areas are read using SA28T, EDAC flags will indicate 
+#               simple or double error. This is because EDAC information has not been stored in 
+#               memory.
+#
+#               This synthetic also checks the checked address against the defined ranges and
+#               sets accordingly the result value so that only in meaningful cases an alarm is
+#               raised.
+#
+#               The defined memory ranges are as follows
+#                  Analogue TM range: 0x0000 to 0x00E4 (0     to    228) 
+#                  Empty #1 range:    0x00E4 to 0x0100 (228   to    256) 
+#                  Wrap around range: 0x0100 to 0x0120 (256   to    288) 
+#                  Empty #2 range:    0x0120 to 0x1000 (288   to   4096) 
+#                  Snapshot range:    0x1000 to 0x3000 (4096  to  12288) 
+#                  Empty #3 range:    0x3000 to 0x4000 (12288 to  16384) 
+#
+#  Return values: The following values are returned
+#                    If NPWD0796 == OK then 0 is returned
+#                    If NPWD0796 == NOK and NPWD6502 in one of the Empty ranges then 1 is returned
+#                    If NPWD0796 == NOK and NPWD6502 in the Analogue TM range then 2 is returned
+#                    If NPWD0796 == NOK and NPWD6502 in the Wrap around range then 3 is returned
+#                    If NPWD0796 == NOK and NPWD6502 in the Snapshot range then 4 is returned
+#                               
+###################################################################################################
+
+
+# Define the memory ranges
+VAR_ANALOG_TLM_START := 0;
+VAR_ANALOG_TLM_END := 228;
+VAR_EMPTY_1_START := 228;
+VAR_EMPTY_1_END := 256;
+VAR_WRAPAROUND_START := 256;
+VAR_WRAPAROUND_END := 288;
+VAR_EMPTY_2_START := 288;
+VAR_EMPTY_2_END := 4096;
+VAR_SNAPSHOT_START := 4096;
+VAR_SNAPSHOT_END := 12288;
+VAR_EMPTY_3_START := 12288;
+VAR_EMPTY_3_END := 16384;
+
+# Double EDAC error detected in SRAM
+if (NPWD0796.eng == "NOK") then
+
+  # Check if the error address is in the analog telemetries memory range
+  if ((NPWD6502.raw >= VAR_ANALOG_TLM_START) land (NPWD6502.raw < VAR_ANALOG_TLM_END)) then
+     # Return the NOK code for analog telemetries memory range
+     return(2);
+  endif;
+
+  # Check if the error address is in the first empty memory range
+  if ((NPWD6502.raw >= VAR_EMPTY_1_START) land (NPWD6502.raw < VAR_EMPTY_1_END)) then
+     # Return the NOK code for the empty areas
+     return(1);
+  endif;
+
+  # Check if the error address is in the wraparound memory range
+  if ((NPWD6502.raw >= VAR_WRAPAROUND_START) land (NPWD6502.raw < VAR_WRAPAROUND_END)) then
+     # Return the NOK code for the wraparound memory range
+     return(3);
+  endif;
+
+  # Check if the error address is in the second empty memory range
+  if ((NPWD6502.raw >= VAR_EMPTY_2_START) land (NPWD6502.raw < VAR_EMPTY_2_END)) then
+     # Return the NOK code for the empty areas
+     return(1);
+  endif;
+
+  # Check if the error address is in the snapshot memory range
+  if ((NPWD6502.raw >= VAR_SNAPSHOT_START) land (NPWD6502.raw < VAR_SNAPSHOT_END) land (NPWXU001.raw == 1)) then
+     # Return the NOK code for the snapshot memory range
+     return(4);
+  endif;
+
+  # Check if the error address is in the third empty memory range
+  if ((NPWD6502.raw >= VAR_EMPTY_3_START) land (NPWD6502.raw < VAR_EMPTY_3_END)) then
+     # Return the NOK code for the empty areas
+     return(1);
+  endif;
+  
+else
+     # No error detected
+     return(0);
+endif;

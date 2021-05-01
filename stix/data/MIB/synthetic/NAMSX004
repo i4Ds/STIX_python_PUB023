@@ -1,0 +1,3 @@
+VAR_a := NAMSX002.eng;
+VAR_b := NAMSX003.raw;
+return(abs(VAR_a - VAR_b));

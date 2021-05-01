@@ -1,0 +1,6 @@
+#  The intention behind this synthetic parameter is to be able to add the
+#  release number to the MIB.
+#
+#  @see NIPS0000 for more explanations
+
+return (4.5 + 0 * NIPH0001.raw);

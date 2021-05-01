@@ -1,0 +1,18 @@
+if (NTTSX012 == "Rx-A") land (NDS00009.raw >= NDS01009.raw) then
+VAR_out := (NDS00009.raw - NDS01009.raw);
+else
+if (NTTSX012 == "Rx-A") land (NDS01009.raw > NDS00009.raw) then
+VAR_out := -1*(NDS01009.raw - NDS00009.raw);
+else
+if (NTTSX012 == "Rx-B") land (NDS01009.raw >= NDS00009.raw) then
+VAR_out := (NDS01009.raw - NDS00009.raw);
+else
+if (NTTSX012 == "Rx-B") land (NDS00009.raw > NDS01009.raw) then
+VAR_out := -1*(NDS00009.raw - NDS01009.raw);
+else
+VAR_out := 99;
+endif;
+endif;
+endif;
+endif;
+return(VAR_out);

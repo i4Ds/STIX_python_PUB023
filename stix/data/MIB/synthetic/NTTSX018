@@ -1,0 +1,20 @@
+###########################
+# Return redundant DST-Rx
+# 0 = unknown
+# 1 = DST-Rx 1
+# 2 = DST-Rx 2
+#
+# Find backup antenna
+VAR_currAntB := NTTSX006;
+#
+# Find which DST it is
+VAR_currDstRed := 0;
+if (NTTSX001 == VAR_currAntB) then
+	VAR_currDstRed := 1;
+else
+	if (NTTSX003 == VAR_currAntB) then
+		VAR_currDstRed := 2;
+	endif;
+endif;
+#
+return (VAR_currDstRed);

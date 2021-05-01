@@ -1,0 +1,12 @@
+VAR_x := 1.0 - 2.0 * (NCAD4NE2.raw * NCAD4NE2.raw + NCAD4NE3.raw * NCAD4NE3.raw);
+VAR_y := 2.0 * (NCAD6VL2.raw * NCAD4NE2.raw + NCAD4NE3.raw * NCAD6VL1.raw);
+
+if VAR_x > 0 then
+return(arctan(VAR_y/VAR_x)*180/3.1415926);
+else
+		if VAR_x < 0 and VAR_y < 0 then
+		return((arctan(VAR_y/VAR_x)-3.1415926)*180/3.1415926);
+		else 
+		return((arctan(VAR_y/VAR_x)+3.1415926)*180/3.1415926);
+		endif;
+endif;

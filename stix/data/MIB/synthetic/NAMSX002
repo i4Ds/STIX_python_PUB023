@@ -1,0 +1,31 @@
+####################################
+# Calculate absolute MGA Elevation #
+####################################
+
+# Use APME MGA x scvOP to determine which is IN-USE (2)
+if (NCSD3JE4.raw == 2) then # MGA A
+VAR_rawMSB := NAM0Z006.raw;
+VAR_rawLSB := NAMD0039.raw;
+else
+if (NCSD3JF4.raw == 2) then # MGA B
+VAR_rawMSB := NAM0Z040.raw;
+VAR_rawLSB := NAMT0039.raw;
+else                   # Neither!
+VAR_rawMSB := 0;
+VAR_rawLSB := 0;
+endif;
+endif;
+
+# Masks and shifts to be performed
+VAR_MSB_MASK := 31;
+VAR_MSB_SHIFT := 16;
+VAR_LSB_MASK := 65535;
+
+# Mask and shift MSB
+VAR_MSB := ((VAR_rawMSB and VAR_MSB_MASK) << VAR_MSB_SHIFT);
+
+# Mash LSB
+VAR_LSB := (VAR_rawLSB and VAR_LSB_MASK);
+
+# Or them together
+return (VAR_MSB or VAR_LSB);

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Encoding=UTF-8
+Name=Starlet
+Comment=A program to create STIX operation requests
+Exec=/usr/bin/Starlet %F
+Icon=/usr/share/icons/gnome/scalable/apps/space.svg
+Terminal=false

@@ -1,0 +1,15 @@
+##########################################
+# Concatenate DEU-B Last 1553 cmd words  #
+##########################################
+
+VAR_rawMSB := NDMT0070.raw;
+VAR_rawLSB := NDMT0071.raw;
+
+# Masks and shifts to be performed
+VAR_MSB_SHIFT := 16;
+
+# Mask and shift MSB
+VAR_MSB := (VAR_rawMSB << VAR_MSB_SHIFT);
+
+# Add and return the result
+return (VAR_MSB + VAR_rawLSB);

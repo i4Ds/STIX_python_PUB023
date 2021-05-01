@@ -1,0 +1,94 @@
+# The following synthetic makes an assessment on the current configuration of the SPICE OU decontamination heaters.
+#
+# The nominal Relaybox LCL configuration is for both of them to be ON.
+#
+# SPICE OU is a non-redundant heater connected in parallel to both Relay Boxes and therefore both relays need to be
+# always commanded to ON position.
+#
+# The synthetic will return an integer status based on the discovered configuration. Note that this is used as an applicability value
+# for the OOL sets on the temperatures of the respective thermal lines.
+#
+#  0 : NOMINAL OFF    ==> Both LCLs On or Off, Both Heaters OFF
+#  1 : NOMINAL  ON    ==> Both LCLs On, Both Heaters On
+#  2 : INCORRECT CONF ==> ((One LCL on, one LCL off) AND (All HTR configurations)) OR ((All LCL configurations) AND (One HTR on, one HTR off))
+#
+#
+
+# Define return values
+VAR_NOMINAL_OFF := 0;
+VAR_NOMINAL_ON := 1;
+VAR_INCORRECT_CONF := 2;
+
+# Get TTR CPDU SCV status
+VAR_TTR_CPDU_A_STATUS := NCSG0740.eng;
+VAR_TTR_CPDU_B_STATUS := NCSG0750.eng;
+
+# Get PCDU SCV status
+VAR_PCDU_A_STATUS := NCSG0PC0.eng;
+VAR_PCDU_B_STATUS := NCSG0PD0.eng;
+
+# If PCDU-A is active
+if (VAR_PCDU_A_STATUS ==  "ON_ON_ON") then
+	# Get Relaybox LCLs statuses from PCDU-A
+	VAR_DEC_LCL_1_ST := NPWD0050.eng;
+	VAR_DEC_LCL_2_ST := NPWD0010.eng;
+else
+	# Get Relaybox LCLs statuses from PCDU-B
+	VAR_DEC_LCL_1_ST := NPWT0050.eng;
+	VAR_DEC_LCL_2_ST := NPWT0010.eng;
+endif;
+
+# If TTR CPDU A is ON
+if (VAR_TTR_CPDU_A_STATUS ==  "ON_ON_ON") then
+	# Get SPICE OU Nominal and Redundant heater statuses from TTR CPDU-A
+	VAR_SPICE_OU_HTR_A := NCD2Z00H.eng;
+	VAR_SPICE_OU_HTR_B := NCD2Z013.eng;
+else
+	# Get SPICE OU Nominal and Redundant heater statuses from TTR CPDU-B
+	VAR_SPICE_OU_HTR_A := NCD2Z02H.eng;
+	VAR_SPICE_OU_HTR_B := NCD2Z033.eng;
+endif;
+
+#
+# Check status of LCLs
+#
+if ((VAR_DEC_LCL_1_ST == "ON") land (VAR_DEC_LCL_2_ST == "ON")) then
+        #
+        # Both Relaybox LCLs are ON
+        #
+        # Check status of SPICE OU Prime and Redundant heaters
+        #
+        if ((VAR_SPICE_OU_HTR_A == "On") land (VAR_SPICE_OU_HTR_B == "On")) then
+                # Both heaters are ON ==> NOMINAL ON 
+                return(VAR_NOMINAL_ON);
+        endif;
+
+        if ((VAR_SPICE_OU_HTR_A == "Off") land (VAR_SPICE_OU_HTR_B == "Off")) then
+                # Both heaters are OFF ==> NOMINAL OFF 
+                return(VAR_NOMINAL_OFF);
+        endif;
+
+        # One heater is ON and the other OFF ==> INCORRECT CONF
+        return(VAR_INCORRECT_CONF);
+
+endif;
+
+if ((VAR_DEC_LCL_1_ST == "OFF") land (VAR_DEC_LCL_2_ST == "OFF")) then
+        #
+        # Both Relaybox LCLs are OFF
+        #
+        # Check status of SPICE OU Prime and Redundant heaters
+        #
+        if ((VAR_SPICE_OU_HTR_A == "Off") land (VAR_SPICE_OU_HTR_B == "Off")) then
+	        # Both heaters are OFF ==> NOMINAL OFF configuration
+                return(VAR_NOMINAL_OFF);
+        endif;
+        
+        # At least on heater is ON ==> INCORRECT CONF
+        return(VAR_INCORRECT_CONF);
+endif;
+
+#
+# One Relaybox LCL is ON and the other is OFF ==> INCORRECT CONF
+#
+return(VAR_INCORRECT_CONF);

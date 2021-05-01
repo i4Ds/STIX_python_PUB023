@@ -1,0 +1,1 @@
+if((NCSD3JV2.eng == "ON") lor (NCSD3JW2.eng == "ON")) then return(1); else return (0); endif;

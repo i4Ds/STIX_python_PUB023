@@ -1,0 +1,1 @@
+if((NCSD0PN2.eng == "ON") land (NCSD0PN3.eng == "ON") land (NST1Z502.eng == "NEAT")) then return(1); else return (0); endif;

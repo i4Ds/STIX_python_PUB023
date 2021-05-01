@@ -1,0 +1,72 @@
+#####
+#
+#ALARM status RM_alarm_status RM B
+# GH updated on 7/9/2017 to modify integer output to text output
+#
+#
+#####
+
+#PM_A_B_UVD
+
+if (NBCDX117==0 land NBCDX111==1) then
+   VAR_out:="Set1Pap0";   # Was previously 99
+endif;
+if (NBCDX117==1 land NBCDX115==1) then
+   VAR_out:="Set1Pap1";   # Was previously 1
+endif;
+
+
+
+
+#PM_A_B_HW_or_SW_Failure
+
+if (NBCDX117==0 land (NBCDX109==1 lor NBCDX110==1)) then
+   VAR_out:="Set1Pap2";  #Was previously 2
+endif;
+
+if (NBCDX117==1 land (NBCDX113==1 lor NBCDX114==1)) then
+   VAR_out:="Set1Pap3";  #Was previously 3
+endif;
+
+
+
+
+#PM_A_B_watchdog
+
+if (NBCDX117==0 land NBCDX100==1 land NBCDX121==1) then
+   VAR_out:="Set1Pap4";  #Was previously 4
+endif;
+
+if (NBCDX117== 1 land NBCDX101==1 land NBCDX121==1) then
+   VAR_out:="Set1Pap5";  #Was previously 5
+endif;
+
+
+
+
+#PM_A_B_SW_ALARM
+
+if (NBCDX117==0 land NBCDX112==1) then
+   VAR_out:="Set1Pap6";  #Was previously 6
+endif;
+
+if (NBCDX117==1 land NBCDX116==1) then
+   VAR_out:="Set1Pap7";  #Was previously 7
+endif;
+
+
+
+
+#PM_A_B_Ops_Alarm
+
+if (NBCDX117==0 land NBCDX107==1) then
+   VAR_out:="Set1Pap8";  #Was previously 8
+endif;
+
+if (NBCDX117==1 land NBCDX108==1) then
+   VAR_out:="Set1Pap9";  #Was previously 9
+endif;
+
+else VAR_out:="None";  #was previously 11
+
+return(VAR_out);

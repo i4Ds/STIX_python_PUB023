@@ -1,0 +1,5 @@
+# SADE B PY CalPosSensor
+VAR_a := NCFT56U0.eng;
+# SADE B MY CalPosSensor
+VAR_b := NCFT56Y0.eng;
+return(abs(VAR_a - VAR_b));

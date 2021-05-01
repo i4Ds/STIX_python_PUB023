@@ -1,0 +1,12 @@
+#PCDU B EOC 22.914 V Set
+
+VAR_p1 := NPWT5012.eng;
+VAR_p2 := NPWT5013.eng;
+VAR_p3 := NPWT5014.eng;
+VAR_min := 22.814;
+VAR_max := 23.014; 
+
+if (((VAR_p1 > VAR_min) land (VAR_p1 < VAR_max)) land  ((VAR_p2 > VAR_min) land (VAR_p2 < VAR_max))) lor (((VAR_p1 > VAR_min) land (VAR_p1 < VAR_max)) land  ((VAR_p3 > VAR_min) land (VAR_p3 < VAR_max))) lor (((VAR_p3 > VAR_min) land (VAR_p3 < VAR_max)) land  ((VAR_p2 > VAR_min) land (VAR_p2 < VAR_max))) then          
+return(1);
+else
+return(0);

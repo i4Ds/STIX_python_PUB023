@@ -1,0 +1,1 @@
+if(((NDSD0011.eng == "C_Acq_NB") lor (NDSD0011.eng == "C_Track_NB") lor (NDSD0011.eng == "SC_Track_NB")) land (NDSZ0001.eng == "FM2")) then return(1); else return(0);endif;

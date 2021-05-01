@@ -1,0 +1,12 @@
+VAR_x := 2.0 * (NCAD4N15.raw * NCAD4N13.raw - NCAD4N14.raw * NCAD4N12.raw);
+
+
+if abs(VAR_x) < 1 then
+		return(arcsin(VAR_x)*180/3.1415926);
+else
+		if VAR_x <= -1 then
+		return(-90);
+		else
+		return(90);
+		elseif;
+endif;

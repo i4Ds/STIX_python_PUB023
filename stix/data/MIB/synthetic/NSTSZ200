@@ -1,0 +1,1 @@
+if((NCSD0PS2.eng == "ON") land (NCSD0PS3.eng == "ON") land (NST2Z502.eng == "AADP")) then return(1); else return (0); endif;

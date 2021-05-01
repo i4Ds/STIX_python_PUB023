@@ -1,0 +1,30 @@
+#######################################
+# PS 5 Fill Level - PS_DUMP
+# Indentify start of next read address (either last read or start of PS)
+if NCDD0AF9.raw < 1 then
+   # This PS has not been read
+   #
+   if NCDD0AFC.raw < 1 then
+        # Nor has it been written to - use the PS start address
+        VAR_PS5_ReadPtr :=  NCDD0AF8.raw;
+   else
+       # There's a valid packet though, use the FVPP
+   	VAR_PS5_ReadPtr :=  NCDD0AFC.raw;
+   endif;
+else
+  # A valid playback pointer exists - use that
+  VAR_PS5_ReadPtr := NCDD0AF9.raw;
+endif;
+#
+# Get write address
+VAR_PS5_WritePtr := NCDD0AFB.raw;
+#
+# Difference between them is the amount of unread data
+if VAR_PS5_WritePtr >= VAR_PS5_ReadPtr then
+   VAR_PS5_UnreadBytes := VAR_PS5_WritePtr - VAR_PS5_ReadPtr;
+else
+   VAR_PS5_UnreadBytes := (NCDD0AF7.raw + VAR_PS5_WritePtr) - VAR_PS5_ReadPtr; 
+endif;
+#
+# Return amount of data stored in this packet store
+return (VAR_PS5_UnreadBytes);

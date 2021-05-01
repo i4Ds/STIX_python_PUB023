@@ -1,0 +1,17 @@
+# V1.0, 14th Feb 2017: Focus_Derived_Posn - NICS0R00
+# Computed Focus Position (from RTHK report) as a function of focus temperature NIC0TR30
+#
+# V1.1, 30th Aug 2019: Now modified to return just the measured focus position
+#
+# ----------------------
+#
+# Focus_Derived_Posn
+#
+VAR_tf := NIC0TR30  - 20.0;
+VAR_fac := 0.0;
+VAR_idx := 1.5;
+if (VAR_tf >= 0) then
+    return (NIC0PR15 + VAR_fac * (VAR_tf)**VAR_idx) ;
+else
+    return (NIC0PR15 - VAR_fac * (-1.0*VAR_tf)**VAR_idx) ;
+endif;

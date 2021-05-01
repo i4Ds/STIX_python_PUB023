@@ -1,0 +1,32 @@
+############################################################# 
+# Convert SSEA output to MGA steering angle, in degrees
+#
+# Based on MgaAngleGenerator_computeMgaAngle
+# CONSTANTS
+VAR_pi := 3.14159265358979323846;
+VAR_2pi := 2 * VAR_pi;
+VAR_rad2deg := 180 / VAR_pi;
+# OBDB Values
+VAR_mga_el_min := 0.00872664625997165; # NCAP0CJT
+VAR_mga_offset := 0.383972435438752;     # NCAP0CJS
+# SSEA Angle
+VAR_ssea := NCAT6RU0.raw;
+# Work out the angle in rad
+# Need to do this in several steps to work around OL limitations
+VAR_mga_ang_rad := (VAR_ssea + VAR_mga_offset  - VAR_mga_el_min);
+# Handle wrap around
+if VAR_mga_ang_rad > VAR_2pi then
+    VAR_x := VAR_mga_ang_rad - VAR_2pi;
+    VAR_mga_ang_rad := VAR_x;
+endif;
+# Handle less-than-zero
+if VAR_mga_ang_rad < 0.0 then
+    VAR_x := VAR_mga_ang_rad + VAR_2pi;
+    VAR_mga_ang_rad := VAR_x;
+endif;
+# Add minimum elevation
+VAR_x := VAR_mga_ang_rad + VAR_mga_el_min;
+VAR_mga_ang_rad := VAR_x;
+# Convert to deg
+VAR_mga_ang_deg := VAR_mga_ang_rad * VAR_rad2deg;
+return(VAR_mga_ang_deg);

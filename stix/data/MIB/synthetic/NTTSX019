@@ -1,0 +1,33 @@
+############################
+# Does DST-Rx 1 match expected bit rate?
+#
+# 2 = unknown
+# 0 = FALSE
+# 1 = TRUE
+#
+#
+# DST Selection 1 = DST-Rx 1, 2 = DST-Rx 2, 0 = unknown
+#
+#
+# Does it match the expected rate?
+#
+VAR_bitRatesMatch := 2;
+# Check whether this DST is PRIME or REDUNDANT
+if (NTTSX017.raw == 1) then
+	# compare against PRIME rate
+	if (NDSD0012.raw == NDSZX001.raw) then
+		VAR_bitRatesMatch := 1;
+	else
+		VAR_bitRatesMatch := 0;
+	endif;
+else
+	if (NTTSX018.raw == 1) then 
+		# compare against REDUNDANT rate
+		if (NDSD0012.raw == NDSZX002.raw) then
+			VAR_bitRatesMatch := 1;
+		else
+			VAR_bitRatesMatch := 0;
+		endif;
+	endif;
+endif;
+return (VAR_bitRatesMatch);

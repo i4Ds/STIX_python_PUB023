@@ -1,0 +1,15 @@
+##############################
+#
+# TRUE DST-A TLM MOD scheme
+# 29th November 2018 G. Hurrell
+# RAW values used as some parameters have text calibrations
+##############################
+if NDSG0045.raw==1 then
+	"SPL";
+else
+if NDSG0055.raw<=29 then
+	"BPSK";
+else
+	"GMSK";
+endif;
+endif;

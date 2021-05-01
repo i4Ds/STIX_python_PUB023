@@ -1,0 +1,9 @@
+if ((NTTSX006 == "HGA") land (NTTSX001 == "HGA")) lor ((NTTSX006 == "MGA") land (NTTSX001 == "MGA")) lor ((NTTSX006 == "LGA-A") land (NTTSX001 == "LGA-A")) lor ((NTTSX006 == "LGA-B") land (NTTSX001 == "LGA-B"))
+then return("Rx-A");
+else
+if ((NTTSX006 == "HGA") land (NTTSX003 == "HGA")) lor ((NTTSX006 == "MGA") land (NTTSX003 == "MGA")) lor ((NTTSX006 == "LGA-A") land (NTTSX003 == "LGA-A")) lor ((NTTSX006 == "LGA-B") land (NTTSX003 == "LGA-B"))
+then return("Rx-B");
+else
+return("Unknown");
+endif;
+endif;

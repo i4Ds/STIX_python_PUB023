@@ -1,0 +1,2 @@
+#Calculate CPU Load as percentage of non-idle cycle time 
+return(100*(1-(NCDD0AL7/125000.0)));

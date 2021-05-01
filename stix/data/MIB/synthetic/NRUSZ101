@@ -1,0 +1,1 @@
+if(NRU12847.eng <> 0.0) then return((351.09709 * NRU12848.eng / NRU12847.eng) - 86.74121); else return(0.0); endif;

@@ -1,0 +1,1 @@
+if (NSMD0726.raw == 3) then return(0); else return(1); endif; # 3: failed, else OK

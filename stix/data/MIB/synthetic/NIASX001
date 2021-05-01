@@ -1,0 +1,13 @@
+# Determine applicability for PAS OOL
+#
+VAR_PAS_SciReady := NIAD0763.raw;
+VAR_PAS_Mode     := NIAD4423.raw;
+#
+# OK if SciReady = 3 or Mode = 1, 2 or 3
+#
+if (VAR_PAS_SciReady == 3) lor ((VAR_PAS_Mode > 0) land (VAR_PAS_Mode < 4)) then
+  return (1);
+else
+#
+return (0);
+endif;

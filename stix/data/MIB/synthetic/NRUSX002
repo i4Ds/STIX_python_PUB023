@@ -1,0 +1,39 @@
+#######################
+#
+# NRUSX002	RSA WGS-2 position
+#
+# Created: 30/11/2018
+# Author: T.Toshev
+#
+# Change History:
+#	030/11/2018: Script created
+#
+#######################
+if (NCSD0PE3.eng == "ON" land NCSD0PF3.eng == "ON") then
+if ((NRUD2131.eng == NRUD2191.eng) land (NRUD2191.eng == NRUT2131.eng) land (NRUT2131.eng == NRUT2191.eng)) then
+return(NRUD2131.eng);
+else 
+return("Unknown");
+endif; 
+
+else
+if (NCSD0PE3.eng == "ON" land NCSD0PF3.eng == "OFF") then
+if (NRUD2131.eng == NRUD2191.eng) then
+return(NRUD2131.eng);
+else 
+return("Unknown");
+endif;
+
+else
+if (NCSD0PE3.eng == "OFF" land NCSD0PF3.eng == "ON") then
+if (NRUT2131.eng == NRUT2191.eng) then
+return(NRUT2131.eng);
+else 
+return("Unknown");
+endif;
+
+else
+return("Unknown");
+endif; 
+endif;
+endif;

@@ -1,0 +1,9 @@
+# IF RX_LOCK is expected AND neither DST reports Data Valid
+# THEN return UNEXPECTED_RX_LOSS = TRUE
+# ELSE return UNEXPECTED_RX_LOSS = FALSE
+#
+if (NMAXU004.raw == 1) land (NDSD0051.raw == 0 land NDSD1051.raw == 0) then
+    return (1); #TRUE
+else
+    return (0); #FALSE
+endif;

@@ -1,0 +1,36 @@
+#
+#  This synthetic determines whether the Non-OP or OP regulation
+#  limits are used for Thermal Loop #64 METIS CE
+#
+#  The OPS limits are used when the VLDA sensor is to be switched on
+#  and the change happens with procedures TC-FCP-901 and TC-FCP-903
+#
+#  Since there is no S/C parameter to indicate that the change has been
+#  commanded, the raw values of the regulation limits are used. In case
+#  these are updated in the procedures, the new values need to be placed
+#  in the code below
+#
+#  The return values of the synthetic are:
+#     0 if the non-OP regulation limits are used
+#     1 if the OP regulation limits are used
+#
+
+# Define return values
+VAR_NON_OP := 0;
+VAR_OP := 1;
+
+# Define temperature criteria for being in
+# These need to be updated if the respective OP range in TC-FCP-901/903 is updated 
+VAR_OP_UPPER_RAW := 23055;
+VAR_OP_LOWER_RAW := 22864;
+
+# Get current regulation temperatures
+VAR_TT064_UPPER_RAW := NTCD53R1.raw;
+VAR_TT064_LOWER_RAW := NTCD53R2.raw;
+
+# Determine if we are regulating in the OP range or not
+if ((VAR_TT064_UPPER_RAW == VAR_OP_UPPER_RAW) land (VAR_TT064_LOWER_RAW == VAR_OP_LOWER_RAW)) then
+   return(VAR_OP);
+else
+   return(VAR_NON_OP);
+endif;

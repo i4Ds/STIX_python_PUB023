@@ -1,0 +1,4 @@
+if ((NYG01923.raw == 1) land (NCDD05G5.eng == "DISABLED")) lor ((NYG01923.raw == 2) land (NCDD05L5.eng == "DISABLED"))
+then return(1);
+else
+return(0);

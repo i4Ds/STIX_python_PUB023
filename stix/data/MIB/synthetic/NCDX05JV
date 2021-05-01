@@ -1,0 +1,7 @@
+VAR_rawMSB := NCDD05JV.raw;
+
+VAR_MSB_MASK :=1;
+
+VAR_MSB := (VAR_rawMSB and VAR_MSB_MASK);
+
+return (VAR_MSB);

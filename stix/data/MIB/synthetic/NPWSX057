@@ -1,0 +1,26 @@
+##################################################
+# Calculate the rolling average of In-use PCDU BDR Converter Input Current
+#
+# This is for BDR2_Conv2
+#
+# Note - 2 Global Variables are used
+#
+VAR_dummyA := NPWD4777; #Changes every packet, needed for OL to update
+VAR_dummyB := NPWT4777; #Changes every packet, needed for OL to update
+#
+# PCDU-A in use
+if NCSD0PC4.raw == 2 then
+	VAR_curr := NPWD4761;
+else
+	#Else PCDU-B in-use
+	if NCSD0PD4.raw == 2 then
+		VAR_curr := NPWT4761;
+	else
+		VAR_curr := 0; # No PCDU in use....?
+	endif;
+endif;
+#
+GVAR_NPWx4761cnt := GVAR_NPWx4761cnt + 1;
+GVAR_NPWx4761sum := GVAR_NPWx4761sum + VAR_curr;
+#
+GVAR_NPWx4761sum / GVAR_NPWx4761cnt;

@@ -1,0 +1,10 @@
+####################################
+# Calculate HGA Validity           #
+####################################
+
+# Use APME HGA x scvOP to determine which is IN-USE (2)
+if (NCSD3JC4.raw == 2) lor (NCSD3JD4.raw == 2) then # HGA 
+return(1);
+else # Neither!
+return(0);
+endif;

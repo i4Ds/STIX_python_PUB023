@@ -1,0 +1,12 @@
+# SW version running
+# 0 is ASW, 1 is SuSW
+if NIXD0021.raw == 1 then
+    return(3);
+else
+
+    # 0: both SpW off
+    # 1: one SpW powered
+    # 2: both SpW powered
+    VAR_spw := NIXD0081.raw+NIXD0080.raw;
+    return(VAR_spw);
+endif;

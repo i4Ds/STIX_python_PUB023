@@ -1,0 +1,96 @@
+###########################################
+# Calculate ENTRY_128_FSSXB from SGM dump #
+###########################################
+
+# Get the values of the two dump parameters
+VAR_rawMSB := NCXY1536.raw; # 1 MSB Byte
+VAR_rawLSB := NCXZ1536.raw; # 3 LSB Bytes
+
+# Shift to be performed
+VAR_MSB_SHIFT := 24;
+VAR_LSB_MASK := 65535;
+
+# Shift MSB value
+VAR_MSB := (VAR_rawMSB << VAR_MSB_SHIFT);
+
+# Recreate the dumped value by concatenating the results
+VAR_RES := (VAR_MSB + VAR_rawLSB);
+
+# If the value is all zeros, return it with decoding
+if VAR_RES == 0 then
+     return (0.0);
+endif;
+
+
+# Unfortunately loops are not supported in synthetics and a manual 
+# calculation of all steps is required.
+
+# Define some useful masks
+VAR_SIGN_MASK := 4294967296;  # The sign bit (bit 31)
+VAR_EXP_MASK := 2139095040;   # The exponent bits (bits 23 to 30) 
+VAR_MANTISSA_MASK := 8388607; # The mantissa bits (bits  0 to 22)
+VAR_BIT_MASK := 1; # A single bit mask
+
+# Calculate the sign value
+VAR_SIGN:= (VAR_RES and VAR_SIGN_MASK) >> 32;
+
+# Calculate the exponent value
+VAR_EXP := (VAR_RES and VAR_EXP_MASK) >> 23;
+
+# Calculate the mantissa value
+VAR_MANT := (VAR_RES and VAR_MANTISSA_MASK);
+
+# To calculate the sum of on the last part of the equation, these manual 
+# calculations are needed
+VAR_IDX := 1;
+VAR_RES_1 := (2**-VAR_IDX)*((VAR_MANT >> (23 - VAR_IDX)) and VAR_BIT_MASK);
+VAR_IDX := 2;
+VAR_RES_2 := (2**-VAR_IDX)*((VAR_MANT >> (23 - VAR_IDX)) and VAR_BIT_MASK);
+VAR_IDX := 3;
+VAR_RES_3 := (2**-VAR_IDX)*((VAR_MANT >> (23 - VAR_IDX)) and VAR_BIT_MASK);
+VAR_IDX := 4;
+VAR_RES_4 := (2**-VAR_IDX)*((VAR_MANT >> (23 - VAR_IDX)) and VAR_BIT_MASK);
+VAR_IDX := 5;
+VAR_RES_5 := (2**-VAR_IDX)*((VAR_MANT >> (23 - VAR_IDX)) and VAR_BIT_MASK);
+VAR_IDX := 6;
+VAR_RES_6 := (2**-VAR_IDX)*((VAR_MANT >> (23 - VAR_IDX)) and VAR_BIT_MASK);
+VAR_IDX := 7;
+VAR_RES_7 := (2**-VAR_IDX)*((VAR_MANT >> (23 - VAR_IDX)) and VAR_BIT_MASK);
+VAR_IDX := 8;
+VAR_RES_8 := (2**-VAR_IDX)*((VAR_MANT >> (23 - VAR_IDX)) and VAR_BIT_MASK);
+VAR_IDX := 9;
+VAR_RES_9 := (2**-VAR_IDX)*((VAR_MANT >> (23 - VAR_IDX)) and VAR_BIT_MASK);
+VAR_IDX := 10;
+VAR_RES_10 := (2**-VAR_IDX)*((VAR_MANT >> (23 - VAR_IDX)) and VAR_BIT_MASK);
+VAR_IDX := 11;
+VAR_RES_11 := (2**-VAR_IDX)*((VAR_MANT >> (23 - VAR_IDX)) and VAR_BIT_MASK);
+VAR_IDX := 12;
+VAR_RES_12 := (2**-VAR_IDX)*((VAR_MANT >> (23 - VAR_IDX)) and VAR_BIT_MASK);
+VAR_IDX := 13;
+VAR_RES_13 := (2**-VAR_IDX)*((VAR_MANT >> (23 - VAR_IDX)) and VAR_BIT_MASK);
+VAR_IDX := 14;
+VAR_RES_14 := (2**-VAR_IDX)*((VAR_MANT >> (23 - VAR_IDX)) and VAR_BIT_MASK);
+VAR_IDX := 15;
+VAR_RES_15 := (2**-VAR_IDX)*((VAR_MANT >> (23 - VAR_IDX)) and VAR_BIT_MASK);
+VAR_IDX := 16;
+VAR_RES_16 := (2**-VAR_IDX)*((VAR_MANT >> (23 - VAR_IDX)) and VAR_BIT_MASK);
+VAR_IDX := 17;
+VAR_RES_17 := (2**-VAR_IDX)*((VAR_MANT >> (23 - VAR_IDX)) and VAR_BIT_MASK);
+VAR_IDX := 18;
+VAR_RES_18 := (2**-VAR_IDX)*((VAR_MANT >> (23 - VAR_IDX)) and VAR_BIT_MASK);
+VAR_IDX := 19;
+VAR_RES_19 := (2**-VAR_IDX)*((VAR_MANT >> (23 - VAR_IDX)) and VAR_BIT_MASK);
+VAR_IDX := 20;
+VAR_RES_20 := (2**-VAR_IDX)*((VAR_MANT >> (23 - VAR_IDX)) and VAR_BIT_MASK);
+VAR_IDX := 21;
+VAR_RES_21 := (2**-VAR_IDX)*((VAR_MANT >> (23 - VAR_IDX)) and VAR_BIT_MASK);
+VAR_IDX := 22;
+VAR_RES_22 := (2**-VAR_IDX)*((VAR_MANT >> (23 - VAR_IDX)) and VAR_BIT_MASK);
+VAR_IDX := 23;
+VAR_RES_23 := (2**-VAR_IDX)*((VAR_MANT >> (23 - VAR_IDX)) and VAR_BIT_MASK);
+
+# Calculate the sum
+VAR_MANT_RES := 1.0 + VAR_RES_1 + VAR_RES_2 + VAR_RES_3 + VAR_RES_4 + VAR_RES_5 + VAR_RES_6 + VAR_RES_7 + VAR_RES_8 + VAR_RES_9 + VAR_RES_10 + VAR_RES_11 + VAR_RES_12 + VAR_RES_13 + VAR_RES_14 + VAR_RES_15 + VAR_RES_16 + VAR_RES_17 + VAR_RES_18 + VAR_RES_19 + VAR_RES_20 + VAR_RES_21 + VAR_RES_22 + VAR_RES_23;
+
+# Return the final result
+return ((-1)**VAR_SIGN * 2**(VAR_EXP - 127)*VAR_MANT_RES);

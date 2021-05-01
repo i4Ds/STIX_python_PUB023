@@ -1,0 +1,1 @@
+if((NCSD3KH3.eng == "ON") land (NSDT0003.eng <> "RESET")) then return(1); else return (0); endif;

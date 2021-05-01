@@ -1,0 +1,19 @@
+if NIXD0021.raw == 1 then
+    return(0);
+else
+
+VAR_motors := NIXD0089.raw+NIXD0088.raw;
+
+if VAR_motors == 0 then
+        return(0);
+endif;
+
+if VAR_motors == 1 then
+        return(1);
+endif;
+
+if VAR_motors == 2 then
+        return(2);
+endif;
+
+endif;

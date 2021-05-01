@@ -13,7 +13,7 @@
 	"validityPeriod":["2020-12-28T00:00:00", "2020-12-28T00:00:00"]
 },
 {
-	"filename":"/data/pub/data/idb/idb_2.26.35_alpha.sqlite3",
+	"filename":"/data/pub/data/idb/idb_v2.26.35.sqlite",
 	"path":".",
 	"version":"2.26.35",
 	"aswVersion":179,

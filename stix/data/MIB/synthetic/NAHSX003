@@ -1,0 +1,31 @@
+####################################
+# Calculate absolute HGA Azimuth#
+####################################
+
+# Use APME HGA x scvOP to determine which is IN-USE (2)
+if (NCSD3JC4.raw == 2) then # HGA A
+    VAR_rawMSB := NAH0Z009.raw;
+    VAR_rawLSB := NAHD0049.raw;
+else
+if (NCSD3JD4.raw == 2) then # HGA B
+    VAR_rawMSB := NAH0Z043.raw;
+    VAR_rawLSB := NAHT0049.raw;
+else                   # Neither!
+    VAR_rawMSB := 0;
+	VAR_rawLSB := 0;
+    endif;
+endif;
+
+# Masks and shifts to be performed
+VAR_MSB_MASK := 31;
+VAR_MSB_SHIFT := 16;
+VAR_LSB_MASK := 65535;
+
+# Mask and shift MSB
+VAR_MSB := ((VAR_rawMSB and VAR_MSB_MASK) << VAR_MSB_SHIFT);
+
+# Mash LSB
+VAR_LSB := (VAR_rawLSB and VAR_LSB_MASK);
+
+# Or them together
+return (VAR_MSB or VAR_LSB);

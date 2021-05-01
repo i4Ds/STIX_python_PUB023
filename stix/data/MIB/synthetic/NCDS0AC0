@@ -1,0 +1,29 @@
+#######################################
+# PS 2 Fill Level - PS_ACK
+# Indentify start of next read address (either last read or start of PS)
+if NCDD0AC9.raw < 1 then
+   # This PS has not been read
+   #
+   if NCDD0ACC.raw < 1 then
+        # Nor has it been written to - use the PS start address
+        VAR_PS2_ReadPtr :=  NCDD0AC8.raw;
+   else
+       # There's a valid packet though, use the FVPP
+   	VAR_PS2_ReadPtr :=  NCDD0ACC.raw;
+   endif;
+else
+  VAR_PS2_ReadPtr := NCDD0AC9.raw;
+endif;
+#
+# Get write address
+VAR_PS2_WritePtr := NCDD0ACB.raw;
+#
+# Difference between them is the amount of unread data
+if VAR_PS2_WritePtr >= VAR_PS2_ReadPtr then
+   VAR_PS2_UnreadBytes := VAR_PS2_WritePtr - VAR_PS2_ReadPtr;
+else
+   VAR_PS2_UnreadBytes := (NCDD0AC7.raw + VAR_PS2_WritePtr) - VAR_PS2_ReadPtr; 
+endif;
+#
+# Return amount of data stored in this packet store
+return (VAR_PS2_UnreadBytes);

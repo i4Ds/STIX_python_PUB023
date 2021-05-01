@@ -1,0 +1,10 @@
+#  The intention behind this synthetic parameter is to be able to add the
+#  internal revision number from the version control system to the MIB files at
+#  the time of the export. The result of the calculation is the same version
+#  that is in the comment in the VDF table. Unfortunately, when using the SIIS,
+#  there is no way to display the information from the VDF table. At the same
+#  time, using a constant for a synthetic parameter will not update that
+#  parameter at all. Writing `return __VERSION__` would be more concise, but
+#  does not give me the intended result, either.
+
+return (11208 + 0 * NIPH0001.raw);

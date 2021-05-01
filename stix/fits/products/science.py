@@ -317,7 +317,12 @@ class XrayL1(Product):
         control['index'] = 0
 
         data = Data()
-        data['delta_time'] = (np.array(packets['NIX00441'], np.int32)) * 0.1 * u.s
+        try:
+            data['delta_time'] = (np.array(packets['NIX00441'], np.int32)) * 0.1 * u.s
+        except KeyError:
+            #replaced with NIX00404 for versions after asw v180, 
+            data['delta_time'] = (np.array(packets['NIX00404'], np.int32)) * 0.1 * u.s
+
         unique_times = np.unique(data['delta_time'])
 
         data['rcr'] = np.array(packets['NIX00401'], np.ubyte)
@@ -397,7 +402,10 @@ class XrayL1(Product):
                                   ENERGY_CHANNELS[31]['e_upper']])
 
         # If there is any onboard summing of energy channels rebin back to standard sci channels
+        print(unique_energies_low)
+        print(unique_energies_high)
         if (unique_energies_high - unique_energies_low).sum() > 0:
+            print('Onboard summing rebinned {}')
             rebinned_counts = np.zeros((*counts.shape[:-1], 32))
             rebinned_counts_var = np.zeros((*counts_var.shape[:-1], 32))
             e_ch_start = 0
@@ -457,8 +465,8 @@ class XrayL1(Product):
         #         out_counts[np.ix_(tids2, cids2, dids2)] = cur_counts
 
         if counts.sum() != out_counts.sum():
-            import ipdb; ipdb.set_trace()
-            raise ValueError('Original and reformatted count totals do not match')
+            #import ipdb; ipdb.set_trace()
+            raise ValueError(f'Original and reformatted count totals do not match: {counts.sum()} vs {out_counts.sum()}')
 
         control['energy_bin_mask'] = np.full((1, 32), False, np.ubyte)
         all_energies = set(np.hstack([tmp['e_low'], tmp['e_high']]))

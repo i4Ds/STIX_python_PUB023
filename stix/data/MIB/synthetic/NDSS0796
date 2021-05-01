@@ -1,0 +1,1 @@
+if((NDSZ0001.eng == "EM") land (NDSD0019.eng == "On")) then return(1); else return(0);endif;

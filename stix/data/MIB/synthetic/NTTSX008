@@ -1,0 +1,50 @@
+# NCFT1YN0 Encoding Type (A-X)
+if (NCFT1YN0.raw == 0) then
+# Turbo1/2
+VAR_ETS := 0;
+else
+if (NCFT1YN0.raw == 2) then
+# Turbo1/4
+VAR_ETS := 1;
+else
+# Illegal
+VAR_ETS := 3;
+endif;
+endif;
+#
+# NYG01921 TCO_DEFAULT_ENCOD_SCHE
+if ((NYG01921.raw > 36) land (NYG01921.raw < 39)) then
+# Turbo1/2
+VAR_ETM := 0;
+else
+if ((NYG01921.raw > 68) land (NYG01921.raw < 71)) then
+# Turbo1/4
+VAR_ETM := 1;
+else
+# Illegal
+VAR_ETM := 3;
+return (0); # Work-around for VC1
+endif;
+endif;
+#
+if (VAR_ETS == VAR_ETM) then
+VAR_Enc_result := 0;
+else
+VAR_Enc_result := 1;
+endif;
+#
+VAR_TMBR := (NTTSX007.eng - NYG01922.raw);
+#
+if (VAR_TMBR > -1) land (VAR_TMBR < 1) then
+VAR_TMBR_result := 0;
+else
+VAR_TMBR_result := 1;
+endif;
+#
+if ((VAR_Enc_result == 0) land (VAR_TMBR_result == 0)) then
+# No_Error
+return(0);
+else
+# Error
+return(1);
+endif;

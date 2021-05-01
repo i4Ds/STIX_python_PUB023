@@ -1,0 +1,76 @@
+VAR_totalDownlinkTime := 0;
+#
+if NSMD1809.raw == 1 then
+    VAR_x := VAR_totalDownlinkTime + NCXSS007;
+    VAR_totalDownlinkTime := VAR_x;
+endif;
+if NSMD1814.raw == 1 then
+    VAR_x := VAR_totalDownlinkTime + NCXSS008;
+    VAR_totalDownlinkTime := VAR_x;
+endif;
+if NSMD1819.raw == 1 then
+    VAR_x := VAR_totalDownlinkTime + NCXSS009;
+    VAR_totalDownlinkTime := VAR_x;
+endif;
+if NSMD1824.raw == 1 then
+    VAR_x := VAR_totalDownlinkTime + NCXSS010;
+    VAR_totalDownlinkTime := VAR_x;
+endif;
+if NSMD1829.raw == 1 then
+    VAR_x := VAR_totalDownlinkTime + NCXSS011;
+    VAR_totalDownlinkTime := VAR_x;
+endif;
+if NSMD1834.raw == 1 then
+    VAR_x := VAR_totalDownlinkTime + NCXSS012;
+    VAR_totalDownlinkTime := VAR_x;
+endif;
+if NSMD1839.raw == 1 then
+    VAR_x := VAR_totalDownlinkTime + NCXSS013;
+    VAR_totalDownlinkTime := VAR_x;
+endif;
+if NSMD1844.raw == 1 then
+    VAR_x := VAR_totalDownlinkTime + NCXSS014;
+    VAR_totalDownlinkTime := VAR_x;
+endif;
+if NSMD1849.raw == 1 then
+    VAR_x := VAR_totalDownlinkTime + NCXSS015;
+    VAR_totalDownlinkTime := VAR_x;
+endif;
+if NSMD1854.raw == 1 then
+    VAR_x := VAR_totalDownlinkTime + NCXSS016;
+    VAR_totalDownlinkTime := VAR_x;
+endif;
+if NSMD1859.raw == 1 then
+    VAR_x := VAR_totalDownlinkTime + NCXSS017;
+    VAR_totalDownlinkTime := VAR_x;
+endif;
+if NSMD1864.raw == 1 then
+    VAR_x := VAR_totalDownlinkTime + NCXSS018;
+    VAR_totalDownlinkTime := VAR_x;
+endif;
+if NSMD1869.raw == 1 then
+    VAR_x := VAR_totalDownlinkTime + NCXSS019;
+    VAR_totalDownlinkTime := VAR_x;
+endif;
+if NSMD1874.raw == 1 then
+    VAR_x := VAR_totalDownlinkTime + NCXSS020;
+    VAR_totalDownlinkTime := VAR_x;
+endif;
+if NSMD1879.raw == 1 then
+    VAR_x := VAR_totalDownlinkTime + NCXSS021;
+    VAR_totalDownlinkTime := VAR_x;
+endif;
+if NSMD1884.raw == 1 then
+    VAR_x := VAR_totalDownlinkTime + NCXSS022;
+    VAR_totalDownlinkTime := VAR_x;
+endif;
+if NSMD1889.raw == 1 then
+    VAR_x := VAR_totalDownlinkTime + NCXSS023;
+    VAR_totalDownlinkTime := VAR_x;
+endif;
+if NSMD1894.raw == 1 then
+    VAR_x := VAR_totalDownlinkTime + NCXSS024;
+    VAR_totalDownlinkTime := VAR_x;
+endif;
+#
+return (VAR_totalDownlinkTime);

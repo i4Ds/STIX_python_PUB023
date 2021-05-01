@@ -1,0 +1,20 @@
+###########################
+# Return prime DST-Rx
+# 0 = unknown
+# 1 = DST-Rx 1
+# 2 = DST-Rx 2
+#
+# Find prime antenna
+VAR_currAntA := NTTSX005;
+#
+# Find which DST it is
+VAR_currDstPrime := 0;
+if (NTTSX001 == VAR_currAntA) then
+	VAR_currDstPrime := 1;
+else
+	if (NTTSX003 == VAR_currAntA) then
+		VAR_currDstPrime := 2;
+	endif;
+endif;
+#
+return (VAR_currDstPrime);

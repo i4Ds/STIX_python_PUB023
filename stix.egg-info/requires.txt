@@ -1,0 +1,15 @@
+PyQt5
+PyQtChart
+numpy
+pymongo
+python-dateutil
+qtconsole
+scipy
+spiceypy
+xmltodict
+
+[dev]
+flake8
+pycodestyle
+pydocstyle
+pytest

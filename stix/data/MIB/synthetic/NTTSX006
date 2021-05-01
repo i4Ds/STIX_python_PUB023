@@ -1,0 +1,9 @@
+if (NCSD3KJ4 == "IN_USE") then 
+return(NTTSX004); 
+else
+if (NCSD3KK4 == "IN_USE") then 
+return(NTTSX002);
+else
+return("Unknown");
+endif;
+endif;

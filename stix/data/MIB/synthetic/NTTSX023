@@ -1,0 +1,5 @@
+if (NTTSX020.raw == 1 land NMAXU004.raw == 1) then
+return (1);
+else
+return (0);
+endif;

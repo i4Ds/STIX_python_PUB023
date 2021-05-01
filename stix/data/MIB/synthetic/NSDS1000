@@ -1,0 +1,1 @@
+if(NSDT0003.eng == "RESET") then return(0); else return(1);endif;

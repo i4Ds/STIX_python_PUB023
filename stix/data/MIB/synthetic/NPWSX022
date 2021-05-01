@@ -1,0 +1,12 @@
+#PCDU B BCC 10 A Set
+
+VAR_p1 := NPWT5015.eng;
+VAR_p2 := NPWT5016.eng;
+VAR_p3 := NPWT5017.eng;
+VAR_min := 9.9;
+VAR_max := 10.1; 
+
+if (((VAR_p1 > VAR_min) land (VAR_p1 < VAR_max)) land  ((VAR_p2 > VAR_min) land (VAR_p2 < VAR_max))) lor (((VAR_p1 > VAR_min) land (VAR_p1 < VAR_max)) land  ((VAR_p3 > VAR_min) land (VAR_p3 < VAR_max))) lor (((VAR_p3 > VAR_min) land (VAR_p3 < VAR_max)) land  ((VAR_p2 > VAR_min) land (VAR_p2 < VAR_max))) then          
+return(1);
+else
+return(0);

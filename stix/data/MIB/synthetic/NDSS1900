@@ -1,0 +1,1 @@
+if((NCSD3JK3.eng == "ON") land (NDSG1055.raw > 29)) then return(1); else return(0); endif;

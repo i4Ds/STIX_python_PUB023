@@ -1,0 +1,10 @@
+####################################
+# Calculate MGA Validity           #
+####################################
+
+# Use APME MGA x scvOP to determine which is IN-USE (2)
+if (NCSD3JE4.raw == 2) lor (NCSD3JF4.raw == 2) then # MGA
+return(1);
+else # Neither!
+return(0);
+endif;

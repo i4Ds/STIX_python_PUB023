@@ -1,0 +1,27 @@
+if NIXD0021.raw == 1 then
+    return(0);
+else
+
+VAR_all_quarters := NIXD0085.raw+NIXD0084.raw+NIXD0083.raw+NIXD0082.raw;
+
+if VAR_all_quarters == 0 then
+        return(0);
+endif;
+
+if VAR_all_quarters == 1 then
+        return(1);
+endif;
+
+if VAR_all_quarters == 2 then
+        return(2);
+endif;
+
+if VAR_all_quarters == 3 then
+        return(3);
+endif;
+
+if VAR_all_quarters == 4 then
+        return(4);
+endif;
+
+endif;

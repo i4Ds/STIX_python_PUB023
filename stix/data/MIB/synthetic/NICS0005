@@ -1,0 +1,14 @@
+# 4th Aug 2017: FEE HK OOL Validity Parameter - NICS0005
+# Synthetic parameter to determine if FEE HK is valid
+#
+# ----------------------
+#
+# OL_FEE_HK
+#
+# FEE HK is only valid if a study is running, i.e. StudyID (NIC0N005) <= 63
+if (NIC0N005.raw <= 63) then
+   return (1);
+else
+   return (0);
+endif;
+#

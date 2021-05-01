@@ -1,0 +1,100 @@
+#######################
+#
+# NTTSX003	Antenna Connnect to RX-2
+#
+#  This parameter indicates which antenna is connected to DST-1.
+#
+# Created: 01/12/2018
+# Author: T. Toshev
+#
+# Change History:
+#	01/12/2018: Script created
+#
+#######################
+
+# set VAR_sw1 local variable: Switch 1 Position; Pos 1=0 Pos 2=1
+if (NRUSX001 == "Pos 1") then 
+  VAR_sw1 := 0;
+else 
+if (NRUSX001 == "Pos 2") then 
+  VAR_sw1 := 1;
+else
+  VAR_sw1 := 33;
+endif;
+endif;
+
+# set VAR_sw2 local variable: Switch 2 Position; Pos 1=0 Pos 2=1
+if (NRUSX002 == "Pos 1") then 
+  VAR_sw2 := 0;
+else 
+if (NRUSX002 == "Pos 2") then 
+  VAR_sw2 := 1;
+else
+  VAR_sw2 := 33;
+endif;
+endif;
+
+# set VAR_sw3 local variable: Switch 3 Position; Pos 1=0 Pos 2=1
+if (NRUSX003 == "Pos 1") then 
+  VAR_sw3 := 0;
+else 
+if (NRUSX003 == "Pos 2") then 
+  VAR_sw3 := 1;
+else
+  VAR_sw3 := 33;
+endif;
+endif;
+
+# set VAR_sw4 local variable: Switch 4 Position; Pos 1=0 Pos 2=1
+if (NRUSX004 == "Pos 1") then 
+  VAR_sw4 := 0;
+else 
+if (NRUSX004 == "Pos 2") then 
+  VAR_sw4 := 1;
+else
+  VAR_sw4 := 33;
+endif;
+endif;
+
+# set VAR_sw5 local variable: Switch 5 Position; Pos 1=0 Pos 2=1
+if (NRUSX005 == "Pos 1") then 
+  VAR_sw5 := 0;
+else 
+if (NRUSX005 == "Pos 2") then 
+  VAR_sw5 := 1;
+else
+  VAR_sw5 := 33;
+endif;
+endif;
+
+# Now calculate the resulting bit pattern VAR_result with a length of 5 bit
+# MSB = bit 0 = VAR_sw1
+#       bit 1 = VAR_sw2
+#       bit 2 = VAR_sw3
+#       bit 3 = VAR_sw4
+
+VAR_result := VAR_sw1*16 + VAR_sw2*8 + VAR_sw3*4 + VAR_sw4*2 + VAR_sw5 + 1;
+
+# Now check which configuration ist set
+# HGA
+if (VAR_result == 2) lor (VAR_result == 4) lor (VAR_result == 5) lor (VAR_result == 7) lor (VAR_result == 10) lor (VAR_result == 12) lor (VAR_result == 21) lor (VAR_result == 23)
+then return("HGA");
+endif;
+
+# MGA
+if (VAR_result == 11) lor (VAR_result == 15) lor (VAR_result == 18) lor (VAR_result == 22) lor (VAR_result == 26) lor (VAR_result == 27) lor (VAR_result == 30) lor (VAR_result == 31)
+then return("MGA");
+endif;
+
+# LGA1(A)
+if (VAR_result == 1) lor (VAR_result == 3) lor (VAR_result == 6) lor (VAR_result == 8) lor (VAR_result == 14) lor (VAR_result == 16) lor (VAR_result == 17) lor (VAR_result == 19)
+then return("LGA-A");
+endif;
+
+# LGA2(B)
+if (VAR_result == 9) lor (VAR_result == 13) lor (VAR_result == 20) lor (VAR_result == 24) lor (VAR_result == 25) lor (VAR_result == 28) lor (VAR_result == 29) lor (VAR_result == 32)
+then return("LGA-B");
+endif;
+
+# combination not covered
+return("Unknown position of WGS");

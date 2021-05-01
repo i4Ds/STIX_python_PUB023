@@ -1,0 +1,74 @@
+#####
+#
+#ALARM status RM_alarm_status RM A
+#
+#
+#####
+
+#PM_A_B_UVD
+# updated 29/06/2017 to change VAR_out from integer values to string values
+
+if (NBCDX017==0 land NBCDX011==1) then
+   VAR_out:="Set1Pap0";  #was previously 0
+endif;
+if (NBCDX017==1 land NBCDX015==1) then
+   VAR_out:="Set1Pap1";  #was previously 1
+endif;
+
+
+#PM_A_B_HW_or_SW_Failure
+# updated 29/06/2017 to change VAR_out from integer values to string values
+
+if (NBCDX017==0 land (NBCDX009==1 lor NBCDX010==1)) then
+   VAR_out:="Set1Pap2";  #was previously 2
+endif;
+
+if (NBCDX017==1 land (NBCDX013==1 lor NBCDX014==1)) then
+   VAR_out:="Set1Pap3";   #was previously 3
+endif;
+
+
+
+
+#PM_A_B_watchdog
+# updated 29/06/2017 to change VAR_out from integer values to string values
+
+if (NBCDX017==0 land NBCDX000==1 land NBCDX021==1) then
+   VAR_out:="Set1Pap4";  #was previously 4
+endif;
+
+if (NBCDX017== 1 land NBCDX001==1 land NBCDX021==1) then
+   VAR_out:="Set1Pap5";  #was previously 5
+endif;
+
+
+
+
+#PM_A_B_SW_ALARM
+# updated 29/06/2017 to change VAR_out from integer values to string values
+
+if (NBCDX017==0 land NBCDX012==1) then
+   VAR_out:="Set1Pap6";   #was previously 6
+endif;
+
+if (NBCDX017==1 land NBCDX016==1) then
+   VAR_out:="Set1Pap7";   #was previously 7
+endif;
+
+
+
+
+#PM_A_B_Ops_Alarm
+# updated 29/06/2017 to change VAR_out from integer values to string values
+
+if (NBCDX017==0 land NBCDX007==1) then
+   VAR_out:="Set1Pap8";   #was previously 8
+endif;
+
+if (NBCDX017==1 land NBCDX008==1) then
+   VAR_out:="Set1Pap9";  #was previously 9
+endif;
+
+else VAR_out:="None"; #was previously 10
+
+return(VAR_out);

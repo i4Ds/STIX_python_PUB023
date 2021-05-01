@@ -1,0 +1,29 @@
+#######################################
+# PS 4 Fill Level - PS_DIAG
+# Indentify start of next read address (either last read or start of PS)
+if NCDD0AE9.raw < 1 then
+   # This PS has not been read
+   #
+   if NCDD0AEC.raw < 1 then
+        # Nor has it been written to - use the PS start address
+        VAR_PS4_ReadPtr :=  NCDD0AE8.raw;
+   else
+       # There's a valid packet though, use the FVPP
+   	VAR_PS4_ReadPtr :=  NCDD0AEC.raw;
+   endif;
+else
+  VAR_PS4_ReadPtr := NCDD0AE9.raw;
+endif;
+#
+# Get write address
+VAR_PS4_WritePtr := NCDD0AEB.raw;
+#
+# Difference between them is the amount of unread data
+if VAR_PS4_WritePtr >= VAR_PS4_ReadPtr then
+   VAR_PS4_UnreadBytes := VAR_PS4_WritePtr - VAR_PS4_ReadPtr;
+else
+   VAR_PS4_UnreadBytes := (NCDD0AE7.raw + VAR_PS4_WritePtr) - VAR_PS4_ReadPtr; 
+endif;
+#
+# Return amount of data stored in this packet store
+return (VAR_PS4_UnreadBytes);

@@ -1,0 +1,29 @@
+#######################################
+# PS 3 Fill Level - PS_EVENT
+# Indentify start of next read address (either last read or start of PS)
+if NCDD0AD9.raw < 1 then
+   # This PS has not been read
+   #
+   if NCDD0ADC.raw < 1 then
+        # Nor has it been written to - use the PS start address
+        VAR_PS3_ReadPtr :=  NCDD0AD8.raw;
+   else
+       # There's a valid packet though, use the FVPP
+   	VAR_PS3_ReadPtr :=  NCDD0ADC.raw;
+   endif;
+else
+  VAR_PS3_ReadPtr := NCDD0AD9.raw;
+endif;
+#
+# Get write address
+VAR_PS3_WritePtr := NCDD0ADB.raw;
+#
+# Difference between them is the amount of unread data
+if VAR_PS3_WritePtr >= VAR_PS3_ReadPtr then
+   VAR_PS3_UnreadBytes := VAR_PS3_WritePtr - VAR_PS3_ReadPtr;
+else
+   VAR_PS3_UnreadBytes := (NCDD0AD7.raw + VAR_PS3_WritePtr) - VAR_PS3_ReadPtr; 
+endif;
+#
+# Return amount of data stored in this packet store
+return (VAR_PS3_UnreadBytes);

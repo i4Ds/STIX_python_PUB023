@@ -1,0 +1,9 @@
+# NCFZ0001 - TC Link Time Out, UDC parameter
+# NCFT2XU0 - COMS_TCL_MonThrhld1
+if (NCFT2XU0.raw == NCFZ0001.raw) then
+#True
+return(1);
+else
+#False
+return(0);
+endif;
